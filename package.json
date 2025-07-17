@@ -32,6 +32,8 @@
     "hooks:uninstall": "lefthook uninstall",
     "hooks:run": "lefthook run pre-commit",
     "hooks:test": "lefthook run pre-push",
+    "commit:lint": "commitlint --from HEAD~1 --to HEAD --verbose",
+    "commit:check": "commitlint --edit --verbose",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -82,6 +84,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.0.6",
     "@chromatic-com/storybook": "^4.0.1",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@lingui/cli": "^5.3.3",
     "@lingui/swc-plugin": "^5.5.2",
     "@rsbuild/core": "^1.4.6",

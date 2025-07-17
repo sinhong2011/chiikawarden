@@ -2,6 +2,27 @@
 # Replaces lint-staged with native lefthook functionality
 # See https://github.com/evilmartians/lefthook/blob/master/docs/configuration.md
 
+# Commit message validation
+commit-msg:
+  commands:
+    # Validate commit message format using commitlint
+    commitlint:
+      run: bunx commitlint --edit {1}
+      fail_text: |
+        Commit message does not follow conventional commit format.
+
+        Expected format: type(scope): description
+
+        Examples:
+          feat(auth): add biometric authentication support
+          fix(vault): resolve cipher decryption issue
+          docs(readme): update installation instructions
+          refactor(components): extract reusable form components
+
+        Allowed types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+
+        See: https://www.conventionalcommits.org/
+
 pre-commit:
   # Parallel execution for faster hooks
   parallel: true
@@ -10,13 +31,13 @@ pre-commit:
     # Frontend linting and formatting
     frontend-lint:
       glob: "*.{js,jsx,ts,tsx}"
-      run: biome check --apply {staged_files}
+      run: bunx biome check --write {staged_files}
       stage_fixed: true
-      
+
     # Frontend formatting
     frontend-format:
       glob: "*.{js,jsx,ts,tsx,json,md}"
-      run: biome format --write {staged_files}
+      run: bunx biome format --write {staged_files}
       stage_fixed: true
       
     # TypeScript type checking
