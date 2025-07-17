@@ -36,7 +36,7 @@ pre-commit:
 
     # Frontend formatting
     frontend-format:
-      glob: "*.{js,jsx,ts,tsx,json,md}"
+      glob: "*.{js,jsx,ts,tsx,json}"
       run: bunx biome format --write {staged_files}
       stage_fixed: true
       
