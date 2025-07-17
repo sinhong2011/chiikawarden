@@ -1,0 +1,838 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-07-16T01:17:10+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: zh-TW\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#~ msgid "validation.password_strength_numbers"
+#~ msgstr "新增數字。"
+
+#~ msgid "error.two_factor_expired"
+#~ msgstr "驗證碼已過期。請請求新的驗證碼。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "error.login_failed"
+msgstr "登入失敗。請重試。"
+
+#~ msgid "error.validation_error"
+#~ msgstr "請檢查您的輸入並重試。"
+
+#~ msgid "error.account_locked"
+#~ msgstr "由於登入失敗次數過多，您的帳戶已被暫時鎖定。請稍後重試。"
+
+#~ msgid "validation.master_password_required"
+#~ msgstr "主密碼為必填項目。"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Edit server provider"
+msgstr "編輯伺服器提供商"
+
+#~ msgid "validation.master_password_min_length"
+#~ msgstr "主密碼至少需要8個字元。"
+
+#~ msgid "validation.password_min_length"
+#~ msgstr "密碼至少需要8個字元。"
+
+#~ msgid "notfound.error_code"
+#~ msgstr "錯誤代碼：404 - 找不到頁面"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/login-form.tsx
+#~ msgid "Login failed. Please try again."
+#~ msgstr ""
+
+#~ msgid "validation.master_password_strength"
+#~ msgstr "主密碼必須包含以下至少3種：大寫字母、小寫字母、數字、特殊字元。"
+
+#~ msgid "validation.notes_max_length"
+#~ msgstr "備註不能超過10,000個字元。"
+
+#~ msgid "validation.postal_code_format"
+#~ msgstr "郵遞區號格式無效。"
+
+#~ msgid "validation.username_max_length"
+#~ msgstr "使用者名稱不能超過100個字元。"
+
+#~ msgid "error.email_not_verified"
+#~ msgstr "請在登入前驗證您的電子郵件地址。"
+
+#~ msgid "error.biometric_failed"
+#~ msgstr "生物識別身份驗證失敗。請重試或使用主密碼。"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+#~ msgid "Failed to retrieve login settings"
+#~ msgstr "無法獲取登入設定"
+
+#~ msgid "validation.cvv_format"
+#~ msgstr "CVV必須為3或4位數字。"
+
+#~ msgid "error.two_factor_required"
+#~ msgstr "需要雙重身份驗證。請輸入您的驗證碼。"
+
+#~ msgid "error.maintenance_mode"
+#~ msgstr "服務正在維護中。請稍後重試。"
+
+# Home
+#~ msgid "home.description"
+#~ msgstr "點擊 Tauri、Vite 和 Solid 標誌瞭解更多資訊。"
+
+#~ msgid "validation.password_strength_length"
+#~ msgstr "使用至少8個字元。"
+
+#~ msgid "errorBoundary.severity"
+#~ msgstr "嚴重程度"
+
+#~ msgid "login.forgot_password"
+#~ msgstr "忘記密碼？"
+
+#~ msgid "error.biometric_not_enrolled"
+#~ msgstr "此裝置未註冊生物識別資料。請先設定生物識別身份驗證。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#~ msgid "Invalid email or password. Please try again."
+#~ msgstr ""
+
+#~ msgid "nav.dashboard"
+#~ msgstr "儀表板"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Enter your master password"
+msgstr ""
+
+#~ msgid "about.title"
+#~ msgstr "關於 Chiikawarden"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Welcome back"
+msgstr ""
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Server URL"
+msgstr "伺服器URL"
+
+#~ msgid "login.password"
+#~ msgstr "密碼"
+
+#~ msgid "validation.password_strength_no_sequences"
+#~ msgstr "避免常見序列。"
+
+#~ msgid "errorBoundary.technical_details"
+#~ msgstr "技術細節"
+
+#~ msgid "login.no_account"
+#~ msgstr "沒有賬戶？"
+
+# Common messages
+#~ msgid "common.loading"
+#~ msgstr "載入中..."
+
+# Error Boundary
+#~ msgid "errorBoundary.category"
+#~ msgstr "類別"
+
+#~ msgid "button.edit"
+#~ msgstr "編輯"
+
+#~ msgid "about.desktop.value"
+#~ msgstr "Tauri"
+
+#~ msgid "validation.phone_number_length"
+#~ msgstr "電話號碼必須在10到15位數字之間。"
+
+#~ msgid "about.desktop.title"
+#~ msgstr "桌面"
+
+#~ msgid "error.api_error"
+#~ msgstr "與伺服器通訊時發生錯誤。請重試。"
+
+# Validation messages
+#~ msgid "validation.email_required"
+#~ msgstr "電子郵件為必填項目。"
+
+#~ msgid "error.biometric_not_available"
+#~ msgstr "此裝置不支援生物識別身份驗證。"
+
+#~ msgid "label.updated_at"
+#~ msgstr "更新時間"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Remove Server"
+msgstr ""
+
+#~ msgid "error.vault_locked"
+#~ msgstr "您的保險庫已鎖定。請使用主密碼解鎖。"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Verifying email..."
+msgstr ""
+
+#~ msgid "validation.password_strength_longer"
+#~ msgstr "考慮使用12個以上字元以提高安全性。"
+
+# About
+#~ msgid "about.description"
+#~ msgstr "這是一個使用 SolidJS 建構的 Tauri 應用程式，具有 TanStack Router 和 Query 的現代路由和資料獲取功能。"
+
+#~ msgid "error.account_not_found"
+#~ msgstr "未找到此電子郵件地址的帳戶。請檢查您的電子郵件或建立新帳戶。"
+
+#: src/routes/index.tsx
+msgid "common.initializing"
+msgstr ""
+
+#~ msgid "errorBoundary.timestamp"
+#~ msgstr "時間戳"
+
+#~ msgid "validation.card_number_length"
+#~ msgstr "卡號必須在13到19位數字之間。"
+
+#~ msgid "error.connection_failed"
+#~ msgstr "連線失敗。請檢查您的網路連線。"
+
+#~ msgid "alt.vite_logo"
+#~ msgstr "Vite 標誌"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Update Server"
+msgstr ""
+
+#~ msgid "errorBoundary.copy_details"
+#~ msgstr "複製詳細信息"
+
+#~ msgid "notfound.go_home"
+#~ msgstr "回到首頁"
+
+#~ msgid "button.delete"
+#~ msgstr "刪除"
+
+#~ msgid "validation.password_strength_uppercase"
+#~ msgstr "新增大寫字母。"
+
+#~ msgid "error.token_refresh_failed"
+#~ msgstr "無法重新整理您的工作階段。請重新登入。"
+
+#~ msgid "button.save"
+#~ msgstr "儲存"
+
+#~ msgid "validation.url_required"
+#~ msgstr "URL為必填項目。"
+
+#~ msgid "errorBoundary.close"
+#~ msgstr "關閉"
+
+#~ msgid "about.framework.desc"
+#~ msgstr "響應式 UI 程式庫"
+
+#~ msgid "errorBoundary.try_again"
+#~ msgstr "再試一次"
+
+#~ msgid "notfound.or"
+#~ msgstr "或者"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Master Password"
+msgstr ""
+
+#~ msgid "login.prelogin"
+#~ msgstr "登入前"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Email"
+msgstr ""
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Sign in to"
+msgstr ""
+
+#~ msgid "login.sign_up"
+#~ msgstr "報名"
+
+# 404 Not Found
+#~ msgid "notfound.description"
+#~ msgstr "您要尋找的頁面不存在或已被移動。"
+
+#~ msgid "label.email"
+#~ msgstr "電子郵件"
+
+#~ msgid "about.framework.title"
+#~ msgstr "框架"
+
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Add Custom Server"
+msgstr "新增自訂伺服器"
+
+#: src/routes/index.tsx
+#: src/routes/_auth/route.tsx
+msgid "app_name"
+msgstr "奇卡·沃登"
+
+#~ msgid "button.continue"
+#~ msgstr "繼續"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Updating..."
+msgstr ""
+
+#~ msgid "label.status"
+#~ msgstr "狀態"
+
+#~ msgid "errorBoundary.retrying"
+#~ msgstr "正在重試..."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "error.invalid_credentials"
+msgstr "電子郵件或密碼無效。請檢查您的憑證並重試。"
+
+#~ msgid "errorBoundary.max_retries_reached"
+#~ msgstr "已達最大重試次數"
+
+#~ msgid "validation.folder_name_max_length"
+#~ msgstr "資料夾名稱不能超過50個字元。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Edit Custom Server"
+msgstr ""
+
+#~ msgid "button.cancel"
+#~ msgstr "取消"
+
+#~ msgid "error.retry_failed"
+#~ msgstr "重試時發生未知錯誤。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Signing in..."
+msgstr ""
+
+#~ msgid "error.session_expired"
+#~ msgstr "您的工作階段已過期。請重新登入。"
+
+#~ msgid "validation.ssn_format"
+#~ msgstr "SSN必須為9位數字。"
+
+#~ msgid "validation.name_required"
+#~ msgstr "名稱為必填項目。"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Select a server provider..."
+msgstr "選擇伺服器提供商..."
+
+#~ msgid "validation.password_strength_special"
+#~ msgstr "新增特殊字元。"
+
+#~ msgid "error.account_setup_failed"
+#~ msgstr "帳戶設定失敗。請重試。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Can't access your account?"
+msgstr ""
+
+# Error messages
+#~ msgid "error.network_error"
+#~ msgstr "無法連接到伺服器。請檢查您的網路連線並重試。"
+
+#~ msgid "login.title"
+#~ msgstr "登入"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.server_label_required"
+msgstr "請為此伺服器輸入標籤。"
+
+# Buttons
+#~ msgid "button.back"
+#~ msgstr "返回"
+
+#~ msgid "error.invalid_token"
+#~ msgstr "身份驗證權杖無效。請重新登入。"
+
+#~ msgid "label.name"
+#~ msgstr "姓名"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Delete"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/components/ui/error-display.tsx
+msgid "common.loading"
+msgstr ""
+
+#~ msgid "about.desktop.desc"
+#~ msgstr "跨平台應用程式"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Cancel"
+msgstr ""
+
+#~ msgid "validation.master_password_max_length"
+#~ msgstr "主密碼不能超過128個字元。"
+
+#: src/components/language-switcher.tsx
+msgid "common.failed_change_locale"
+msgstr ""
+
+#~ msgid "error.master_key_invalid"
+#~ msgstr "主密碼無效。請重試。"
+
+#~ msgid "validation.passwords_do_not_match"
+#~ msgstr "密碼不符合。"
+
+#. placeholder {0}: props.provider.label
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you sure you want to delete \"{0}\"? This action cannot be undone."
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.account_setup_failed"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.login_failed"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/error-handling.ts
+msgid "error.retry_failed"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/error-handling.ts
+#: src/lib/error-handling.ts
+msgid "error.unknown_error"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.unlock_failed"
+msgstr ""
+
+#~ msgid "login.sign_in"
+#~ msgstr "登入"
+
+#~ msgid "home.title"
+#~ msgstr "歡迎使用 Tauri + Solid"
+
+#~ msgid "validation.password_strength_no_repeating"
+#~ msgstr "避免重複字元。"
+
+#~ msgid "alt.tauri_logo"
+#~ msgstr "Tauri 標誌"
+
+#~ msgid "errorBoundary.suggestions"
+#~ msgstr "建議"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "My Company Server"
+msgstr "我的公司伺服器"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Keep me signed in on this device"
+msgstr ""
+
+#~ msgid "validation.name_max_length"
+#~ msgstr "名稱不能超過100個字元。"
+
+#~ msgid "errorBoundary.error_id"
+#~ msgstr "錯誤 ID"
+
+#~ msgid "validation.expiry_date_format"
+#~ msgstr "到期日期必須為MM/YY格式。"
+
+#~ msgid "error.server_error"
+#~ msgstr "伺服器錯誤。請稍後重試。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Email Address"
+msgstr ""
+
+#~ msgid "validation.password_strength_lowercase"
+#~ msgstr "新增小寫字母。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.url_invalid"
+msgstr "請輸入有效的URL。"
+
+# Navigation
+#~ msgid "nav.about"
+#~ msgstr "關於"
+
+#~ msgid "errorBoundary.title"
+#~ msgstr "出了點問題"
+
+#~ msgid "validation.password_required"
+#~ msgstr "密碼為必填項目。"
+
+#~ msgid "notfound.title"
+#~ msgstr "404"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you sure you want to delete this server provider? This action cannot be undone."
+msgstr ""
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Delete Server Provider"
+msgstr ""
+
+#~ msgid "label.description"
+#~ msgstr "描述"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Failed to change server provider. Please try again."
+msgstr "更改伺服器提供商失敗。請重試。"
+
+#~ msgid "errorBoundary.reload_page"
+#~ msgstr "重新整理頁面"
+
+#: src/routes/_auth/login/index.tsx
+msgid "Don't have an account?"
+msgstr ""
+
+#~ msgid "validation.confirm_password_required"
+#~ msgstr "請確認您的密碼。"
+
+#~ msgid "error.unlock_failed"
+#~ msgstr "解鎖失敗。請重試。"
+
+#: src/routes/_auth/login/index.tsx
+msgid "Sign Up"
+msgstr ""
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Sign In"
+msgstr ""
+
+#~ msgid "home.greet_button"
+#~ msgstr "問候"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Change"
+msgstr ""
+
+#~ msgid "notfound.subtitle"
+#~ msgstr "找不到頁面"
+
+#~ msgid "about.framework.value"
+#~ msgstr "SolidJS"
+
+#~ msgid "error.unknown_error"
+#~ msgstr "發生意外錯誤。請重試。"
+
+#~ msgid "home.input_placeholder"
+#~ msgstr "輸入姓名..."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.server_url_required"
+msgstr "請輸入伺服器URL。"
+
+#~ msgid "validation.card_expired"
+#~ msgstr "卡片已過期。"
+
+# Labels
+#~ msgid "label.created_at"
+#~ msgstr "建立時間"
+
+#~ msgid "validation.field_default_name"
+#~ msgstr "此欄位"
+
+#~ msgid "login.remember_me"
+#~ msgstr "記住帳號"
+
+#~ msgid "error.rate_limited"
+#~ msgstr "請求過多。請稍等片刻後重試。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Configure individual service URLs (optional)"
+msgstr "設定各個服務URL（可選）"
+
+#: src/routes/_auth/login/index.tsx
+msgid "Log in"
+msgstr ""
+
+#~ msgid "validation.email_invalid"
+#~ msgstr "請輸入有效的電子郵件地址。"
+
+#: src/components/server-provider/server-provider-selector.tsx
+#~ msgid "Switching server provider..."
+#~ msgstr "正在切換伺服器提供商..."
+
+#~ msgid "nav.home"
+#~ msgstr "首頁"
+
+#~ msgid "validation.card_number_digits_only"
+#~ msgstr "卡號只能包含數字。"
+
+#~ msgid "validation.card_number_invalid"
+#~ msgstr "無效的卡號。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Advanced configuration"
+msgstr "進階設定"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_expired"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_digits_only"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_invalid"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.confirm_password_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.cvv_format"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.email_invalid"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+#: src/hooks/queries/use-auth-queries.ts
+#: src/hooks/queries/use-auth-queries.ts
+msgid "validation.email_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.expiry_date_format"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.field_default_name"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.field_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.folder_name_max_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.folder_name_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_max_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_min_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_strength"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.name_max_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.name_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.notes_max_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_min_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_required"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_longer"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_lowercase"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_no_repeating"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_no_sequences"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_numbers"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_special"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_uppercase"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.passwords_do_not_match"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.phone_number_length"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.postal_code_format"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.ssn_format"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.url_invalid"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.username_max_length"
+msgstr ""
+
+# Login
+#~ msgid "login.email"
+#~ msgstr "電子郵件"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "error.prelogin_failed"
+msgstr "無法取得登入設定。"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Continue"
+msgstr "繼續"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Enter your email address"
+msgstr "輸入您的電子郵件地址"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Add server provider"
+msgstr "新增伺服器提供商"
+
+#~ msgid "validation.field_required"
+#~ msgstr "{fieldName}為必填項目。"
+
+#~ msgid "error.invalid_two_factor"
+#~ msgstr "驗證碼無效。請重試。"
+
+#: src/components/language-switcher.tsx
+msgid "common.select_language"
+msgstr ""
+
+# Alt text for images
+#~ msgid "alt.solid_logo"
+#~ msgstr "Solid 標誌"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Server Label"
+msgstr "伺服器標籤"
+
+#~ msgid "error.decryption_failed"
+#~ msgstr "無法解密您的保險庫資料。請檢查您的主密碼。"
+
+#~ msgid "validation.folder_name_required"
+#~ msgstr "資料夾名稱為必填項目。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you absolutely sure?"
+msgstr ""
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Remember me"
+msgstr ""
+
+#~ msgid "error.timeout_error"
+#~ msgstr "請求逾時。請重試。"

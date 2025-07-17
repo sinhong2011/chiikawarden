@@ -1,0 +1,890 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-07-16T01:17:10+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#~ msgid "validation.password_strength_numbers"
+#~ msgstr "Add numbers."
+
+#~ msgid "error.two_factor_expired"
+#~ msgstr "Verification code has expired. Please request a new one."
+
+#~ msgid "login.enter_email_placeholder"
+#~ msgstr "Enter your email address"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "error.login_failed"
+msgstr "Login failed. Please try again."
+
+#~ msgid "error.validation_error"
+#~ msgstr "Please check your input and try again."
+
+#~ msgid "error.account_locked"
+#~ msgstr "Your account has been temporarily locked due to too many failed login attempts. Please try again later."
+
+#~ msgid "validation.master_password_required"
+#~ msgstr "Master password is required."
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Edit server provider"
+msgstr "Edit server provider"
+
+#~ msgid "validation.master_password_min_length"
+#~ msgstr "Master password must be at least 8 characters long."
+
+#~ msgid "login.invalid_credentials"
+#~ msgstr "Invalid email or password. Please try again."
+
+#~ msgid "login.password_required"
+#~ msgstr "Password is required"
+
+#~ msgid "validation.password_min_length"
+#~ msgstr "Password must be at least 8 characters long."
+
+#~ msgid "notfound.error_code"
+#~ msgstr "Error code: 404 - Page not found"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/login-form.tsx
+#~ msgid "Login failed. Please try again."
+#~ msgstr "Login failed. Please try again."
+
+#~ msgid "login.verifying_email"
+#~ msgstr "Verifying email..."
+
+#~ msgid "validation.master_password_strength"
+#~ msgstr "Master password must contain at least 3 of: uppercase, lowercase, number, special character."
+
+#~ msgid "validation.notes_max_length"
+#~ msgstr "Notes must be less than 10,000 characters."
+
+#~ msgid "validation.postal_code_format"
+#~ msgstr "Invalid postal code format."
+
+#~ msgid "validation.username_max_length"
+#~ msgstr "Username must be less than 100 characters."
+
+#~ msgid "error.email_not_verified"
+#~ msgstr "Please verify your email address before signing in."
+
+#~ msgid "error.biometric_failed"
+#~ msgstr "Biometric authentication failed. Please try again or use your master password."
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+#~ msgid "Failed to retrieve login settings"
+#~ msgstr "Failed to retrieve login settings"
+
+#~ msgid "validation.cvv_format"
+#~ msgstr "CVV must be 3 or 4 digits."
+
+#~ msgid "error.two_factor_required"
+#~ msgstr "Two-factor authentication is required. Please enter your verification code."
+
+#~ msgid "error.maintenance_mode"
+#~ msgstr "The service is currently under maintenance. Please try again later."
+
+# Home
+#~ msgid "home.description"
+#~ msgstr "Click on the Tauri, Vite, and Solid logos to learn more."
+
+#~ msgid "validation.password_strength_length"
+#~ msgstr "Use at least 8 characters."
+
+#~ msgid "errorBoundary.severity"
+#~ msgstr "Severity"
+
+#~ msgid "login.valid_email_required"
+#~ msgstr "Please enter a valid email address."
+
+#~ msgid "login.forgot_password"
+#~ msgstr "Forgot password?"
+
+#~ msgid "error.biometric_not_enrolled"
+#~ msgstr "No biometric data is enrolled on this device. Please set up biometric authentication first."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#~ msgid "Invalid email or password. Please try again."
+#~ msgstr "Invalid email or password. Please try again."
+
+#~ msgid "nav.dashboard"
+#~ msgstr "Dashboard"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Enter your master password"
+msgstr "Enter your master password"
+
+#~ msgid "about.title"
+#~ msgstr "About Chiikawarden"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Welcome back"
+msgstr "Welcome back"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Server URL"
+msgstr "Server URL"
+
+#~ msgid "login.password"
+#~ msgstr "Password"
+
+#~ msgid "validation.password_strength_no_sequences"
+#~ msgstr "Avoid common sequences."
+
+#~ msgid "errorBoundary.technical_details"
+#~ msgstr "Technical Details"
+
+#~ msgid "login.email_required"
+#~ msgstr "Please enter your email."
+
+#~ msgid "login.no_account"
+#~ msgstr "Don't have an account?"
+
+# Common messages
+#~ msgid "common.loading"
+#~ msgstr "Loading..."
+
+# Error Boundary
+#~ msgid "errorBoundary.category"
+#~ msgstr "Category"
+
+#~ msgid "button.edit"
+#~ msgstr "Edit"
+
+#~ msgid "about.desktop.value"
+#~ msgstr "Tauri"
+
+#~ msgid "validation.phone_number_length"
+#~ msgstr "Phone number must be between 10 and 15 digits."
+
+#~ msgid "about.desktop.title"
+#~ msgstr "Desktop"
+
+#~ msgid "error.api_error"
+#~ msgstr "An error occurred while communicating with the server. Please try again."
+
+# Validation messages
+#~ msgid "validation.email_required"
+#~ msgstr "Email is required."
+
+#~ msgid "error.biometric_not_available"
+#~ msgstr "Biometric authentication is not available on this device."
+
+#~ msgid "label.updated_at"
+#~ msgstr "Updated At"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Remove Server"
+msgstr "Remove Server"
+
+#~ msgid "login.master_password_placeholder"
+#~ msgstr "Enter your master password"
+
+#~ msgid "error.vault_locked"
+#~ msgstr "Your vault is locked. Please unlock it with your master password."
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Verifying email..."
+msgstr "Verifying email..."
+
+#~ msgid "validation.password_strength_longer"
+#~ msgstr "Consider using 12+ characters for better security."
+
+# About
+#~ msgid "about.description"
+#~ msgstr "This is a Tauri application built with SolidJS, featuring TanStack Router and Query for modern routing and data fetching capabilities."
+
+#~ msgid "error.account_not_found"
+#~ msgstr "No account found with this email address. Please check your email or create a new account."
+
+#: src/routes/index.tsx
+msgid "common.initializing"
+msgstr "common.initializing"
+
+#~ msgid "errorBoundary.timestamp"
+#~ msgstr "Timestamp"
+
+#~ msgid "validation.card_number_length"
+#~ msgstr "Card number must be between 13 and 19 digits."
+
+#~ msgid "error.connection_failed"
+#~ msgstr "Connection failed. Please check your internet connection."
+
+#~ msgid "alt.vite_logo"
+#~ msgstr "Vite logo"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Update Server"
+msgstr "Update Server"
+
+#~ msgid "errorBoundary.copy_details"
+#~ msgstr "Copy Details"
+
+#~ msgid "notfound.go_home"
+#~ msgstr "Go Home"
+
+#~ msgid "button.delete"
+#~ msgstr "Delete"
+
+#~ msgid "validation.password_strength_uppercase"
+#~ msgstr "Add uppercase letters."
+
+#~ msgid "error.token_refresh_failed"
+#~ msgstr "Unable to refresh your session. Please sign in again."
+
+#~ msgid "button.save"
+#~ msgstr "Save"
+
+#~ msgid "validation.url_required"
+#~ msgstr "URL is required."
+
+#~ msgid "errorBoundary.close"
+#~ msgstr "Close"
+
+#~ msgid "about.framework.desc"
+#~ msgstr "Reactive UI library"
+
+#~ msgid "errorBoundary.try_again"
+#~ msgstr "Try again"
+
+#~ msgid "login.cant_access_account"
+#~ msgstr "Can't access your account?"
+
+#~ msgid "notfound.or"
+#~ msgstr "OR"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Master Password"
+msgstr "Master Password"
+
+#~ msgid "login.prelogin"
+#~ msgstr "Pre-login"
+
+#~ msgid "login.signing_in"
+#~ msgstr "Signing in..."
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Email"
+msgstr "Email"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Sign in to"
+msgstr "Sign in to"
+
+#~ msgid "login.sign_up"
+#~ msgstr "Sign Up"
+
+# 404 Not Found
+#~ msgid "notfound.description"
+#~ msgstr "The page you're looking for doesn't exist or has been moved."
+
+#~ msgid "label.email"
+#~ msgstr "Email"
+
+#~ msgid "about.framework.title"
+#~ msgstr "Framework"
+
+# Additional login messages
+#~ msgid "login.welcome_back"
+#~ msgstr "Welcome back"
+
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Add Custom Server"
+msgstr "Add Custom Server"
+
+#: src/routes/index.tsx
+#: src/routes/_auth/route.tsx
+msgid "app_name"
+msgstr "Chiikawarden"
+
+#~ msgid "login.master_password"
+#~ msgstr "Master Password"
+
+#~ msgid "button.continue"
+#~ msgstr "Continue"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Updating..."
+msgstr "Updating..."
+
+#~ msgid "label.status"
+#~ msgstr "Status"
+
+#~ msgid "errorBoundary.retrying"
+#~ msgstr "Retrying..."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "error.invalid_credentials"
+msgstr "Invalid email or password. Please check your credentials and try again."
+
+#~ msgid "errorBoundary.max_retries_reached"
+#~ msgstr "Maximum retry attempts reached"
+
+#~ msgid "validation.folder_name_max_length"
+#~ msgstr "Folder name must be less than 50 characters."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Edit Custom Server"
+msgstr "Edit Custom Server"
+
+#~ msgid "button.cancel"
+#~ msgstr "Cancel"
+
+#~ msgid "error.retry_failed"
+#~ msgstr "Unknown error occurred during retry."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Signing in..."
+msgstr "Signing in..."
+
+#~ msgid "error.session_expired"
+#~ msgstr "Your session has expired. Please sign in again."
+
+#~ msgid "validation.ssn_format"
+#~ msgstr "SSN must be 9 digits."
+
+#~ msgid "validation.name_required"
+#~ msgstr "Name is required."
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Select a server provider..."
+msgstr "Select a server provider..."
+
+#~ msgid "validation.password_strength_special"
+#~ msgstr "Add special characters."
+
+#~ msgid "error.account_setup_failed"
+#~ msgstr "Account setup failed. Please try again."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Can't access your account?"
+msgstr "Can't access your account?"
+
+# Error messages
+#~ msgid "error.network_error"
+#~ msgstr "Unable to connect to the server. Please check your internet connection and try again."
+
+#~ msgid "login.title"
+#~ msgstr "Log in"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.server_label_required"
+msgstr "Please enter a label for this server."
+
+#~ msgid "login.login_failed"
+#~ msgstr "Login failed. Please try again."
+
+# Buttons
+#~ msgid "button.back"
+#~ msgstr "Back"
+
+#~ msgid "error.invalid_token"
+#~ msgstr "Authentication token is invalid. Please sign in again."
+
+#~ msgid "label.name"
+#~ msgstr "Name"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Delete"
+msgstr "Delete"
+
+#. js-lingui-explicit-id
+#: src/components/ui/error-display.tsx
+msgid "common.loading"
+msgstr "common.loading"
+
+#~ msgid "about.desktop.desc"
+#~ msgstr "Cross-platform app"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Cancel"
+msgstr "Cancel"
+
+#~ msgid "validation.master_password_max_length"
+#~ msgstr "Master password must be less than 128 characters."
+
+#: src/components/language-switcher.tsx
+msgid "common.failed_change_locale"
+msgstr "Failed to change language"
+
+#~ msgid "error.master_key_invalid"
+#~ msgstr "Invalid master password. Please try again."
+
+#~ msgid "validation.passwords_do_not_match"
+#~ msgstr "Passwords do not match."
+
+#. placeholder {0}: props.provider.label
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you sure you want to delete \"{0}\"? This action cannot be undone."
+msgstr "Are you sure you want to delete \"{0}\"? This action cannot be undone."
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.account_setup_failed"
+msgstr "error.account_setup_failed"
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.login_failed"
+msgstr "error.login_failed"
+
+#. js-lingui-explicit-id
+#: src/lib/error-handling.ts
+msgid "error.retry_failed"
+msgstr "error.retry_failed"
+
+#. js-lingui-explicit-id
+#: src/lib/error-handling.ts
+#: src/lib/error-handling.ts
+msgid "error.unknown_error"
+msgstr "error.unknown_error"
+
+#. js-lingui-explicit-id
+#: src/hooks/queries/use-auth-queries.ts
+msgid "error.unlock_failed"
+msgstr "error.unlock_failed"
+
+#~ msgid "login.sign_in"
+#~ msgstr "Sign In"
+
+#~ msgid "home.title"
+#~ msgstr "Welcome to Tauri + Solid"
+
+#~ msgid "validation.password_strength_no_repeating"
+#~ msgstr "Avoid repeating characters."
+
+#~ msgid "alt.tauri_logo"
+#~ msgstr "Tauri logo"
+
+#~ msgid "errorBoundary.suggestions"
+#~ msgstr "Suggestions"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "My Company Server"
+msgstr "My Company Server"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Keep me signed in on this device"
+msgstr "Keep me signed in on this device"
+
+#~ msgid "validation.name_max_length"
+#~ msgstr "Name must be less than 100 characters."
+
+#~ msgid "errorBoundary.error_id"
+#~ msgstr "Error ID"
+
+#~ msgid "validation.expiry_date_format"
+#~ msgstr "Expiry date must be in MM/YY format."
+
+#~ msgid "error.server_error"
+#~ msgstr "Server error occurred. Please try again later."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Email Address"
+msgstr "Email Address"
+
+#~ msgid "validation.password_strength_lowercase"
+#~ msgstr "Add lowercase letters."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.url_invalid"
+msgstr "Please enter a valid URL."
+
+# Navigation
+#~ msgid "nav.about"
+#~ msgstr "About"
+
+#~ msgid "errorBoundary.title"
+#~ msgstr "Something went wrong"
+
+#~ msgid "login.change"
+#~ msgstr "Change"
+
+#~ msgid "validation.password_required"
+#~ msgstr "Password is required."
+
+#~ msgid "notfound.title"
+#~ msgstr "404"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you sure you want to delete this server provider? This action cannot be undone."
+msgstr "Are you sure you want to delete this server provider? This action cannot be undone."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Delete Server Provider"
+msgstr "Delete Server Provider"
+
+#~ msgid "label.description"
+#~ msgstr "Description"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Failed to change server provider. Please try again."
+msgstr "Failed to change server provider. Please try again."
+
+#~ msgid "errorBoundary.reload_page"
+#~ msgstr "Reload Page"
+
+#: src/routes/_auth/login/index.tsx
+msgid "Don't have an account?"
+msgstr "Don't have an account?"
+
+#~ msgid "validation.confirm_password_required"
+#~ msgstr "Please confirm your password."
+
+#~ msgid "error.unlock_failed"
+#~ msgstr "Unlock failed. Please try again."
+
+#: src/routes/_auth/login/index.tsx
+msgid "Sign Up"
+msgstr "Sign Up"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Sign In"
+msgstr "Sign In"
+
+#~ msgid "home.greet_button"
+#~ msgstr "Greet"
+
+#~ msgid "login.email_address"
+#~ msgstr "Email Address"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Change"
+msgstr "Change"
+
+#~ msgid "login.failed_retrieve_settings"
+#~ msgstr "Failed to retrieve login settings"
+
+#~ msgid "notfound.subtitle"
+#~ msgstr "Page Not Found"
+
+#~ msgid "about.framework.value"
+#~ msgstr "SolidJS"
+
+#~ msgid "error.unknown_error"
+#~ msgstr "An unexpected error occurred. Please try again."
+
+#~ msgid "home.input_placeholder"
+#~ msgstr "Enter a name..."
+
+#~ msgid "login.keep_signed_in"
+#~ msgstr "Keep me signed in on this device"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "validation.server_url_required"
+msgstr "Please enter the server URL."
+
+#~ msgid "validation.card_expired"
+#~ msgstr "Card has expired."
+
+# Labels
+#~ msgid "label.created_at"
+#~ msgstr "Created At"
+
+#~ msgid "validation.field_default_name"
+#~ msgstr "This field"
+
+#~ msgid "login.remember_me"
+#~ msgstr "Remember me"
+
+#~ msgid "error.rate_limited"
+#~ msgstr "Too many requests. Please wait a moment before trying again."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Configure individual service URLs (optional)"
+msgstr "Configure individual service URLs (optional)"
+
+#: src/routes/_auth/login/index.tsx
+msgid "Log in"
+msgstr "Log in"
+
+#~ msgid "validation.email_invalid"
+#~ msgstr "Please enter a valid email address."
+
+#: src/components/server-provider/server-provider-selector.tsx
+#~ msgid "Switching server provider..."
+#~ msgstr "Switching server provider..."
+
+#~ msgid "nav.home"
+#~ msgstr "Home"
+
+#~ msgid "validation.card_number_digits_only"
+#~ msgstr "Card number must contain only digits."
+
+#~ msgid "validation.card_number_invalid"
+#~ msgstr "Invalid card number."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Advanced configuration"
+msgstr "Advanced configuration"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_expired"
+msgstr "validation.card_expired"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_digits_only"
+msgstr "validation.card_number_digits_only"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_invalid"
+msgstr "validation.card_number_invalid"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.card_number_length"
+msgstr "validation.card_number_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.confirm_password_required"
+msgstr "validation.confirm_password_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.cvv_format"
+msgstr "validation.cvv_format"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.email_invalid"
+msgstr "validation.email_invalid"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+#: src/hooks/queries/use-auth-queries.ts
+#: src/hooks/queries/use-auth-queries.ts
+msgid "validation.email_required"
+msgstr "validation.email_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.expiry_date_format"
+msgstr "validation.expiry_date_format"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.field_default_name"
+msgstr "validation.field_default_name"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.field_required"
+msgstr "validation.field_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.folder_name_max_length"
+msgstr "validation.folder_name_max_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.folder_name_required"
+msgstr "validation.folder_name_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_max_length"
+msgstr "validation.master_password_max_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_min_length"
+msgstr "validation.master_password_min_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_required"
+msgstr "validation.master_password_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.master_password_strength"
+msgstr "validation.master_password_strength"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.name_max_length"
+msgstr "validation.name_max_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.name_required"
+msgstr "validation.name_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.notes_max_length"
+msgstr "validation.notes_max_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_min_length"
+msgstr "validation.password_min_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_required"
+msgstr "validation.password_required"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_length"
+msgstr "validation.password_strength_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_longer"
+msgstr "validation.password_strength_longer"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_lowercase"
+msgstr "validation.password_strength_lowercase"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_no_repeating"
+msgstr "validation.password_strength_no_repeating"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_no_sequences"
+msgstr "validation.password_strength_no_sequences"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_numbers"
+msgstr "validation.password_strength_numbers"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_special"
+msgstr "validation.password_strength_special"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.password_strength_uppercase"
+msgstr "validation.password_strength_uppercase"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.passwords_do_not_match"
+msgstr "validation.passwords_do_not_match"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.phone_number_length"
+msgstr "validation.phone_number_length"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.postal_code_format"
+msgstr "validation.postal_code_format"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.ssn_format"
+msgstr "validation.ssn_format"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.url_invalid"
+msgstr "validation.url_invalid"
+
+#. js-lingui-explicit-id
+#: src/lib/form-validation.ts
+msgid "validation.username_max_length"
+msgstr "validation.username_max_length"
+
+#~ msgid "login.sign_in_to"
+#~ msgstr "Sign in to"
+
+# Login
+#~ msgid "login.email"
+#~ msgstr "Email"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "error.prelogin_failed"
+msgstr "Failed to retrieve login settings."
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Continue"
+msgstr "Continue"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "Enter your email address"
+msgstr "Enter your email address"
+
+#: src/components/server-provider/server-provider-selector.tsx
+msgid "Add server provider"
+msgstr "Add server provider"
+
+#~ msgid "validation.field_required"
+#~ msgstr "{fieldName} is required."
+
+#~ msgid "error.invalid_two_factor"
+#~ msgstr "Invalid verification code. Please try again."
+
+#: src/components/language-switcher.tsx
+msgid "common.select_language"
+msgstr "Select language"
+
+# Alt text for images
+#~ msgid "alt.solid_logo"
+#~ msgstr "Solid logo"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/components/server-provider/add-server-provider-modal.tsx
+msgid "Server Label"
+msgstr "Server Label"
+
+#~ msgid "error.decryption_failed"
+#~ msgstr "Unable to decrypt your vault data. Please check your master password."
+
+#~ msgid "validation.folder_name_required"
+#~ msgstr "Folder name is required."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+msgid "Are you absolutely sure?"
+msgstr "Are you absolutely sure?"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Remember me"
+msgstr "Remember me"
+
+#~ msgid "error.timeout_error"
+#~ msgstr "The request timed out. Please try again."
