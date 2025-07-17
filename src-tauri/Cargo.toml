@@ -1,0 +1,97 @@
+[package]  
+name = "chiikawarden"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["niskan516"]
+edition = "2021"
+ 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "chiikawarden_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.3.0", features = ["config-toml"] }
+
+[dependencies]
+tauri = { version = "2.6.2", features = ["devtools", "macos-private-api", "protocol-asset"] }
+tauri-plugin-opener = "2.4.0"
+tauri-plugin-stronghold = "2.3.0"
+sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite", "chrono", "uuid", "json"] }
+tauri-plugin-store = "2.3.0"
+tauri-plugin-fs = "2.4.0"
+tauri-plugin-os = "2.3.0"
+tauri-plugin-shell = "2.3.0"
+tauri-plugin-window-state = "2.3.0"
+tauri-plugin-single-instance = "2.3.0"
+tauri-plugin-updater = "2.9.0"
+tauri-plugin-http = "2.5.0"
+tauri-plugin-log = "2"
+
+# Serialization and async
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+tokio = { version = "1.46.1", features = ["full"] }
+
+# Cryptography (hardware-accelerated when available)
+ring = "0.17.14"   # High-performance crypto primitives (includes HMAC, HKDF, PBKDF2, rand)
+aes-gcm = "0.10.3" # AEAD encryption
+aes = "0.8.4"      # AES block cipher
+cbc = "0.1.2"      # CBC mode
+argon2 = "0.5.3"   # Memory-hard key derivation
+rsa = "0.9.8"      # Asymmetric encryption
+sha2 = "0.10.9"    # Hash functions
+zeroize = "1.8.1"  # Secure memory clearing
+hmac = "0.12.1"    # HMAC implementation
+hkdf = "0.12.4"    # HKDF key derivation
+rand = "0.8.5"     # Random number generation
+pbkdf2 = "0.12.2"  # PBKDF2 key derivation
+
+# HTTP client and utilities (using Tauri HTTP plugin instead of reqwest)
+chrono = { version = "0.4.41", features = ["serde"] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
+url = "2.5.4"
+base64 = "0.22.1"
+anyhow = "1.0.98" # Error handling
+thiserror = "2.0.12" # Error derive macros
+log = "0.4.27" # Logging facade
+env_logger = "0.11.8" # Environment-based logger
+tracing = "0.1.41" # Structured logging
+tracing-subscriber = { version = "0.3.19", features = [
+     "chrono",
+     "env-filter",
+     "ansi",
+] } # Tracing subscriber with required features
+tracing-appender = "0.2.3" # File appender for tracing
+tracing-log = "0.2" # Bridge between tracing and log crate
+dotenvy = "0.15" # Environment variable loading from .env files
+
+# Async utilities
+futures = "0.3.31"
+async-trait = "0.1.88"
+lazy_static = "1.5.0" # Global static variables
+
+# System integration
+keyring = "3.6.2" # OS keychain integration
+dirs = "6.0.0" # Platform-specific directories
+tauri-specta = { version = "2.0.0-rc.21", features = ["javascript", "typescript"] }
+specta = { version = "2.0.0-rc.22", features = ["derive", "chrono"] }
+specta-typescript = "0.0.9"
+
+[target."cfg(target_os = \"macos\")".dependencies]
+cocoa = "0.26.1" 
+objc = "0.2.7"
+
+[target."cfg(target_os = \"windows\")".dependencies]
+webview2-com = "0.38.0"
+windows = "0.61.3"
+windows-core = "0.61.2"
+windows-version = "0.1"
+
+[target."cfg(target_os = \"linux\")".dependencies]
+gtk = { version = "0.18", features = ["v3_24"] }
+webkit2gtk = { version = "=2.0.1", features = ["v2_38"] }
