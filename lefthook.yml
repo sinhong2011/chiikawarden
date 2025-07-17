@@ -1,0 +1,73 @@
+# Lefthook configuration for Chiikawarden
+# Replaces lint-staged with native lefthook functionality
+# See https://github.com/evilmartians/lefthook/blob/master/docs/configuration.md
+
+pre-commit:
+  # Parallel execution for faster hooks
+  parallel: true
+  
+  commands:
+    # Frontend linting and formatting
+    frontend-lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: biome check --apply {staged_files}
+      stage_fixed: true
+      
+    # Frontend formatting
+    frontend-format:
+      glob: "*.{js,jsx,ts,tsx,json,md}"
+      run: biome format --write {staged_files}
+      stage_fixed: true
+      
+    # TypeScript type checking
+    typescript:
+      glob: "*.{ts,tsx}"
+      run: bun run typecheck
+      
+    # Rust formatting check
+    rust-fmt:
+      root: "src-tauri/"
+      glob: "*.rs"
+      run: cargo fmt --all -- --check
+      fail_text: "Rust formatting check failed. Please run 'cargo fmt --all' in src-tauri directory."
+      
+    # Rust clippy linting
+    rust-clippy:
+      root: "src-tauri/"
+      glob: "*.rs"
+      run: cargo clippy --all-targets --all-features -- -D warnings
+      fail_text: "Rust clippy check failed. Please fix the warnings."
+      
+    # Rust tests
+    rust-test:
+      root: "src-tauri/"
+      glob: "*.rs"
+      run: cargo test --all
+      fail_text: "Rust tests failed. Please fix the failing tests."
+
+pre-push:
+  parallel: true
+  
+  commands:
+    # Full test suite before pushing
+    frontend-test:
+      run: bun run test
+      
+    # Build check
+    build-check:
+      run: bun run build
+      
+    # Rust build check  
+    rust-build:
+      root: "src-tauri/"
+      run: cargo build --release
+      fail_text: "Rust build failed. Please fix the build errors."
+
+# Skip hooks for specific scenarios
+skip_output:
+  - meta
+  - success
+
+# Only run hooks if there are staged changes
+colors: true
+source_dir: .lefthook 
