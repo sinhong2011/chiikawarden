@@ -1,0 +1,1766 @@
+openapi: 3.0.3
+info:
+  title: Bitwarden API
+  description: Complete API specification for Bitwarden desktop client development
+  version: 1.0.0
+  contact:
+    name: Bitwarden
+    url: https://bitwarden.com
+  license:
+    name: GPL-3.0
+    url: https://github.com/bitwarden/clients/blob/main/LICENSE.txt
+
+servers:
+  - url: https://api.bitwarden.com
+    description: Production server
+  - url: https://api.bitwarden.eu
+    description: EU server
+  - url: http://localhost:4000
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /accounts/prelogin:
+    post:
+      tags: [Authentication]
+      summary: Get user's KDF settings before login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required: [email]
+      responses:
+        '200':
+          description: KDF settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreloginResponse'
+
+  /identity/connect/token:
+    post:
+      tags: [Authentication]
+      summary: Authenticate user and get access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/PasswordTokenRequest'
+                - $ref: '#/components/schemas/SsoTokenRequest'
+                - $ref: '#/components/schemas/ApiTokenRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Two-factor authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorResponse'
+
+  /accounts/password-hint:
+    post:
+      tags: [Authentication]
+      summary: Send password hint to user's email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required: [email]
+      responses:
+        '200':
+          description: Password hint sent successfully
+
+  # Account Management
+  /accounts/profile:
+    get:
+      tags: [Account]
+      summary: Get user profile
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+
+    put:
+      tags: [Account]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+
+  /accounts/revision-date:
+    get:
+      tags: [Account]
+      summary: Get account revision date
+      responses:
+        '200':
+          description: Revision date retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+
+  # Vault Endpoints
+  /sync:
+    get:
+      tags: [Sync]
+      summary: Get full vault sync data
+      parameters:
+        - name: excludeDomains
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Sync data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /ciphers:
+    get:
+      tags: [Ciphers]
+      summary: Get all ciphers for the user
+      responses:
+        '200':
+          description: Ciphers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CipherResponse'
+                  object:
+                    type: string
+                    example: "list"
+
+    post:
+      tags: [Ciphers]
+      summary: Create a new cipher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CipherRequest'
+      responses:
+        '200':
+          description: Cipher created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+  /ciphers/{id}:
+    get:
+      tags: [Ciphers]
+      summary: Get cipher by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cipher retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+    put:
+      tags: [Ciphers]
+      summary: Update cipher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CipherRequest'
+      responses:
+        '200':
+          description: Cipher updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+    delete:
+      tags: [Ciphers]
+      summary: Delete cipher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cipher deleted successfully
+
+  /ciphers/{id}/details:
+    get:
+      tags: [Ciphers]
+      summary: Get full cipher details including attachments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cipher details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+  /ciphers/create:
+    post:
+      tags: [Ciphers]
+      summary: Create cipher with collections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CipherCreateRequest'
+      responses:
+        '200':
+          description: Cipher created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+  # Folders
+  /folders:
+    get:
+      tags: [Folders]
+      summary: Get all folders
+      responses:
+        '200':
+          description: Folders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FolderResponse'
+                  object:
+                    type: string
+                    example: "list"
+
+    post:
+      tags: [Folders]
+      summary: Create a new folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderRequest'
+      responses:
+        '200':
+          description: Folder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+
+  /folders/{id}:
+    get:
+      tags: [Folders]
+      summary: Get folder by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Folder retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+
+    put:
+      tags: [Folders]
+      summary: Update folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderRequest'
+      responses:
+        '200':
+          description: Folder updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderResponse'
+
+    delete:
+      tags: [Folders]
+      summary: Delete folder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Folder deleted successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Models
+    PreloginResponse:
+      type: object
+      properties:
+        kdf:
+          type: integer
+          description: KDF type (0=PBKDF2, 1=Argon2id)
+        kdfIterations:
+          type: integer
+        kdfMemory:
+          type: integer
+          nullable: true
+        kdfParallelism:
+          type: integer
+          nullable: true
+
+    PasswordTokenRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          enum: [password]
+        username:
+          type: string
+        password:
+          type: string
+        scope:
+          type: string
+        client_id:
+          type: string
+        deviceType:
+          type: integer
+        deviceIdentifier:
+          type: string
+        deviceName:
+          type: string
+        twoFactorToken:
+          type: string
+          nullable: true
+        twoFactorProvider:
+          type: integer
+          nullable: true
+        twoFactorRemember:
+          type: integer
+          nullable: true
+
+    SsoTokenRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code]
+        client_id:
+          type: string
+        code:
+          type: string
+        code_verifier:
+          type: string
+        redirect_uri:
+          type: string
+        deviceType:
+          type: integer
+        deviceIdentifier:
+          type: string
+        deviceName:
+          type: string
+
+    ApiTokenRequest:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          enum: [client_credentials]
+        scope:
+          type: string
+          enum: [api, api.organization]
+        client_id:
+          type: string
+        client_secret:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+        token_type:
+          type: string
+          example: "Bearer"
+        refresh_token:
+          type: string
+        scope:
+          type: string
+        Kdf:
+          type: integer
+        KdfIterations:
+          type: integer
+        KdfMemory:
+          type: integer
+          nullable: true
+        KdfParallelism:
+          type: integer
+          nullable: true
+        ResetMasterPassword:
+          type: boolean
+        PrivateKey:
+          type: string
+          nullable: true
+        Key:
+          type: string
+        TwoFactorToken:
+          type: string
+          nullable: true
+        MasterPasswordPolicy:
+          type: object
+          nullable: true
+
+    TwoFactorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "invalid_grant"
+        error_description:
+          type: string
+          example: "Two factor required."
+        TwoFactorProviders:
+          type: array
+          items:
+            type: integer
+        TwoFactorProviders2:
+          type: object
+          additionalProperties:
+            type: object
+
+    # Profile Models
+    ProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        emailVerified:
+          type: boolean
+        premium:
+          type: boolean
+        premiumFromOrganization:
+          type: boolean
+        masterPasswordHint:
+          type: string
+          nullable: true
+        culture:
+          type: string
+        twoFactorEnabled:
+          type: boolean
+        key:
+          type: string
+        privateKey:
+          type: string
+        securityStamp:
+          type: string
+        forcePasswordReset:
+          type: boolean
+        usesKeyConnector:
+          type: boolean
+        organizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileOrganizationResponse'
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileProviderResponse'
+        providerOrganizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileProviderOrganizationResponse'
+        object:
+          type: string
+          example: "profile"
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        masterPasswordHint:
+          type: string
+          nullable: true
+        culture:
+          type: string
+
+    ProfileOrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        usePolicies:
+          type: boolean
+        useGroups:
+          type: boolean
+        useDirectory:
+          type: boolean
+        useEvents:
+          type: boolean
+        useTotp:
+          type: boolean
+        use2fa:
+          type: boolean
+        useApi:
+          type: boolean
+        useSso:
+          type: boolean
+        useKeyConnector:
+          type: boolean
+        useScim:
+          type: boolean
+        useCustomPermissions:
+          type: boolean
+        useResetPassword:
+          type: boolean
+        useSecretsManager:
+          type: boolean
+        usePasswordManager:
+          type: boolean
+        usersGetPremium:
+          type: boolean
+        selfHost:
+          type: boolean
+        seats:
+          type: integer
+        maxCollections:
+          type: integer
+        maxStorageGb:
+          type: integer
+          nullable: true
+        key:
+          type: string
+        status:
+          type: integer
+        type:
+          type: integer
+        enabled:
+          type: boolean
+        ssoBound:
+          type: boolean
+        identifier:
+          type: string
+          nullable: true
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        resetPasswordEnrolled:
+          type: boolean
+        userId:
+          type: string
+          format: uuid
+        hasPublicAndPrivateKeys:
+          type: boolean
+        providerId:
+          type: string
+          format: uuid
+          nullable: true
+        providerName:
+          type: string
+          nullable: true
+        familySponsorshipFriendlyName:
+          type: string
+          nullable: true
+        familySponsorshipAvailable:
+          type: boolean
+        planProductType:
+          type: integer
+        keyConnectorEnabled:
+          type: boolean
+        keyConnectorUrl:
+          type: string
+          nullable: true
+        familySponsorshipLastSyncDate:
+          type: string
+          format: date-time
+          nullable: true
+        familySponsorshipValidUntil:
+          type: string
+          format: date-time
+          nullable: true
+        familySponsorshipToDelete:
+          type: boolean
+          nullable: true
+        accessSecretsManager:
+          type: boolean
+        limitCollectionCreationDeletion:
+          type: boolean
+        allowAdminAccessToAllCollectionItems:
+          type: boolean
+        flexibleCollections:
+          type: boolean
+        object:
+          type: string
+          example: "profileOrganization"
+
+    ProfileProviderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        key:
+          type: string
+        status:
+          type: integer
+        type:
+          type: integer
+        enabled:
+          type: boolean
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        userId:
+          type: string
+          format: uuid
+        useEvents:
+          type: boolean
+        object:
+          type: string
+          example: "profileProvider"
+
+    ProfileProviderOrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        usePolicies:
+          type: boolean
+        useGroups:
+          type: boolean
+        useDirectory:
+          type: boolean
+        useEvents:
+          type: boolean
+        useTotp:
+          type: boolean
+        use2fa:
+          type: boolean
+        useApi:
+          type: boolean
+        useSso:
+          type: boolean
+        useKeyConnector:
+          type: boolean
+        useScim:
+          type: boolean
+        useCustomPermissions:
+          type: boolean
+        useResetPassword:
+          type: boolean
+        useSecretsManager:
+          type: boolean
+        usePasswordManager:
+          type: boolean
+        usersGetPremium:
+          type: boolean
+        selfHost:
+          type: boolean
+        seats:
+          type: integer
+        maxCollections:
+          type: integer
+        maxStorageGb:
+          type: integer
+          nullable: true
+        key:
+          type: string
+        providerId:
+          type: string
+          format: uuid
+        providerName:
+          type: string
+        planProductType:
+          type: integer
+        object:
+          type: string
+          example: "profileProviderOrganization"
+
+    Permissions:
+      type: object
+      properties:
+        accessEventLogs:
+          type: boolean
+        accessImportExport:
+          type: boolean
+        accessReports:
+          type: boolean
+        createNewCollections:
+          type: boolean
+        editAnyCollection:
+          type: boolean
+        deleteAnyCollection:
+          type: boolean
+        editAssignedCollections:
+          type: boolean
+        deleteAssignedCollections:
+          type: boolean
+        manageGroups:
+          type: boolean
+        managePolicies:
+          type: boolean
+        manageSso:
+          type: boolean
+        manageUsers:
+          type: boolean
+        manageResetPassword:
+          type: boolean
+        manageScim:
+          type: boolean
+
+    # Sync Models
+    SyncResponse:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/ProfileResponse'
+        folders:
+          type: array
+          items:
+            $ref: '#/components/schemas/FolderResponse'
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionDetailsResponse'
+        ciphers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CipherResponse'
+        domains:
+          $ref: '#/components/schemas/DomainsResponse'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyResponse'
+        sends:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendResponse'
+        object:
+          type: string
+          example: "sync"
+
+    # Cipher Models
+    CipherResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        folderId:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: integer
+          enum: [1, 2, 3, 4, 5]  # Login, SecureNote, Card, Identity, SshKey
+        name:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        favorite:
+          type: boolean
+        organizationUseTotp:
+          type: boolean
+        edit:
+          type: boolean
+        viewPassword:
+          type: boolean
+        revisionDate:
+          type: string
+          format: date-time
+        creationDate:
+          type: string
+          format: date-time
+        deletedDate:
+          type: string
+          format: date-time
+          nullable: true
+        reprompt:
+          type: integer
+          enum: [0, 1]  # None, Password
+        login:
+          $ref: '#/components/schemas/LoginResponse'
+          nullable: true
+        secureNote:
+          $ref: '#/components/schemas/SecureNoteResponse'
+          nullable: true
+        card:
+          $ref: '#/components/schemas/CardResponse'
+          nullable: true
+        identity:
+          $ref: '#/components/schemas/IdentityResponse'
+          nullable: true
+        sshKey:
+          $ref: '#/components/schemas/SshKeyResponse'
+          nullable: true
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldResponse'
+          nullable: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentResponse'
+          nullable: true
+        passwordHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PasswordHistoryResponse'
+          nullable: true
+        collectionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        key:
+          type: string
+          nullable: true
+        object:
+          type: string
+          example: "cipher"
+
+    CipherRequest:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+        name:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        favorite:
+          type: boolean
+        folderId:
+          type: string
+          format: uuid
+          nullable: true
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        reprompt:
+          type: integer
+          enum: [0, 1]
+        login:
+          $ref: '#/components/schemas/LoginRequest'
+          nullable: true
+        secureNote:
+          $ref: '#/components/schemas/SecureNoteRequest'
+          nullable: true
+        card:
+          $ref: '#/components/schemas/CardRequest'
+          nullable: true
+        identity:
+          $ref: '#/components/schemas/IdentityRequest'
+          nullable: true
+        sshKey:
+          $ref: '#/components/schemas/SshKeyRequest'
+          nullable: true
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldRequest'
+          nullable: true
+        passwordHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PasswordHistoryRequest'
+          nullable: true
+        key:
+          type: string
+          nullable: true
+      required: [type, name]
+
+    CipherCreateRequest:
+      type: object
+      properties:
+        cipher:
+          $ref: '#/components/schemas/CipherRequest'
+        collectionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+      required: [cipher]
+
+    LoginResponse:
+      type: object
+      properties:
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
+        passwordRevisionDate:
+          type: string
+          format: date-time
+          nullable: true
+        totp:
+          type: string
+          nullable: true
+        autofillOnPageLoad:
+          type: boolean
+          nullable: true
+        uris:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoginUriResponse'
+          nullable: true
+        fido2Credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fido2CredentialResponse'
+          nullable: true
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
+        passwordRevisionDate:
+          type: string
+          format: date-time
+          nullable: true
+        totp:
+          type: string
+          nullable: true
+        autofillOnPageLoad:
+          type: boolean
+          nullable: true
+        uris:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoginUriRequest'
+          nullable: true
+        fido2Credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fido2CredentialRequest'
+          nullable: true
+
+    LoginUriResponse:
+      type: object
+      properties:
+        uri:
+          type: string
+          nullable: true
+        match:
+          type: integer
+          nullable: true
+        uriChecksum:
+          type: string
+          nullable: true
+
+    LoginUriRequest:
+      type: object
+      properties:
+        uri:
+          type: string
+          nullable: true
+        match:
+          type: integer
+          nullable: true
+        uriChecksum:
+          type: string
+          nullable: true
+
+    SecureNoteResponse:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum: [0]  # Generic
+
+    SecureNoteRequest:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum: [0]
+
+    CardResponse:
+      type: object
+      properties:
+        cardholderName:
+          type: string
+          nullable: true
+        brand:
+          type: string
+          nullable: true
+        number:
+          type: string
+          nullable: true
+        expMonth:
+          type: string
+          nullable: true
+        expYear:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+
+    CardRequest:
+      type: object
+      properties:
+        cardholderName:
+          type: string
+          nullable: true
+        brand:
+          type: string
+          nullable: true
+        number:
+          type: string
+          nullable: true
+        expMonth:
+          type: string
+          nullable: true
+        expYear:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+
+    IdentityResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+          nullable: true
+        middleName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        address1:
+          type: string
+          nullable: true
+        address2:
+          type: string
+          nullable: true
+        address3:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        ssn:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        passportNumber:
+          type: string
+          nullable: true
+        licenseNumber:
+          type: string
+          nullable: true
+
+    IdentityRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+          nullable: true
+        middleName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        address1:
+          type: string
+          nullable: true
+        address2:
+          type: string
+          nullable: true
+        address3:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        ssn:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        passportNumber:
+          type: string
+          nullable: true
+        licenseNumber:
+          type: string
+          nullable: true
+
+    SshKeyResponse:
+      type: object
+      properties:
+        privateKey:
+          type: string
+          nullable: true
+        publicKey:
+          type: string
+          nullable: true
+        keyFingerprint:
+          type: string
+          nullable: true
+
+    SshKeyRequest:
+      type: object
+      properties:
+        privateKey:
+          type: string
+          nullable: true
+        publicKey:
+          type: string
+          nullable: true
+        keyFingerprint:
+          type: string
+          nullable: true
+
+    FieldResponse:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]  # Text, Hidden, Boolean, Linked, Html, Email
+        name:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        linkedId:
+          type: integer
+          nullable: true
+
+    FieldRequest:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+        name:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        linkedId:
+          type: integer
+          nullable: true
+
+    AttachmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          nullable: true
+        fileName:
+          type: string
+        key:
+          type: string
+          nullable: true
+        size:
+          type: string
+        sizeName:
+          type: string
+          nullable: true
+        object:
+          type: string
+          example: "attachment"
+
+    PasswordHistoryResponse:
+      type: object
+      properties:
+        password:
+          type: string
+        lastUsedDate:
+          type: string
+          format: date-time
+
+    PasswordHistoryRequest:
+      type: object
+      properties:
+        password:
+          type: string
+        lastUsedDate:
+          type: string
+          format: date-time
+
+    Fido2CredentialResponse:
+      type: object
+      properties:
+        credentialId:
+          type: string
+        keyType:
+          type: string
+        keyAlgorithm:
+          type: string
+        keyCurve:
+          type: string
+        keyValue:
+          type: string
+        rpId:
+          type: string
+        userHandle:
+          type: string
+        userName:
+          type: string
+        counter:
+          type: string
+        rpName:
+          type: string
+        userDisplayName:
+          type: string
+        discoverable:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+
+    Fido2CredentialRequest:
+      type: object
+      properties:
+        credentialId:
+          type: string
+        keyType:
+          type: string
+        keyAlgorithm:
+          type: string
+        keyCurve:
+          type: string
+        keyValue:
+          type: string
+        rpId:
+          type: string
+        userHandle:
+          type: string
+        userName:
+          type: string
+        counter:
+          type: string
+        rpName:
+          type: string
+        userDisplayName:
+          type: string
+        discoverable:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+
+    # Folder Models
+    FolderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        revisionDate:
+          type: string
+          format: date-time
+        object:
+          type: string
+          example: "folder"
+
+    FolderRequest:
+      type: object
+      properties:
+        name:
+          type: string
+      required: [name]
+
+    # Collection Models
+    CollectionDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        externalId:
+          type: string
+          nullable: true
+        readOnly:
+          type: boolean
+        hidePasswords:
+          type: boolean
+        manage:
+          type: boolean
+        object:
+          type: string
+          example: "collectionDetails"
+
+    # Domain Models
+    DomainsResponse:
+      type: object
+      properties:
+        equivalentDomains:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          nullable: true
+        globalEquivalentDomains:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalDomainResponse'
+          nullable: true
+        object:
+          type: string
+          example: "domains"
+
+    GlobalDomainResponse:
+      type: object
+      properties:
+        type:
+          type: integer
+        domains:
+          type: array
+          items:
+            type: string
+        excluded:
+          type: boolean
+
+    # Policy Models
+    PolicyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        type:
+          type: integer
+        data:
+          type: object
+          nullable: true
+        enabled:
+          type: boolean
+        object:
+          type: string
+          example: "policy"
+
+    # Send Models
+    SendResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accessId:
+          type: string
+        type:
+          type: integer
+          enum: [0, 1]  # Text, File
+        name:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        file:
+          $ref: '#/components/schemas/SendFileResponse'
+          nullable: true
+        text:
+          $ref: '#/components/schemas/SendTextResponse'
+          nullable: true
+        key:
+          type: string
+        maxAccessCount:
+          type: integer
+          nullable: true
+        accessCount:
+          type: integer
+        revisionDate:
+          type: string
+          format: date-time
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+        deletionDate:
+          type: string
+          format: date-time
+        password:
+          type: string
+          nullable: true
+        disabled:
+          type: boolean
+        hideEmail:
+          type: boolean
+        object:
+          type: string
+          example: "send"
+
+    SendFileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        fileName:
+          type: string
+        size:
+          type: string
+        sizeName:
+          type: string
+
+    SendTextResponse:
+      type: object
+      properties:
+        text:
+          type: string
+        hidden:
+          type: boolean
+
+    # Error Models
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        validationErrors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        object:
+          type: string
+          example: "error"
+
+    # Additional endpoints for completeness
+  /ciphers/import:
+    post:
+      tags: [Ciphers]
+      summary: Import ciphers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ciphers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CipherRequest'
+                folders:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FolderRequest'
+                folderRelationships:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: integer
+      responses:
+        '200':
+          description: Import completed successfully
+
+  /ciphers/{id}/attachment:
+    post:
+      tags: [Ciphers]
+      summary: Create attachment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                data:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Attachment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CipherResponse'
+
+  /ciphers/{id}/attachment/{attachmentId}:
+    delete:
+      tags: [Ciphers]
+      summary: Delete attachment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: attachmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attachment deleted successfully
+
+  # Two-Factor Authentication
+  /two-factor:
+    get:
+      tags: [Two-Factor]
+      summary: Get two-factor providers
+      responses:
+        '200':
+          description: Two-factor providers retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TwoFactorProviderResponse'
+                  object:
+                    type: string
+                    example: "list"
+
+  /two-factor/authenticator:
+    post:
+      tags: [Two-Factor]
+      summary: Enable authenticator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                masterPasswordHash:
+                  type: string
+                token:
+                  type: string
+                key:
+                  type: string
+      responses:
+        '200':
+          description: Authenticator enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorAuthenticatorResponse'
+
+    TwoFactorProviderResponse:
+      type: object
+      properties:
+        type:
+          type: integer
+        enabled:
+          type: boolean
+        object:
+          type: string
+          example: "twoFactorProvider"
+
+    TwoFactorAuthenticatorResponse:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        key:
+          type: string
+        qr:
+          type: string
+        object:
+          type: string
+          example: "twoFactorAuthenticator"
