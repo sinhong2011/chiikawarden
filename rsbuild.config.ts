@@ -1,9 +1,9 @@
-import { defineConfig } from "@rsbuild/core";
+import { defineConfig, mergeRsbuildConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 import { pluginTypeCheck } from "@rsbuild/plugin-type-check";
 import { tanstackRouter } from "@tanstack/router-plugin/rspack";
 
-export default defineConfig({
+const baseConfig = defineConfig({
   plugins: [pluginReact(), pluginTypeCheck()],
 
   html: {
@@ -33,10 +33,6 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true,
-  },
-
-  dev: {
-    // Use default HMR configuration
   },
 
   tools: {
@@ -90,4 +86,34 @@ export default defineConfig({
       },
     },
   },
+});
+
+const devConfig = defineConfig({
+  dev: {
+    progressBar: true,
+    lazyCompilation: true,
+    client: {
+      // Preserve authentication context during HMR
+      overlay: true,
+    },
+  },
+});
+
+const productionConfig = defineConfig({
+  output: {
+    minify: true,
+  },
+  performance: {
+    removeConsole: true,
+    buildCache: true,
+  },
+});
+
+export default defineConfig(({ envMode }) => {
+  switch (envMode) {
+    case "production":
+      return mergeRsbuildConfig(baseConfig, productionConfig);
+    default:
+      return mergeRsbuildConfig(baseConfig, devConfig);
+  }
 });

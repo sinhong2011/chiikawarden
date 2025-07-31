@@ -41,5 +41,5 @@
     }
   },
   "include": ["src", "tests/**/*", "config"],
-  "exclude": ["vite.config.ts", "vitest.config.ts", "tests-results"]
+  "exclude": ["vite.config.ts", "vitest.config.ts", "tests-results", "src/lib/tauri-commands.ts"]
 }

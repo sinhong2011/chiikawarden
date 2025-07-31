@@ -235,25 +235,7 @@ We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING
 
 ## 🔧 TypeScript Type Generation
 
-This project uses an improved TypeScript type generation system that ensures type safety and eliminates 'any' types from the generated bindings.
-
-### How It Works
-
-The TypeScript type generation process:
-
-1. **Generates types** from Rust code using `tauri-specta` and `specta-typescript`
-2. **Applies intelligent fixes** to replace any 'any' types with proper TypeScript types
-3. **Validates the output** to ensure no 'any' types remain
-4. **Provides detailed feedback** about the generation process
-
-### Key Features
-
-- ✅ **Zero 'any' types**: All generated types are properly typed
-- ✅ **Type-safe error handling**: Errors are typed as `string` instead of `any`
-- ✅ **Proper event types**: Event parameters use `Parameters<typeof>` for type safety
-- ✅ **Intelligent replacements**: Uses `unknown` instead of `any` where appropriate
-- ✅ **Comprehensive validation**: Automated testing ensures type safety
-- ✅ **CI/CD integration**: Automatic validation in GitHub Actions
+This project uses `tauri-specta` for type-safe communication between the Rust backend and TypeScript frontend.
 
 ### Generated Types Location
 
@@ -270,28 +252,18 @@ When you run the development server, the type generation process:
 
 1. Collects all Rust commands and types with `#[specta::specta]` annotations
 2. Exports them to TypeScript using `specta-typescript`
-3. Applies type-safe fixes to eliminate 'any' types
-4. Validates the output for type safety
-5. Reports success or any remaining issues
+3. Provides type-safe command interfaces for the frontend
 
-### Validation
+### Usage
 
-The system includes comprehensive validation:
+All Tauri commands are automatically typed and available through the generated bindings:
 
-```bash
-# Run TypeScript generation tests
-cd src-tauri
-cargo test typescript_generation_tests
+```typescript
+import { commands } from '@/lib/tauri-commands';
+
+// All commands are fully typed
+const result = await commands.loginWithPassword(email, password);
 ```
-
-### Troubleshooting
-
-If you encounter type generation issues:
-
-1. **Check the console output** during `cargo run` for validation messages
-2. **Run the tests** to identify specific issues: `cargo test typescript_generation_tests`
-3. **Verify Rust annotations** ensure all commands have proper `#[tauri::command]` and `#[specta::specta]` annotations
-4. **Check dependencies** ensure tauri-specta and specta versions are compatible
 
 ### Development Setup
 
