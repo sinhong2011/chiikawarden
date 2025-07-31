@@ -6,22 +6,31 @@ import { z } from "zod";
 import { HeroForm, TextInput } from "@/components/ui/form";
 import { useAuthQueries } from "@/hooks/queries/use-auth-queries";
 import { useAuth } from "@/hooks/use-auth";
+import { requireGuest } from "@/lib/router-guards";
 
 // Form schema - will be created inside component to access t function
-const createSignupFormSchema = (t: any) =>
-  z
+const createSignupFormSchema = (
+  t: (template: TemplateStringsArray, ...substitutions: unknown[]) => string
+) => {
+  const emailInvalidMessage = t`validation.email_invalid`;
+  const passwordMinLengthMessage = t`validation.password_min_length`;
+  const confirmPasswordRequiredMessage = t`validation.confirm_password_required`;
+
+  return z
     .object({
-      email: z.string().email(t`validation.email_invalid`),
-      password: z.string().min(8, t`validation.password_min_length`),
-      confirmPassword: z.string().min(1, t`validation.confirm_password_required`),
+      email: z.string().email({ message: emailInvalidMessage }),
+      password: z.string().min(8, passwordMinLengthMessage),
+      confirmPassword: z.string().min(1, confirmPasswordRequiredMessage),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t`validation.passwords_do_not_match`,
       path: ["confirmPassword"],
     });
+};
 
 export const Route = createFileRoute("/_auth/signup")({
   component: SignupComponent,
+  ...requireGuest(), // Redirect if already authenticated
 });
 
 function SignupComponent() {

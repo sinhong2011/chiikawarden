@@ -1,8 +1,8 @@
 import { useLingui } from "@lingui/react/macro";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { Link } from "@/components/ui";
-import { useAuth } from "@/hooks/use-auth";
+import { requireGuest } from "@/lib/router-guards";
 import LoginForm from "@/routes/_auth/login/-components/login-form";
 import PreLogin from "@/routes/_auth/login/-components/prelogin";
 import AddServerProviderModal from "@/routes/_auth/login/-components/server-provider/add-server-provider-modal";
@@ -11,39 +11,34 @@ import type { PreloginResponse } from "@/services/auth.service";
 
 export const Route = createFileRoute("/_auth/login/")({
   component: LoginComponent,
-  beforeLoad(ctx) {
-    console.log("Before load login", ctx);
-  },
+  ...requireGuest(),
 });
 
 type LoginStep = "prelogin" | "login";
 
 function LoginComponent() {
-  const navigate = useNavigate();
-  const auth = useAuth();
   const { t } = useLingui();
 
   // Login flow state
   const [currentStep, setCurrentStep] = useState<LoginStep>("prelogin");
   const [email, setEmail] = useState("");
   const [kdfSettings, setKdfSettings] = useState<PreloginResponse | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Server provider state
   const [showAddProviderModal, setShowAddProviderModal] = useState(false);
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (auth.isUnlocked) {
-      navigate({ to: "/vault" });
-    }
-  }, [auth.isUnlocked, navigate]);
-
   // Handle prelogin completion
-  const handlePreloginFinish = (userEmail: string, settings: PreloginResponse) => {
-    console.log("Prelogin finished:", userEmail, settings);
+  const handlePreloginFinish = (
+    userEmail: string,
+    settings: PreloginResponse,
+    rememberMeValue: boolean
+  ) => {
+    console.log("Prelogin finished:", userEmail, settings, "Remember me:", rememberMeValue);
 
     setEmail(userEmail);
     setKdfSettings(settings);
+    setRememberMe(rememberMeValue);
     setCurrentStep("login");
   };
 
@@ -52,6 +47,7 @@ function LoginComponent() {
     setCurrentStep("prelogin");
     setEmail("");
     setKdfSettings(null);
+    setRememberMe(false);
   };
 
   const handleAddProvider = () => {
@@ -66,7 +62,12 @@ function LoginComponent() {
 
       <div className="flex-1 flex flex-col items-center justify-start w-full pt-5">
         {currentStep === "login" && kdfSettings ? (
-          <LoginForm email={email} kdfSettings={kdfSettings} onBack={handleBackToPrelogin} />
+          <LoginForm
+            email={email}
+            kdfSettings={kdfSettings}
+            rememberMe={rememberMe}
+            onBack={handleBackToPrelogin}
+          />
         ) : (
           <PreLogin onFinish={handlePreloginFinish} />
         )}

@@ -1,182 +1,182 @@
 import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { Switch } from "@heroui/switch";
 import { useLingui } from "@lingui/react/macro";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { HeroForm } from "@/components/ui/form";
-import { useAuth } from "@/hooks/use-auth";
-import { authService, type KdfConfig, type PreloginResponse } from "@/services/auth.service";
+import { PasswordInput } from "@/components/ui/form/password-input";
+import { FormErrorMessage } from "@/components/ui/form-error-message";
+import { AnimatedSpinner } from "@/components/ui/icon/spinner";
+import { useAuthQueries } from "@/hooks/queries/use-auth-queries";
+import type { PreloginResponse } from "@/services/auth.service";
+import type { LoginCredentials } from "@/types/auth.types";
 
-type LoginFormProps = {
+export interface LoginFormProps {
   email: string;
   kdfSettings: PreloginResponse;
+  rememberMe: boolean;
   onBack: () => void;
-};
+}
 
+/**
+ * Enhanced Login Form Component
+ *
+ * Features:
+ * - Modern, minimalist design with smooth animations
+ * - Comprehensive error handling with retry functionality
+ * - Password visibility toggle
+ * - Accessible form controls with proper ARIA labels
+ * - Loading states with visual feedback
+ * - Responsive design
+ * - Integration with established design system
+ */
 export default function LoginForm(props: LoginFormProps) {
-  const { t } = useLingui();
+  const { email, kdfSettings, rememberMe, onBack } = props;
   const navigate = useNavigate();
-  const auth = useAuth();
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLingui();
+  const { login: loginMutation } = useAuthQueries();
 
   // Create schema with i18n support
   const loginFormSchema = z.object({
-    password: z.string().min(1, t`validation.password_required`),
-    rememberMe: z.boolean(),
+    password: z.string().min(1, t`validation.password_required` /* 密码不能为空 */),
   });
 
   type LoginFormData = z.infer<typeof loginFormSchema>;
 
-  // State for remember me switch
-  const [rememberMe, setRememberMe] = useState(false);
-
-  // Convert PreloginResponse to KdfConfig
-  const getKdfConfig = (): KdfConfig => ({
-    kdf_type: props.kdfSettings.kdf,
-    iterations: props.kdfSettings.kdfIterations,
-    memory: props.kdfSettings.kdfMemory,
-    parallelism: props.kdfSettings.kdfParallelism,
-  });
-
-  // Login form handler
-  const handleLogin = async (data: LoginFormData) => {
-    setError("");
-    setIsLoading(true);
-
-    // Add rememberMe to the data
-    const loginData = { ...data, rememberMe };
+  // Login form handler - trigger mutation on form submit
+  const handleLogin = async (values: LoginFormData) => {
+    console.log("Login submitted:", { email, rememberMe });
 
     try {
-      const kdfConfig = getKdfConfig();
-      const response = await authService.loginWithPassword(
-        props.email,
-        loginData.password,
-        kdfConfig
-      );
+      // Prepare credentials for auth store
+      const credentials: LoginCredentials = {
+        email,
+        password: values.password,
+        rememberMe,
+      };
 
-      if (response.success) {
-        // Update auth state through the auth hook
-        const loginSuccess = await auth.login({
-          email: props.email,
-          password: loginData.password,
-          rememberMe: loginData.rememberMe,
-        });
+      // Trigger the login mutation - this handles all authentication logic and navigation
+      const ok = await loginMutation.mutateAsync(credentials);
 
-        if (loginSuccess) {
-          // Navigate to vault on successful login
-          navigate({ to: "/vault" });
-        } else {
-          setError(t`error.login_failed`);
-        }
-      } else {
-        setError(t`error.invalid_credentials`);
+      console.log("Login result:", ok);
+
+      // Navigation is now handled in the mutation's onSuccess callback
+      if (!ok) {
+        throw new Error("Login failed. Please check your credentials and try again.");
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err instanceof Error ? err.message : t`error.login_failed`);
-    } finally {
-      setIsLoading(false);
+
+      navigate({
+        to: "/vault",
+      });
+    } catch (error) {
+      console.error("Login failed:", error);
+      // Error handling is managed by the mutation state
     }
   };
 
+  // Determine loading state
+  const isLoading = loginMutation.isPending;
+
+  // Determine error message - now properly translated from the mutation
+  const errorMessage = loginMutation.isError
+    ? loginMutation.error instanceof Error
+      ? loginMutation.error.message
+      : t`Login failed. Please check your credentials and try again.` /* 登录失败。请检查您的凭据并重试。 */
+    : "";
+
   return (
-    <div className="">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-center mb-2">
-          {t`Welcome back` /* 欢迎回来 */}
-        </h2>
-        <p className="text-base-content/70 text-center text-sm">
+    <div className="w-full max-w-sm py-10 px-5">
+      {/* Header Section */}
+      <div className="mb-10 text-center">
+        <p className="text-muted-foreground text-base leading-relaxed">
           {t`Sign in to` /* 登录到 */}{" "}
-          <span className="font-medium text-base-content">{props.email}</span>
+          <button
+            type="button"
+            onClick={onBack}
+            className="font-semibold text-foreground hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
+          >
+            {email}
+          </button>
         </p>
       </div>
 
-      <HeroForm schema={loginFormSchema} defaultValues={{ password: "" }} onSubmit={handleLogin}>
-        <div className="space-y-4">
-          {/* Email display (read-only) */}
-          <div className="space-y-2">
-            <div className="block text-sm font-medium text-base-content mb-2">
-              {t`Email Address` /* 邮箱地址 */}
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-base-200 rounded-lg border border-base-300">
-              <span className="text-base-content flex-1">{props.email}</span>
-              <button
-                type="button"
-                onClick={props.onBack}
-                className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
-              >
-                {t`Change` /* 更改 */}
-              </button>
-            </div>
-          </div>
+      <HeroForm
+        schema={loginFormSchema}
+        defaultValues={{ password: "" }}
+        onSubmit={handleLogin}
+        className="space-y-10"
+        validationBehavior="aria"
+      >
+        {(form) => (
+          <>
+            {/* Password Field */}
+            <Controller
+              name="password"
+              control={form.control}
+              render={({
+                field: { name, value, onChange, onBlur, ref },
+                fieldState: { error },
+              }) => (
+                <PasswordInput
+                  ref={ref}
+                  name={name}
+                  label={t`Master Password` /* 主密码 */}
+                  placeholder={t`Enter your master password` /* 输入您的主密码 */}
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  size="lg"
+                  required
+                  error={error?.message}
+                  validationBehavior="aria"
+                />
+              )}
+            />
 
-          {/* Password field */}
-          <Input
-            name="password"
-            type="password"
-            label={t`Master Password` /* 主密码 */}
-            placeholder={t`Enter your master password` /* 输入您的主密码 */}
-            required
-            size="lg"
-          />
+            <FormErrorMessage error={errorMessage} />
 
-          {/* Remember me switch */}
-          <Switch isSelected={rememberMe} onValueChange={setRememberMe} size="md">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{t`Remember me` /* 记住我 */}</span>
-              <span className="text-xs text-base-content/70">
-                {t`Keep me signed in on this device` /* 在此设备上保持登录状态 */}
-              </span>
-            </div>
-          </Switch>
-
-          {/* Error message */}
-          {error && (
-            <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
-              <div className="text-error text-sm font-medium">{error}</div>
-            </div>
-          )}
-
-          {/* Submit button */}
-          <Button
-            type="submit"
-            color="primary"
-            size="lg"
-            isDisabled={isLoading}
-            isLoading={isLoading}
-            className="w-full"
-          >
-            {isLoading ? t`Signing in...` /* 登录中... */ : t`Sign In` /* 登录 */}
-          </Button>
-
-          {/* Additional options */}
-          <div className="text-center">
-            <button
-              type="button"
-              className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+            <Button
+              type="submit"
+              color="primary"
+              size="lg"
+              isDisabled={isLoading}
+              isLoading={isLoading}
+              className="w-full"
+              spinner={<AnimatedSpinner />}
             >
-              {t`Can't access your account?` /* 无法访问您的账户？ */}
-            </button>
-          </div>
-        </div>
+              {isLoading ? t`Signing in...` /* 登录中... */ : t`Sign In` /* 登录 */}
+            </Button>
+          </>
+        )}
       </HeroForm>
 
       {/* KDF Settings info (for debugging/transparency) */}
       {import.meta.env.DEV && (
-        <div className="mt-6 p-3 bg-base-200/50 rounded-lg border border-base-300/50">
+        <div className="mt-8 p-4 bg-muted/30 rounded-xl border border-border/30">
           <details className="text-xs">
-            <summary className="cursor-pointer text-base-content/70 font-medium">
-              Security Settings (Dev Info)
+            <summary className="cursor-pointer text-muted-foreground font-medium hover:text-foreground transition-colors">
+              {t`Security Settings (Dev Info)` /* 安全设置（开发信息） */}
             </summary>
-            <div className="mt-2 space-y-1 text-base-content/60">
-              <div>KDF: {props.kdfSettings.kdf === 0 ? "PBKDF2" : "Argon2id"}</div>
-              <div>Iterations: {props.kdfSettings.kdfIterations.toLocaleString()}</div>
-              {props.kdfSettings.kdfMemory && <div>Memory: {props.kdfSettings.kdfMemory} KB</div>}
-              {props.kdfSettings.kdfParallelism && (
-                <div>Parallelism: {props.kdfSettings.kdfParallelism}</div>
+            <div className="mt-3 space-y-2 text-muted-foreground">
+              <div className="flex justify-between">
+                <span>KDF:</span>
+                <span className="font-mono">{kdfSettings.kdf === 0 ? "PBKDF2" : "Argon2id"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Iterations:</span>
+                <span className="font-mono">{kdfSettings.kdfIterations.toLocaleString()}</span>
+              </div>
+              {kdfSettings.kdfMemory && (
+                <div className="flex justify-between">
+                  <span>Memory:</span>
+                  <span className="font-mono">{kdfSettings.kdfMemory} KB</span>
+                </div>
+              )}
+              {kdfSettings.kdfParallelism && (
+                <div className="flex justify-between">
+                  <span>Parallelism:</span>
+                  <span className="font-mono">{kdfSettings.kdfParallelism}</span>
+                </div>
               )}
             </div>
           </details>

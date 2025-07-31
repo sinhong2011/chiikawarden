@@ -1,13 +1,16 @@
 import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/modal";
-import { Switch } from "@heroui/switch";
 import { useLingui } from "@lingui/react/macro";
 import { Settings } from "lucide-react";
 import { useState } from "react";
+import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { AnimatedCollapse } from "@/components/ui/animated-collapse";
 import { HeroForm } from "@/components/ui/form";
+import { TextInput } from "@/components/ui/form/text-input";
+import { FormErrorMessage } from "@/components/ui/form-error-message";
+import { AnimatedSpinner } from "@/components/ui/icon/spinner";
+import { Switch } from "@/components/ui/switch";
 import { useServerProviderQueries } from "@/hooks/queries/use-server-provider-queries";
 import { serverProviderService } from "@/services/server-provider.service";
 
@@ -123,88 +126,230 @@ export default function AddServerProviderModal(props: AddServerProviderModalProp
             onSubmit={onSubmit}
             className="space-y-6"
           >
-            {/* Required Fields Section */}
-            <div className="space-y-4 w-full">
-              <Input
-                name="label"
-                label={t`Server Label` /* 服务器标签 */}
-                placeholder={t`My Company Server` /* 我的公司服务器 */}
-                required
-              />
-
-              <Input
-                name="base_url"
-                label={t`Server URL` /* 服务器URL */}
-                placeholder="https://bitwarden.example.com"
-                required
-              />
-            </div>
-
-            {/* Advanced Configuration Section */}
-            <div className="py-2 w-full">
-              <Switch isSelected={advancedMode} onValueChange={setAdvancedMode}>
-                <div className="flex flex-col">
-                  <span>{t`Advanced configuration` /* 高级配置 */}</span>
-                  <span className="text-sm text-gray-500">
-                    {t`Configure individual service URLs (optional)` /* 配置各个服务URL（可选） */}
-                  </span>
-                </div>
-              </Switch>
-
-              {/* Animated Collapsible Advanced Fields */}
-              <AnimatedCollapse isOpen={advancedMode}>
-                <div className="mt-4 p-4 rounded-lg border-primary/50 border-2 space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-medium mb-3">
-                    <Settings size={16} />
-                    <span>Service URLs</span>
-                    <span className="text-xs text-gray-500">(All optional)</span>
-                  </div>
-
-                  <Input name="api" label="API URL" placeholder="https://api.example.com" />
-
-                  <Input
-                    name="identity"
-                    label="Identity URL"
-                    placeholder="https://identity.example.com"
+            {(form) => (
+              <>
+                {/* Required Fields Section */}
+                <div className="space-y-4 w-full">
+                  <Controller
+                    name="label"
+                    control={form.control}
+                    render={({
+                      field: { name, value, onChange, onBlur, ref },
+                      fieldState: { error },
+                    }) => (
+                      <TextInput
+                        ref={ref}
+                        name={name}
+                        label={t`Server Label` /* 服务器标签 */}
+                        placeholder={t`My Privacy Server` /* 我的私人服务器 */}
+                        value={value}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        required
+                        error={error?.message}
+                        size="lg"
+                        validationBehavior="aria"
+                      />
+                    )}
                   />
 
-                  <Input
-                    name="web_vault"
-                    label="Web Vault URL"
-                    placeholder="https://vault.example.com"
-                  />
-
-                  <Input name="icons" label="Icons URL" placeholder="https://icons.example.com" />
-
-                  <Input
-                    name="notifications"
-                    label="Notifications URL"
-                    placeholder="https://notifications.example.com"
-                  />
-
-                  <Input
-                    name="events"
-                    label="Events URL"
-                    placeholder="https://events.example.com"
+                  <Controller
+                    name="base_url"
+                    control={form.control}
+                    render={({
+                      field: { name, value, onChange, onBlur, ref },
+                      fieldState: { error },
+                    }) => (
+                      <TextInput
+                        ref={ref}
+                        name={name}
+                        label={t`Server URL` /* 服务器URL */}
+                        placeholder="https://bitwarden.example.com"
+                        value={value}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        required
+                        error={error?.message}
+                        size="lg"
+                        validationBehavior="aria"
+                      />
+                    )}
                   />
                 </div>
-              </AnimatedCollapse>
-            </div>
 
-            {error && <div className="text-red-500 text-sm">{error}</div>}
+                {/* Advanced Configuration Section */}
+                <div className="py-2 w-full">
+                  <Switch
+                    name="advanced_mode"
+                    label={t`Advanced configuration` /* 高级配置 */}
+                    description={
+                      t`Configure individual service URLs (optional)` /* 配置各个服务URL（可选） */
+                    }
+                    checked={advancedMode}
+                    onCheckedChange={setAdvancedMode}
+                  />
+
+                  {/* Animated Collapsible Advanced Fields */}
+                  <AnimatedCollapse isOpen={advancedMode}>
+                    <div className="mt-4 p-4 rounded-lg border-primary/50 border-2 space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-medium mb-3">
+                        <Settings size={16} />
+                        <span>Service URLs</span>
+                        <span className="text-xs text-gray-500">(All optional)</span>
+                      </div>
+
+                      <Controller
+                        name="api"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="API URL"
+                            placeholder="https://api.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+
+                      <Controller
+                        name="identity"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="Identity URL"
+                            placeholder="https://identity.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+
+                      <Controller
+                        name="web_vault"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="Web Vault URL"
+                            placeholder="https://vault.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+
+                      <Controller
+                        name="icons"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="Icons URL"
+                            placeholder="https://icons.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+
+                      <Controller
+                        name="notifications"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="Notifications URL"
+                            placeholder="https://notifications.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+
+                      <Controller
+                        name="events"
+                        control={form.control}
+                        render={({
+                          field: { name, value, onChange, onBlur, ref },
+                          fieldState: { error },
+                        }) => (
+                          <TextInput
+                            ref={ref}
+                            name={name}
+                            label="Events URL"
+                            placeholder="https://events.example.com"
+                            value={value}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            error={error?.message}
+                            size="lg"
+                            validationBehavior="aria"
+                          />
+                        )}
+                      />
+                    </div>
+                  </AnimatedCollapse>
+                </div>
+
+                <FormErrorMessage error={error} />
+              </>
+            )}
           </HeroForm>
         </ModalBody>
         <ModalFooter>
           <Button variant="light" onPress={handleClose} isDisabled={isLoading}>
-            Cancel
+            {t`Cancel` /* 取消 */}
           </Button>
           <Button
             color="primary"
             type="submit"
             form="server-provider-form"
             isLoading={isLoading || isSubmitting}
+            spinner={<AnimatedSpinner />}
           >
-            {isLoading ? "Adding..." : "Add Server"}
+            {isLoading ? t`Adding...` /* 添加中... */ : t`Add Server` /* 添加服务器 */}
           </Button>
         </ModalFooter>
       </ModalContent>
