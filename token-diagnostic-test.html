@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Diagnostic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .diagnostic-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+        .recommendation {
+            background: #e9ecef;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .user-input {
+            margin: 10px 0;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            width: 300px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+        .status-item {
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .status-item.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status-item.warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .status-item.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Token Diagnostic Tool</h1>
+        <p>This tool helps diagnose authentication token issues that prevent vault synchronization.</p>
+        
+        <div class="user-input">
+            <label for="userId">User ID:</label>
+            <input type="text" id="userId" placeholder="Enter user ID (e.g., a7d33ad5-a83e-40a2-84ff-78c85ea64c4b)">
+            <button onclick="runDiagnostic()">Run Diagnostic</button>
+            <button onclick="checkKeyringBackend()">🔧 Check Keyring Backend</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Mock commands object for testing (replace with actual Tauri commands in real app)
+        const commands = {
+            async diagnoseTokenStatus(userId) {
+                // This would be replaced with actual Tauri command call
+                console.log('Diagnosing token status for user:', userId);
+                
+                // Simulate the diagnostic result
+                return {
+                    status: "ok",
+                    data: {
+                        user_id: userId,
+                        access_token_present: true,
+                        refresh_token_present: false, // This is the issue!
+                        access_token_expired: false,
+                        recommendations: [
+                            "Refresh token is missing. This will prevent automatic token refresh. Re-authentication required.",
+                            "Solution: Log out and log back in to refresh all authentication tokens."
+                        ],
+                        timestamp: new Date().toISOString()
+                    }
+                };
+            }
+        };
+
+        async function runDiagnostic() {
+            const userId = document.getElementById('userId').value.trim();
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Running diagnostic...</p>';
+
+            try {
+                const result = await commands.diagnoseTokenStatus(userId);
+                displayResults(result);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="diagnostic-result error">
+                        <h3>❌ Diagnostic Failed</h3>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (result.status === "error") {
+                resultsDiv.innerHTML = `
+                    <div class="diagnostic-result error">
+                        <h3>❌ Diagnostic Error</h3>
+                        <p>${result.error}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const data = result.data;
+            const hasIssues = !data.access_token_present || !data.refresh_token_present || data.access_token_expired;
+            
+            let html = `
+                <div class="diagnostic-result ${hasIssues ? 'error' : 'success'}">
+                    <h3>${hasIssues ? '❌' : '✅'} Token Status for User: ${data.user_id}</h3>
+                    <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                    
+                    <h4>Token Status:</h4>
+                    <ul>
+                        <li>Access Token Present: ${data.access_token_present ? '✅ Yes' : '❌ No'}</li>
+                        <li>Refresh Token Present: ${data.refresh_token_present ? '✅ Yes' : '❌ No'}</li>
+                        <li>Access Token Expired: ${data.access_token_expired === null ? '❓ Unknown' : (data.access_token_expired ? '❌ Yes' : '✅ No')}</li>
+                    </ul>
+            `;
+
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += '<h4>Recommendations:</h4>';
+                data.recommendations.forEach(rec => {
+                    html += `<div class="recommendation">${rec}</div>`;
+                });
+            }
+
+            html += `
+                    <h4>Raw Diagnostic Data:</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function checkKeyringBackend() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="diagnostic-result"><h3>🔧 Checking Keyring Backend...</h3></div>';
+
+            try {
+                const status = await window.__TAURI__.invoke('check_keyring_backend');
+
+                let statusHtml = `
+                    <div class="diagnostic-result">
+                        <h3>🔧 Keyring Backend Status</h3>
+                        <div class="status-item">
+                            <strong>Backend Available:</strong> ${status.backend_available ? '✅ YES' : '❌ NO'}
+                        </div>
+                        <div class="status-item">
+                            <strong>Backend Type:</strong> ${status.backend_type}
+                        </div>
+                        <div class="status-item">
+                            <strong>Can Store/Retrieve:</strong> ${status.can_store_retrieve ? '✅ YES' : '❌ NO'}
+                        </div>
+                        <div class="status-item">
+                            <strong>Timestamp:</strong> ${status.timestamp}
+                        </div>
+                `;
+
+                if (status.error_message) {
+                    statusHtml += `
+                        <div class="status-item error">
+                            <strong>Error:</strong> ${status.error_message}
+                        </div>
+                    `;
+                }
+
+                // Overall assessment
+                if (status.backend_available && status.can_store_retrieve && status.backend_type === 'system') {
+                    statusHtml += `
+                        <div class="status-item success">
+                            <strong>🎉 SUCCESS:</strong> Real system keyring is working properly!
+                            <ul>
+                                <li>✅ No more mock keyring</li>
+                                <li>✅ Tokens will be persisted securely</li>
+                                <li>✅ Vault sync should work correctly</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    statusHtml += `
+                        <div class="status-item warning">
+                            <strong>⚠️ WARNING:</strong> Keyring backend has issues
+                            <ul>
+                    `;
+                    if (!status.backend_available) {
+                        statusHtml += '<li>❌ Backend is not available</li>';
+                    }
+                    if (!status.can_store_retrieve) {
+                        statusHtml += '<li>❌ Cannot store/retrieve data</li>';
+                    }
+                    if (status.backend_type !== 'system') {
+                        statusHtml += `<li>❌ Using ${status.backend_type} instead of system keyring</li>`;
+                    }
+                    statusHtml += '</ul></div>';
+                }
+
+                statusHtml += '</div>';
+                resultsDiv.innerHTML = statusHtml;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="diagnostic-result">
+                        <h3>❌ Keyring Backend Check Failed</h3>
+                        <div class="status-item error">
+                            <strong>Error:</strong> ${error.message || error}
+                        </div>
+                        <div class="status-item">
+                            <strong>Possible causes:</strong>
+                            <ul>
+                                <li>Application not running in Tauri environment</li>
+                                <li>Command not available</li>
+                                <li>System keyring access denied</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-fill with the user ID from the logs if available
+        window.addEventListener('load', () => {
+            const userIdInput = document.getElementById('userId');
+            userIdInput.value = 'a7d33ad5-a83e-40a2-84ff-78c85ea64c4b'; // From the logs
+        });
+    </script>
+</body>
+</html>

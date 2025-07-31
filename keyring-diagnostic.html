@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyring Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .diagnostic-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .status-good { border-left: 5px solid #27ae60; background-color: #d5f4e6; }
+        .status-warning { border-left: 5px solid #f39c12; background-color: #fef9e7; }
+        .status-error { border-left: 5px solid #e74c3c; background-color: #fdf2f2; }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success { color: #27ae60; font-weight: bold; }
+        .warning { color: #f39c12; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; }
+        
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .step h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Keyring Diagnostic Tool</h1>
+        <p>This tool will help diagnose and fix your keyring authentication issues.</p>
+        
+        <div class="step">
+            <h3>Step 1: Check Keyring Backend Status</h3>
+            <p>First, let's verify if your keyring is using the real system backend or a mock backend.</p>
+            <button onclick="checkKeyringBackend()">🔍 Check Keyring Backend</button>
+            <div id="keyring-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Test Token Operations</h3>
+            <p>Test if tokens can be stored and retrieved properly.</p>
+            <button onclick="testTokenOperations()" id="token-test-btn" disabled>🧪 Test Token Storage</button>
+            <div id="token-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Diagnose Current User Tokens</h3>
+            <p>Check the status of tokens for a specific user (enter your user ID).</p>
+            <input type="text" id="user-id" placeholder="Enter your user ID" style="padding: 8px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <button onclick="diagnoseUserTokens()" id="user-test-btn" disabled>🔍 Diagnose User Tokens</button>
+            <div id="user-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 4: Recovery Actions</h3>
+            <p>If issues are found, these actions can help recover:</p>
+            <button onclick="clearAllTokens()" id="clear-btn" disabled>🗑️ Clear All Tokens</button>
+            <button onclick="showRecoveryInstructions()" id="recovery-btn" disabled>📋 Show Recovery Instructions</button>
+            <div id="recovery-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check if we're in a Tauri environment
+        const isTauri = window.__TAURI__ !== undefined;
+        
+        if (!isTauri) {
+            document.body.innerHTML = `
+                <div class="container">
+                    <h1>⚠️ Tauri Environment Required</h1>
+                    <p>This diagnostic tool must be run within the Tauri application environment.</p>
+                    <p>Please open this file through your Chiikawarden application.</p>
+                </div>
+            `;
+        }
+
+        async function checkKeyringBackend() {
+            const resultDiv = document.getElementById('keyring-result');
+            const tokenBtn = document.getElementById('token-test-btn');
+            const userBtn = document.getElementById('user-test-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const recoveryBtn = document.getElementById('recovery-btn');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Checking keyring backend...';
+            
+            try {
+                const { invoke } = window.__TAURI__.core;
+                const status = await invoke('check_keyring_backend');
+                
+                let result = '🔍 KEYRING BACKEND DIAGNOSTIC RESULTS\n';
+                result += '=' .repeat(50) + '\n\n';
+                
+                result += `Backend Available: ${status.backend_available ? '✅ YES' : '❌ NO'}\n`;
+                result += `Backend Type: ${status.backend_type}\n`;
+                result += `Can Store/Retrieve: ${status.can_store_retrieve ? '✅ YES' : '❌ NO'}\n`;
+                
+                if (status.error_message) {
+                    result += `\n❌ ERROR: ${status.error_message}\n`;
+                }
+                
+                // Overall assessment
+                if (status.backend_available && status.can_store_retrieve && status.backend_type === 'system') {
+                    result += '\n🎉 SUCCESS: Real system keyring is working properly!';
+                    result += '\n   - No more mock keyring';
+                    result += '\n   - Tokens will be persisted securely';
+                    result += '\n   - Vault sync should work correctly';
+                    resultDiv.className = 'result status-good';
+                } else {
+                    result += '\n⚠️  WARNING: Keyring backend has issues';
+                    if (!status.backend_available) {
+                        result += '\n   - Backend is not available';
+                    }
+                    if (!status.can_store_retrieve) {
+                        result += '\n   - Cannot store/retrieve data';
+                    }
+                    if (status.backend_type !== 'system') {
+                        result += `\n   - Using ${status.backend_type} instead of system keyring`;
+                    }
+                    resultDiv.className = 'result status-error';
+                }
+                
+                resultDiv.textContent = result;
+                
+                // Enable next steps
+                tokenBtn.disabled = false;
+                userBtn.disabled = false;
+                clearBtn.disabled = false;
+                recoveryBtn.disabled = false;
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR: Failed to check keyring backend\n${error}`;
+                resultDiv.className = 'result status-error';
+            }
+        }
+
+        async function testTokenOperations() {
+            const resultDiv = document.getElementById('token-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing token operations...';
+            
+            try {
+                const { invoke } = window.__TAURI__.core;
+                
+                // Test storing and retrieving a token
+                const testUserId = 'diagnostic_test_user';
+                const testToken = 'test_refresh_token_' + Date.now();
+                
+                let result = '🧪 TOKEN OPERATION TEST RESULTS\n';
+                result += '=' .repeat(40) + '\n\n';
+                
+                // Store test token
+                result += '1. Storing test refresh token... ';
+                await invoke('store_test_refresh_token', { userId: testUserId, token: testToken });
+                result += '✅ SUCCESS\n';
+                
+                // Retrieve test token
+                result += '2. Retrieving test refresh token... ';
+                const retrievedToken = await invoke('retrieve_test_refresh_token', { userId: testUserId });
+                
+                if (retrievedToken === testToken) {
+                    result += '✅ SUCCESS (Token matches)\n';
+                    result += '\n🎉 Token persistence is working correctly!';
+                    resultDiv.className = 'result status-good';
+                } else {
+                    result += '❌ FAILED (Token mismatch or not found)\n';
+                    result += `   Expected: ${testToken}\n`;
+                    result += `   Got: ${retrievedToken || 'null'}\n`;
+                    result += '\n⚠️  Token persistence is not working!';
+                    resultDiv.className = 'result status-error';
+                }
+                
+                // Clean up
+                result += '\n3. Cleaning up test token... ';
+                await invoke('clear_test_tokens', { userId: testUserId });
+                result += '✅ SUCCESS\n';
+                
+                resultDiv.textContent = result;
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR: Token operation test failed\n${error}`;
+                resultDiv.className = 'result status-error';
+            }
+        }
+
+        async function diagnoseUserTokens() {
+            const userId = document.getElementById('user-id').value.trim();
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('user-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Diagnosing user tokens...';
+            
+            try {
+                const { invoke } = window.__TAURI__.core;
+                const diagnostic = await invoke('diagnose_token_status', { userId });
+                
+                let result = `🔍 TOKEN DIAGNOSTIC FOR USER: ${userId}\n`;
+                result += '=' .repeat(50) + '\n\n';
+                
+                result += `Access Token Present: ${diagnostic.has_access_token ? '✅ YES' : '❌ NO'}\n`;
+                result += `Refresh Token Present: ${diagnostic.has_refresh_token ? '✅ YES' : '❌ NO'}\n`;
+                result += `Access Token Expired: ${diagnostic.access_token_expired ? '❌ YES' : '✅ NO'}\n`;
+                
+                if (diagnostic.access_token_expires_at) {
+                    const expiryDate = new Date(diagnostic.access_token_expires_at * 1000);
+                    result += `Access Token Expires: ${expiryDate.toLocaleString()}\n`;
+                }
+                
+                if (diagnostic.keyring_accessible !== undefined) {
+                    result += `Keyring Accessible: ${diagnostic.keyring_accessible ? '✅ YES' : '❌ NO'}\n`;
+                }
+                
+                if (diagnostic.error_details) {
+                    result += `\n❌ ERROR DETAILS:\n${diagnostic.error_details}\n`;
+                }
+                
+                // Assessment
+                if (diagnostic.has_refresh_token && !diagnostic.access_token_expired) {
+                    result += '\n✅ Tokens look healthy!';
+                    resultDiv.className = 'result status-good';
+                } else if (!diagnostic.has_refresh_token) {
+                    result += '\n❌ CRITICAL: No refresh token found!';
+                    result += '\n   This is the root cause of your sync failures.';
+                    result += '\n   You need to log out and log back in.';
+                    resultDiv.className = 'result status-error';
+                } else if (diagnostic.access_token_expired) {
+                    result += '\n⚠️  Access token is expired but refresh token exists.';
+                    result += '\n   Token refresh should work automatically.';
+                    resultDiv.className = 'result status-warning';
+                }
+                
+                resultDiv.textContent = result;
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR: Failed to diagnose user tokens\n${error}`;
+                resultDiv.className = 'result status-error';
+            }
+        }
+
+        async function clearAllTokens() {
+            const userId = document.getElementById('user-id').value.trim();
+            if (!userId) {
+                alert('Please enter a user ID first');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to clear all tokens for user ${userId}? You will need to log in again.`)) {
+                return;
+            }
+            
+            const resultDiv = document.getElementById('recovery-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Clearing all tokens...';
+            
+            try {
+                const { invoke } = window.__TAURI__.core;
+                await invoke('clear_user_tokens', { userId });
+                
+                resultDiv.textContent = `✅ All tokens cleared for user ${userId}\n\nNext steps:\n1. Close the application\n2. Restart the application\n3. Log in again with your credentials\n4. Test vault synchronization`;
+                resultDiv.className = 'result status-good';
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR: Failed to clear tokens\n${error}`;
+                resultDiv.className = 'result status-error';
+            }
+        }
+
+        function showRecoveryInstructions() {
+            const resultDiv = document.getElementById('recovery-result');
+            resultDiv.style.display = 'block';
+            
+            const instructions = `📋 RECOVERY INSTRUCTIONS
+
+If you're experiencing keyring issues, follow these steps:
+
+1. 🔍 IDENTIFY THE PROBLEM
+   - Run the keyring backend check above
+   - If using mock keyring, this is your issue
+
+2. 🛠️ FIX KEYRING CONFIGURATION
+   - Ensure Windows Credential Manager is accessible
+   - Check application permissions
+   - Restart application as administrator if needed
+
+3. 🔄 RE-AUTHENTICATE
+   - Clear all tokens using the button above
+   - Log out of the application completely
+   - Log back in with your credentials
+   - This will store fresh tokens in the real keyring
+
+4. ✅ VERIFY THE FIX
+   - Test vault synchronization
+   - Check that tokens persist after app restart
+   - Run diagnostics again to confirm
+
+5. 🚨 IF STILL FAILING
+   - Check Windows Event Viewer for keyring errors
+   - Ensure no antivirus is blocking keyring access
+   - Try running application as administrator
+   - Contact support with diagnostic results
+
+The key is ensuring the real system keyring is used, not the mock backend.`;
+
+            resultDiv.textContent = instructions;
+            resultDiv.className = 'result status-good';
+        }
+    </script>
+</body>
+</html>
