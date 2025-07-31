@@ -98,12 +98,9 @@ pub async fn log_error_boundary(
     technical_message: String,
     error_id: String,
     severity: String,
-    context: Option<serde_json::Value>,
+    context: Option<String>,
 ) -> Result<(), String> {
-    let context_str = context
-        .as_ref()
-        .map(|c| serde_json::to_string(c).unwrap_or_default())
-        .unwrap_or_default();
+    let context_str = context.unwrap_or_default();
 
     error!(
         component = "ErrorBoundary",
@@ -120,6 +117,7 @@ pub async fn log_error_boundary(
 
 /// Log a user action for audit purposes
 #[command]
+#[specta::specta]
 pub async fn log_user_action(
     action: String,
     resource_type: String,
@@ -155,6 +153,7 @@ pub async fn log_user_action(
 /// This command logs messages at different levels to verify that timestamps
 /// are displayed in the local timezone rather than UTC
 #[command]
+#[specta::specta]
 pub async fn test_timezone_logging() -> Result<String, String> {
     use crate::logging::test_local_timezone_logging;
 

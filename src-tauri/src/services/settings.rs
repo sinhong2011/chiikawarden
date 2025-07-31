@@ -36,10 +36,20 @@ impl SettingsStoreService {
 
         match store.get(SETTINGS_KEY) {
             Some(value) => {
-                // Deserialize the stored settings
-                serde_json::from_value(value.clone()).map_err(|e| AppError::StorageError {
-                    message: format!("Failed to deserialize settings: {}", e),
-                })
+                // Try to deserialize the stored settings
+                match serde_json::from_value::<Settings>(value.clone()) {
+                    Ok(settings) => Ok(settings),
+                    Err(e) => {
+                        // If deserialization fails, try to migrate from partial settings
+                        tracing::warn!(
+                            error = %e,
+                            "Failed to deserialize settings, attempting migration"
+                        );
+
+                        drop(store); // Release the lock before calling migrate_partial_settings
+                        self.migrate_partial_settings(value.clone()).await
+                    }
+                }
             }
             None => {
                 // No settings found, return and save defaults
@@ -94,6 +104,83 @@ impl SettingsStoreService {
         Ok(())
     }
 
+    /// Migrate settings from partial/incomplete stored settings
+    pub async fn migrate_partial_settings(
+        &self,
+        stored_value: serde_json::Value,
+    ) -> AppResult<Settings> {
+        tracing::info!("Migrating partial settings to current format");
+
+        // Start with default settings
+        let mut settings = Settings::default();
+
+        // Extract existing values from stored settings
+        if let Some(theme) = stored_value.get("theme").and_then(|v| v.as_str()) {
+            settings.theme = theme.to_string();
+        }
+
+        if let Some(language) = stored_value.get("language").and_then(|v| v.as_str()) {
+            settings.language = language.to_string();
+        }
+
+        if let Some(vault_timeout) = stored_value.get("vault_timeout").and_then(|v| v.as_i64()) {
+            settings.vault_timeout =
+                crate::models::settings::VaultTimeout::from_legacy_minutes(vault_timeout as i32);
+        }
+
+        if let Some(vault_timeout_action) = stored_value
+            .get("vault_timeout_action")
+            .and_then(|v| v.as_str())
+        {
+            settings.vault_timeout_action = vault_timeout_action.to_string();
+        }
+
+        if let Some(biometric_unlock) = stored_value
+            .get("biometric_unlock")
+            .and_then(|v| v.as_bool())
+        {
+            settings.biometric_unlock = biometric_unlock;
+        }
+
+        if let Some(clear_clipboard) = stored_value.get("clear_clipboard").and_then(|v| v.as_i64())
+        {
+            settings.clear_clipboard = clear_clipboard as i32;
+        }
+
+        if let Some(minimize_to_tray) = stored_value
+            .get("minimize_to_tray")
+            .and_then(|v| v.as_bool())
+        {
+            settings.minimize_to_tray = minimize_to_tray;
+        }
+
+        if let Some(start_to_tray) = stored_value.get("start_to_tray").and_then(|v| v.as_bool()) {
+            settings.start_to_tray = start_to_tray;
+        }
+
+        if let Some(auto_start) = stored_value.get("auto_start").and_then(|v| v.as_bool()) {
+            settings.auto_start = auto_start;
+        }
+
+        if let Some(server_url) = stored_value.get("server_url") {
+            settings.server_url = server_url.as_str().map(|s| s.to_string());
+        }
+
+        // debug_token_operations will use the default value (false) if not present
+        if let Some(debug_token_operations) = stored_value
+            .get("debug_token_operations")
+            .and_then(|v| v.as_bool())
+        {
+            settings.debug_token_operations = debug_token_operations;
+        }
+
+        // Save the migrated settings
+        self.save_settings(&settings).await?;
+
+        tracing::info!("Successfully migrated partial settings");
+        Ok(settings)
+    }
+
     /// Migrate settings from legacy format (for one-time migration)
     pub async fn migrate_from_legacy(
         &self,
@@ -118,7 +205,10 @@ impl SettingsStoreService {
             .get("autoLockTimeout")
             .and_then(|v| v.as_i64())
         {
-            current_settings.vault_timeout = auto_lock_timeout as i32;
+            current_settings.vault_timeout =
+                crate::models::settings::VaultTimeout::from_legacy_minutes(
+                    auto_lock_timeout as i32,
+                );
         }
 
         if let Some(auto_lock) = legacy_settings.get("autoLock").and_then(|v| v.as_bool()) {

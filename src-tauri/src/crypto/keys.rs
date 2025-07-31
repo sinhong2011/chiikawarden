@@ -18,6 +18,7 @@ pub struct RsaKeyPair {
 pub struct EncryptedPrivateKey {
     pub encrypted_key: Vec<u8>,
     pub iv: Vec<u8>,
+    pub mac: Vec<u8>,
 }
 
 pub struct KeyService;
@@ -98,6 +99,7 @@ impl KeyService {
         Ok(EncryptedPrivateKey {
             encrypted_key: encrypted_data.data,
             iv: encrypted_data.iv,
+            mac: encrypted_data.mac.unwrap_or_default(),
         })
     }
 
@@ -112,7 +114,7 @@ impl KeyService {
         let encrypted_data = EncryptedData {
             iv: encrypted_private_key.iv.clone(),
             data: encrypted_private_key.encrypted_key.clone(),
-            mac: None, // Will be calculated during decryption
+            mac: Some(encrypted_private_key.mac.clone()),
         };
 
         EncryptionService::decrypt(
@@ -150,13 +152,17 @@ impl KeyService {
         info: &str,
         length: usize,
     ) -> CryptoResult<Vec<u8>> {
-        use hkdf::Hkdf;
-        use sha2::Sha256;
+        use aws_lc_rs::hkdf::{Salt, HKDF_SHA256};
 
-        let hk = Hkdf::<Sha256>::new(Some(salt.as_bytes()), material);
+        let salt_obj = Salt::new(HKDF_SHA256, salt.as_bytes());
+        let prk = salt_obj.extract(material);
+        let info_slice = [info.as_bytes()];
+        let okm = prk
+            .expand(&info_slice, HKDF_SHA256.hmac_algorithm())
+            .map_err(|e| CryptoError::KeyGeneration(format!("HKDF expand failed: {}", e)))?;
         let mut output = vec![0u8; length];
-        hk.expand(info.as_bytes(), &mut output)
-            .map_err(|e| CryptoError::KeyGeneration(format!("HKDF expansion failed: {}", e)))?;
+        okm.fill(&mut output)
+            .map_err(|e| CryptoError::KeyGeneration(format!("HKDF fill failed: {}", e)))?;
 
         Ok(output)
     }

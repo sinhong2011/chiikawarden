@@ -1,14 +1,32 @@
+pub mod audit_logger;
 pub mod biometrics;
 pub mod cache;
+pub mod cipher_crypto;
+pub mod constant_time;
+pub mod device_trust;
 pub mod encryption;
 pub mod kdf;
+pub mod key_validation;
 pub mod keys;
-pub mod secure_storage;
+pub mod organization_keys;
+pub mod secure_memory;
+pub mod token_manager;
+
+#[cfg(test)]
+pub mod key_derivation_tests;
+
+#[cfg(test)]
+pub mod consolidation_tests;
 
 // Re-export main services
-pub use encryption::EncryptionService;
+pub use cipher_crypto::CipherCrypto;
+pub use device_trust::{DeviceIdentifier, DeviceTrustService};
+pub use encryption::{EncryptionService, KeyDerivationService};
 pub use kdf::KdfService;
+pub use key_validation::KeyValidationService;
 pub use keys::KeyService;
+// Secure memory types will be re-exported when used
+// pub use secure_memory::{KeyType, MemorySecurity, SecureBytes, SecureKey};
 
 /// Main crypto service that combines all crypto functionality
 pub struct CryptoService;
@@ -84,6 +102,15 @@ pub enum CryptoError {
 
     #[error("Storage error: {0}")]
     Storage(String),
+
+    #[error("Invalid format: {0}")]
+    InvalidFormat(String),
+
+    #[error("Database error: {0}")]
+    Database(String),
+
+    #[error("Key operation error: {0}")]
+    KeyOperation(String),
 }
 
 pub type CryptoResult<T> = Result<T, CryptoError>;
@@ -152,7 +179,7 @@ pub struct EncryptedData {
     pub mac: Option<Vec<u8>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type)]
 pub enum EncryptionType {
     AesCbc256B64,
     AesCbc256HmacSha256B64,

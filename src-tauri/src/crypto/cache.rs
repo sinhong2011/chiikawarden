@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 use tokio::time;
+use tracing::{debug, warn};
 
 /// Cache entry with TTL
 #[derive(Debug, Clone)]
@@ -27,12 +28,134 @@ impl<T> CacheEntry<T> {
     }
 }
 
-/// Thread-safe crypto cache for performance optimization
+/// Failure counter for tracking decryption failures per user
+#[derive(Debug, Clone)]
+pub struct FailureCounter {
+    pub count: u32,
+    pub last_failure: Instant,
+    pub threshold: u32,
+    pub reset_duration: Duration,
+}
+
+impl FailureCounter {
+    pub fn new(threshold: u32, reset_duration: Duration) -> Self {
+        Self {
+            count: 0,
+            last_failure: Instant::now(),
+            threshold,
+            reset_duration,
+        }
+    }
+
+    pub fn increment(&mut self) {
+        self.count += 1;
+        self.last_failure = Instant::now();
+    }
+
+    pub fn should_reset(&self) -> bool {
+        self.last_failure.elapsed() > self.reset_duration
+    }
+
+    pub fn reset(&mut self) {
+        self.count = 0;
+        self.last_failure = Instant::now();
+    }
+
+    pub fn is_threshold_exceeded(&self) -> bool {
+        self.count >= self.threshold
+    }
+}
+
+/// Circuit breaker states
+#[derive(Debug, Clone, PartialEq)]
+pub enum CircuitBreakerState {
+    Closed,   // Normal operation
+    Open,     // Failing fast
+    HalfOpen, // Testing if service recovered
+}
+
+/// Circuit breaker for preventing cascade failures
+#[derive(Debug, Clone)]
+pub struct CircuitBreaker {
+    pub state: CircuitBreakerState,
+    pub failure_count: u32,
+    pub failure_threshold: u32,
+    pub recovery_timeout: Duration,
+    pub last_failure_time: Instant,
+    pub half_open_max_calls: u32,
+    pub half_open_calls: u32,
+}
+
+impl CircuitBreaker {
+    pub fn new(failure_threshold: u32, recovery_timeout: Duration) -> Self {
+        Self {
+            state: CircuitBreakerState::Closed,
+            failure_count: 0,
+            failure_threshold,
+            recovery_timeout,
+            last_failure_time: Instant::now(),
+            half_open_max_calls: 3,
+            half_open_calls: 0,
+        }
+    }
+
+    pub fn can_execute(&mut self) -> bool {
+        match self.state {
+            CircuitBreakerState::Closed => true,
+            CircuitBreakerState::Open => {
+                if self.last_failure_time.elapsed() > self.recovery_timeout {
+                    self.state = CircuitBreakerState::HalfOpen;
+                    self.half_open_calls = 0;
+                    true
+                } else {
+                    false
+                }
+            }
+            CircuitBreakerState::HalfOpen => self.half_open_calls < self.half_open_max_calls,
+        }
+    }
+
+    pub fn record_success(&mut self) {
+        match self.state {
+            CircuitBreakerState::HalfOpen => {
+                self.state = CircuitBreakerState::Closed;
+                self.failure_count = 0;
+                self.half_open_calls = 0;
+            }
+            CircuitBreakerState::Closed => {
+                self.failure_count = 0;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn record_failure(&mut self) {
+        self.failure_count += 1;
+        self.last_failure_time = Instant::now();
+
+        match self.state {
+            CircuitBreakerState::Closed => {
+                if self.failure_count >= self.failure_threshold {
+                    self.state = CircuitBreakerState::Open;
+                }
+            }
+            CircuitBreakerState::HalfOpen => {
+                self.state = CircuitBreakerState::Open;
+                self.half_open_calls = 0;
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Thread-safe crypto cache for performance optimization with failure tracking
 #[derive(Debug)]
 pub struct CryptoCache {
     master_keys: Arc<RwLock<HashMap<String, CacheEntry<MasterKey>>>>,
     user_keys: Arc<RwLock<HashMap<String, CacheEntry<UserKey>>>>,
     derived_keys: Arc<RwLock<HashMap<String, CacheEntry<Vec<u8>>>>>,
+    failure_counters: Arc<RwLock<HashMap<String, FailureCounter>>>,
+    circuit_breakers: Arc<RwLock<HashMap<String, CircuitBreaker>>>,
     settings: CacheSettings,
 }
 
@@ -43,6 +166,10 @@ pub struct CacheSettings {
     pub derived_key_ttl: Duration,
     pub max_entries: usize,
     pub cleanup_interval: Duration,
+    pub failure_threshold: u32,
+    pub failure_reset_duration: Duration,
+    pub circuit_breaker_threshold: u32,
+    pub circuit_breaker_recovery_timeout: Duration,
 }
 
 impl Default for CacheSettings {
@@ -53,6 +180,10 @@ impl Default for CacheSettings {
             derived_key_ttl: Duration::from_secs(600), // 10 minutes
             max_entries: 1000,
             cleanup_interval: Duration::from_secs(60), // 1 minute
+            failure_threshold: 3, // Allow 3 failures before marking as problematic
+            failure_reset_duration: Duration::from_secs(300), // Reset failures after 5 minutes
+            circuit_breaker_threshold: 5, // Open circuit after 5 consecutive failures
+            circuit_breaker_recovery_timeout: Duration::from_secs(60), // Try recovery after 1 minute
         }
     }
 }
@@ -63,6 +194,8 @@ impl CryptoCache {
             master_keys: Arc::new(RwLock::new(HashMap::new())),
             user_keys: Arc::new(RwLock::new(HashMap::new())),
             derived_keys: Arc::new(RwLock::new(HashMap::new())),
+            failure_counters: Arc::new(RwLock::new(HashMap::new())),
+            circuit_breakers: Arc::new(RwLock::new(HashMap::new())),
             settings,
         };
 
@@ -130,6 +263,94 @@ impl CryptoCache {
             }
         }
         Ok(None)
+    }
+
+    /// Remove a user key from cache (useful when key becomes stale)
+    pub fn remove_user_key(&self, key: &str) -> CryptoResult<()> {
+        let mut cache = self
+            .user_keys
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock user key cache: {}", e)))?;
+
+        cache.remove(key);
+        debug!(
+            "[crypto_cache] Removed user key from cache for key: {}",
+            key
+        );
+        Ok(())
+    }
+
+    /// Clear all cached data for a user (on logout/authentication change)
+    pub fn clear_user_data(&self, user_id: &str) -> CryptoResult<()> {
+        use tracing::{debug, warn};
+
+        debug!(
+            user_id = user_id,
+            "[crypto_cache] Clearing all cached data for user"
+        );
+
+        // Clear user key
+        if let Err(e) = self.remove_user_key(user_id) {
+            warn!(
+                user_id = user_id,
+                error = %e,
+                "[crypto_cache] Failed to remove user key during cache clear"
+            );
+        }
+
+        // Clear master key
+        if let Err(e) = self.remove_master_key(user_id) {
+            warn!(
+                user_id = user_id,
+                error = %e,
+                "[crypto_cache] Failed to remove master key during cache clear"
+            );
+        }
+
+        // Clear derived keys (remove all keys that start with user_id)
+        if let Ok(mut derived_cache) = self.derived_keys.write() {
+            let keys_to_remove: Vec<String> = derived_cache
+                .keys()
+                .filter(|key| key.starts_with(user_id))
+                .cloned()
+                .collect();
+
+            for key in keys_to_remove {
+                derived_cache.remove(&key);
+            }
+        }
+
+        // Clear failure counters
+        if let Ok(mut counters) = self.failure_counters.write() {
+            counters.remove(user_id);
+        }
+
+        // Clear circuit breakers
+        if let Ok(mut breakers) = self.circuit_breakers.write() {
+            breakers.remove(user_id);
+        }
+
+        debug!(
+            user_id = user_id,
+            "[crypto_cache] Successfully cleared all cached data for user"
+        );
+
+        Ok(())
+    }
+
+    /// Remove a master key from cache
+    pub fn remove_master_key(&self, key: &str) -> CryptoResult<()> {
+        let mut cache = self
+            .master_keys
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock master key cache: {}", e)))?;
+
+        cache.remove(key);
+        debug!(
+            "[crypto_cache] Removed master key from cache for key: {}",
+            key
+        );
+        Ok(())
     }
 
     /// Store derived key with TTL
@@ -282,6 +503,133 @@ pub struct CacheStats {
     pub derived_key_count: usize,
     pub total_entries: usize,
     pub max_entries: usize,
+}
+
+impl CryptoCache {
+    /// Record a decryption failure for a user
+    pub fn record_failure(&self, user_id: &str) -> CryptoResult<bool> {
+        use tracing::warn;
+
+        let mut counters = self
+            .failure_counters
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock failure counters: {}", e)))?;
+
+        let counter = counters.entry(user_id.to_string()).or_insert_with(|| {
+            FailureCounter::new(
+                self.settings.failure_threshold,
+                self.settings.failure_reset_duration,
+            )
+        });
+
+        if counter.should_reset() {
+            counter.reset();
+        }
+
+        counter.increment();
+        let threshold_exceeded = counter.is_threshold_exceeded();
+
+        if threshold_exceeded {
+            warn!(
+                user_id = user_id,
+                failure_count = counter.count,
+                threshold = counter.threshold,
+                "[crypto_cache] Failure threshold exceeded for user"
+            );
+        }
+
+        Ok(threshold_exceeded)
+    }
+
+    /// Check if circuit breaker allows execution for a service
+    pub fn can_execute(&self, service: &str) -> CryptoResult<bool> {
+        let mut breakers = self
+            .circuit_breakers
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock circuit breakers: {}", e)))?;
+
+        let breaker = breakers.entry(service.to_string()).or_insert_with(|| {
+            CircuitBreaker::new(
+                self.settings.circuit_breaker_threshold,
+                self.settings.circuit_breaker_recovery_timeout,
+            )
+        });
+
+        Ok(breaker.can_execute())
+    }
+
+    /// Record a successful operation for circuit breaker
+    pub fn record_success(&self, service: &str) -> CryptoResult<()> {
+        let mut breakers = self
+            .circuit_breakers
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock circuit breakers: {}", e)))?;
+
+        if let Some(breaker) = breakers.get_mut(service) {
+            breaker.record_success();
+        }
+
+        Ok(())
+    }
+
+    /// Record a failure for circuit breaker
+    pub fn record_circuit_failure(&self, service: &str) -> CryptoResult<bool> {
+        use tracing::warn;
+
+        let mut breakers = self
+            .circuit_breakers
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock circuit breakers: {}", e)))?;
+
+        let breaker = breakers.entry(service.to_string()).or_insert_with(|| {
+            CircuitBreaker::new(
+                self.settings.circuit_breaker_threshold,
+                self.settings.circuit_breaker_recovery_timeout,
+            )
+        });
+
+        breaker.record_failure();
+        let is_open = breaker.state == CircuitBreakerState::Open;
+
+        if is_open {
+            warn!(
+                service = service,
+                failure_count = breaker.failure_count,
+                "[crypto_cache] Circuit breaker opened for service"
+            );
+        }
+
+        Ok(is_open)
+    }
+
+    /// Check if user key should be invalidated based on failure patterns
+    pub fn should_invalidate_user_key(&self, user_id: &str) -> CryptoResult<bool> {
+        let counters = self
+            .failure_counters
+            .read()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock failure counters: {}", e)))?;
+
+        if let Some(counter) = counters.get(user_id) {
+            // Only invalidate if we have consistent failures over time
+            Ok(counter.is_threshold_exceeded() && !counter.should_reset())
+        } else {
+            Ok(false)
+        }
+    }
+
+    /// Reset failure counter for a user
+    pub fn reset_failures(&self, user_id: &str) -> CryptoResult<()> {
+        let mut counters = self
+            .failure_counters
+            .write()
+            .map_err(|e| CryptoError::Storage(format!("Failed to lock failure counters: {}", e)))?;
+
+        if let Some(counter) = counters.get_mut(user_id) {
+            counter.reset();
+        }
+
+        Ok(())
+    }
 }
 
 lazy_static::lazy_static! {

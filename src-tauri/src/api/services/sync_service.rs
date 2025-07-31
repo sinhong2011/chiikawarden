@@ -84,13 +84,13 @@ impl ApiSyncService {
 
                 // Parse sync response
                 let revision_date = sync_data
-                    .get("RevisionDate")
+                    .get("revisionDate")
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();
 
                 // Count updated items
-                if let Some(ciphers) = sync_data.get("Ciphers").and_then(|v| v.as_array()) {
+                if let Some(ciphers) = sync_data.get("ciphers").and_then(|v| v.as_array()) {
                     ciphers_updated = ciphers.len();
                     debug!(
                         ciphers_count = ciphers_updated,
@@ -98,7 +98,7 @@ impl ApiSyncService {
                     );
                 }
 
-                if let Some(folders) = sync_data.get("Folders").and_then(|v| v.as_array()) {
+                if let Some(folders) = sync_data.get("folders").and_then(|v| v.as_array()) {
                     folders_updated = folders.len();
                     debug!(
                         folders_count = folders_updated,
@@ -223,55 +223,55 @@ impl ApiSyncService {
     /// Validate sync data integrity
     async fn validate_sync_data(&self, sync_data: &Value) -> AppResult<()> {
         // Validate required fields are present
-        if sync_data.get("RevisionDate").is_none() {
+        if sync_data.get("revisionDate").is_none() {
             return Err(AppError::ValidationError {
-                field: "RevisionDate".to_string(),
-                message: "Missing RevisionDate in sync data".to_string(),
+                field: "revisionDate".to_string(),
+                message: "Missing revisionDate in sync data".to_string(),
             });
         }
 
         // Validate ciphers structure
-        if let Some(ciphers) = sync_data.get("Ciphers").and_then(|v| v.as_array()) {
+        if let Some(ciphers) = sync_data.get("ciphers").and_then(|v| v.as_array()) {
             for cipher in ciphers {
-                if cipher.get("Id").is_none() {
+                if cipher.get("id").is_none() {
                     return Err(AppError::ValidationError {
-                        field: "Cipher.Id".to_string(),
-                        message: "Cipher missing required Id field".to_string(),
+                        field: "cipher.id".to_string(),
+                        message: "Cipher missing required id field".to_string(),
                     });
                 }
-                if cipher.get("Name").is_none() {
+                if cipher.get("name").is_none() {
                     return Err(AppError::ValidationError {
-                        field: "Cipher.Name".to_string(),
-                        message: "Cipher missing required Name field".to_string(),
+                        field: "cipher.name".to_string(),
+                        message: "Cipher missing required name field".to_string(),
                     });
                 }
             }
         }
 
         // Validate folders structure
-        if let Some(folders) = sync_data.get("Folders").and_then(|v| v.as_array()) {
+        if let Some(folders) = sync_data.get("folders").and_then(|v| v.as_array()) {
             for folder in folders {
-                if folder.get("Id").is_none() {
+                if folder.get("id").is_none() {
                     return Err(AppError::ValidationError {
-                        field: "Folder.Id".to_string(),
-                        message: "Folder missing required Id field".to_string(),
+                        field: "folder.id".to_string(),
+                        message: "Folder missing required id field".to_string(),
                     });
                 }
-                if folder.get("Name").is_none() {
+                if folder.get("name").is_none() {
                     return Err(AppError::ValidationError {
-                        field: "Folder.Name".to_string(),
-                        message: "Folder missing required Name field".to_string(),
+                        field: "folder.name".to_string(),
+                        message: "Folder missing required name field".to_string(),
                     });
                 }
             }
         }
 
         // Validate profile structure
-        if let Some(profile) = sync_data.get("Profile") {
-            if profile.get("Id").is_none() {
+        if let Some(profile) = sync_data.get("profile") {
+            if profile.get("id").is_none() {
                 return Err(AppError::ValidationError {
-                    field: "Profile.Id".to_string(),
-                    message: "Profile missing required Id field".to_string(),
+                    field: "profile.id".to_string(),
+                    message: "Profile missing required id field".to_string(),
                 });
             }
         }

@@ -2,6 +2,7 @@ mod api;
 mod app_state;
 mod commands;
 mod crypto;
+pub mod debug_config;
 mod error;
 
 pub mod logging;
@@ -10,23 +11,57 @@ mod models;
 mod services;
 // mod specta_config; // Moving specta config directly into lib.rs
 mod storage;
+mod utils;
+
+#[cfg(test)]
+mod tests;
 
 use app_state::AppState;
 use tauri::Manager;
 // Removed unused tracing imports since we're using log crate now
 
 // Tauri-specta imports
-use specta_typescript::Typescript;
 use tauri_specta::{collect_commands, collect_events, Builder};
+
+#[cfg(debug_assertions)]
+use specta_typescript::Typescript;
 
 // Import commands with specta annotations
 use crate::commands::auth::{
-    change_master_password, lock_vault, login_with_password, logout, prelogin, refresh_token,
-    setup_account, setup_biometric_unlock, unlock_with_biometric, unlock_with_password,
+    change_master_password, check_auto_unlock_available, check_keyring_backend,
+    check_user_key_available, clear_test_tokens, clear_user_tokens, debug_check_cache_status,
+    debug_cipher_decryption, debug_cipher_decryption_steps, debug_cipher_field_inspection, debug_cipher_parsing_pipeline,
+    debug_fetch_ciphers_from_api, diagnose_auth_flow, diagnose_token_status,
+    establish_device_trust, force_relogin, get_all_users, list_trusted_devices, lock_vault,
+    login_with_device_trust, login_with_password, logout, prelogin, reauth_with_master_password,
+    refresh_token, retrieve_test_refresh_token, revoke_device_trust, setup_account,
+    setup_biometric_unlock, store_test_refresh_token, unlock_with_auto_key, unlock_with_biometric,
+    unlock_with_password,
 };
 use crate::commands::biometric::{
     authenticate_biometric, check_biometric_availability, delete_biometric_unlock,
     is_biometric_unlock_enabled, retrieve_biometric_user_key, setup_biometric_unlock_alt,
+};
+
+use crate::commands::database::{
+    get_database_health, get_database_path, get_migration_status, is_database_initialized,
+    run_database_maintenance,
+};
+
+#[cfg(debug_assertions)]
+use crate::commands::database::{
+    generate_sample_data, get_database_stats, inspect_database_schema, optimize_database,
+    reset_database,
+};
+
+use crate::commands::logging::{
+    log_error_boundary, log_frontend_message, log_user_action, test_timezone_logging,
+};
+use crate::commands::network_aware_sync::{
+    can_write, connect_websocket, disconnect_websocket, force_online_sync,
+    get_network_aware_sync_status, get_network_status, get_sync_mode,
+    get_websocket_notification_types, get_websocket_status, network_aware_sync_vault,
+    set_sync_mode,
 };
 use crate::commands::server_provider::{
     add_custom_server_provider, add_custom_server_provider_with_urls, get_all_server_providers,
@@ -36,9 +71,9 @@ use crate::commands::server_provider::{
     remove_server_provider, set_current_server_provider, test_server_provider_connectivity,
     update_server_provider,
 };
-use crate::commands::settings::{
-    get_settings, migrate_legacy_settings, reset_settings, save_settings,
-};
+use crate::commands::settings::{get_settings, reset_settings, save_settings};
+use crate::commands::storage::{delete_value, get_value, store_value};
+use crate::commands::sync::{get_sync_status, sync_vault};
 use crate::commands::vault::{
     delete_cipher, delete_folder, get_all_ciphers, get_collections, get_folders, save_cipher,
     save_folder, search_ciphers,
@@ -54,19 +89,158 @@ fn create_typescript_config() -> Typescript {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Configure tauri-specta for type-safe commands
+    #[cfg(debug_assertions)]
+    let specta_builder = Builder::new().commands(collect_commands![
+        // Auth commands
+        prelogin,
+        login_with_password,
+        unlock_with_password,
+        unlock_with_auto_key,
+        setup_account,
+        lock_vault,
+        // Device trust commands
+        establish_device_trust,
+        login_with_device_trust,
+        revoke_device_trust,
+        list_trusted_devices,
+        logout,
+        refresh_token,
+        check_user_key_available,
+        check_auto_unlock_available,
+        reauth_with_master_password,
+        change_master_password,
+        setup_biometric_unlock,
+        unlock_with_biometric,
+        get_all_users,
+        diagnose_token_status,
+        diagnose_auth_flow,
+        check_keyring_backend,
+        clear_user_tokens,
+        force_relogin,
+        // Diagnostic commands
+        store_test_refresh_token,
+        retrieve_test_refresh_token,
+        clear_test_tokens,
+        debug_check_cache_status,
+        debug_cipher_decryption,
+        debug_cipher_decryption_steps,
+        debug_fetch_ciphers_from_api,
+        debug_cipher_field_inspection,
+        debug_cipher_parsing_pipeline,
+        // Vault commands
+        get_all_ciphers,
+        save_cipher,
+        delete_cipher,
+        search_ciphers,
+        get_folders,
+        save_folder,
+        delete_folder,
+        get_collections,
+        // Sync commands
+        sync_vault,
+        get_sync_status,
+        // Network-aware sync commands
+        network_aware_sync_vault,
+        force_online_sync,
+        get_network_aware_sync_status,
+        get_network_status,
+        get_sync_mode,
+        set_sync_mode,
+        can_write,
+        // WebSocket commands
+        connect_websocket,
+        disconnect_websocket,
+        get_websocket_status,
+        get_websocket_notification_types,
+        // Server provider commands
+        get_all_server_providers,
+        get_current_server_provider,
+        get_server_provider_info,
+        add_custom_server_provider,
+        add_custom_server_provider_with_urls,
+        update_server_provider,
+        set_current_server_provider,
+        remove_server_provider,
+        test_server_provider_connectivity,
+        get_server_provider_api_url,
+        get_server_provider_identity_url,
+        get_server_provider_icons_url,
+        get_server_provider_web_vault_url,
+        get_server_provider_notifications_url,
+        get_server_provider_events_url,
+        // Biometric commands
+        check_biometric_availability,
+        authenticate_biometric,
+        setup_biometric_unlock_alt,
+        retrieve_biometric_user_key,
+        delete_biometric_unlock,
+        is_biometric_unlock_enabled,
+        // Settings commands
+        get_settings,
+        save_settings,
+        reset_settings,
+        // Storage commands
+        store_value,
+        get_value,
+        delete_value,
+        // Logging commands
+        log_frontend_message,
+        log_error_boundary,
+        log_user_action,
+        test_timezone_logging,
+        // Database commands
+        get_database_health,
+        get_migration_status,
+        is_database_initialized,
+        get_database_path,
+        run_database_maintenance,
+        // Debug-only database commands
+        get_database_stats,
+        inspect_database_schema,
+        optimize_database,
+        reset_database,
+        generate_sample_data,
+    ]);
+
+    #[cfg(not(debug_assertions))]
     let specta_builder = Builder::new()
         .commands(collect_commands![
             // Auth commands
             prelogin,
             login_with_password,
             unlock_with_password,
+            unlock_with_auto_key,
             setup_account,
             lock_vault,
+            // Device trust commands
+            establish_device_trust,
+            login_with_device_trust,
+            revoke_device_trust,
+            list_trusted_devices,
             logout,
             refresh_token,
+            check_user_key_available,
+            check_auto_unlock_available,
+            reauth_with_master_password,
             change_master_password,
             setup_biometric_unlock,
             unlock_with_biometric,
+            get_all_users,
+            diagnose_token_status,
+            diagnose_auth_flow,
+            check_keyring_backend,
+            clear_user_tokens,
+            force_relogin,
+            // Diagnostic commands
+            store_test_refresh_token,
+            retrieve_test_refresh_token,
+            clear_test_tokens,
+            debug_check_cache_status,
+            debug_cipher_decryption,
+            debug_cipher_decryption_steps,
+            debug_fetch_ciphers_from_api,
+            debug_cipher_field_inspection,
+            debug_cipher_parsing_pipeline,
             // Vault commands
             get_all_ciphers,
             save_cipher,
@@ -76,6 +250,22 @@ pub fn run() {
             save_folder,
             delete_folder,
             get_collections,
+            // Sync commands
+            sync_vault,
+            get_sync_status,
+            // Network-aware sync commands
+            network_aware_sync_vault,
+            force_online_sync,
+            get_network_aware_sync_status,
+            get_network_status,
+            get_sync_mode,
+            set_sync_mode,
+            can_write,
+            // WebSocket commands
+            connect_websocket,
+            disconnect_websocket,
+            get_websocket_status,
+            get_websocket_notification_types,
             // Server provider commands
             get_all_server_providers,
             get_current_server_provider,
@@ -103,7 +293,21 @@ pub fn run() {
             get_settings,
             save_settings,
             reset_settings,
-            migrate_legacy_settings,
+            // Storage commands
+            store_value,
+            get_value,
+            delete_value,
+            // Logging commands
+            log_frontend_message,
+            log_error_boundary,
+            log_user_action,
+            test_timezone_logging,
+            // Database commands
+            get_database_health,
+            get_migration_status,
+            is_database_initialized,
+            get_database_path,
+            run_database_maintenance,
         ])
         .events(collect_events![]);
 
@@ -116,7 +320,7 @@ pub fn run() {
             .export(typescript_config, "../src/lib/tauri-commands.ts")
             .expect("Failed to export TypeScript bindings");
 
-        println!("✅ TypeScript bindings exported successfully with type-safe fixes applied!");
+        println!("✅ TypeScript bindings exported successfully!");
     }
 
     tauri::Builder::default()
@@ -140,47 +344,42 @@ pub fn run() {
                 }
             }
 
+            // Initialize debug configuration for token operations
+            debug_config::init_debug_config(None);
+
             logging::log_startup();
 
-            // Initialize application state asynchronously
-            let app_handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                log::info!("[startup] Starting application state initialization");
-                let start_time = std::time::Instant::now();
+            // Initialize application state synchronously to avoid race conditions
+            log::info!("[startup] Starting application state initialization");
+            let start_time = std::time::Instant::now();
 
-                match AppState::new(app_handle.clone()).await {
-                    Ok(state) => {
-                        let duration_ms = start_time.elapsed().as_millis() as u64;
-                        app_handle.manage(state);
-                        log::info!(
-                            "[startup] Application state initialized successfully in {}ms",
-                            duration_ms
-                        );
-                    }
-                    Err(e) => {
-                        let duration_ms = start_time.elapsed().as_millis() as u64;
-                        log::error!(
-                            "[startup] Failed to initialize application state after {}ms: {}",
-                            duration_ms,
-                            e
-                        );
-                    }
+            // Use blocking initialization to ensure state is ready before commands can be called
+            let app_handle = app.handle().clone();
+            match tauri::async_runtime::block_on(AppState::new(app_handle.clone())) {
+                Ok(state) => {
+                    let duration_ms = start_time.elapsed().as_millis() as u64;
+                    app.manage(state);
+                    log::info!(
+                        "[startup] Application state initialized successfully in {}ms",
+                        duration_ms
+                    );
                 }
-            });
+                Err(e) => {
+                    let duration_ms = start_time.elapsed().as_millis() as u64;
+                    log::error!(
+                        "[startup] Failed to initialize application state after {}ms: {}",
+                        duration_ms,
+                        e
+                    );
+                    // Return error to prevent app from starting with invalid state
+                    return Err(Box::new(e));
+                }
+            }
 
             Ok(())
         })
         // Security and storage plugins
-        .plugin(
-            tauri_plugin_stronghold::Builder::new(|password| {
-                // Simple password hashing for stronghold - in production use proper key derivation
-                use sha2::{Digest, Sha256};
-                let mut hasher = Sha256::new();
-                hasher.update(password.as_bytes());
-                hasher.finalize().to_vec()
-            })
-            .build(),
-        )
+        // Using keyring for secure storage instead of stronghold
         // Database management is now handled directly in AppDatabase
         .plugin(tauri_plugin_store::Builder::default().build())
         // System integration plugins

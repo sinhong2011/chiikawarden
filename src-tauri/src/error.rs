@@ -5,14 +5,52 @@ use thiserror::Error;
 use tokio;
 use tracing::{error, info, warn};
 
-/// Application error types
+/// Application error types with enhanced classification for better error handling
 #[derive(Error, Debug, Clone, Serialize, Deserialize, Type)]
 pub enum AppError {
     #[error("Authentication failed: {message}")]
     AuthenticationError { message: String },
 
+    #[error("Re-authentication required: {message}")]
+    ReAuthenticationRequired { message: String },
+
     #[error("Encryption error: {operation}")]
     CryptographyError { operation: String },
+
+    #[error("Crypto error: {message}")]
+    CryptoError { message: String },
+
+    /// MAC verification failed - could be transient data corruption or invalid key
+    #[error("MAC verification failed: {context} - {message}")]
+    MacVerificationError { context: String, message: String },
+
+    /// Key validation failed - permanent authentication issue
+    #[error("Key validation failed: {key_type} - {message}")]
+    KeyValidationError { key_type: String, message: String },
+
+    /// Transient decryption failure - retry may succeed
+    #[error("Transient decryption failure in {operation}: {message} (attempt {retry_count})")]
+    TransientDecryptionError {
+        operation: String,
+        message: String,
+        retry_count: u32,
+    },
+
+    /// Permanent decryption failure - retry will not succeed
+    #[error("Permanent decryption failure in {operation}: {message}")]
+    PermanentDecryptionError { operation: String, message: String },
+
+    /// Cache operation failed
+    #[error("Cache operation failed for {operation}: {message}")]
+    CacheError { operation: String, message: String },
+
+    /// Circuit breaker is open - too many failures detected
+    #[error("Circuit breaker open for {service}: {message} (failures: {failure_count})")]
+    CircuitBreakerError {
+        service: String,
+        message: String,
+        failure_count: u32,
+    },
 
     #[error("Database error: {message}")]
     DatabaseError { message: String },
@@ -74,6 +112,14 @@ impl From<std::io::Error> for AppError {
     }
 }
 
+impl From<crate::crypto::CryptoError> for AppError {
+    fn from(err: crate::crypto::CryptoError) -> Self {
+        AppError::CryptographyError {
+            operation: err.to_string(),
+        }
+    }
+}
+
 /// Result type alias for application operations
 pub type AppResult<T> = Result<T, AppError>;
 
@@ -100,6 +146,13 @@ impl AppError {
     pub fn auth_error(message: String) -> Self {
         let err = AppError::AuthenticationError { message };
         error!(error = %err, "Authentication error");
+        err
+    }
+
+    /// Create and log a re-authentication required error
+    pub fn reauth_required(message: String) -> Self {
+        let err = AppError::ReAuthenticationRequired { message };
+        warn!(error = %err, "Re-authentication required");
         err
     }
 
@@ -131,6 +184,60 @@ impl AppError {
         err
     }
 
+    /// Create and log a MAC verification error
+    pub fn mac_verification_error(context: String, message: String) -> Self {
+        let err = AppError::MacVerificationError { context, message };
+        warn!(error = %err, "MAC verification failed");
+        err
+    }
+
+    /// Create and log a key validation error
+    pub fn key_validation_error(key_type: String, message: String) -> Self {
+        let err = AppError::KeyValidationError { key_type, message };
+        error!(error = %err, "Key validation failed");
+        err
+    }
+
+    /// Create and log a transient decryption error
+    pub fn transient_decryption_error(
+        operation: String,
+        message: String,
+        retry_count: u32,
+    ) -> Self {
+        let err = AppError::TransientDecryptionError {
+            operation,
+            message,
+            retry_count,
+        };
+        warn!(error = %err, "Transient decryption failure");
+        err
+    }
+
+    /// Create and log a permanent decryption error
+    pub fn permanent_decryption_error(operation: String, message: String) -> Self {
+        let err = AppError::PermanentDecryptionError { operation, message };
+        error!(error = %err, "Permanent decryption failure");
+        err
+    }
+
+    /// Create and log a cache error
+    pub fn cache_error(operation: String, message: String) -> Self {
+        let err = AppError::CacheError { operation, message };
+        warn!(error = %err, "Cache operation failed");
+        err
+    }
+
+    /// Create and log a circuit breaker error
+    pub fn circuit_breaker_error(service: String, message: String, failure_count: u32) -> Self {
+        let err = AppError::CircuitBreakerError {
+            service,
+            message,
+            failure_count,
+        };
+        warn!(error = %err, "Circuit breaker opened");
+        err
+    }
+
     /// Create and log a validation error
     pub fn validation_error(field: String, message: String) -> Self {
         let err = AppError::ValidationError { field, message };
@@ -142,7 +249,15 @@ impl AppError {
     pub fn category(&self) -> &'static str {
         match self {
             AppError::AuthenticationError { .. } => "authentication",
+            AppError::ReAuthenticationRequired { .. } => "re_authentication",
             AppError::CryptographyError { .. } => "cryptography",
+            AppError::CryptoError { .. } => "crypto",
+            AppError::MacVerificationError { .. } => "mac_verification",
+            AppError::KeyValidationError { .. } => "key_validation",
+            AppError::TransientDecryptionError { .. } => "transient_decryption",
+            AppError::PermanentDecryptionError { .. } => "permanent_decryption",
+            AppError::CacheError { .. } => "cache",
+            AppError::CircuitBreakerError { .. } => "circuit_breaker",
             AppError::DatabaseError { .. } => "database",
             AppError::NetworkError { .. } => "network",
             AppError::StorageError { .. } => "storage",
@@ -163,6 +278,9 @@ impl AppError {
             }
             AppError::DatabaseError { .. } => true, // Database errors might be transient
             AppError::SyncError { .. } => true,     // Sync errors are often retryable
+            AppError::TransientDecryptionError { .. } => true, // Explicitly retryable
+            AppError::MacVerificationError { .. } => true, // Could be transient data corruption
+            AppError::CacheError { .. } => true,    // Cache operations can be retried
             _ => false,
         }
     }
@@ -206,7 +324,47 @@ impl AppError {
             }
             AppError::DatabaseError { .. } => 3,
             AppError::SyncError { .. } => 5,
+            AppError::TransientDecryptionError { .. } => 3,
+            AppError::MacVerificationError { .. } => 2, // Limited retries for MAC failures
+            AppError::CacheError { .. } => 2,
             _ => 0,
+        }
+    }
+
+    /// Check if this error should trigger key invalidation
+    pub fn should_invalidate_key(&self) -> bool {
+        matches!(
+            self,
+            AppError::KeyValidationError { .. } | AppError::AuthenticationError { .. }
+        )
+    }
+
+    /// Check if this error is a crypto-related failure
+    pub fn is_crypto_error(&self) -> bool {
+        matches!(
+            self,
+            AppError::CryptographyError { .. }
+                | AppError::CryptoError { .. }
+                | AppError::MacVerificationError { .. }
+                | AppError::KeyValidationError { .. }
+                | AppError::TransientDecryptionError { .. }
+                | AppError::PermanentDecryptionError { .. }
+        )
+    }
+
+    /// Check if this error should trigger circuit breaker
+    pub fn should_trigger_circuit_breaker(&self) -> bool {
+        matches!(
+            self,
+            AppError::PermanentDecryptionError { .. } | AppError::KeyValidationError { .. }
+        )
+    }
+
+    /// Get retry count for transient errors
+    pub fn get_retry_count(&self) -> Option<u32> {
+        match self {
+            AppError::TransientDecryptionError { retry_count, .. } => Some(*retry_count),
+            _ => None,
         }
     }
 
@@ -214,19 +372,25 @@ impl AppError {
     pub fn error_code(&self) -> String {
         match self {
             AppError::AuthenticationError { .. } => "AUTHENTICATION_ERROR".to_string(),
+            AppError::ReAuthenticationRequired { .. } => "REAUTH_REQUIRED".to_string(),
             AppError::CryptographyError { .. } => "CRYPTOGRAPHY_ERROR".to_string(),
+            AppError::CryptoError { .. } => "CRYPTO_ERROR".to_string(),
+            AppError::MacVerificationError { .. } => "MAC_VERIFICATION_ERROR".to_string(),
+            AppError::KeyValidationError { .. } => "KEY_VALIDATION_ERROR".to_string(),
+            AppError::TransientDecryptionError { .. } => "TRANSIENT_DECRYPTION_ERROR".to_string(),
+            AppError::PermanentDecryptionError { .. } => "PERMANENT_DECRYPTION_ERROR".to_string(),
+            AppError::CacheError { .. } => "CACHE_ERROR".to_string(),
+            AppError::CircuitBreakerError { .. } => "CIRCUIT_BREAKER_ERROR".to_string(),
             AppError::DatabaseError { .. } => "DATABASE_ERROR".to_string(),
-            AppError::NetworkError { status, .. } => {
-                match *status {
-                    0 => "NETWORK_CONNECTION_FAILED".to_string(),
-                    401 => "AUTHENTICATION_EXPIRED".to_string(),
-                    403 => "ACCESS_DENIED".to_string(),
-                    404 => "RESOURCE_NOT_FOUND".to_string(),
-                    429 => "RATE_LIMITED".to_string(),
-                    500..=599 => "SERVER_ERROR".to_string(),
-                    _ => "NETWORK_ERROR".to_string(),
-                }
-            }
+            AppError::NetworkError { status, .. } => match *status {
+                0 => "NETWORK_CONNECTION_FAILED".to_string(),
+                401 => "AUTHENTICATION_EXPIRED".to_string(),
+                403 => "ACCESS_DENIED".to_string(),
+                404 => "RESOURCE_NOT_FOUND".to_string(),
+                429 => "RATE_LIMITED".to_string(),
+                500..=599 => "SERVER_ERROR".to_string(),
+                _ => "NETWORK_ERROR".to_string(),
+            },
             AppError::StorageError { .. } => "STORAGE_ERROR".to_string(),
             AppError::ValidationError { .. } => "VALIDATION_ERROR".to_string(),
             AppError::ConfigurationError { .. } => "CONFIGURATION_ERROR".to_string(),
@@ -240,7 +404,15 @@ impl AppError {
     pub fn severity(&self) -> ErrorSeverity {
         match self {
             AppError::AuthenticationError { .. } => ErrorSeverity::High,
+            AppError::ReAuthenticationRequired { .. } => ErrorSeverity::Medium,
             AppError::CryptographyError { .. } => ErrorSeverity::Critical,
+            AppError::CryptoError { .. } => ErrorSeverity::Critical,
+            AppError::MacVerificationError { .. } => ErrorSeverity::High,
+            AppError::KeyValidationError { .. } => ErrorSeverity::Critical,
+            AppError::TransientDecryptionError { .. } => ErrorSeverity::Medium,
+            AppError::PermanentDecryptionError { .. } => ErrorSeverity::High,
+            AppError::CacheError { .. } => ErrorSeverity::Medium,
+            AppError::CircuitBreakerError { .. } => ErrorSeverity::High,
             AppError::DatabaseError { .. } => ErrorSeverity::High,
             AppError::NetworkError { status, .. } => {
                 if *status >= 500 {

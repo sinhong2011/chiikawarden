@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use tauri::AppHandle;
 use tauri_plugin_http::reqwest;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn};
 
 /// HTTP client for making API requests with proper error handling and authentication
 pub struct ApiClient {
@@ -53,10 +53,12 @@ impl ApiClient {
 
         // Log the request
         log_http_request("GET", &url, token.is_some());
-        debug!(
+        info!(
             endpoint = endpoint,
+            url = %url,
             has_token = token.is_some(),
-            "Making GET request"
+            token_length = token.map(|t| t.len()).unwrap_or(0),
+            "[api_client] Making HTTP GET request to Vaultwarden server"
         );
 
         let headers = self.build_headers(token).await?;
@@ -86,6 +88,24 @@ impl ApiClient {
 
         // Log the response
         log_http_response("GET", &url, status, duration);
+
+        if status == 200 {
+            info!(
+                endpoint = endpoint,
+                url = %url,
+                status = status,
+                duration_ms = duration,
+                "[api_client] HTTP GET request successful - received data from Vaultwarden server"
+            );
+        } else {
+            error!(
+                endpoint = endpoint,
+                url = %url,
+                status = status,
+                duration_ms = duration,
+                "[api_client] HTTP GET request failed with status {} - this will cause sync failures", status
+            );
+        }
 
         self.handle_response(response).await
     }
@@ -440,6 +460,16 @@ impl ApiClient {
                 "Response body read successfully, parsing JSON"
             );
 
+            // Log complete response body for authentication endpoints (for debugging user_id issue)
+            if body.contains("access_token") || body.contains("refresh_token") {
+                debug!(
+                    target: "chiikawarden::api::auth_response",
+                    status = status_code,
+                    response_body = %body,
+                    "Complete authentication response body for debugging"
+                );
+            }
+
             serde_json::from_str(&body).map_err(|e| {
                 error!(
                     status = status_code,
@@ -473,6 +503,268 @@ impl ApiClient {
                 status: status_code,
                 message: format!("HTTP {} - {}", status, error_body),
             })
+        }
+    }
+
+    /// Make a GET request with automatic token refresh on 401 errors
+    pub async fn get_with_auto_refresh<T>(
+        &self,
+        endpoint: &str,
+        user_id: &str,
+        token_manager: &Arc<tokio::sync::RwLock<crate::crypto::token_manager::TokenManager>>,
+    ) -> AppResult<T>
+    where
+        T: for<'de> Deserialize<'de>,
+    {
+        use crate::debug_config::CorrelationId;
+        use crate::debug_token_op;
+
+        let correlation_id = CorrelationId::new();
+
+        info!(
+            user_id = user_id,
+            endpoint = endpoint,
+            operation = "get_with_auto_refresh",
+            correlation_id = %correlation_id,
+            "[api_client] Starting GET request with auto-refresh - this is the actual API call to server"
+        );
+
+        // First attempt: Get current access token and try the request
+        info!(
+            user_id = user_id,
+            endpoint = endpoint,
+            operation = "get_with_auto_refresh",
+            correlation_id = %correlation_id,
+            "[api_client] Retrieving access token for API authentication"
+        );
+
+        let token_manager_guard = token_manager.read().await;
+        let access_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+            Ok(Some(token)) => {
+                info!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "get_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    token_length = token.len(),
+                    "[api_client] Access token retrieved successfully - proceeding with API call"
+                );
+                token
+            },
+            Ok(None) => {
+                error!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "get_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] CRITICAL: No access token available - API call will fail"
+                );
+                return Err(AppError::AuthenticationError {
+                    message: "No access token available".to_string(),
+                });
+            }
+            Err(e) => {
+                error!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    error = %e,
+                    correlation_id = %correlation_id,
+                    "[api_client] Failed to retrieve access token"
+                );
+                return Err(AppError::AuthenticationError {
+                    message: format!("Failed to retrieve access token: {}", e),
+                });
+            }
+        };
+        drop(token_manager_guard); // Release the lock
+
+        // Try the request with current token
+        match self.get(endpoint, Some(&access_token)).await {
+            Ok(response) => {
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "get_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] GET request succeeded with current token"
+                );
+                Ok(response)
+            }
+            Err(AppError::NetworkError { status: 401, .. }) => {
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "get_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] Got 401, attempting token refresh"
+                );
+
+                // Token expired, try to refresh
+                let token_manager_guard = token_manager.read().await;
+                if let Err(e) = token_manager_guard.refresh_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                    error!(
+                        user_id = user_id,
+                        endpoint = endpoint,
+                        error = %e,
+                        correlation_id = %correlation_id,
+                        "[api_client] Token refresh failed"
+                    );
+                    return Err(AppError::AuthenticationError {
+                        message: format!("Token refresh failed: {}", e),
+                    });
+                }
+
+                // Get the new token and retry
+                let new_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                    Ok(Some(token)) => token,
+                    Ok(None) => {
+                        return Err(AppError::AuthenticationError {
+                            message: "No access token available after refresh".to_string(),
+                        });
+                    }
+                    Err(e) => {
+                        return Err(AppError::AuthenticationError {
+                            message: format!("Failed to retrieve refreshed access token: {}", e),
+                        });
+                    }
+                };
+                drop(token_manager_guard); // Release the lock
+
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "get_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] Retrying GET request with refreshed token"
+                );
+
+                // Retry with new token
+                self.get(endpoint, Some(&new_token)).await
+            }
+            Err(e) => Err(e), // Other errors, don't retry
+        }
+    }
+
+    /// Make a POST request with automatic token refresh on 401 errors
+    pub async fn post_with_auto_refresh<T, B>(
+        &self,
+        endpoint: &str,
+        body: &B,
+        user_id: &str,
+        token_manager: &Arc<tokio::sync::RwLock<crate::crypto::token_manager::TokenManager>>,
+    ) -> AppResult<T>
+    where
+        T: for<'de> Deserialize<'de>,
+        B: Serialize,
+    {
+        use crate::debug_config::CorrelationId;
+        use crate::debug_token_op;
+
+        let correlation_id = CorrelationId::new();
+
+        debug_token_op!(
+            user_id = user_id,
+            endpoint = endpoint,
+            operation = "post_with_auto_refresh",
+            correlation_id = %correlation_id,
+            "[api_client] Starting POST request with auto-refresh"
+        );
+
+        // First attempt: Get current access token and try the request
+        let token_manager_guard = token_manager.read().await;
+        let access_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+            Ok(Some(token)) => token,
+            Ok(None) => {
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "post_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] No access token available"
+                );
+                return Err(AppError::AuthenticationError {
+                    message: "No access token available".to_string(),
+                });
+            }
+            Err(e) => {
+                error!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    error = %e,
+                    correlation_id = %correlation_id,
+                    "[api_client] Failed to retrieve access token"
+                );
+                return Err(AppError::AuthenticationError {
+                    message: format!("Failed to retrieve access token: {}", e),
+                });
+            }
+        };
+        drop(token_manager_guard); // Release the lock
+
+        // Try the request with current token
+        match self.post(endpoint, body, Some(&access_token)).await {
+            Ok(response) => {
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "post_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] POST request succeeded with current token"
+                );
+                Ok(response)
+            }
+            Err(AppError::NetworkError { status: 401, .. }) => {
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "post_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] Got 401, attempting token refresh"
+                );
+
+                // Token expired, try to refresh
+                let token_manager_guard = token_manager.read().await;
+                if let Err(e) = token_manager_guard.refresh_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                    error!(
+                        user_id = user_id,
+                        endpoint = endpoint,
+                        error = %e,
+                        correlation_id = %correlation_id,
+                        "[api_client] Token refresh failed"
+                    );
+                    return Err(AppError::AuthenticationError {
+                        message: format!("Token refresh failed: {}", e),
+                    });
+                }
+
+                // Get the new token and retry
+                let new_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                    Ok(Some(token)) => token,
+                    Ok(None) => {
+                        return Err(AppError::AuthenticationError {
+                            message: "No access token available after refresh".to_string(),
+                        });
+                    }
+                    Err(e) => {
+                        return Err(AppError::AuthenticationError {
+                            message: format!("Failed to retrieve refreshed access token: {}", e),
+                        });
+                    }
+                };
+                drop(token_manager_guard); // Release the lock
+
+                debug_token_op!(
+                    user_id = user_id,
+                    endpoint = endpoint,
+                    operation = "post_with_auto_refresh",
+                    correlation_id = %correlation_id,
+                    "[api_client] Retrying POST request with refreshed token"
+                );
+
+                // Retry with new token
+                self.post(endpoint, body, Some(&new_token)).await
+            }
+            Err(e) => Err(e), // Other errors, don't retry
         }
     }
 }

@@ -1,6 +1,53 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+/// Vault timeout configuration
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub enum VaultTimeout {
+    /// Timeout after specified minutes
+    Minutes(i32),
+    /// Never timeout (auto-unlock enabled)
+    Never,
+}
+
+impl Default for VaultTimeout {
+    fn default() -> Self {
+        VaultTimeout::Minutes(15)
+    }
+}
+
+impl VaultTimeout {
+    /// Check if this timeout setting enables auto-unlock
+    pub fn is_never(&self) -> bool {
+        matches!(self, VaultTimeout::Never)
+    }
+
+    /// Get timeout in minutes, returns None for Never
+    pub fn minutes(&self) -> Option<i32> {
+        match self {
+            VaultTimeout::Minutes(m) => Some(*m),
+            VaultTimeout::Never => None,
+        }
+    }
+
+    /// Convert from legacy i32 format (for migration)
+    pub fn from_legacy_minutes(minutes: i32) -> Self {
+        if minutes < 0 {
+            VaultTimeout::Never
+        } else {
+            VaultTimeout::Minutes(minutes)
+        }
+    }
+
+    /// Convert to legacy i32 format (for backward compatibility)
+    pub fn to_legacy_minutes(&self) -> i32 {
+        match self {
+            VaultTimeout::Minutes(m) => *m,
+            VaultTimeout::Never => -1,
+        }
+    }
+}
+
 /// Settings model for application configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Settings {
@@ -9,7 +56,7 @@ pub struct Settings {
     pub language: String,
 
     // Security Settings
-    pub vault_timeout: i32,
+    pub vault_timeout: VaultTimeout,
     pub vault_timeout_action: String,
     pub biometric_unlock: bool,
     pub clear_clipboard: i32,
@@ -21,6 +68,9 @@ pub struct Settings {
 
     // Server URL for self-hosted instances (moved from environment)
     pub server_url: Option<String>,
+
+    // Debug Settings
+    pub debug_token_operations: bool,
 }
 
 impl Default for Settings {
@@ -31,7 +81,7 @@ impl Default for Settings {
             language: "en".to_string(),
 
             // Security defaults
-            vault_timeout: 15,
+            vault_timeout: VaultTimeout::default(),
             vault_timeout_action: "lock".to_string(),
             biometric_unlock: false,
             clear_clipboard: 20,
@@ -43,6 +93,9 @@ impl Default for Settings {
 
             // Server URL defaults
             server_url: None,
+
+            // Debug defaults
+            debug_token_operations: false,
         }
     }
 }

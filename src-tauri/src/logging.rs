@@ -455,7 +455,7 @@ pub fn log_sync_event(event: &str, user_id: &str, details: Option<&str>) {
     );
 }
 
-/// Log crypto operations
+/// Log crypto operations with enhanced context
 pub fn log_crypto_operation(operation: &str, success: bool, error_msg: Option<&str>) {
     if success {
         info!(operation = operation, "Crypto operation successful");
@@ -464,6 +464,259 @@ pub fn log_crypto_operation(operation: &str, success: bool, error_msg: Option<&s
             operation = operation,
             error = error_msg.unwrap_or("unknown error"),
             "Crypto operation failed"
+        );
+    }
+}
+
+/// Log detailed crypto operation with context
+pub fn log_crypto_operation_detailed(
+    operation: &str,
+    success: bool,
+    context: &str,
+    data_size: Option<usize>,
+    encryption_type: Option<&str>,
+    error_msg: Option<&str>,
+) {
+    if success {
+        info!(
+            operation = operation,
+            context = context,
+            data_size = data_size.unwrap_or(0),
+            encryption_type = encryption_type.unwrap_or("unknown"),
+            "[crypto] Operation completed successfully"
+        );
+    } else {
+        error!(
+            operation = operation,
+            context = context,
+            data_size = data_size.unwrap_or(0),
+            encryption_type = encryption_type.unwrap_or("unknown"),
+            error = error_msg.unwrap_or("unknown error"),
+            "[crypto] Operation failed with context"
+        );
+    }
+}
+
+/// Log MAC verification failures with detailed context
+pub fn log_mac_verification_failure(
+    context: &str,
+    cipher_id: Option<&str>,
+    user_id: Option<&str>,
+    data_size: usize,
+    encryption_type: &str,
+) {
+    warn!(
+        context = context,
+        cipher_id = cipher_id.unwrap_or("unknown"),
+        user_id = user_id.unwrap_or("unknown"),
+        data_size = data_size,
+        encryption_type = encryption_type,
+        "[crypto] MAC verification failed - potential data corruption or key mismatch"
+    );
+}
+
+/// Log key validation events
+pub fn log_key_validation(key_type: &str, user_id: &str, success: bool, reason: Option<&str>) {
+    if success {
+        info!(
+            key_type = key_type,
+            user_id = user_id,
+            "[crypto] Key validation successful"
+        );
+    } else {
+        warn!(
+            key_type = key_type,
+            user_id = user_id,
+            reason = reason.unwrap_or("unknown"),
+            "[crypto] Key validation failed"
+        );
+    }
+}
+
+/// Log circuit breaker events
+pub fn log_circuit_breaker_event(
+    service: &str,
+    event: &str,
+    failure_count: u32,
+    threshold: u32,
+    state: &str,
+) {
+    match event {
+        "opened" => {
+            warn!(
+                service = service,
+                failure_count = failure_count,
+                threshold = threshold,
+                state = state,
+                "[circuit_breaker] Circuit breaker opened due to failures"
+            );
+        }
+        "closed" => {
+            info!(
+                service = service,
+                state = state,
+                "[circuit_breaker] Circuit breaker closed - service recovered"
+            );
+        }
+        "half_open" => {
+            info!(
+                service = service,
+                state = state,
+                "[circuit_breaker] Circuit breaker half-open - testing recovery"
+            );
+        }
+        _ => {
+            debug!(
+                service = service,
+                event = event,
+                failure_count = failure_count,
+                state = state,
+                "[circuit_breaker] Circuit breaker event"
+            );
+        }
+    }
+}
+
+/// Log failure pattern analysis
+pub fn log_failure_pattern(
+    user_id: &str,
+    failure_count: u32,
+    threshold: u32,
+    time_window: &str,
+    pattern_type: &str,
+) {
+    if failure_count >= threshold {
+        warn!(
+            user_id = user_id,
+            failure_count = failure_count,
+            threshold = threshold,
+            time_window = time_window,
+            pattern_type = pattern_type,
+            "[monitoring] Failure pattern detected - threshold exceeded"
+        );
+    } else {
+        debug!(
+            user_id = user_id,
+            failure_count = failure_count,
+            threshold = threshold,
+            time_window = time_window,
+            pattern_type = pattern_type,
+            "[monitoring] Failure pattern within normal range"
+        );
+    }
+}
+
+/// Log retry attempts with exponential backoff
+pub fn log_retry_attempt(
+    operation: &str,
+    attempt: u32,
+    max_attempts: u32,
+    delay_ms: u64,
+    error: &str,
+) {
+    if attempt < max_attempts {
+        warn!(
+            operation = operation,
+            attempt = attempt,
+            max_attempts = max_attempts,
+            delay_ms = delay_ms,
+            error = error,
+            "[retry] Retrying operation after failure"
+        );
+    } else {
+        error!(
+            operation = operation,
+            attempt = attempt,
+            max_attempts = max_attempts,
+            error = error,
+            "[retry] Max retry attempts exceeded - operation failed permanently"
+        );
+    }
+}
+
+/// Log cache health metrics
+pub fn log_cache_health(
+    cache_type: &str,
+    hit_rate: f64,
+    miss_rate: f64,
+    eviction_count: u32,
+    failure_count: u32,
+) {
+    info!(
+        cache_type = cache_type,
+        hit_rate = hit_rate,
+        miss_rate = miss_rate,
+        eviction_count = eviction_count,
+        failure_count = failure_count,
+        "[cache] Cache health metrics"
+    );
+
+    if hit_rate < 0.5 {
+        warn!(
+            cache_type = cache_type,
+            hit_rate = hit_rate,
+            "[cache] Low cache hit rate detected"
+        );
+    }
+
+    if failure_count > 10 {
+        warn!(
+            cache_type = cache_type,
+            failure_count = failure_count,
+            "[cache] High cache failure count detected"
+        );
+    }
+}
+
+/// Log system recovery events
+pub fn log_recovery_event(
+    component: &str,
+    recovery_type: &str,
+    success: bool,
+    duration_ms: u64,
+    details: Option<&str>,
+) {
+    if success {
+        info!(
+            component = component,
+            recovery_type = recovery_type,
+            duration_ms = duration_ms,
+            details = details.unwrap_or(""),
+            "[recovery] System recovery successful"
+        );
+    } else {
+        error!(
+            component = component,
+            recovery_type = recovery_type,
+            duration_ms = duration_ms,
+            details = details.unwrap_or(""),
+            "[recovery] System recovery failed"
+        );
+    }
+}
+
+/// Log performance metrics for crypto operations
+pub fn log_crypto_performance(
+    operation: &str,
+    duration_ms: u64,
+    data_size: usize,
+    throughput_mbps: f64,
+) {
+    if duration_ms > 1000 {
+        warn!(
+            operation = operation,
+            duration_ms = duration_ms,
+            data_size = data_size,
+            throughput_mbps = throughput_mbps,
+            "[performance] Slow crypto operation detected"
+        );
+    } else {
+        debug!(
+            operation = operation,
+            duration_ms = duration_ms,
+            data_size = data_size,
+            throughput_mbps = throughput_mbps,
+            "[performance] Crypto operation performance"
         );
     }
 }

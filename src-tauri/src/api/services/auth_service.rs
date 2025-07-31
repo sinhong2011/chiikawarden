@@ -36,6 +36,7 @@ pub struct LoginResponse {
     pub token_type: String,
     pub expires_in: u64,
     pub user_id: String,
+    pub encrypted_user_key: Option<String>, // The "Key" field from API response
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -350,6 +351,12 @@ impl ApiAuthService {
 
     /// Parse login response from API
     async fn parse_login_response(&self, response: Value) -> AppResult<LoginResponse> {
+        // Log the complete response for debugging
+        debug!(
+            response_body = %response,
+            "Complete authentication response received"
+        );
+
         let access_token = response
             .get("access_token")
             .and_then(|v| v.as_str())
@@ -374,12 +381,51 @@ impl ApiAuthService {
             .and_then(|v| v.as_u64())
             .unwrap_or(3600);
 
-        // Extract user ID from the response or decode from token
+        // Log available fields in response for debugging
+        debug!(
+            available_fields = ?response.as_object().map(|obj| obj.keys().collect::<Vec<_>>()),
+            "Available fields in authentication response"
+        );
+
+        // Extract user ID from the response - try multiple possible field names
         let user_id = response
             .get("user_id")
+            .or_else(|| response.get("UserId"))
+            .or_else(|| response.get("sub"))
             .and_then(|v| v.as_str())
-            .unwrap_or("unknown")
-            .to_string();
+            .map(|s| {
+                debug!(user_id = s, "Found user_id in response");
+                s.to_string()
+            })
+            .unwrap_or_else(|| {
+                // If no user_id field found, try to decode from JWT token
+                debug!("No user_id field found in response, attempting to decode from JWT token");
+                self.extract_user_id_from_jwt(access_token)
+                    .unwrap_or_else(|e| {
+                        error!(
+                            error = %e,
+                            "Failed to extract user_id from JWT token, using 'unknown'"
+                        );
+                        "unknown".to_string()
+                    })
+            });
+
+        // Extract encrypted user key from the "Key" field
+        let encrypted_user_key = response
+            .get("Key")
+            .and_then(|v| v.as_str())
+            .map(|s| {
+                debug!(key_length = s.len(), "Found encrypted user key in response");
+                s.to_string()
+            });
+
+        debug!(
+            user_id = user_id,
+            token_type = token_type,
+            expires_in = expires_in,
+            has_encrypted_user_key = encrypted_user_key.is_some(),
+            "Parsed authentication response successfully"
+        );
 
         Ok(LoginResponse {
             access_token: access_token.to_string(),
@@ -387,6 +433,7 @@ impl ApiAuthService {
             token_type: token_type.to_string(),
             expires_in,
             user_id,
+            encrypted_user_key,
         })
     }
 
@@ -478,5 +525,95 @@ impl ApiAuthService {
             kdf_memory,
             kdf_parallelism,
         })
+    }
+
+    /// Extract user ID from JWT access token
+    fn extract_user_id_from_jwt(&self, access_token: &str) -> AppResult<String> {
+        use base64::{engine::general_purpose, Engine as _};
+
+        debug!(
+            token_prefix = &access_token[..std::cmp::min(20, access_token.len())],
+            "Attempting to decode JWT token for user_id"
+        );
+
+        // Split JWT token into parts
+        let parts: Vec<&str> = access_token.split('.').collect();
+        if parts.len() != 3 {
+            return Err(AppError::AuthenticationError {
+                message: "Invalid JWT token format".to_string(),
+            });
+        }
+
+        // Decode the payload (second part)
+        let payload_b64 = parts[1];
+
+        // Add padding if needed for base64 decoding
+        let padded_payload = match payload_b64.len() % 4 {
+            0 => payload_b64.to_string(),
+            n => format!("{}{}", payload_b64, "=".repeat(4 - n)),
+        };
+
+        let payload_bytes = general_purpose::STANDARD
+            .decode(&padded_payload)
+            .map_err(|e| {
+                error!(
+                    error = %e,
+                    payload_b64 = payload_b64,
+                    "Failed to decode JWT payload from base64"
+                );
+                AppError::AuthenticationError {
+                    message: format!("Failed to decode JWT payload: {}", e),
+                }
+            })?;
+
+        let payload_str = String::from_utf8(payload_bytes).map_err(|e| {
+            error!(error = %e, "Failed to convert JWT payload to UTF-8");
+            AppError::AuthenticationError {
+                message: format!("Failed to convert JWT payload to string: {}", e),
+            }
+        })?;
+
+        debug!(payload = payload_str, "Decoded JWT payload");
+
+        // Parse JSON payload
+        let payload: serde_json::Value = serde_json::from_str(&payload_str).map_err(|e| {
+            error!(
+                error = %e,
+                payload = payload_str,
+                "Failed to parse JWT payload as JSON"
+            );
+            AppError::AuthenticationError {
+                message: format!("Failed to parse JWT payload: {}", e),
+            }
+        })?;
+
+        // Log all available claims for debugging
+        debug!(
+            available_claims = ?payload.as_object().map(|obj| obj.keys().collect::<Vec<_>>()),
+            "Available claims in JWT payload"
+        );
+
+        // Try to extract user ID from various possible claim names
+        let user_id = payload
+            .get("sub")
+            .or_else(|| payload.get("user_id"))
+            .or_else(|| payload.get("uid"))
+            .or_else(|| payload.get("nameid"))
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                error!(
+                    payload = %payload,
+                    "No user identifier found in JWT claims"
+                );
+                AppError::AuthenticationError {
+                    message: "No user identifier found in JWT token".to_string(),
+                }
+            })?;
+
+        debug!(
+            user_id = user_id,
+            "Successfully extracted user_id from JWT token"
+        );
+        Ok(user_id.to_string())
     }
 }

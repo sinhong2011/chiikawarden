@@ -1,7 +1,8 @@
 use super::{CryptoError, CryptoResult, KdfConfig, KdfType, MasterKey};
 use argon2::{Algorithm, Argon2, Params, Version};
-use pbkdf2::pbkdf2_hmac;
+use aws_lc_rs::pbkdf2::{derive, PBKDF2_HMAC_SHA256};
 use sha2::Sha256;
+use std::num::NonZeroU32;
 use zeroize::Zeroize;
 
 pub struct KdfService;
@@ -13,15 +14,36 @@ impl KdfService {
         email: &str,
         kdf_config: &KdfConfig,
     ) -> CryptoResult<MasterKey> {
+        use tracing::debug;
+
         let salt = email.to_lowercase().into_bytes();
 
-        match kdf_config.kdf_type {
+        // DEBUG STEP 4: Log KDF parameters and salt
+        debug!(
+            email = email,
+            normalized_email = email.to_lowercase(),
+            kdf_type = ?kdf_config.kdf_type,
+            iterations = kdf_config.iterations,
+            memory = ?kdf_config.memory,
+            parallelism = ?kdf_config.parallelism,
+            salt_len = salt.len(),
+            salt_preview = format!("{:02x?}", &salt[..std::cmp::min(8, salt.len())]),
+            "[DEBUG_MAC] Step 4a: KDF parameters for master key derivation"
+        );
+
+        let result = match kdf_config.kdf_type {
             KdfType::Pbkdf2Sha256 => {
+                debug!("[DEBUG_MAC] Step 4b: Using PBKDF2-SHA256 derivation");
                 Self::derive_pbkdf2(password.as_bytes(), &salt, kdf_config.iterations)
             }
             KdfType::Argon2id => {
                 let memory = kdf_config.memory.unwrap_or(64 * 1024); // 64 MB default
                 let parallelism = kdf_config.parallelism.unwrap_or(4); // 4 threads default
+                debug!(
+                    memory = memory,
+                    parallelism = parallelism,
+                    "[DEBUG_MAC] Step 4b: Using Argon2id derivation"
+                );
                 Self::derive_argon2(
                     password.as_bytes(),
                     &salt,
@@ -30,14 +52,36 @@ impl KdfService {
                     parallelism,
                 )
             }
+        };
+
+        // DEBUG STEP 4: Log derivation result
+        match &result {
+            Ok(master_key) => {
+                debug!(
+                    master_key_len = master_key.as_bytes().len(),
+                    master_key_preview = format!("{:02x?}", &master_key.as_bytes()[..8]),
+                    "[DEBUG_MAC] Step 4c: Master key derivation successful"
+                );
+            }
+            Err(e) => {
+                debug!(
+                    error = %e,
+                    "[DEBUG_MAC] Step 4c: Master key derivation failed"
+                );
+            }
         }
+
+        result
     }
 
-    /// PBKDF2-SHA256 key derivation
+    /// PBKDF2-SHA256 key derivation using AWS-LC-RS
     fn derive_pbkdf2(password: &[u8], salt: &[u8], iterations: u32) -> CryptoResult<MasterKey> {
         let mut key = [0u8; 32];
 
-        pbkdf2_hmac::<Sha256>(password, salt, iterations, &mut key);
+        let iterations_nz = NonZeroU32::new(iterations)
+            .ok_or_else(|| CryptoError::KeyDerivation("Iterations must be non-zero".to_string()))?;
+
+        derive(PBKDF2_HMAC_SHA256, iterations_nz, salt, password, &mut key);
 
         Ok(MasterKey::new(key.to_vec()))
     }
@@ -89,10 +133,14 @@ impl KdfService {
         };
 
         let mut hash = [0u8; 32];
-        pbkdf2_hmac::<Sha256>(
-            master_key.as_bytes(),
+        let iterations_nz = NonZeroU32::new(iterations)
+            .ok_or_else(|| CryptoError::KeyDerivation("Iterations must be non-zero".to_string()))?;
+
+        derive(
+            PBKDF2_HMAC_SHA256,
+            iterations_nz,
             password.as_bytes(),
-            iterations,
+            master_key.as_bytes(),
             &mut hash,
         );
 

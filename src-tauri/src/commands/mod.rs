@@ -1,7 +1,9 @@
 pub mod auth;
 pub mod biometric;
 pub mod crypto;
+pub mod database;
 pub mod logging;
+pub mod network_aware_sync;
 pub mod server_provider;
 pub mod settings;
 pub mod storage;

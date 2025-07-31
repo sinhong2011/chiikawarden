@@ -1,10 +1,10 @@
-[package]  
+  [package]  
 name = "chiikawarden"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["niskan516"]
 edition = "2021"
- 
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
@@ -18,9 +18,8 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.3.0", features = ["config-toml"] }
 
 [dependencies]
-tauri = { version = "2.6.2", features = ["devtools", "macos-private-api", "protocol-asset"] }
+tauri = { version = "2.6.2", features = ["devtools", "macos-private-api", "protocol-asset", "test"] }
 tauri-plugin-opener = "2.4.0"
-tauri-plugin-stronghold = "2.3.0"
 sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite", "chrono", "uuid", "json"] }
 tauri-plugin-store = "2.3.0"
 tauri-plugin-fs = "2.4.0"
@@ -37,19 +36,22 @@ serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tokio = { version = "1.46.1", features = ["full"] }
 
-# Cryptography (hardware-accelerated when available)
-ring = "0.17.14"   # High-performance crypto primitives (includes HMAC, HKDF, PBKDF2, rand)
-aes-gcm = "0.10.3" # AEAD encryption
-aes = "0.8.4"      # AES block cipher
-cbc = "0.1.2"      # CBC mode
-argon2 = "0.5.3"   # Memory-hard key derivation
-rsa = "0.9.8"      # Asymmetric encryption
-sha2 = "0.10.9"    # Hash functions
+# Network and WebSocket
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
+
+# Cryptography (AWS-LC-RS for cross-platform compatibility)
+aws-lc-rs = "1.13.3"  # AWS-LC based crypto library (FIPS-validated, Bitwarden-compatible)
+aes-gcm = "0.10.3"     # AEAD encryption
+argon2 = "0.5.3"       # Memory-hard key derivation
+rsa = "0.9.8"          # Asymmetric encryption
+sha2 = "0.10.9"        # Hash functions (still needed for Argon2)
+hex = "0.4.3"          # Hex encoding/decoding for debugging
+
+# Security utilities
 zeroize = "1.8.1"  # Secure memory clearing
-hmac = "0.12.1"    # HMAC implementation
-hkdf = "0.12.4"    # HKDF key derivation
+subtle = "2.6.1"   # Constant-time comparisons for security
 rand = "0.8.5"     # Random number generation
-pbkdf2 = "0.12.2"  # PBKDF2 key derivation
 
 # HTTP client and utilities (using Tauri HTTP plugin instead of reqwest)
 chrono = { version = "0.4.41", features = ["serde"] }
@@ -62,8 +64,8 @@ log = "0.4.27" # Logging facade
 env_logger = "0.11.8" # Environment-based logger
 tracing = "0.1.41" # Structured logging
 tracing-subscriber = { version = "0.3.19", features = [
-     "chrono",
-     "env-filter",
+     "chrono", 
+     "env-filter", 
      "ansi",
 ] } # Tracing subscriber with required features
 tracing-appender = "0.2.3" # File appender for tracing
@@ -76,11 +78,18 @@ async-trait = "0.1.88"
 lazy_static = "1.5.0" # Global static variables
 
 # System integration
-keyring = "3.6.2" # OS keychain integration
+keyring = "3.6.2" # OS keyring for refresh tokens
+iota_stronghold = "2.1.0" # Local vault for master password hash/vault key
 dirs = "6.0.0" # Platform-specific directories
+hostname = "0.4.0" # System hostname detection
 tauri-specta = { version = "2.0.0-rc.21", features = ["javascript", "typescript"] }
 specta = { version = "2.0.0-rc.22", features = ["derive", "chrono"] }
 specta-typescript = "0.0.9"
+regex = "1.11.1"
+
+[dev-dependencies]
+tempfile = "3.8"
+tracing-test = "0.2"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.26.1" 

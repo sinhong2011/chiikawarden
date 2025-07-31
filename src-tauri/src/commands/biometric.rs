@@ -1,8 +1,9 @@
 use crate::crypto::biometrics::{BiometricService, BiometricStatus};
 use crate::crypto::UserKey;
+use crate::AppState;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::command;
+use tauri::{command, State};
 
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct BiometricStatusResponse {
@@ -73,10 +74,15 @@ pub async fn authenticate_biometric(
 /// Setup biometric unlock (alternative implementation)
 #[command]
 #[specta::specta]
-pub async fn setup_biometric_unlock_alt(request: SetupBiometricRequest) -> Result<bool, String> {
+pub async fn setup_biometric_unlock_alt(
+    request: SetupBiometricRequest,
+    state: State<'_, AppState>,
+) -> Result<bool, String> {
     let user_key = UserKey::new(request.user_key);
+    let token_manager = state.token_manager();
+    let token_manager = token_manager.read().await;
 
-    BiometricService::store_biometric_user_key(&request.user_id, &user_key)
+    BiometricService::store_biometric_user_key(&request.user_id, &user_key, &*token_manager)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -88,8 +94,12 @@ pub async fn setup_biometric_unlock_alt(request: SetupBiometricRequest) -> Resul
 #[specta::specta]
 pub async fn retrieve_biometric_user_key(
     request: RetrieveBiometricKeyRequest,
+    state: State<'_, AppState>,
 ) -> Result<RetrieveBiometricKeyResponse, String> {
-    let user_key = BiometricService::retrieve_biometric_user_key(&request.user_id, &request.prompt)
+    let token_manager = state.token_manager();
+    let token_manager = token_manager.read().await;
+
+    let user_key = BiometricService::retrieve_biometric_user_key(&request.user_id, &request.prompt, &*token_manager)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -108,8 +118,14 @@ pub async fn retrieve_biometric_user_key(
 /// Delete biometric unlock
 #[command]
 #[specta::specta]
-pub async fn delete_biometric_unlock(user_id: String) -> Result<bool, String> {
-    BiometricService::delete_biometric_user_key(&user_id)
+pub async fn delete_biometric_unlock(
+    user_id: String,
+    state: State<'_, AppState>,
+) -> Result<bool, String> {
+    let token_manager = state.token_manager();
+    let token_manager = token_manager.read().await;
+
+    BiometricService::delete_biometric_user_key(&user_id, &*token_manager)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -119,6 +135,14 @@ pub async fn delete_biometric_unlock(user_id: String) -> Result<bool, String> {
 /// Check if biometric unlock is enabled
 #[command]
 #[specta::specta]
-pub async fn is_biometric_unlock_enabled(user_id: String) -> Result<bool, String> {
-    BiometricService::is_biometric_unlock_enabled(&user_id).map_err(|e| e.to_string())
+pub async fn is_biometric_unlock_enabled(
+    user_id: String,
+    state: State<'_, AppState>,
+) -> Result<bool, String> {
+    let token_manager = state.token_manager();
+    let token_manager = token_manager.read().await;
+
+    BiometricService::is_biometric_unlock_enabled(&user_id, &*token_manager)
+        .await
+        .map_err(|e| e.to_string())
 }

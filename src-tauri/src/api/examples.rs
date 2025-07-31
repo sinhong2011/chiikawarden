@@ -18,10 +18,10 @@ impl ApiSetupExample {
     /// Create a new API setup with all services configured
     pub fn new(app_handle: AppHandle, server_provider_service: Arc<ServerProviderService>) -> Self {
         // 1. Create the HTTP client (low-level)
-        let api_client = Arc::new(ApiClient::new(app_handle, server_provider_service));
+        let api_client = Arc::new(ApiClient::new(app_handle.clone(), server_provider_service));
 
         // 2. Create repositories (data access layer)
-        let auth_repository = Arc::new(ApiAuthRepository::new(api_client.clone()));
+        let auth_repository = Arc::new(ApiAuthRepository::new(api_client.clone(), app_handle.clone()));
         let vault_repository = Arc::new(ApiVaultRepository::new(api_client.clone()));
         let folder_repository = Arc::new(ApiFolderRepository::new(api_client));
 
@@ -94,7 +94,10 @@ pub mod usage_examples {
             login: Some(crate::api::services::LoginData {
                 username: Some("user@example.com".to_string()),
                 password: Some("secure_password".to_string()),
-                uri: Some("https://example.com".to_string()),
+                uris: Some(vec![crate::api::services::vault_service::LoginUriData {
+                    uri: Some("https://example.com".to_string()),
+                    match_type: None,
+                }]),
                 totp: None,
             }),
             secure_note: None,

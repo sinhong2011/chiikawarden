@@ -35,6 +35,11 @@ impl VaultRepository for ApiVaultRepository {
         self.client.get("/ciphers", Some(access_token)).await
     }
 
+    async fn get_cipher(&self, cipher_id: &str, access_token: &str) -> AppResult<Value> {
+        let endpoint = format!("/ciphers/{}", cipher_id);
+        self.client.get(&endpoint, Some(access_token)).await
+    }
+
     async fn create_cipher(&self, cipher_data: &Value, access_token: &str) -> AppResult<Value> {
         self.client
             .post("/ciphers", cipher_data, Some(access_token))

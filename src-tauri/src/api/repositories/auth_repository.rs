@@ -1,6 +1,7 @@
 use crate::api::client::ApiClient;
 use crate::api::repositories::traits::AuthRepository;
 use crate::error::AppResult;
+use crate::utils::device;
 use async_trait::async_trait;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -10,11 +11,12 @@ use tracing::{debug, error};
 /// API-based authentication repository implementation
 pub struct ApiAuthRepository {
     client: Arc<ApiClient>,
+    app_handle: tauri::AppHandle,
 }
 
 impl ApiAuthRepository {
-    pub fn new(client: Arc<ApiClient>) -> Self {
-        Self { client }
+    pub fn new(client: Arc<ApiClient>, app_handle: tauri::AppHandle) -> Self {
+        Self { client, app_handle }
     }
 }
 
@@ -72,12 +74,40 @@ impl AuthRepository for ApiAuthRepository {
             "Repository: Making login API call"
         );
 
+        // Get device information
+        let device_identifier = device::get_device_identifier(&self.app_handle)
+            .await
+            .map_err(|e| {
+                error!(email = email, error = %e, "Failed to get device identifier");
+                e
+            })?;
+
+        let device_name = device::get_device_name().map_err(|e| {
+            error!(email = email, error = %e, "Failed to get device name");
+            e
+        })?;
+
+        debug!(
+            email = email,
+            device_identifier = device_identifier,
+            device_name = device_name,
+            "Repository: Using device information for login"
+        );
+
         let mut form_data = HashMap::new();
         form_data.insert("grant_type".to_string(), "password".to_string());
         form_data.insert("username".to_string(), email.to_string());
         form_data.insert("password".to_string(), password_hash.to_string());
         form_data.insert("scope".to_string(), "api offline_access".to_string());
         form_data.insert("client_id".to_string(), "desktop".to_string());
+
+        // Add required device fields for Bitwarden API
+        form_data.insert(
+            "deviceType".to_string(),
+            device::get_device_type().to_string(),
+        );
+        form_data.insert("deviceIdentifier".to_string(), device_identifier);
+        form_data.insert("deviceName".to_string(), device_name);
 
         if let Some(token) = two_factor_token {
             form_data.insert("twoFactorToken".to_string(), token.to_string());
@@ -86,12 +116,24 @@ impl AuthRepository for ApiAuthRepository {
 
         let result = self
             .client
-            .post_form_identity("/identity/connect/token", &form_data, None)
+            .post_form_identity("/connect/token", &form_data, None)
             .await;
 
         match &result {
-            Ok(_) => debug!(email = email, "Repository: Login API call successful"),
-            Err(e) => error!(email = email, error = %e, "Repository: Login API call failed"),
+            Ok(response) => {
+                debug!(
+                    email = email,
+                    response = %response,
+                    "Repository: Login API call successful - raw response"
+                );
+            }
+            Err(e) => {
+                error!(
+                    email = email,
+                    error = %e,
+                    "Repository: Login API call failed"
+                );
+            }
         }
 
         result
@@ -106,7 +148,7 @@ impl AuthRepository for ApiAuthRepository {
 
         let result = self
             .client
-            .post_form_identity("/identity/connect/token", &form_data, None)
+            .post_form_identity("/connect/token", &form_data, None)
             .await;
 
         match &result {
@@ -141,7 +183,7 @@ impl AuthRepository for ApiAuthRepository {
         let result: Result<Value, _> = self
             .client
             .post_identity(
-                "/identity/connect/revoke",
+                "/connect/revoke",
                 &serde_json::json!({}),
                 Some(access_token),
             )

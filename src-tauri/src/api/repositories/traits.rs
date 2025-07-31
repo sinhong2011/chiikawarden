@@ -36,6 +36,9 @@ pub trait VaultRepository {
     /// Get all ciphers
     async fn get_ciphers(&self, access_token: &str) -> AppResult<Value>;
 
+    /// Get a single cipher by ID
+    async fn get_cipher(&self, cipher_id: &str, access_token: &str) -> AppResult<Value>;
+
     /// Create a new cipher
     async fn create_cipher(&self, cipher_data: &Value, access_token: &str) -> AppResult<Value>;
 
