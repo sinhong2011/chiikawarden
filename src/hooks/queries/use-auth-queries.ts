@@ -1,7 +1,9 @@
 // src/hooks/useAuthQueries.ts
+
+import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { usePostLoginSync } from "@/hooks/queries/use-sync-queries";
 import { isValidEmail } from "@/lib/constants";
-import { i18n } from "@/lib/i18n";
 import { queryClient } from "@/lib/query-client";
 import { queryKeys } from "@/lib/query-key";
 import { authService } from "@/services/auth.service";
@@ -10,17 +12,20 @@ import type { LoginCredentials, UnlockCredentials } from "@/types/auth.types";
 
 export const useAuthQueries = () => {
   const authStore = useAuthStore();
+  const { t } = useLingui();
+  const postLoginSync = usePostLoginSync();
+
   // Prelogin mutation - gets KDF settings for user
   const preloginMutation = useMutation({
     mutationFn: async (email: string) => {
       if (!email || !isValidEmail(email)) {
-        throw new Error(i18n._("validation.email_required"));
+        throw new Error(t`validation.email_required` /* 邮箱不能为空 */);
       }
       return await authService.prelogin(email);
     },
     retry: (failureCount, error) => {
       // Don't retry on client-side validation errors
-      if (error.message.includes(i18n._("validation.email_required"))) {
+      if (error.message.includes(t`validation.email_required` /* 邮箱不能为空 */)) {
         return false;
       }
       // Retry network errors up to 2 times
@@ -36,13 +41,27 @@ export const useAuthQueries = () => {
     mutationFn: async (credentials: LoginCredentials) => {
       const success = await authStore.login(credentials);
       if (!success) {
-        throw new Error(i18n._("error.login_failed"));
+        throw new Error(
+          t`Login failed. Please check your credentials and try again.` /* 登录失败。请检查您的凭据并重试。 */
+        );
       }
       return success;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate auth-related queries
       queryClient.invalidateQueries({ queryKey: queryKeys.auth() });
+
+      // Trigger vault synchronization after successful login
+      if (authStore.userId) {
+        try {
+          await postLoginSync.mutateAsync(authStore.userId);
+          console.log("Post-login vault sync completed successfully");
+        } catch (error) {
+          // Log sync error but don't fail the login
+          console.error("Post-login vault sync failed:", error);
+          // The user is still logged in, sync can be retried later
+        }
+      }
     },
     onError: (error) => {
       console.error("Login failed:", error);
@@ -54,15 +73,27 @@ export const useAuthQueries = () => {
     mutationFn: async (credentials: UnlockCredentials) => {
       const success = await authStore.unlock(credentials);
       if (!success) {
-        throw new Error(i18n._("error.unlock_failed"));
+        throw new Error(
+          t`Unlock failed. Please check your password and try again.` /* 解锁失败。请检查您的密码并重试。 */
+        );
       }
       return success;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate auth and vault queries
       queryClient.invalidateQueries({ queryKey: queryKeys.auth() });
       if (authStore.userId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.vault(authStore.userId) });
+
+        // Trigger vault synchronization after successful unlock
+        try {
+          await postLoginSync.mutateAsync(authStore.userId);
+          console.log("Post-unlock vault sync completed successfully");
+        } catch (error) {
+          // Log sync error but don't fail the unlock
+          console.error("Post-unlock vault sync failed:", error);
+          // The user is still unlocked, sync can be retried later
+        }
       }
     },
     onError: (error) => {
@@ -75,7 +106,7 @@ export const useAuthQueries = () => {
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const success = await authStore.setupAccount(email, password);
       if (!success) {
-        throw new Error(i18n._("error.account_setup_failed"));
+        throw new Error(t`Account setup failed. Please try again.` /* 账户设置失败。请重试。 */);
       }
       return success;
     },

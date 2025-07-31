@@ -16,7 +16,7 @@ async prelogin(request: PreloginRequest) : Promise<Result<PreloginResponse, stri
 }
 },
 /**
- * Process login with master password
+ * Process login with master password - authenticates against remote Bitwarden API
  */
 async loginWithPassword(request: LoginRequest) : Promise<Result<LoginResponse, AppError>> {
     try {
@@ -32,6 +32,17 @@ async loginWithPassword(request: LoginRequest) : Promise<Result<LoginResponse, A
 async unlockWithPassword(request: UnlockRequest) : Promise<Result<UnlockResponse, AppError>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("unlock_with_password", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Unlock with auto-unlock key (for "never timeout" scenarios)
+ */
+async unlockWithAutoKey(userId: string) : Promise<Result<UnlockResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("unlock_with_auto_key", { userId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -60,9 +71,53 @@ async lockVault(userId: string) : Promise<Result<null, AppError>> {
 }
 },
 /**
- * Logout user
+ * Establish device trust for passwordless authentication
  */
-async logout(userId: string) : Promise<Result<null, string>> {
+async establishDeviceTrust(request: EstablishDeviceTrustRequest) : Promise<Result<EstablishDeviceTrustResponse, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("establish_device_trust", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Authenticate using device trust (passwordless login)
+ */
+async loginWithDeviceTrust(request: DeviceTrustLoginRequest) : Promise<Result<DeviceTrustLoginResponse, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("login_with_device_trust", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Revoke device trust
+ */
+async revokeDeviceTrust(deviceIdentifier: string, userId: string) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("revoke_device_trust", { deviceIdentifier, userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * List trusted devices for a user
+ */
+async listTrustedDevices(userId: string) : Promise<Result<TrustedDevice[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_trusted_devices", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Logout user - complete cleanup of all user data
+ */
+async logout(userId: string) : Promise<Result<null, AppError>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("logout", { userId }) };
 } catch (e) {
@@ -71,11 +126,44 @@ async logout(userId: string) : Promise<Result<null, string>> {
 }
 },
 /**
- * Refresh access token
+ * Refresh access token using the new TokenManager
  */
-async refreshToken(refreshToken: string) : Promise<Result<string, string>> {
+async refreshToken(userId: string) : Promise<Result<null, AppError>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("refresh_token", { refreshToken }) };
+    return { status: "ok", data: await TAURI_INVOKE("refresh_token", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check if user key is available for decryption
+ */
+async checkUserKeyAvailable(userId: string) : Promise<Result<boolean, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_user_key_available", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check if auto-unlock is available for a user
+ */
+async checkAutoUnlockAvailable(userId: string) : Promise<Result<boolean, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_auto_unlock_available", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Re-authenticate user with master password to restore user key for decryption
+ */
+async reauthWithMasterPassword(userId: string, masterPassword: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("reauth_with_master_password", { userId, masterPassword }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -109,6 +197,171 @@ async setupBiometricUnlock(userId: string, userKey: number[]) : Promise<Result<b
 async unlockWithBiometric(request: BiometricUnlockRequest) : Promise<Result<BiometricUnlockResponse, AppError>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("unlock_with_biometric", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get all users from database for user detection
+ */
+async getAllUsers() : Promise<Result<User[], AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_all_users") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Comprehensive token status diagnostic (debug helper)
+ */
+async diagnoseTokenStatus(userId: string) : Promise<Result<TokenDiagnosticResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("diagnose_token_status", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Comprehensive authentication flow diagnostic
+ */
+async diagnoseAuthFlow(userId: string) : Promise<Result<string, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("diagnose_auth_flow", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check keyring backend status (debug helper)
+ */
+async checkKeyringBackend() : Promise<Result<KeyringBackendStatus, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_keyring_backend") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Clear all tokens for a user (for recovery purposes)
+ */
+async clearUserTokens(userId: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_user_tokens", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Force user to re-login by clearing their authentication state
+ */
+async forceRelogin(userId: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("force_relogin", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Store a test refresh token for diagnostic purposes
+ */
+async storeTestRefreshToken(userId: string, token: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("store_test_refresh_token", { userId, token }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Retrieve a test refresh token for diagnostic purposes
+ */
+async retrieveTestRefreshToken(userId: string) : Promise<Result<string | null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("retrieve_test_refresh_token", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Clear test tokens for diagnostic purposes
+ */
+async clearTestTokens(userId: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_test_tokens", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug command to check what keys are currently cached
+ */
+async debugCheckCacheStatus(userId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_check_cache_status", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug command to inspect cipher decryption issues
+ */
+async debugCipherDecryption(userId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_cipher_decryption", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug cipher decryption step by step to find where "asd" appears
+ */
+async debugCipherDecryptionSteps(userId: string, cipherId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_cipher_decryption_steps", { userId, cipherId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug command to fetch ciphers directly from API server
+ */
+async debugFetchCiphersFromApi(userId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_fetch_ciphers_from_api", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug cipher field inspection to find problematic fields
+ */
+async debugCipherFieldInspection(userId: string, cipherId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_cipher_field_inspection", { userId, cipherId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Debug command to test new two-step cipher parsing pipeline
+ */
+async debugCipherParsingPipeline(userId: string, cipherId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_cipher_parsing_pipeline", { userId, cipherId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -197,6 +450,151 @@ async deleteFolder(request: DeleteFolderRequest) : Promise<Result<null, AppError
 async getCollections(request: GetCollectionsRequest) : Promise<Result<Collection[], AppError>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_collections", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Sync vault data with server
+ * Note: Access tokens are retrieved internally from secure storage
+ */
+async syncVault(request: SyncVaultRequest) : Promise<Result<SyncResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("sync_vault", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get sync status for a user
+ */
+async getSyncStatus(request: GetSyncStatusRequest) : Promise<Result<SyncStatusResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_sync_status", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Network-aware vault synchronization with automatic mode detection
+ */
+async networkAwareSyncVault(request: NetworkAwareSyncRequest) : Promise<Result<NetworkAwareSyncResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("network_aware_sync_vault", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Force online synchronization (will fail if network is unavailable)
+ */
+async forceOnlineSync(request: ForceOnlineSyncRequest) : Promise<Result<NetworkAwareSyncResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("force_online_sync", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get sync status with network awareness
+ */
+async getNetworkAwareSyncStatus(request: NetworkAwareSyncRequest) : Promise<Result<NetworkAwareSyncResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_network_aware_sync_status", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get current network status
+ */
+async getNetworkStatus(request: GetNetworkStatusRequest) : Promise<Result<NetworkStatus, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_network_status", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get current sync mode for a user
+ */
+async getSyncMode(request: GetSyncModeRequest) : Promise<Result<SyncMode, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_sync_mode", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Set sync mode for a user (with network validation)
+ */
+async setSyncMode(request: SetSyncModeRequest) : Promise<Result<SyncMode, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_sync_mode", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check if user can perform write operations
+ */
+async canWrite(request: CanWriteRequest) : Promise<Result<CanWriteResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("can_write", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Connect WebSocket for real-time notifications
+ */
+async connectWebsocket(request: ConnectWebSocketRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("connect_websocket", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Disconnect WebSocket
+ */
+async disconnectWebsocket(request: GetWebSocketStatusRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("disconnect_websocket", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get WebSocket connection status
+ */
+async getWebsocketStatus(request: GetWebSocketStatusRequest) : Promise<Result<WebSocketStatus, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_websocket_status", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get WebSocket notification types (for TypeScript type generation)
+ * This command exists solely to ensure WebSocket notification types are exported to TypeScript
+ */
+async getWebsocketNotificationTypes() : Promise<Result<WebSocketNotificationTypes, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_websocket_notification_types") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -467,11 +865,189 @@ async resetSettings() : Promise<Result<Settings, string>> {
 }
 },
 /**
- * Migrate legacy settings to current format
+ * Store a value in tauri-plugin-store
  */
-async migrateLegacySettings(request: MigrateLegacySettingsRequest) : Promise<Result<Settings, string>> {
+async storeValue(request: StoreValueRequest) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("migrate_legacy_settings", { request }) };
+    return { status: "ok", data: await TAURI_INVOKE("store_value", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get a value from tauri-plugin-store
+ */
+async getValue(request: GetValueRequest) : Promise<Result<GetValueResponse, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_value", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Delete a value from tauri-plugin-store
+ */
+async deleteValue(request: DeleteValueRequest) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_value", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Log a message from the frontend to the backend logging system
+ */
+async logFrontendMessage(entry: LogEntry) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("log_frontend_message", { entry }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Log an error from the frontend error boundary
+ */
+async logErrorBoundary(category: string, technicalMessage: string, errorId: string, severity: string, context: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("log_error_boundary", { category, technicalMessage, errorId, severity, context }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Log a user action for audit purposes
+ */
+async logUserAction(action: string, resourceType: string, resourceId: string | null, userId: string | null, success: boolean, details: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("log_user_action", { action, resourceType, resourceId, userId, success, details }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Test command to verify local timezone logging is working
+ * This command logs messages at different levels to verify that timestamps
+ * are displayed in the local timezone rather than UTC
+ */
+async testTimezoneLogging() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("test_timezone_logging") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get database health status
+ */
+async getDatabaseHealth() : Promise<Result<DatabaseHealthResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_database_health") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get migration status
+ */
+async getMigrationStatus() : Promise<Result<MigrationStatusResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_migration_status") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check if database is initialized
+ */
+async isDatabaseInitialized() : Promise<Result<boolean, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("is_database_initialized") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get database file path
+ */
+async getDatabasePath() : Promise<Result<string, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_database_path") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Run database maintenance (VACUUM and ANALYZE)
+ */
+async runDatabaseMaintenance() : Promise<Result<MaintenanceResult, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("run_database_maintenance") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get database statistics (development only)
+ */
+async getDatabaseStats() : Promise<Result<DatabaseStatsResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_database_stats") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Inspect database schema (development only)
+ */
+async inspectDatabaseSchema() : Promise<Result<DatabaseSchemaResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("inspect_database_schema") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Optimize database (development only)
+ */
+async optimizeDatabase() : Promise<Result<string, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("optimize_database") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Reset database (development only)
+ */
+async resetDatabase() : Promise<Result<string, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("reset_database") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Generate sample data (development only)
+ */
+async generateSampleData() : Promise<Result<string, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("generate_sample_data") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -498,14 +1074,40 @@ export type AddCustomProviderRequest = { label: string; base_url: string }
  */
 export type AddCustomProviderWithUrlsRequest = { label: string; urls: ServerProviderUrls }
 /**
- * Application error types
+ * Application error types with enhanced classification for better error handling
  */
-export type AppError = { AuthenticationError: { message: string } } | { CryptographyError: { operation: string } } | { DatabaseError: { message: string } } | { NetworkError: { status: number; message: string } } | { StorageError: { message: string } } | { ValidationError: { field: string; message: string } } | { ConfigurationError: { message: string } } | { BiometricError: { message: string } } | { SyncError: { message: string } } | { InternalError: { message: string } }
+export type AppError = { AuthenticationError: { message: string } } | { ReAuthenticationRequired: { message: string } } | { CryptographyError: { operation: string } } | { CryptoError: { message: string } } | 
+/**
+ * MAC verification failed - could be transient data corruption or invalid key
+ */
+{ MacVerificationError: { context: string; message: string } } | 
+/**
+ * Key validation failed - permanent authentication issue
+ */
+{ KeyValidationError: { key_type: string; message: string } } | 
+/**
+ * Transient decryption failure - retry may succeed
+ */
+{ TransientDecryptionError: { operation: string; message: string; retry_count: number } } | 
+/**
+ * Permanent decryption failure - retry will not succeed
+ */
+{ PermanentDecryptionError: { operation: string; message: string } } | 
+/**
+ * Cache operation failed
+ */
+{ CacheError: { operation: string; message: string } } | 
+/**
+ * Circuit breaker is open - too many failures detected
+ */
+{ CircuitBreakerError: { service: string; message: string; failure_count: number } } | { DatabaseError: { message: string } } | { NetworkError: { status: number; message: string } } | { StorageError: { message: string } } | { ValidationError: { field: string; message: string } } | { ConfigurationError: { message: string } } | { BiometricError: { message: string } } | { SyncError: { message: string } } | { InternalError: { message: string } }
 export type BiometricAuthRequest = { prompt: string }
 export type BiometricAuthResponse = { success: boolean }
 export type BiometricStatusResponse = { status: string; available: boolean }
 export type BiometricUnlockRequest = { user_id: string }
 export type BiometricUnlockResponse = { success: boolean; user_key: number[] | null }
+export type CanWriteRequest = { user_id: string }
+export type CanWriteResponse = { can_write: boolean; sync_mode: SyncMode; reason: string }
 /**
  * Card cipher data
  */
@@ -523,23 +1125,93 @@ export type CipherView = { id: string; organization_id: string | null; folder_id
  */
 export type Collection = { id: string; organization_id: string; name: string; external_id: string | null; revision_date: string }
 /**
+ * Column information
+ */
+export type ColumnInfo = { name: string; data_type: string; nullable: boolean; default_value: string | null; primary_key: boolean }
+export type ConnectWebSocketRequest = { user_id: string }
+/**
+ * Connection quality metrics
+ */
+export type ConnectionQuality = { latency_ms: number | null; last_successful_ping: string | null; consecutive_failures: number; success_rate: number }
+/**
  * Connectivity test results
  */
 export type ConnectivityStatus = { api_reachable: boolean; identity_reachable: boolean; overall_status: boolean }
+/**
+ * Database health check results
+ */
+export type DatabaseHealth = { overall_status: HealthStatus; connection_status: HealthStatus; migration_status: MigrationHealthStatus; integrity_status: IntegrityStatus; performance_metrics: PerformanceMetrics; recommendations: string[] }
+/**
+ * Database health status response
+ */
+export type DatabaseHealthResponse = { health: DatabaseHealth; timestamp: string }
+/**
+ * Database schema inspection response
+ */
+export type DatabaseSchemaResponse = { schema: SchemaInfo; timestamp: string }
+/**
+ * Database statistics
+ */
+export type DatabaseStats = { total_size_mb: number; page_count: number; page_size: number; table_stats: Partial<{ [key in string]: TableStats }>; index_stats: Partial<{ [key in string]: IndexStats }> }
+/**
+ * Database statistics response
+ */
+export type DatabaseStatsResponse = { stats: DatabaseStats; timestamp: string }
 export type DeleteCipherRequest = { cipher_id: string; user_id: string }
 export type DeleteFolderRequest = { folder_id: string; user_id: string }
+export type DeleteValueRequest = { store_name: string; key: string }
+export type DeviceTrustLoginRequest = { device_identifier: string; user_id: string }
+export type DeviceTrustLoginResponse = { success: boolean; user_id: string; device_trusted: boolean }
+export type EstablishDeviceTrustRequest = { user_id: string; device_name: string; device_type: string }
+export type EstablishDeviceTrustResponse = { device_id: string; device_identifier: string; trust_established: boolean }
 /**
  * Folder model
  */
 export type Folder = { id: string; user_id: string; name: string; revision_date: string }
+export type ForceOnlineSyncRequest = { user_id: string }
 export type GetCiphersRequest = { user_id: string }
 export type GetCollectionsRequest = { organization_id: string }
 export type GetFoldersRequest = { user_id: string }
+export type GetNetworkStatusRequest = Record<string, never>
+export type GetSyncModeRequest = { user_id: string }
+export type GetSyncStatusRequest = { user_id: string }
+export type GetValueRequest = { store_name: string; key: string }
+export type GetValueResponse = { value: string | null }
+export type GetWebSocketStatusRequest = Record<string, never>
+/**
+ * Health status enumeration
+ */
+export type HealthStatus = "Healthy" | "Warning" | "Critical" | "Unknown"
 /**
  * Identity cipher data
  */
 export type IdentityView = { title: string | null; first_name: string | null; middle_name: string | null; last_name: string | null; address1: string | null; address2: string | null; address3: string | null; city: string | null; state: string | null; postal_code: string | null; country: string | null; company: string | null; email: string | null; phone: string | null; ssn: string | null; username: string | null; passport_number: string | null; license_number: string | null }
+/**
+ * Index information
+ */
+export type IndexInfo = { name: string; table: string; columns: string[]; unique: boolean; sql: string | null }
+/**
+ * Index statistics
+ */
+export type IndexStats = { size_estimate_mb: number; usage_count: number | null; last_used: string | null }
+/**
+ * Index usage statistics
+ */
+export type IndexUsage = { name: string; table: string; usage_count: number; last_used: string | null }
+/**
+ * Database integrity status
+ */
+export type IntegrityStatus = { status: HealthStatus; integrity_check_result: string; foreign_key_violations: string[]; missing_indexes: string[]; orphaned_records: Partial<{ [key in string]: number }> }
 export type KdfConfig = { kdf_type: number; iterations: number; memory: number | null; parallelism: number | null }
+export type KeyringBackendStatus = { backend_available: boolean; backend_type: string; can_store_retrieve: boolean; error_message: string | null; timestamp: string }
+/**
+ * Log entry structure for frontend logging
+ */
+export type LogEntry = { level: LogLevel; message: string; context: string | null; component: string | null; error_id: string | null; severity: string | null }
+/**
+ * Log level enum for frontend logging
+ */
+export type LogLevel = "debug" | "info" | "warn" | "error"
 export type LoginRequest = { email: string; password: string; kdf_config: KdfConfig }
 export type LoginResponse = { success: boolean; user_id: string; master_key: number[]; master_key_hash: string }
 /**
@@ -550,7 +1222,39 @@ export type LoginUriView = { uri: string | null; match_type: number | null }
  * Login cipher data
  */
 export type LoginView = { username: string | null; password: string | null; totp: string | null; uris: LoginUriView[] }
-export type MigrateLegacySettingsRequest = { legacy_settings: string }
+/**
+ * Database maintenance operations
+ */
+export type MaintenanceResult = { operation: string; success: boolean; message: string; timestamp: string }
+/**
+ * Migration-specific health status
+ */
+export type MigrationHealthStatus = { status: HealthStatus; current_version: number; latest_version: number; pending_migrations: number[]; applied_migrations: ([number, string])[] }
+/**
+ * Migration status information
+ */
+export type MigrationStatusResponse = { current_version: number; latest_version: number; applied_migrations: ([number, string])[]; pending_migrations: number[]; is_up_to_date: boolean; timestamp: string }
+export type NetworkAwareSyncRequest = { user_id: string }
+/**
+ * Sync operation result with mode information
+ */
+export type NetworkAwareSyncResult = { success: boolean; sync_mode: SyncMode; last_sync: string; revision_date: string | null; message: string; items_synced: number; network_state: string; cached_items_count: number }
+/**
+ * Network connectivity state
+ */
+export type NetworkState = "online" | "offline" | "limited" | "unknown"
+/**
+ * Network status information
+ */
+export type NetworkStatus = { state: NetworkState; server_reachable: boolean; last_check: string; quality: ConnectionQuality; retry_count: number; next_retry_at: string | null }
+/**
+ * WebSocket notification payload data
+ */
+export type NotificationPayload = { id: string | null; user_id: string | null; organization_id: string | null; revision_date: string | null; data: string | null }
+/**
+ * Performance metrics
+ */
+export type PerformanceMetrics = { database_size_mb: number; page_count: number; page_size: number; cache_hit_ratio: number | null; slow_queries: string[]; index_usage: Partial<{ [key in string]: IndexUsage }> }
 export type PreloginRequest = { email: string }
 export type PreloginResponse = { kdf: number; kdfIterations: number; kdfMemory: number | null; kdfParallelism: number | null }
 /**
@@ -562,6 +1266,10 @@ export type RetrieveBiometricKeyResponse = { success: boolean; user_key: number[
 export type SaveCipherRequest = { cipher: CipherView; user_id: string }
 export type SaveFolderRequest = { folder: Folder }
 export type SaveSettingsRequest = { settings: Settings }
+/**
+ * Schema information for inspection
+ */
+export type SchemaInfo = { tables: TableInfo[]; indexes: IndexInfo[]; triggers: TriggerInfo[]; views: ViewInfo[] }
 export type SearchCiphersRequest = { query: string; user_id: string }
 /**
  * Secure note cipher data
@@ -587,19 +1295,82 @@ export type ServerProviderUrls = { base: string | null; api: string | null; iden
  * Request to set the current server provider
  */
 export type SetCurrentProviderRequest = { provider_id: string }
+export type SetSyncModeRequest = { user_id: string; mode: SyncMode }
 /**
  * Settings model for application configuration
  */
-export type Settings = { theme: string; language: string; vault_timeout: number; vault_timeout_action: string; biometric_unlock: boolean; clear_clipboard: number; minimize_to_tray: boolean; start_to_tray: boolean; auto_start: boolean; server_url: string | null }
+export type Settings = { theme: string; language: string; vault_timeout: VaultTimeout; vault_timeout_action: string; biometric_unlock: boolean; clear_clipboard: number; minimize_to_tray: boolean; start_to_tray: boolean; auto_start: boolean; server_url: string | null; debug_token_operations: boolean }
 export type SetupAccountRequest = { email: string; password: string; kdf_config: KdfConfig }
 export type SetupAccountResponse = { user_id: string; master_key: number[]; master_key_hash: string; user_key: number[]; encrypted_user_key: number[]; public_key: number[]; encrypted_private_key: number[] }
 export type SetupBiometricRequest = { user_id: string; user_key: number[] }
+export type StoreValueRequest = { store_name: string; key: string; value: string }
+/**
+ * Sync mode indicating current operational state
+ */
+export type SyncMode = "online" | "offline"
+export type SyncResult = { success: boolean; last_sync: string; revision_date: string | null; message: string }
+export type SyncStatusResponse = { last_sync: string | null; is_syncing: boolean; revision_date: string | null }
+export type SyncVaultRequest = { user_id: string }
+/**
+ * Table information
+ */
+export type TableInfo = { name: string; columns: ColumnInfo[]; row_count: number; size_estimate: string }
+/**
+ * Table statistics
+ */
+export type TableStats = { row_count: number; size_estimate_mb: number; last_analyzed: string | null }
+export type TokenDiagnosticResult = { user_id: string; access_token_present: boolean; refresh_token_present: boolean; access_token_expired: boolean | null; recommendations: string[]; timestamp: string }
+/**
+ * Trigger information
+ */
+export type TriggerInfo = { name: string; table: string; event: string; sql: string }
+/**
+ * Device trust information
+ */
+export type TrustedDevice = { id: string; user_id: string; device_identifier: string; device_name: string | null; device_type: string; encrypted_device_public_key: string; encrypted_device_private_key: string; encrypted_user_key: string; device_key_encrypted: string; trust_established_at: string; last_used_at: string | null; is_active: boolean }
 export type UnlockRequest = { user_id: string; password: string }
 export type UnlockResponse = { success: boolean; master_key: number[] | null; user_key: number[] | null }
 /**
  * Request to update an existing server provider
  */
 export type UpdateProviderRequest = { provider_id: string; label: string | null; urls: ServerProviderUrls | null }
+/**
+ * Update type enumeration for WebSocket notifications
+ */
+export type UpdateType = "SyncCipherUpdate" | "SyncCipherCreate" | "SyncLoginDelete" | "SyncFolderDelete" | "SyncCiphers" | "SyncVault" | "SyncOrgKeys" | "SyncFolderCreate" | "SyncFolderUpdate" | "SyncCipherDelete" | "LogOut" | "SyncSendCreate" | "SyncSendUpdate" | "SyncSendDelete" | "AuthRequest" | "AuthRequestResponse" | "None"
+/**
+ * User model with new key management structure (BREAKING CHANGE)
+ */
+export type User = { id: string; email: string; master_key_hash: string | null; encrypted_private_key_new: string | null; encrypted_user_key_new: string | null; key_derivation_method: string; device_trust_enabled: boolean; webauthn_enabled: boolean; server_provider_id: string; kdf_type: number; kdf_iterations: number; kdf_memory: number | null; kdf_parallelism: number | null; created_date: string; revision_date: string }
+/**
+ * Vault timeout configuration
+ */
+export type VaultTimeout = 
+/**
+ * Timeout after specified minutes
+ */
+{ Minutes: number } | 
+/**
+ * Never timeout (auto-unlock enabled)
+ */
+"Never"
+/**
+ * View information
+ */
+export type ViewInfo = { name: string; sql: string }
+/**
+ * Comprehensive WebSocket notification from Vaultwarden server
+ */
+export type WebSocketNotification = { update_type: UpdateType; payload: NotificationPayload; timestamp: string }
+export type WebSocketNotificationTypes = { notification: WebSocketNotification; update_types: UpdateType[] }
+/**
+ * WebSocket connection state
+ */
+export type WebSocketState = "disconnected" | "connecting" | "connected" | "reconnecting" | "error"
+/**
+ * WebSocket connection status
+ */
+export type WebSocketStatus = { state: WebSocketState; connected_at: string | null; last_ping: string | null; last_pong: string | null; reconnect_count: number; error_message: string | null; server_url: string | null }
 
 /** tauri-specta globals **/
 

@@ -19,10 +19,14 @@ msgstr ""
 #~ msgid "error.two_factor_expired"
 #~ msgstr "驗證碼已過期。請請求新的驗證碼。"
 
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Failed to Delete Server Provider"
+msgstr ""
+
 #: src/routes/_auth/login/-components/login-form.tsx
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "error.login_failed"
-msgstr "登入失敗。請重試。"
+#~ msgid "error.login_failed"
+#~ msgstr "登入失敗。請重試。"
 
 #~ msgid "error.validation_error"
 #~ msgstr "請檢查您的輸入並重試。"
@@ -34,14 +38,18 @@ msgstr "登入失敗。請重試。"
 #~ msgstr "主密碼是必填項。"
 
 #: src/components/server-provider/server-provider-selector.tsx
-msgid "Edit server provider"
-msgstr "編輯伺服器提供商"
+#~ msgid "Edit server provider"
+#~ msgstr "編輯伺服器提供商"
 
 #~ msgid "validation.master_password_min_length"
 #~ msgstr "主密碼至少需要8個字符。"
 
 #~ msgid "validation.password_min_length"
 #~ msgstr "密碼至少需要8個字符。"
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Server Provider Deleted"
+msgstr ""
 
 #~ msgid "notfound.error_code"
 #~ msgstr "錯誤代碼：404 - 找不到頁面"
@@ -69,12 +77,21 @@ msgstr "編輯伺服器提供商"
 #~ msgid "error.biometric_failed"
 #~ msgstr "生物識別身份驗證失敗。請重試或使用主密碼。"
 
+#. placeholder {0}: values.label
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "\"{0}\" has been successfully updated."
+msgstr ""
+
 #: src/routes/_auth/login/-components/prelogin.tsx
 #~ msgid "Failed to retrieve login settings"
 #~ msgstr "無法獲取登入設定"
 
 #~ msgid "validation.cvv_format"
 #~ msgstr "CVV必須為3或4位數字。"
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Security Settings (Dev Info)"
+msgstr ""
 
 #~ msgid "error.two_factor_required"
 #~ msgstr "需要雙重身份驗證。請輸入您的驗證碼。"
@@ -85,6 +102,10 @@ msgstr "編輯伺服器提供商"
 # Home
 #~ msgid "home.description"
 #~ msgstr "點擊 Tauri、Vite 和 Solid 標誌了解更多資訊。"
+
+#: src/components/ui/form/password-input.tsx
+msgid "Show password"
+msgstr ""
 
 #~ msgid "validation.password_strength_length"
 #~ msgstr "使用至少8個字符。"
@@ -107,11 +128,11 @@ msgstr ""
 #~ msgstr "關於 Chiikawarden"
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Welcome back"
-msgstr ""
+#~ msgid "Welcome back"
+#~ msgstr ""
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Server URL"
 msgstr "伺服器URL"
 
@@ -137,9 +158,11 @@ msgstr "伺服器URL"
 #~ msgid "error.api_error"
 #~ msgstr "與伺服器通信時發生錯誤。請重試。"
 
-# Validation messages
-#~ msgid "validation.email_required"
-#~ msgstr "電郵是必填項。"
+#: src/routes/_auth/login/-components/prelogin.tsx
+#: src/hooks/queries/use-auth-queries.ts
+#: src/hooks/queries/use-auth-queries.ts
+msgid "validation.email_required"
+msgstr "電郵是必填項。"
 
 #~ msgid "error.biometric_not_available"
 #~ msgstr "此裝置不支援生物識別身份驗證。"
@@ -147,7 +170,7 @@ msgstr "伺服器URL"
 #~ msgid "label.updated_at"
 #~ msgstr "更新時間"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Remove Server"
 msgstr ""
 
@@ -172,6 +195,10 @@ msgstr ""
 msgid "common.initializing"
 msgstr ""
 
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
+msgid "Custom Providers"
+msgstr ""
+
 #~ msgid "validation.card_number_length"
 #~ msgstr "卡號必須在13到19位數字之間。"
 
@@ -181,7 +208,7 @@ msgstr ""
 #~ msgid "alt.vite_logo"
 #~ msgstr "Vite 標誌"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Update Server"
 msgstr ""
 
@@ -193,6 +220,10 @@ msgstr ""
 
 #~ msgid "validation.password_strength_uppercase"
 #~ msgstr "添加大寫字母。"
+
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Unlock failed. Please check your password and try again."
+msgstr ""
 
 #~ msgid "error.token_refresh_failed"
 #~ msgstr "無法刷新您的會話。請重新登入。"
@@ -231,7 +262,19 @@ msgstr ""
 #~ msgid "about.framework.title"
 #~ msgstr "框架"
 
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
+msgid "Built-in Providers"
+msgstr ""
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Failed to Update Server Provider"
+msgstr ""
+
+#: src/components/ui/form/password-input.tsx
+msgid "Hide password"
+msgstr ""
+
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Add Custom Server"
 msgstr "新增自訂伺服器"
 
@@ -243,21 +286,29 @@ msgstr ""
 #~ msgid "button.continue"
 #~ msgstr "繼續"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Updating..."
 msgstr ""
 
 #~ msgid "label.status"
 #~ msgstr "狀態"
 
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Account setup failed. Please try again."
+msgstr ""
+
+#: src/hooks/use-toast.tsx
+msgid "Error"
+msgstr ""
+
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "error.invalid_credentials"
-msgstr "電郵或密碼無效。請檢查您的憑據並重試。"
+#~ msgid "error.invalid_credentials"
+#~ msgstr "電郵或密碼無效。請檢查您的憑據並重試。"
 
 #~ msgid "validation.folder_name_max_length"
 #~ msgstr "資料夾名稱不能超過50個字符。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Edit Custom Server"
 msgstr ""
 
@@ -280,7 +331,7 @@ msgstr ""
 #~ msgid "validation.name_required"
 #~ msgstr "名稱是必填項。"
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Select a server provider..."
 msgstr "選擇伺服器提供商..."
 
@@ -291,15 +342,15 @@ msgstr "選擇伺服器提供商..."
 #~ msgstr "帳戶設置失敗。請重試。"
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Can't access your account?"
-msgstr ""
+#~ msgid "Can't access your account?"
+#~ msgstr ""
 
 # Error messages
 #~ msgid "error.network_error"
 #~ msgstr "無法連接到伺服器。請檢查您的網絡連接並重試。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.server_label_required"
 msgstr "請為此伺服器輸入標籤。"
 
@@ -313,7 +364,7 @@ msgstr "請為此伺服器輸入標籤。"
 #~ msgid "label.name"
 #~ msgstr "姓名"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Delete"
 msgstr ""
 
@@ -325,8 +376,8 @@ msgstr ""
 #~ msgid "about.desktop.desc"
 #~ msgstr "跨平台應用"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Cancel"
 msgstr ""
 
@@ -344,19 +395,19 @@ msgstr ""
 #~ msgstr "密碼不匹配。"
 
 #. placeholder {0}: props.provider.label
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Are you sure you want to delete \"{0}\"? This action cannot be undone."
 msgstr ""
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.account_setup_failed"
-msgstr ""
+#~ msgid "error.account_setup_failed"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.login_failed"
-msgstr ""
+#~ msgid "error.login_failed"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/lib/error-handling.ts
@@ -371,8 +422,8 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.unlock_failed"
-msgstr ""
+#~ msgid "error.unlock_failed"
+#~ msgstr ""
 
 #~ msgid "home.title"
 #~ msgstr "歡迎使用 Tauri + Solid"
@@ -383,12 +434,12 @@ msgstr ""
 #~ msgid "alt.tauri_logo"
 #~ msgstr "Tauri 標誌"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-msgid "My Company Server"
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+msgid "My Privacy Server"
 msgstr "我的公司伺服器"
 
-#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/prelogin.tsx
 msgid "Keep me signed in on this device"
 msgstr ""
 
@@ -402,26 +453,26 @@ msgstr ""
 #~ msgstr "伺服器錯誤。請稍後重試。"
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Email Address"
-msgstr ""
+#~ msgid "Email Address"
+#~ msgstr ""
 
 #~ msgid "validation.password_strength_lowercase"
 #~ msgstr "添加小寫字母。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.url_invalid"
 msgstr "請輸入有效的URL。"
 
@@ -429,24 +480,34 @@ msgstr "請輸入有效的URL。"
 #~ msgid "nav.about"
 #~ msgstr "關於"
 
-#~ msgid "validation.password_required"
-#~ msgstr "密碼是必填項。"
+#. placeholder {0}: props.provider.label
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "\"{0}\" has been successfully removed."
+msgstr ""
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "validation.password_required"
+msgstr "密碼是必填項。"
 
 #~ msgid "notfound.title"
 #~ msgstr "404"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Server Provider Updated"
+msgstr ""
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Are you sure you want to delete this server provider? This action cannot be undone."
 msgstr ""
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Delete Server Provider"
 msgstr ""
 
 #~ msgid "label.description"
 #~ msgstr "描述"
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Failed to change server provider. Please try again."
 msgstr "更改伺服器提供商失敗。請重試。"
 
@@ -471,9 +532,13 @@ msgstr ""
 #~ msgid "home.greet_button"
 #~ msgstr "問候"
 
-#: src/routes/_auth/login/-components/login-form.tsx
-msgid "Change"
+#: src/hooks/use-toast.tsx
+msgid "Information"
 msgstr ""
+
+#: src/routes/_auth/login/-components/login-form.tsx
+#~ msgid "Change"
+#~ msgstr ""
 
 #~ msgid "notfound.subtitle"
 #~ msgstr "找不到頁面"
@@ -487,13 +552,17 @@ msgstr ""
 #~ msgid "home.input_placeholder"
 #~ msgstr "輸入姓名..."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.server_url_required"
 msgstr "請輸入伺服器URL。"
 
 #~ msgid "validation.card_expired"
 #~ msgstr "卡片已過期。"
+
+#: src/hooks/use-toast.tsx
+msgid "Warning"
+msgstr ""
 
 # Labels
 #~ msgid "label.created_at"
@@ -505,8 +574,8 @@ msgstr "請輸入伺服器URL。"
 #~ msgid "error.rate_limited"
 #~ msgstr "請求過多。請稍等片刻後重試。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Configure individual service URLs (optional)"
 msgstr "設定各個服務URL（可選）"
 
@@ -514,8 +583,9 @@ msgstr "設定各個服務URL（可選）"
 msgid "Log in"
 msgstr ""
 
-#~ msgid "validation.email_invalid"
-#~ msgstr "請輸入有效的電郵地址。"
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "validation.email_invalid"
+msgstr "請輸入有效的電郵地址。"
 
 #: src/components/server-provider/server-provider-selector.tsx
 #~ msgid "Switching server provider..."
@@ -530,8 +600,8 @@ msgstr ""
 #~ msgid "validation.card_number_invalid"
 #~ msgstr "無效的卡號。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Advanced configuration"
 msgstr "進階設定"
 
@@ -572,8 +642,6 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/lib/form-validation.ts
-#: src/hooks/queries/use-auth-queries.ts
-#: src/hooks/queries/use-auth-queries.ts
 msgid "validation.email_required"
 msgstr ""
 
@@ -729,7 +797,7 @@ msgstr "繼續"
 msgid "Enter your email address"
 msgstr "輸入您的電郵地址"
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Add server provider"
 msgstr "新增伺服器提供商"
 
@@ -747,8 +815,8 @@ msgstr ""
 #~ msgid "alt.solid_logo"
 #~ msgstr "Solid 標誌"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Server Label"
 msgstr "伺服器標籤"
 
@@ -758,13 +826,22 @@ msgstr "伺服器標籤"
 #~ msgid "validation.folder_name_required"
 #~ msgstr "資料夾名稱是必填項。"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-msgid "Are you absolutely sure?"
-msgstr ""
-
 #: src/routes/_auth/login/-components/login-form.tsx
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Login failed. Please check your credentials and try again."
+msgstr "登入失敗。請檢查您的憑據並重試。"
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#~ msgid "Are you absolutely sure?"
+#~ msgstr ""
+
+#: src/routes/_auth/login/-components/prelogin.tsx
 msgid "Remember me"
 msgstr ""
 
 #~ msgid "error.timeout_error"
 #~ msgstr "請求超時。請重試。"
+
+#: src/hooks/use-toast.tsx
+msgid "Success"
+msgstr ""

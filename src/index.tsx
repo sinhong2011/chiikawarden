@@ -1,13 +1,9 @@
-import type { QueryClient } from "@tanstack/react-query";
-import { createRouter, RouterProvider } from "@tanstack/react-router";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { scan } from "react-scan";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { initializeApp } from "@/lib/app-initialization";
-import type { AuthState } from "@/types/auth.types";
-// Import the generated route tree
-import { routeTree } from "./routeTree.gen";
+import App from "@/App";
 
 if (__DEV__) {
   scan({
@@ -15,21 +11,7 @@ if (__DEV__) {
   });
 }
 
-// Create the router with proper context
-const router = createRouter({
-  routeTree,
-  context: {
-    queryClient: undefined as unknown as QueryClient,
-    auth: undefined as unknown as AuthState,
-  },
-});
-
 // Register the router instance for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
 
 // Initialize app systems before rendering
 initializeApp()
@@ -43,7 +25,7 @@ initializeApp()
             console.error("Global error boundary caught:", error, errorInfo);
           }}
         >
-          <RouterProvider router={router} />
+          <App />
         </ErrorBoundary>
       </React.StrictMode>
     );

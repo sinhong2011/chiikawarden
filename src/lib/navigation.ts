@@ -13,38 +13,9 @@ export const useTypedNavigation = () => {
 
     // Vault navigation
     toVault: () => router.navigate({ to: "/vault" }),
-    toEditCipher: (id: string) => {
-      router.navigate({ to: "/vault/edit/$id", params: { id } });
-    },
-    toViewCipher: (id: string) => {
-      router.navigate({ to: "/vault/view/$id", params: { id } });
-    },
-    toCloneCipher: (id: string) => {
-      router.navigate({ to: "/vault/clone/$id", params: { id } });
-    },
-    toAddCipher: (type?: string) => {
-      if (type) {
-        router.navigate({ to: "/vault/add/$type", params: { type } });
-      } else {
-        router.navigate({ to: "/vault/add" });
-      }
-    },
-    toVaultSearch: (search?: { query?: string; type?: "login" | "card" }) => {
-      router.navigate({ to: "/vault/search", search });
-    },
-    toVaultFavorites: () => router.navigate({ to: "/vault/favorites" }),
-    toVaultTrash: () => router.navigate({ to: "/vault/trash" }),
-    toPasswordGenerator: () => router.navigate({ to: "/vault/generator" }),
 
     // Send navigation
     toSend: () => router.navigate({ to: "/send" }),
-    toAddSend: () => router.navigate({ to: "/send/add" }),
-    toEditSend: (id: string) => {
-      router.navigate({ to: "/send/edit/$id", params: { id } });
-    },
-    toViewSend: (id: string) => {
-      router.navigate({ to: "/send/view/$id", params: { id } });
-    },
 
     // Settings navigation
     toSettings: () => router.navigate({ to: "/settings" }),
@@ -63,7 +34,7 @@ export const useTypedNavigation = () => {
 export const getSmartRedirectPath = (auth: AuthState): string => {
   // If user is authenticated and vault is unlocked, go to vault
   if (auth.isAuthenticated && auth.authStatus === "unlocked") {
-    return "/vault";
+    return "/_internal/vault";
   }
 
   // If user is authenticated but vault is locked, go to unlock
@@ -94,7 +65,7 @@ export const useSmartNavigation = () => {
      */
     toSmartRoute: (auth: AuthState) => {
       const path = getSmartRedirectPath(auth);
-      router.navigate({ to: path as "/login" | "/unlock" | "/2fa" | "/vault" });
+      router.navigate({ to: path });
     },
   };
 };

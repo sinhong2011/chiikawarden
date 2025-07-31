@@ -19,13 +19,17 @@ msgstr ""
 #~ msgid "error.two_factor_expired"
 #~ msgstr "Verification code has expired. Please request a new one."
 
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Failed to Delete Server Provider"
+msgstr "Failed to Delete Server Provider"
+
 #~ msgid "login.enter_email_placeholder"
 #~ msgstr "Enter your email address"
 
 #: src/routes/_auth/login/-components/login-form.tsx
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "error.login_failed"
-msgstr "Login failed. Please try again."
+#~ msgid "error.login_failed"
+#~ msgstr "Login failed. Please try again."
 
 #~ msgid "error.validation_error"
 #~ msgstr "Please check your input and try again."
@@ -37,8 +41,8 @@ msgstr "Login failed. Please try again."
 #~ msgstr "Master password is required."
 
 #: src/components/server-provider/server-provider-selector.tsx
-msgid "Edit server provider"
-msgstr "Edit server provider"
+#~ msgid "Edit server provider"
+#~ msgstr "Edit server provider"
 
 #~ msgid "validation.master_password_min_length"
 #~ msgstr "Master password must be at least 8 characters long."
@@ -51,6 +55,10 @@ msgstr "Edit server provider"
 
 #~ msgid "validation.password_min_length"
 #~ msgstr "Password must be at least 8 characters long."
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Server Provider Deleted"
+msgstr "Server Provider Deleted"
 
 #~ msgid "notfound.error_code"
 #~ msgstr "Error code: 404 - Page not found"
@@ -81,12 +89,21 @@ msgstr "Edit server provider"
 #~ msgid "error.biometric_failed"
 #~ msgstr "Biometric authentication failed. Please try again or use your master password."
 
+#. placeholder {0}: values.label
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "\"{0}\" has been successfully updated."
+msgstr "\"{0}\" has been successfully updated."
+
 #: src/routes/_auth/login/-components/prelogin.tsx
 #~ msgid "Failed to retrieve login settings"
 #~ msgstr "Failed to retrieve login settings"
 
 #~ msgid "validation.cvv_format"
 #~ msgstr "CVV must be 3 or 4 digits."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "Security Settings (Dev Info)"
+msgstr "Security Settings (Dev Info)"
 
 #~ msgid "error.two_factor_required"
 #~ msgstr "Two-factor authentication is required. Please enter your verification code."
@@ -97,6 +114,10 @@ msgstr "Edit server provider"
 # Home
 #~ msgid "home.description"
 #~ msgstr "Click on the Tauri, Vite, and Solid logos to learn more."
+
+#: src/components/ui/form/password-input.tsx
+msgid "Show password"
+msgstr "Show password"
 
 #~ msgid "validation.password_strength_length"
 #~ msgstr "Use at least 8 characters."
@@ -128,11 +149,11 @@ msgstr "Enter your master password"
 #~ msgstr "About Chiikawarden"
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Welcome back"
-msgstr "Welcome back"
+#~ msgid "Welcome back"
+#~ msgstr "Welcome back"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Server URL"
 msgstr "Server URL"
 
@@ -174,9 +195,11 @@ msgstr "Server URL"
 #~ msgid "error.api_error"
 #~ msgstr "An error occurred while communicating with the server. Please try again."
 
-# Validation messages
-#~ msgid "validation.email_required"
-#~ msgstr "Email is required."
+#: src/routes/_auth/login/-components/prelogin.tsx
+#: src/hooks/queries/use-auth-queries.ts
+#: src/hooks/queries/use-auth-queries.ts
+msgid "validation.email_required"
+msgstr "Email is required."
 
 #~ msgid "error.biometric_not_available"
 #~ msgstr "Biometric authentication is not available on this device."
@@ -184,7 +207,7 @@ msgstr "Server URL"
 #~ msgid "label.updated_at"
 #~ msgstr "Updated At"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Remove Server"
 msgstr "Remove Server"
 
@@ -215,6 +238,10 @@ msgstr "common.initializing"
 #~ msgid "errorBoundary.timestamp"
 #~ msgstr "Timestamp"
 
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
+msgid "Custom Providers"
+msgstr "Custom Providers"
+
 #~ msgid "validation.card_number_length"
 #~ msgstr "Card number must be between 13 and 19 digits."
 
@@ -224,7 +251,7 @@ msgstr "common.initializing"
 #~ msgid "alt.vite_logo"
 #~ msgstr "Vite logo"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Update Server"
 msgstr "Update Server"
 
@@ -239,6 +266,10 @@ msgstr "Update Server"
 
 #~ msgid "validation.password_strength_uppercase"
 #~ msgstr "Add uppercase letters."
+
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Unlock failed. Please check your password and try again."
+msgstr "Unlock failed. Please check your password and try again."
 
 #~ msgid "error.token_refresh_failed"
 #~ msgstr "Unable to refresh your session. Please sign in again."
@@ -295,11 +326,23 @@ msgstr "Sign in to"
 #~ msgid "about.framework.title"
 #~ msgstr "Framework"
 
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
+msgid "Built-in Providers"
+msgstr "Built-in Providers"
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Failed to Update Server Provider"
+msgstr "Failed to Update Server Provider"
+
 # Additional login messages
 #~ msgid "login.welcome_back"
 #~ msgstr "Welcome back"
 
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/components/ui/form/password-input.tsx
+msgid "Hide password"
+msgstr "Hide password"
+
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Add Custom Server"
 msgstr "Add Custom Server"
 
@@ -314,19 +357,27 @@ msgstr "Chiikawarden"
 #~ msgid "button.continue"
 #~ msgstr "Continue"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Updating..."
 msgstr "Updating..."
 
 #~ msgid "label.status"
 #~ msgstr "Status"
 
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Account setup failed. Please try again."
+msgstr "Account setup failed. Please try again."
+
 #~ msgid "errorBoundary.retrying"
 #~ msgstr "Retrying..."
 
+#: src/hooks/use-toast.tsx
+msgid "Error"
+msgstr "Error"
+
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "error.invalid_credentials"
-msgstr "Invalid email or password. Please check your credentials and try again."
+#~ msgid "error.invalid_credentials"
+#~ msgstr "Invalid email or password. Please check your credentials and try again."
 
 #~ msgid "errorBoundary.max_retries_reached"
 #~ msgstr "Maximum retry attempts reached"
@@ -334,7 +385,7 @@ msgstr "Invalid email or password. Please check your credentials and try again."
 #~ msgid "validation.folder_name_max_length"
 #~ msgstr "Folder name must be less than 50 characters."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Edit Custom Server"
 msgstr "Edit Custom Server"
 
@@ -357,7 +408,7 @@ msgstr "Signing in..."
 #~ msgid "validation.name_required"
 #~ msgstr "Name is required."
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Select a server provider..."
 msgstr "Select a server provider..."
 
@@ -368,8 +419,8 @@ msgstr "Select a server provider..."
 #~ msgstr "Account setup failed. Please try again."
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Can't access your account?"
-msgstr "Can't access your account?"
+#~ msgid "Can't access your account?"
+#~ msgstr "Can't access your account?"
 
 # Error messages
 #~ msgid "error.network_error"
@@ -378,8 +429,8 @@ msgstr "Can't access your account?"
 #~ msgid "login.title"
 #~ msgstr "Log in"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.server_label_required"
 msgstr "Please enter a label for this server."
 
@@ -396,7 +447,7 @@ msgstr "Please enter a label for this server."
 #~ msgid "label.name"
 #~ msgstr "Name"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Delete"
 msgstr "Delete"
 
@@ -408,8 +459,8 @@ msgstr "common.loading"
 #~ msgid "about.desktop.desc"
 #~ msgstr "Cross-platform app"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -427,19 +478,19 @@ msgstr "Failed to change language"
 #~ msgstr "Passwords do not match."
 
 #. placeholder {0}: props.provider.label
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Are you sure you want to delete \"{0}\"? This action cannot be undone."
 msgstr "Are you sure you want to delete \"{0}\"? This action cannot be undone."
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.account_setup_failed"
-msgstr "error.account_setup_failed"
+#~ msgid "error.account_setup_failed"
+#~ msgstr "error.account_setup_failed"
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.login_failed"
-msgstr "error.login_failed"
+#~ msgid "error.login_failed"
+#~ msgstr "error.login_failed"
 
 #. js-lingui-explicit-id
 #: src/lib/error-handling.ts
@@ -454,8 +505,8 @@ msgstr "error.unknown_error"
 
 #. js-lingui-explicit-id
 #: src/hooks/queries/use-auth-queries.ts
-msgid "error.unlock_failed"
-msgstr "error.unlock_failed"
+#~ msgid "error.unlock_failed"
+#~ msgstr "error.unlock_failed"
 
 #~ msgid "login.sign_in"
 #~ msgstr "Sign In"
@@ -472,12 +523,12 @@ msgstr "error.unlock_failed"
 #~ msgid "errorBoundary.suggestions"
 #~ msgstr "Suggestions"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-msgid "My Company Server"
-msgstr "My Company Server"
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+msgid "My Privacy Server"
+msgstr "My Privacy Server"
 
-#: src/routes/_auth/login/-components/login-form.tsx
+#: src/routes/_auth/login/-components/prelogin.tsx
 msgid "Keep me signed in on this device"
 msgstr "Keep me signed in on this device"
 
@@ -494,26 +545,26 @@ msgstr "Keep me signed in on this device"
 #~ msgstr "Server error occurred. Please try again later."
 
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Email Address"
-msgstr "Email Address"
+#~ msgid "Email Address"
+#~ msgstr "Email Address"
 
 #~ msgid "validation.password_strength_lowercase"
 #~ msgstr "Add lowercase letters."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.url_invalid"
 msgstr "Please enter a valid URL."
 
@@ -527,24 +578,34 @@ msgstr "Please enter a valid URL."
 #~ msgid "login.change"
 #~ msgstr "Change"
 
-#~ msgid "validation.password_required"
-#~ msgstr "Password is required."
+#. placeholder {0}: props.provider.label
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "\"{0}\" has been successfully removed."
+msgstr "\"{0}\" has been successfully removed."
+
+#: src/routes/_auth/login/-components/login-form.tsx
+msgid "validation.password_required"
+msgstr "Password is required."
 
 #~ msgid "notfound.title"
 #~ msgstr "404"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+msgid "Server Provider Updated"
+msgstr "Server Provider Updated"
+
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Are you sure you want to delete this server provider? This action cannot be undone."
 msgstr "Are you sure you want to delete this server provider? This action cannot be undone."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
 msgid "Delete Server Provider"
 msgstr "Delete Server Provider"
 
 #~ msgid "label.description"
 #~ msgstr "Description"
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Failed to change server provider. Please try again."
 msgstr "Failed to change server provider. Please try again."
 
@@ -575,9 +636,13 @@ msgstr "Sign In"
 #~ msgid "login.email_address"
 #~ msgstr "Email Address"
 
+#: src/hooks/use-toast.tsx
+msgid "Information"
+msgstr "Information"
+
 #: src/routes/_auth/login/-components/login-form.tsx
-msgid "Change"
-msgstr "Change"
+#~ msgid "Change"
+#~ msgstr "Change"
 
 #~ msgid "login.failed_retrieve_settings"
 #~ msgstr "Failed to retrieve login settings"
@@ -597,13 +662,17 @@ msgstr "Change"
 #~ msgid "login.keep_signed_in"
 #~ msgstr "Keep me signed in on this device"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "validation.server_url_required"
 msgstr "Please enter the server URL."
 
 #~ msgid "validation.card_expired"
 #~ msgstr "Card has expired."
+
+#: src/hooks/use-toast.tsx
+msgid "Warning"
+msgstr "Warning"
 
 # Labels
 #~ msgid "label.created_at"
@@ -618,8 +687,8 @@ msgstr "Please enter the server URL."
 #~ msgid "error.rate_limited"
 #~ msgstr "Too many requests. Please wait a moment before trying again."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Configure individual service URLs (optional)"
 msgstr "Configure individual service URLs (optional)"
 
@@ -627,8 +696,9 @@ msgstr "Configure individual service URLs (optional)"
 msgid "Log in"
 msgstr "Log in"
 
-#~ msgid "validation.email_invalid"
-#~ msgstr "Please enter a valid email address."
+#: src/routes/_auth/login/-components/prelogin.tsx
+msgid "validation.email_invalid"
+msgstr "Please enter a valid email address."
 
 #: src/components/server-provider/server-provider-selector.tsx
 #~ msgid "Switching server provider..."
@@ -643,8 +713,8 @@ msgstr "Log in"
 #~ msgid "validation.card_number_invalid"
 #~ msgstr "Invalid card number."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Advanced configuration"
 msgstr "Advanced configuration"
 
@@ -685,8 +755,6 @@ msgstr "validation.email_invalid"
 
 #. js-lingui-explicit-id
 #: src/lib/form-validation.ts
-#: src/hooks/queries/use-auth-queries.ts
-#: src/hooks/queries/use-auth-queries.ts
 msgid "validation.email_required"
 msgstr "validation.email_required"
 
@@ -849,7 +917,7 @@ msgstr "Continue"
 msgid "Enter your email address"
 msgstr "Enter your email address"
 
-#: src/components/server-provider/server-provider-selector.tsx
+#: src/routes/_auth/login/-components/server-provider/server-provider-selector.tsx
 msgid "Add server provider"
 msgstr "Add server provider"
 
@@ -867,8 +935,8 @@ msgstr "Select language"
 #~ msgid "alt.solid_logo"
 #~ msgstr "Solid logo"
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-#: src/components/server-provider/add-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/edit-server-provider-modal.tsx
+#: src/routes/_auth/login/-components/server-provider/add-server-provider-modal.tsx
 msgid "Server Label"
 msgstr "Server Label"
 
@@ -878,13 +946,22 @@ msgstr "Server Label"
 #~ msgid "validation.folder_name_required"
 #~ msgstr "Folder name is required."
 
-#: src/components/server-provider/edit-server-provider-modal.tsx
-msgid "Are you absolutely sure?"
-msgstr "Are you absolutely sure?"
-
 #: src/routes/_auth/login/-components/login-form.tsx
+#: src/hooks/queries/use-auth-queries.ts
+msgid "Login failed. Please check your credentials and try again."
+msgstr "Login failed. Please check your credentials and try again."
+
+#: src/components/server-provider/edit-server-provider-modal.tsx
+#~ msgid "Are you absolutely sure?"
+#~ msgstr "Are you absolutely sure?"
+
+#: src/routes/_auth/login/-components/prelogin.tsx
 msgid "Remember me"
 msgstr "Remember me"
 
 #~ msgid "error.timeout_error"
 #~ msgstr "The request timed out. Please try again."
+
+#: src/hooks/use-toast.tsx
+msgid "Success"
+msgstr "Success"

@@ -290,22 +290,33 @@ export function createDynamicStorage(rememberMe: boolean): ZustandStorage {
 }
 
 // Session persistence types (non-sensitive data only)
+// SECURITY: Never persist authentication state or user identification
 export interface SessionData {
-  userId: string | null;
-  email: string | null;
-  authStatus: "logged-out" | "locked" | "unlocked" | "pending-2fa";
+  // Removed userId and authStatus for security - these should never be persisted
+  email: string | null; // Only persisted if rememberMe is true
   biometricEnabled: boolean;
   twoFactorEnabled: boolean;
   lastActivity: string; // ISO string
   rememberMe: boolean;
+  lastLoggedInUserId: string | null; // For automatic user detection
 }
 
 // Session management utilities
 export const sessionManager = {
-  // Save non-sensitive session data
+  // Save non-sensitive session data only
   saveSession(data: SessionData): void {
+    // SECURITY: Only save non-sensitive user preferences
+    const sessionData: SessionData = {
+      email: data.rememberMe ? data.email : null, // Only save email if remember me is enabled
+      biometricEnabled: data.biometricEnabled,
+      twoFactorEnabled: data.twoFactorEnabled,
+      lastActivity: data.lastActivity,
+      rememberMe: data.rememberMe,
+      lastLoggedInUserId: data.lastLoggedInUserId,
+    };
+
     const storage = data.rememberMe ? appLocalStorageService : appSessionStorageService;
-    storage.setObject("session", data);
+    storage.setObject("session", sessionData);
   },
 
   // Load session data
@@ -319,7 +330,7 @@ export const sessionManager = {
     return session;
   },
 
-  // Clear session data
+  // Clear session data completely
   clearSession(): void {
     appLocalStorageService.remove("session");
     appSessionStorageService.remove("session");
@@ -348,10 +359,9 @@ export const createAuthPersistConfig = <T extends Record<string, unknown>>(
   storage: createDynamicStorage(rememberMe),
   partialize: (state) =>
     ({
-      // Only persist non-sensitive data
-      userId: state.userId,
-      email: state.email,
-      authStatus: state.authStatus,
+      // SECURITY: Only persist non-sensitive user preferences
+      // Never persist: userId, authStatus, isAuthenticated, user, masterKey, userKey
+      email: rememberMe ? state.email : null, // Only if remember me is enabled
       biometricEnabled: state.biometricEnabled,
       twoFactorEnabled: state.twoFactorEnabled,
       lastActivity: state.lastActivity,

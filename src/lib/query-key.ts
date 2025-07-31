@@ -34,4 +34,11 @@ export const queryKeys = {
     all: () => ["settings"] as const,
     current: () => [...queryKeys.settings.all(), "current"] as const,
   },
+
+  // Users
+  users: {
+    all: () => ["users"] as const,
+    byId: (userId: string) => [...queryKeys.users.all(), userId] as const,
+    byEmail: (email: string) => [...queryKeys.users.all(), "email", email] as const,
+  },
 } as const;

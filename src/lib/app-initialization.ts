@@ -15,7 +15,7 @@ export async function initializeApp(): Promise<void> {
     // Initialize console logging integration
     await initializeConsoleIntegration();
 
-    // Initialize app services including preferences migration
+    // Initialize app services
     await appInitializationService.initialize();
 
     const duration = performance.now() - startTime;
@@ -28,7 +28,7 @@ export async function initializeApp(): Promise<void> {
       "Application initialization completed successfully",
       {
         duration_ms: Math.round(duration),
-        systems_initialized: ["console_integration", "preferences_migration"],
+        systems_initialized: ["console_integration", "settings_service"],
       },
       "app_initialization"
     );

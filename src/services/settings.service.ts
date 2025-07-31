@@ -2,7 +2,6 @@ import { commands } from "@/lib/tauri-commands";
 
 // Re-export types from tauri-commands for convenience
 export type {
-  MigrateLegacySettingsRequest,
   SaveSettingsRequest,
   Settings,
 } from "@/lib/tauri-commands";
@@ -79,11 +78,11 @@ export const settingsService = {
   /**
    * Update vault timeout setting
    */
-  async updateVaultTimeout(vault_timeout: number) {
+  async updateVaultTimeout(timeoutMinutes: number) {
     const currentSettings = await this.getSettings();
     await this.saveSettings({
       ...currentSettings,
-      vault_timeout,
+      vault_timeout: { Minutes: timeoutMinutes },
     });
   },
 
@@ -107,20 +106,6 @@ export const settingsService = {
       ...currentSettings,
       server_url: server_url || null,
     });
-  },
-
-  /**
-   * Migrate legacy settings from browser storage to Tauri store
-   */
-  async migrateLegacySettings(legacySettingsJson: string) {
-    const request = { legacy_settings: legacySettingsJson };
-    const result = await commands.migrateLegacySettings(request);
-
-    if (result.status === "error") {
-      throw new Error(`Failed to migrate legacy settings: ${result.error}`);
-    }
-
-    return result.data;
   },
 
   /**

@@ -15,7 +15,7 @@ const initialVaultState: VaultState = {
   showFavorites: false,
 };
 
-interface VaultStore extends VaultState {
+export interface VaultStore extends VaultState {
   // Actions
   loadVaultData: (userId: string) => Promise<void>;
   searchCiphers: (userId: string, query: string) => Promise<void>;

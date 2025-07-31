@@ -24,7 +24,16 @@ export interface LogEntry extends Record<string, unknown> {
 export async function logMessage(entry: LogEntry): Promise<void> {
   try {
     if (typeof window !== "undefined" && "tauri" in window) {
-      await invoke("log_frontend_message", entry);
+      // Convert the entry to match backend expectations
+      const backendEntry = {
+        level: entry.level,
+        message: entry.message,
+        context: entry.context ? JSON.stringify(entry.context) : undefined,
+        component: entry.component,
+        error_id: entry.errorId, // Convert camelCase to snake_case
+        severity: entry.severity,
+      };
+      await invoke("log_frontend_message", { entry: backendEntry });
     } else {
       // Fallback to console logging in non-Tauri environments
       const logFn = console[entry.level] || console.log;

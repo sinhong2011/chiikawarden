@@ -6,6 +6,7 @@ import type { User } from "@/types/auth.types";
 // Re-export query hooks for component usage
 export { useAuthQueries } from "@/hooks/queries/use-auth-queries";
 export { useCryptoQueries } from "@/hooks/queries/use-crypto-queries";
+export { useUserQueries } from "@/hooks/queries/use-user-queries";
 export { useVaultQueries } from "@/hooks/queries/use-vault-queries";
 // Re-export hooks for component usage
 export { useAuth } from "@/hooks/use-auth";
