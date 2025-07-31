@@ -122,7 +122,9 @@ describe("FormErrorMessage", () => {
     render(
       <FormErrorMessage
         error="Test error"
-        containerProps={{ "data-testid": "error-container" } as any}
+        containerProps={
+          { "data-testid": "error-container" } as React.HTMLAttributes<HTMLDivElement>
+        }
       />
     );
 

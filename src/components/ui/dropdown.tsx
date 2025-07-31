@@ -1,12 +1,11 @@
+import { Button, type ButtonProps } from "@heroui/button";
 import {
-  Button,
-  type ButtonProps,
   DropdownItem,
   DropdownMenu,
   DropdownSection,
   DropdownTrigger,
   Dropdown as HeroDropdown,
-} from "@heroui/react";
+} from "@heroui/dropdown";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -36,6 +35,9 @@ export type DropdownProps = {
   onChange: (value: string) => void;
   className?: string;
   colors?: ButtonProps["color"];
+  startContent?: ReactNode;
+  showArrow?: boolean;
+  "aria-label"?: string;
 };
 
 export function Dropdown(props: DropdownProps) {
@@ -144,10 +146,16 @@ export function Dropdown(props: DropdownProps) {
         <Button
           variant={props.variant}
           size={props.size || "md"}
-          endContent={<ChevronDown className="w-4 h-4 text-default-400" />}
+          startContent={props.startContent}
+          endContent={
+            props.showArrow !== false ? (
+              <ChevronDown className="w-4 h-4 text-default-400" />
+            ) : undefined
+          }
           className={cn("justify-between font-medium min-w-[200px]", props.className)}
           isDisabled={props.disabled}
           color={props.colors}
+          aria-label={props["aria-label"]}
         >
           {selectedOption?.label || props.placeholder || "Select an option"}
         </Button>
@@ -170,3 +178,6 @@ export function Dropdown(props: DropdownProps) {
     </HeroDropdown>
   );
 }
+
+// Add default export to fix module resolution issues
+export default Dropdown;

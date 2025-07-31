@@ -1,8 +1,8 @@
 import { Button } from "@heroui/button";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Trash2, AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, Trash2 } from "lucide-react";
 import React from "react";
-import { ConfirmPopover, Popover } from "./popover";
+import { ConfirmPopover, Popover, type PopoverProps } from "./popover";
 
 const meta: Meta<typeof Popover> = {
   title: "UI/Overlay/Popover",
@@ -45,7 +45,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Wrapper component for stories
-function PopoverWrapper(args: any) {
+function PopoverWrapper(args: Partial<PopoverProps>) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -54,11 +54,7 @@ function PopoverWrapper(args: any) {
         {...args}
         open={open}
         onOpenChange={setOpen}
-        trigger={
-          <Button onPress={() => setOpen(true)}>
-            Open Popover
-          </Button>
-        }
+        trigger={<Button onPress={() => setOpen(true)}>Open Popover</Button>}
       >
         <div className="p-4">
           <h4 className="font-medium mb-2">Popover Content</h4>
@@ -108,7 +104,7 @@ export const Placements: Story = {
             key={placement}
             open={open}
             onOpenChange={setOpen}
-            placement={placement as any}
+            placement={placement as PopoverProps["placement"]}
             trigger={
               <Button size="sm" onPress={() => setOpen(true)}>
                 {placement}
@@ -136,7 +132,7 @@ export const Placements: Story = {
 export const ConfirmDestructive: Story = {
   render: () => {
     const [open, setOpen] = React.useState(false);
-    
+
     return (
       <div className="p-8">
         <ConfirmPopover
@@ -179,18 +175,14 @@ export const ConfirmDestructive: Story = {
 export const ConfirmPrimary: Story = {
   render: () => {
     const [open, setOpen] = React.useState(false);
-    
+
     return (
       <div className="p-8">
         <ConfirmPopover
           open={open}
           onOpenChange={setOpen}
           trigger={
-            <Button
-              color="primary"
-              startContent={<Info size={16} />}
-              onPress={() => setOpen(true)}
-            >
+            <Button color="primary" startContent={<Info size={16} />} onPress={() => setOpen(true)}>
               Save Changes
             </Button>
           }
@@ -222,7 +214,7 @@ export const ConfirmWithLoading: Story = {
   render: () => {
     const [open, setOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
-    
+
     return (
       <div className="p-8">
         <ConfirmPopover
@@ -248,7 +240,7 @@ export const ConfirmWithLoading: Story = {
           onConfirm={async () => {
             setIsLoading(true);
             // Simulate async operation
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             setIsLoading(false);
             setOpen(false);
             console.log("Data processed");
