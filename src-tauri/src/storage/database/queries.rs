@@ -2,30 +2,49 @@
 pub mod sql {
     // User queries
     pub const CREATE_USER: &str = r#"
-        INSERT INTO users 
-        (id, email, encrypted_private_key, encrypted_user_key, kdf_type, kdf_iterations, 
+        INSERT INTO users
+        (id, email, master_key_hash, encrypted_private_key_new, encrypted_user_key_new, key_derivation_method,
+         device_trust_enabled, webauthn_enabled, server_provider_id, kdf_type, kdf_iterations,
          kdf_memory, kdf_parallelism, created_date, revision_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     "#;
 
     pub const GET_USER_BY_ID: &str = r#"
-        SELECT id, email, encrypted_private_key, encrypted_user_key, kdf_type, kdf_iterations,
+        SELECT id, email, master_key_hash, encrypted_private_key_new, encrypted_user_key_new, key_derivation_method,
+               device_trust_enabled, webauthn_enabled, server_provider_id, kdf_type, kdf_iterations,
                kdf_memory, kdf_parallelism, created_date, revision_date
         FROM users WHERE id = ?
     "#;
 
     pub const GET_USER_BY_EMAIL: &str = r#"
-        SELECT id, email, encrypted_private_key, encrypted_user_key, kdf_type, kdf_iterations,
+        SELECT id, email, master_key_hash, encrypted_private_key_new, encrypted_user_key_new, key_derivation_method,
+               device_trust_enabled, webauthn_enabled, server_provider_id, kdf_type, kdf_iterations,
                kdf_memory, kdf_parallelism, created_date, revision_date
         FROM users WHERE email = ?
     "#;
 
+    pub const GET_ALL_USERS: &str = r#"
+        SELECT id, email, master_key_hash, encrypted_private_key_new, encrypted_user_key_new, key_derivation_method,
+               device_trust_enabled, webauthn_enabled, server_provider_id, kdf_type, kdf_iterations,
+               kdf_memory, kdf_parallelism, created_date, revision_date
+        FROM users ORDER BY created_date ASC
+    "#;
+
     pub const UPDATE_USER: &str = r#"
         UPDATE users SET
-            email = ?, encrypted_private_key = ?, encrypted_user_key = ?,
+            email = ?, master_key_hash = ?, encrypted_private_key_new = ?, encrypted_user_key_new = ?,
+            key_derivation_method = ?, device_trust_enabled = ?, webauthn_enabled = ?, server_provider_id = ?,
             kdf_type = ?, kdf_iterations = ?, kdf_memory = ?, kdf_parallelism = ?,
             revision_date = ?
         WHERE id = ?
+    "#;
+
+    pub const UPSERT_USER: &str = r#"
+        INSERT OR REPLACE INTO users
+        (id, email, master_key_hash, encrypted_private_key_new, encrypted_user_key_new, key_derivation_method,
+         device_trust_enabled, webauthn_enabled, server_provider_id, kdf_type, kdf_iterations,
+         kdf_memory, kdf_parallelism, created_date, revision_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     "#;
 
     // Cipher queries
