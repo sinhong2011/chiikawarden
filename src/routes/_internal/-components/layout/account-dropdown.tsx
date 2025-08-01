@@ -8,6 +8,7 @@ import {
 } from "@heroui/react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronsUpDownIcon, LogOut, Settings, User, Users } from "lucide-react";
+import { useRef } from "react";
 import { useAuthQueries } from "@/hooks/queries/use-auth-queries";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -38,14 +39,19 @@ export function AccountDropdown({ className }: AccountDropdownProps) {
   const auth = useAuth();
   const { logout } = useAuthQueries();
 
-  // Debug logging in development
+  // Debug logging in development (only when auth state changes)
+  const authStateRef = useRef<string>("");
   if (process.env.NODE_ENV === "development") {
-    console.log("AccountDropdown - Auth state:", {
-      isAuthenticated: auth.isAuthenticated,
-      email: auth.email,
-      authStatus: auth.authStatus,
-      isUnlocked: auth.isUnlocked,
-    });
+    const currentAuthState = `${auth.isAuthenticated}-${auth.authStatus}-${auth.email}`;
+    if (currentAuthState !== authStateRef.current) {
+      console.log("AccountDropdown - Auth state changed:", {
+        isAuthenticated: auth.isAuthenticated,
+        email: auth.email,
+        authStatus: auth.authStatus,
+        isUnlocked: auth.isUnlocked,
+      });
+      authStateRef.current = currentAuthState;
+    }
   }
 
   // Handle logout action

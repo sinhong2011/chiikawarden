@@ -51,22 +51,29 @@ export const AccountSelector = React.memo(function AccountSelector({
   const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [usersWithProviders, setUsersWithProviders] = useState<UserWithProvider[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
 
   // Load users with provider information
   useEffect(() => {
     const loadUsersWithProviders = async () => {
+      // Prevent duplicate calls
+      if (isLoadingProviders) return;
+
+      setIsLoadingProviders(true);
       try {
         const users = await userProviderService.getAllUsersWithProviders();
         setUsersWithProviders(users);
       } catch (error) {
         console.error("Failed to load users with providers:", error);
+      } finally {
+        setIsLoadingProviders(false);
       }
     };
 
-    if (authStore.allUsers?.length > 0) {
+    if (authStore.allUsers?.length > 0 && !isLoadingProviders) {
       loadUsersWithProviders();
     }
-  }, [authStore.allUsers]);
+  }, [authStore.allUsers, isLoadingProviders]);
 
   // Initialize default selection from last logged-in user
   useEffect(() => {

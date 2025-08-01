@@ -48,15 +48,19 @@ export const Route = createFileRoute("/_auth/unlock")({
 
     // Allow access if user is authenticated but not unlocked (edge case)
     if (isAuthenticated && authStatus !== "unlocked") {
-      console.log(
-        `[UnlockRoute] User authenticated but not unlocked (${authStatus}), allowing access`
-      );
+      if (__DEV__) {
+        console.log(
+          `[UnlockRoute] User authenticated but not unlocked (${authStatus}), allowing access`
+        );
+      }
       return; // Allow access
     }
 
     // Only redirect if user is already fully unlocked
     if (authStatus === "unlocked" && isAuthenticated) {
-      console.log(`[UnlockRoute] User already unlocked, redirecting to vault`);
+      if (__DEV__) {
+        console.log(`[UnlockRoute] User already unlocked, redirecting to vault`);
+      }
       throw redirect({ to: "/vault" });
     }
 
