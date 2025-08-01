@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { scan } from "react-scan";
+import App from "@/App";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { initializeApp } from "@/lib/app-initialization";
-import App from "@/App";
 
 if (__DEV__) {
   scan({
@@ -18,8 +18,13 @@ initializeApp()
   .then(() => {
     const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
+    // Conditionally use StrictMode - disable in development to prevent duplicate API calls
+    // StrictMode intentionally double-invokes effects, state updaters, and other functions
+    // which causes duplicate API calls that can be problematic during development
+    const AppWrapper = __REACT_STRICT_MODE__ ? React.StrictMode : React.Fragment;
+
     root.render(
-      <React.StrictMode>
+      <AppWrapper>
         <ErrorBoundary
           onError={(error, errorInfo) => {
             console.error("Global error boundary caught:", error, errorInfo);
@@ -27,7 +32,7 @@ initializeApp()
         >
           <App />
         </ErrorBoundary>
-      </React.StrictMode>
+      </AppWrapper>
     );
   })
   .catch((error) => {

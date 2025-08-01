@@ -1,4 +1,7 @@
+use std::collections::HashMap;
 use std::fs;
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use tracing::{debug, error, info, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
@@ -66,10 +69,11 @@ pub fn init_colored_logging() -> Result<(), crate::error::AppError> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
         if cfg!(debug_assertions) {
             // In debug builds, show debug logs for our app, info for tauri, and all warnings/errors
-            EnvFilter::new("chiikawarden=debug,tauri=info,sqlx=info,debug")
+            // Reduce noise by filtering out hyper and h2 frame-level logs
+            EnvFilter::new("chiikawarden=debug,tauri=info,sqlx=info,hyper_util=warn,h2=warn,debug")
         } else {
             // In release builds, show info and above for our app, warnings/errors for others
-            EnvFilter::new("chiikawarden=info,warn,error")
+            EnvFilter::new("chiikawarden=info,hyper_util=warn,h2=warn,warn,error")
         }
     });
 
@@ -114,6 +118,14 @@ pub fn init_colored_logging() -> Result<(), crate::error::AppError> {
         std::env::var("RUST_LOG").unwrap_or_else(|_| "default".to_string())
     );
 
+    // Log additional environment configuration
+    if std::env::var("CHIIKAWARDEN_DEBUG_CRYPTO").unwrap_or_default() == "true" {
+        warn!("[logging] Crypto debug logging enabled - this may expose sensitive data in development");
+    }
+    if std::env::var("CHIIKAWARDEN_TOKEN_DEBUG").unwrap_or_default() == "true" {
+        warn!("[logging] Token debug logging enabled - use only in development");
+    }
+
     Ok(())
 }
 
@@ -148,10 +160,11 @@ pub fn init_logging() -> Result<LoggingGuard, crate::error::AppError> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
         if cfg!(debug_assertions) {
             // In debug builds, show debug logs for our app, info for tauri, and all warnings/errors
-            EnvFilter::new("chiikawarden=debug,tauri=info,sqlx=info,debug")
+            // Reduce noise by filtering out hyper and h2 frame-level logs
+            EnvFilter::new("chiikawarden=debug,tauri=info,sqlx=info,hyper_util=warn,h2=warn,debug")
         } else {
             // In release builds, show info and above for our app, warnings/errors for others
-            EnvFilter::new("chiikawarden=info,warn,error")
+            EnvFilter::new("chiikawarden=info,hyper_util=warn,h2=warn,warn,error")
         }
     });
 
@@ -191,9 +204,9 @@ pub fn init_logging() -> Result<LoggingGuard, crate::error::AppError> {
 
     // Info/Debug file layer - includes debug logs in debug builds
     let info_file_filter = if cfg!(debug_assertions) {
-        EnvFilter::new("chiikawarden=debug,debug,info,warn,error")
+        EnvFilter::new("chiikawarden=debug,hyper_util=warn,h2=warn,debug,info,warn,error")
     } else {
-        EnvFilter::new("info,warn,error")
+        EnvFilter::new("chiikawarden=info,hyper_util=warn,h2=warn,info,warn,error")
     };
 
     let info_file_layer = fmt::layer()
@@ -455,11 +468,64 @@ pub fn log_sync_event(event: &str, user_id: &str, details: Option<&str>) {
     );
 }
 
-/// Log crypto operations with enhanced context
+/// Rate limiter for repetitive log messages
+#[derive(Debug)]
+struct LogRateLimiter {
+    last_logged: HashMap<String, Instant>,
+    counts: HashMap<String, u64>,
+}
+
+impl LogRateLimiter {
+    fn new() -> Self {
+        Self {
+            last_logged: HashMap::new(),
+            counts: HashMap::new(),
+        }
+    }
+
+    fn should_log(&mut self, key: &str, interval: Duration) -> (bool, u64) {
+        let now = Instant::now();
+        let count = self.counts.entry(key.to_string()).or_insert(0);
+        *count += 1;
+
+        if let Some(last) = self.last_logged.get(key) {
+            if now.duration_since(*last) < interval {
+                return (false, *count);
+            }
+        }
+
+        self.last_logged.insert(key.to_string(), now);
+        let current_count = *count;
+        *count = 0; // Reset count after logging
+        (true, current_count)
+    }
+}
+
+static RATE_LIMITER: std::sync::LazyLock<Mutex<LogRateLimiter>> =
+    std::sync::LazyLock::new(|| Mutex::new(LogRateLimiter::new()));
+
+/// Log crypto operations with enhanced context and rate limiting
 pub fn log_crypto_operation(operation: &str, success: bool, error_msg: Option<&str>) {
     if success {
-        info!(operation = operation, "Crypto operation successful");
+        // Rate limit successful crypto operations to reduce noise
+        let key = format!("crypto_success_{}", operation);
+        if let Ok(mut limiter) = RATE_LIMITER.lock() {
+            let (should_log, count) = limiter.should_log(&key, Duration::from_secs(10));
+            if should_log {
+                if count > 1 {
+                    info!(
+                        operation = operation,
+                        count = count,
+                        "Crypto operation successful (batched {} operations in last 10s)",
+                        count
+                    );
+                } else {
+                    info!(operation = operation, "Crypto operation successful");
+                }
+            }
+        }
     } else {
+        // Always log failures immediately
         error!(
             operation = operation,
             error = error_msg.unwrap_or("unknown error"),

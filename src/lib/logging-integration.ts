@@ -9,6 +9,11 @@ import { type LogEntry, LogLevel } from "./logging";
 // Track if console integration is already set up
 let consoleIntegrationSetup = false;
 
+// Rate limiting for duplicate log prevention
+const logRateLimiter = new Map<string, { count: number; lastLogged: number }>();
+const RATE_LIMIT_WINDOW = 5000; // 5 seconds
+const MAX_LOGS_PER_WINDOW = 3;
+
 // Store original console methods
 const originalConsole = {
   log: console.log,
@@ -91,13 +96,46 @@ function isTauriEnvironment(): boolean {
 }
 
 /**
- * Send log entry to backend with error handling
+ * Check if a log should be rate limited
+ */
+function shouldRateLimit(message: string): boolean {
+  const now = Date.now();
+  const key = message.substring(0, 100); // Use first 100 chars as key
+  const existing = logRateLimiter.get(key);
+
+  if (!existing) {
+    logRateLimiter.set(key, { count: 1, lastLogged: now });
+    return false;
+  }
+
+  // Reset if outside time window
+  if (now - existing.lastLogged > RATE_LIMIT_WINDOW) {
+    logRateLimiter.set(key, { count: 1, lastLogged: now });
+    return false;
+  }
+
+  // Check if we've exceeded the limit
+  if (existing.count >= MAX_LOGS_PER_WINDOW) {
+    return true;
+  }
+
+  // Increment count
+  existing.count++;
+  return false;
+}
+
+/**
+ * Send log entry to backend with error handling and rate limiting
  */
 async function sendLogToBackend(entry: ConsoleLogEntry): Promise<void> {
+  // Rate limit repetitive messages
+  if (shouldRateLimit(entry.message as string)) {
+    return;
+  }
+
   // Only try to send to backend if we're in a Tauri environment
   if (!isTauriEnvironment()) {
-    // In browser mode, just use console logging
-    originalConsole.log(`[${entry.component || "frontend"}] ${entry.message}`, entry.context);
+    // In browser mode, just use console logging (don't duplicate)
     return;
   }
 
@@ -114,9 +152,10 @@ async function sendLogToBackend(entry: ConsoleLogEntry): Promise<void> {
 
     await invoke("log_frontend_message", { entry: backendEntry });
   } catch (error) {
-    // Fallback to original console if backend logging fails
-    originalConsole.error("Failed to send log to backend:", error);
-    originalConsole.log(`[${entry.component || "frontend"}] ${entry.message}`, entry.context);
+    // Fallback to original console if backend logging fails (but don't duplicate)
+    if (import.meta.env.DEV) {
+      originalConsole.error("Failed to send log to backend:", error);
+    }
   }
 }
 
