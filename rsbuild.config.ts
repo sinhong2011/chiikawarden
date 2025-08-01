@@ -21,6 +21,7 @@ const baseConfig = defineConfig({
     define: {
       __DEV__: process.env.NODE_ENV === "development",
       __PROD__: process.env.NODE_ENV === "production",
+      __REACT_STRICT_MODE__: process.env.REACT_STRICT_MODE === "true",
     },
   },
 
@@ -91,7 +92,11 @@ const baseConfig = defineConfig({
 const devConfig = defineConfig({
   dev: {
     progressBar: true,
-    lazyCompilation: true,
+    lazyCompilation: {
+      // Disable lazy compilation for auth routes to prevent module loading issues
+      entries: false,
+      imports: false,
+    },
     client: {
       // Preserve authentication context during HMR
       overlay: true,
