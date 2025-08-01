@@ -19,7 +19,10 @@ export const useUserQueries = () => {
       }
       return result.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - user list doesn't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+    refetchOnMount: false, // Don't refetch on mount since user list is stable
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     retry: 2,
   });
 

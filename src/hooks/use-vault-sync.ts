@@ -42,7 +42,13 @@ export const useVaultSync = (config: Partial<SyncConfig> = {}) => {
 
   // Sync mutation with network awareness
   const syncMutation = useMutation({
-    mutationFn: async ({ trigger }: { trigger: SyncTrigger; options?: SyncOptions }) => {
+    mutationFn: async ({
+      trigger: _trigger,
+      options: _options,
+    }: {
+      trigger: SyncTrigger;
+      options?: SyncOptions;
+    }) => {
       if (!authStore.userId) {
         throw new Error("No user ID available for sync");
       }
@@ -180,6 +186,10 @@ export const useVaultSync = (config: Partial<SyncConfig> = {}) => {
     [syncMutation, syncConfig.enableBackgroundSync]
   );
 
+  // Create a stable reference to the sync function to avoid dependency issues
+  const syncMutateRef = useRef(syncMutation.mutate);
+  syncMutateRef.current = syncMutation.mutate;
+
   // Setup periodic sync
   useEffect(() => {
     if (!syncConfig.enablePeriodicSync || !authStore.isAuthenticated || !authStore.userId) {
@@ -190,7 +200,7 @@ export const useVaultSync = (config: Partial<SyncConfig> = {}) => {
 
     periodicSyncInterval.current = setInterval(() => {
       if (authStore.isAuthenticated && authStore.userId) {
-        syncMutation.mutate({ trigger: "periodic", options: { background: true } });
+        syncMutateRef.current({ trigger: "periodic", options: { background: true } });
       }
     }, intervalMs);
 
@@ -205,7 +215,6 @@ export const useVaultSync = (config: Partial<SyncConfig> = {}) => {
     syncConfig.periodicSyncIntervalMinutes,
     authStore.isAuthenticated,
     authStore.userId,
-    syncMutation,
   ]);
 
   // Load initial sync state from storage

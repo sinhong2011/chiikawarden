@@ -284,7 +284,9 @@ export function useNetworkAwareEventListeners() {
     // Listen for network status changes
     unlistenPromises.push(
       listen<NetworkStatus>("network_status_changed", (event) => {
-        console.log("Network status changed:", event.payload);
+        if (__DEV__) {
+          console.log("Network status changed:", event.payload);
+        }
         queryClient.invalidateQueries({
           queryKey: networkAwareSyncKeys.networkStatus(),
         });

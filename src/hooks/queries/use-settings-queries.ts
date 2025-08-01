@@ -12,8 +12,10 @@ export const useSettingsQueries = () => {
   const settingsQuery = useQuery({
     queryKey: queryKeys.settings.current(),
     queryFn: () => settingsService.getSettings(),
-    staleTime: 1000 * 60 * 10, // 10 minutes - settings don't change often
-    gcTime: 1000 * 60 * 30, // 30 minutes cache
+    staleTime: 1000 * 60 * 15, // 15 minutes - settings don't change often
+    gcTime: 1000 * 60 * 60, // 1 hour cache - settings are rarely updated
+    refetchOnMount: false, // Don't refetch on mount since settings are stable
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     retry: (failureCount, error) => {
       // Don't retry if app is not initialized
       if (error.message.includes("Application not initialized")) {

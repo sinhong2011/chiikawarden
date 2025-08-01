@@ -16,21 +16,30 @@ export const useServerProviderQueries = () => {
   const allProvidersQuery = useQuery({
     queryKey: queryKeys.serverProviders.all(),
     queryFn: () => serverProviderService.getAllProviders(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - provider list doesn't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+    refetchOnMount: false, // Don't refetch on mount since providers are stable
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Query for current server provider
   const currentProviderQuery = useQuery({
     queryKey: queryKeys.serverProviders.current(),
     queryFn: () => serverProviderService.getCurrentProvider(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - current provider doesn't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+    refetchOnMount: false, // Don't refetch on mount since current provider is stable
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Query for comprehensive provider info
   const providerInfoQuery = useQuery({
     queryKey: queryKeys.serverProviders.info(),
     queryFn: () => serverProviderService.getProviderInfo(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes - provider info doesn't change frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+    refetchOnMount: false, // Don't refetch on mount since provider info is stable
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Mutation to set current provider

@@ -29,6 +29,9 @@ export const useVaultQueries = () => {
     },
     enabled: !!authStore.userId && authStore.isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes cache for vault data
+    refetchOnMount: false, // Don't refetch on mount to reduce duplicate calls
+    refetchOnWindowFocus: false, // Don't refetch on window focus for vault data
     // Add retry configuration for better resilience
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
@@ -304,6 +307,9 @@ export const useVaultItems = () => {
     },
     enabled: !!authStore.userId && authStore.isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes cache for vault items
+    refetchOnMount: false, // Don't refetch on mount to reduce duplicate calls
+    refetchOnWindowFocus: false, // Don't refetch on window focus for vault items
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
       const errorMessage = error?.message?.toLowerCase() || "";
