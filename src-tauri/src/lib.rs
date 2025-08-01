@@ -21,7 +21,7 @@ use tauri::Manager;
 // Removed unused tracing imports since we're using log crate now
 
 // Tauri-specta imports
-use tauri_specta::{collect_commands, collect_events, Builder};
+use tauri_specta::{collect_commands, Builder};
 
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
@@ -30,13 +30,13 @@ use specta_typescript::Typescript;
 use crate::commands::auth::{
     change_master_password, check_auto_unlock_available, check_keyring_backend,
     check_user_key_available, clear_test_tokens, clear_user_tokens, debug_check_cache_status,
-    debug_cipher_decryption, debug_cipher_decryption_steps, debug_cipher_field_inspection, debug_cipher_parsing_pipeline,
-    debug_fetch_ciphers_from_api, diagnose_auth_flow, diagnose_token_status,
-    establish_device_trust, force_relogin, get_all_users, list_trusted_devices, lock_vault,
-    login_with_device_trust, login_with_password, logout, prelogin, reauth_with_master_password,
-    refresh_token, retrieve_test_refresh_token, revoke_device_trust, setup_account,
-    setup_biometric_unlock, store_test_refresh_token, unlock_with_auto_key, unlock_with_biometric,
-    unlock_with_password,
+    debug_cipher_decryption, debug_cipher_decryption_steps, debug_cipher_field_inspection,
+    debug_cipher_parsing_pipeline, debug_fetch_ciphers_from_api, diagnose_auth_flow,
+    diagnose_token_status, establish_device_trust, force_relogin, get_all_users,
+    list_trusted_devices, lock_vault, login_with_device_trust, login_with_password, logout,
+    prelogin, reauth_with_master_password, refresh_token, retrieve_test_refresh_token,
+    revoke_device_trust, setup_account, setup_biometric_unlock, store_test_refresh_token,
+    unlock_with_auto_key, unlock_with_biometric, unlock_with_password,
 };
 use crate::commands::biometric::{
     authenticate_biometric, check_biometric_availability, delete_biometric_unlock,

@@ -3381,7 +3381,7 @@ pub async fn debug_cipher_decryption_steps(
     ));
 
     let database = state.database.clone();
-    let vault_service = state.vault_service.clone();
+    let _vault_service = state.vault_service.clone();
 
     // Step 1: Get raw cipher from database
     result.push_str("\n1. FETCHING RAW CIPHER FROM DATABASE:\n");
