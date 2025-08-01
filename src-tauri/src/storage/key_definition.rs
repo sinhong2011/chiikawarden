@@ -1,4 +1,4 @@
-use crate::crypto::{MasterKey, UserKey};
+// Key definitions for storage layer
 use crate::error::AppResult;
 use serde::{Deserialize, Serialize};
 use specta::Type;

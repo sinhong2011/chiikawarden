@@ -10,7 +10,7 @@ use aws_lc_rs::pbkdf2::{derive, PBKDF2_HMAC_SHA256};
 use keyring::Entry;
 
 use serde::{Deserialize, Serialize};
-use sha2::Sha256;
+
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 use tracing::debug;
