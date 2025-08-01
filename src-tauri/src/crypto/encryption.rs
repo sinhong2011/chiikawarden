@@ -10,7 +10,6 @@ use aws_lc_rs::{
     iv::{FixedLength, IV_LEN_128_BIT},
 };
 use rand::{rngs::OsRng, RngCore};
-use sha2::Sha256;
 use tracing::{debug, error, info, warn};
 
 /// Classification of decryption errors for better handling
@@ -65,14 +64,25 @@ impl EncryptionService {
         key: &[u8],
         encryption_type: EncryptionType,
     ) -> CryptoResult<Vec<u8>> {
+        Self::decrypt_with_context(encrypted_data, key, encryption_type, None)
+    }
+
+    /// Decrypt data with optional context for better logging
+    pub fn decrypt_with_context(
+        encrypted_data: &EncryptedData,
+        key: &[u8],
+        encryption_type: EncryptionType,
+        context: Option<&str>,
+    ) -> CryptoResult<Vec<u8>> {
         debug!(
             encryption_type = ?encryption_type,
             data_size = encrypted_data.data.len(),
+            context = context.unwrap_or("unknown"),
             "[crypto] Starting decryption operation"
         );
 
         // Validate key before attempting decryption
-        Self::validate_key_for_decryption(key, encryption_type)?;
+        Self::validate_key_for_decryption(key, encryption_type, context)?;
 
         let result = match &encryption_type {
             EncryptionType::AesCbc256B64 => Self::decrypt_aes_cbc(encrypted_data, key),
@@ -279,49 +289,32 @@ impl EncryptionService {
         let mac = encrypted_data.mac.as_ref().unwrap();
         let (enc_key, mac_key) = key.split_at(32);
 
-        // BYTE-LEVEL DEBUG: Log MAC key used for verification (Keyguard comparison)
-        debug!(
-            mac_key_full = format!("{:02x?}", mac_key),
-            mac_key_hex = hex::encode(mac_key),
-            mac_key_len = mac_key.len(),
-            "[KEYGUARD_COMPARE] MAC key used for HMAC verification"
-        );
-
-        // BYTE-LEVEL DEBUG: Log MAC input data (IV + Ciphertext concatenation)
+        // Prepare MAC input data (IV + Ciphertext concatenation)
         let mac_input_data = [&encrypted_data.iv[..], &encrypted_data.data[..]].concat();
+
+        // Log MAC verification attempt without sensitive data
         debug!(
             mac_input_len = mac_input_data.len(),
             mac_input_iv_len = encrypted_data.iv.len(),
             mac_input_ct_len = encrypted_data.data.len(),
-            mac_input_preview = format!(
-                "{:02x?}",
-                &mac_input_data[..std::cmp::min(64, mac_input_data.len())]
-            ),
-            mac_input_hex = hex::encode(&mac_input_data[..std::cmp::min(64, mac_input_data.len())]),
-            "[KEYGUARD_COMPARE] MAC input data (IV + Ciphertext)"
+            "[crypto] Starting MAC verification for decryption"
         );
 
         // Verify HMAC using AWS-LC-RS
         let hmac_key = HmacKey::new(HMAC_SHA256, mac_key);
-
-        // BYTE-LEVEL DEBUG: Compute MAC and compare with expected
         let computed_mac = aws_lc_rs::hmac::sign(&hmac_key, &mac_input_data);
+
+        // Log verification result without exposing MAC values
         debug!(
-            computed_mac_full = format!("{:02x?}", computed_mac.as_ref()),
-            computed_mac_hex = hex::encode(computed_mac.as_ref()),
-            expected_mac_full = format!("{:02x?}", mac),
-            expected_mac_hex = hex::encode(mac),
             macs_match = computed_mac.as_ref() == mac,
-            "[KEYGUARD_COMPARE] MAC verification comparison"
+            "[crypto] MAC verification completed"
         );
 
         aws_lc_rs::hmac::verify(&hmac_key, &mac_input_data, mac).map_err(|_| {
-            // Enhanced error with byte-level details
+            // Log MAC verification failure without exposing sensitive data
             error!(
-                computed_mac = hex::encode(computed_mac.as_ref()),
-                expected_mac = hex::encode(mac),
                 mac_input_len = mac_input_data.len(),
-                "[KEYGUARD_COMPARE] MAC verification failed - exact byte comparison"
+                "[crypto] MAC verification failed - potential data corruption or key mismatch"
             );
             CryptoError::Decryption("MAC verification failed".to_string())
         })?;
@@ -457,27 +450,12 @@ impl EncryptionService {
             "[DEBUG_MAC] HKDF derived keys"
         );
 
-        // BYTE-LEVEL DEBUG: Full encryption key for Keyguard comparison
+        // Log key derivation success without exposing key material
         debug!(
-            enc_key_full = format!("{:02x?}", enc_key),
-            enc_key_hex = hex::encode(enc_key),
             enc_key_len = enc_key.len(),
-            "[KEYGUARD_COMPARE] Full encryption key from HKDF"
-        );
-
-        // BYTE-LEVEL DEBUG: Full MAC key for Keyguard comparison
-        debug!(
-            mac_key_full = format!("{:02x?}", mac_key),
-            mac_key_hex = hex::encode(mac_key),
             mac_key_len = mac_key.len(),
-            "[KEYGUARD_COMPARE] Full MAC key from HKDF"
-        );
-
-        // DEBUG: Log final stretched key
-        debug!(
             stretched_len = stretched_key.len(),
-            stretched_preview = format!("{:02x?}", &stretched_key[..8]),
-            "[DEBUG_MAC] Final stretched key created"
+            "[crypto] Key stretching completed successfully"
         );
 
         Ok(stretched_key)
@@ -763,12 +741,14 @@ impl EncryptionService {
     pub fn validate_key_for_decryption(
         key: &[u8],
         encryption_type: EncryptionType,
+        context: Option<&str>,
     ) -> CryptoResult<()> {
         use tracing::{debug, error};
 
         debug!(
             key_len = key.len(),
             encryption_type = ?encryption_type,
+            context = context.unwrap_or("unknown"),
             "[crypto] Validating key parameters for decryption"
         );
 
@@ -778,6 +758,7 @@ impl EncryptionService {
                     error!(
                         expected_len = 32,
                         actual_len = key.len(),
+                        context = context.unwrap_or("unknown"),
                         "[crypto] Invalid key length for AesCbc256B64"
                     );
                     return Err(CryptoError::InvalidParameters(format!(
@@ -791,6 +772,7 @@ impl EncryptionService {
                     error!(
                         expected_len = 64,
                         actual_len = key.len(),
+                        context = context.unwrap_or("unknown"),
                         "[crypto] Invalid key length for AesCbc256HmacSha256B64"
                     );
                     return Err(CryptoError::InvalidParameters(format!(
@@ -801,7 +783,10 @@ impl EncryptionService {
             }
         }
 
-        debug!("[crypto] Key validation passed");
+        debug!(
+            context = context.unwrap_or("unknown"),
+            "[crypto] Key validation passed"
+        );
         Ok(())
     }
 
@@ -867,7 +852,7 @@ impl KeyDerivationService {
                 CryptoError::InvalidFormat(format!("Invalid encrypted user key format: {}", e))
             })?;
 
-        // DEBUG STEP 5: Log parsed encrypted string details with byte-level data
+        // Log parsed encrypted string details without sensitive data
         debug!(
             user_id = user_id,
             correlation_id = %correlation_id,
@@ -876,39 +861,8 @@ impl KeyDerivationService {
             iv_len = encrypted_string.iv.len(),
             data_len = encrypted_string.data.len(),
             mac_len = encrypted_string.mac.as_ref().map(|m| m.len()),
-            "[DEBUG_MAC] Step 5b: Parsed encrypted string details"
+            "[crypto] Parsed encrypted user key for decryption"
         );
-
-        // BYTE-LEVEL DEBUG: Log exact IV bytes (Keyguard comparison)
-        debug!(
-            user_id = user_id,
-            correlation_id = %correlation_id,
-            iv_full = format!("{:02x?}", encrypted_string.iv),
-            iv_hex = hex::encode(&encrypted_string.iv),
-            "[KEYGUARD_COMPARE] IV bytes from encrypted user key"
-        );
-
-        // BYTE-LEVEL DEBUG: Log exact ciphertext bytes (first 32 bytes for comparison)
-        let ct_preview_len = std::cmp::min(32, encrypted_string.data.len());
-        debug!(
-            user_id = user_id,
-            correlation_id = %correlation_id,
-            ct_len = encrypted_string.data.len(),
-            ct_preview = format!("{:02x?}", &encrypted_string.data[..ct_preview_len]),
-            ct_hex_preview = hex::encode(&encrypted_string.data[..ct_preview_len]),
-            "[KEYGUARD_COMPARE] Ciphertext bytes from encrypted user key"
-        );
-
-        // BYTE-LEVEL DEBUG: Log exact MAC bytes from server
-        if let Some(ref mac_bytes) = encrypted_string.mac {
-            debug!(
-                user_id = user_id,
-                correlation_id = %correlation_id,
-                mac_full = format!("{:02x?}", mac_bytes),
-                mac_hex = hex::encode(mac_bytes),
-                "[KEYGUARD_COMPARE] Expected MAC from server"
-            );
-        }
 
         // Decrypt with comprehensive error handling
         let user_key = Self::decrypt_user_key_with_master_key(&encrypted_string, master_key)

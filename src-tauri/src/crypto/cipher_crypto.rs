@@ -153,6 +153,15 @@ impl CipherCrypto {
     /// Decrypt a Bitwarden encrypted string with enhanced error handling
     /// Following rbw's approach: gracefully handle parsing failures
     pub fn decrypt_string(encrypted_str: &str, user_key: &UserKey) -> AppResult<String> {
+        Self::decrypt_string_with_context(encrypted_str, user_key, None)
+    }
+
+    /// Decrypt a Bitwarden encrypted string with context for better logging
+    pub fn decrypt_string_with_context(
+        encrypted_str: &str,
+        user_key: &UserKey,
+        context: Option<&str>,
+    ) -> AppResult<String> {
         if encrypted_str.is_empty() {
             return Ok(String::new());
         }
@@ -201,10 +210,11 @@ impl CipherCrypto {
         let encrypted_data = enc_string.to_encrypted_data();
 
         // Attempt decryption with detailed error classification
-        let decrypted_bytes = match EncryptionService::decrypt(
+        let decrypted_bytes = match EncryptionService::decrypt_with_context(
             &encrypted_data,
             user_key.as_bytes(),
             enc_string.encryption_type,
+            context,
         ) {
             Ok(bytes) => bytes,
             Err(crypto_error) => {
@@ -362,8 +372,19 @@ impl CipherCrypto {
         encrypted_str: &Option<String>,
         user_key: &UserKey,
     ) -> AppResult<Option<String>> {
+        Self::decrypt_optional_string_with_context(encrypted_str, user_key, None)
+    }
+
+    /// Decrypt an optional string field with context for better logging
+    pub fn decrypt_optional_string_with_context(
+        encrypted_str: &Option<String>,
+        user_key: &UserKey,
+        context: Option<&str>,
+    ) -> AppResult<Option<String>> {
         match encrypted_str {
-            Some(s) if !s.is_empty() => Ok(Some(Self::decrypt_string(s, user_key)?)),
+            Some(s) if !s.is_empty() => Ok(Some(Self::decrypt_string_with_context(
+                s, user_key, context,
+            )?)),
             _ => Ok(None),
         }
     }

@@ -1,7 +1,6 @@
 use super::{CryptoError, CryptoResult, KdfConfig, KdfType, MasterKey};
 use argon2::{Algorithm, Argon2, Params, Version};
 use aws_lc_rs::pbkdf2::{derive, PBKDF2_HMAC_SHA256};
-use sha2::Sha256;
 use std::num::NonZeroU32;
 use zeroize::Zeroize;
 
