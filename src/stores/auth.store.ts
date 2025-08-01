@@ -66,6 +66,9 @@ export interface AuthStore extends AuthState {
   // Automatic user detection
   detectAndSetupUser: () => Promise<boolean>;
 
+  // Internal state for preventing duplicate detection calls
+  _userDetectionInProgress: boolean;
+
   // Manual user context setup for unlock scenarios
   setupUserContextForUnlock: (userId: string, email: string) => void;
 
@@ -118,6 +121,8 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     ...initialState,
     // Saved account selection state
     selectedAccountEmail: null,
+    // Internal state for preventing duplicate detection calls
+    _userDetectionInProgress: false,
     /**
      * Login with email and password
      */
@@ -634,6 +639,18 @@ export const useAuthStore = create<AuthStore>((set, get) => {
      * Detect existing user and setup for streamlined authentication
      */
     async detectAndSetupUser(): Promise<boolean> {
+      // Prevent duplicate simultaneous calls
+      if (this._userDetectionInProgress) {
+        await logInfo(
+          "User detection already in progress, skipping duplicate call",
+          {},
+          "AuthStore"
+        );
+        return false;
+      }
+
+      this._userDetectionInProgress = true;
+
       try {
         await logInfo("Starting automatic user detection", {}, "AuthStore");
 
@@ -795,6 +812,9 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           "AuthStore"
         );
         return false;
+      } finally {
+        // Always reset the flag to allow future detection calls
+        this._userDetectionInProgress = false;
       }
     },
 

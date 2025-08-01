@@ -41,9 +41,9 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 30, // 30 minutes cache
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false, // Disable to reduce duplicate calls in development
       refetchOnReconnect: true,
-      refetchOnMount: true,
+      refetchOnMount: false, // Don't refetch on every mount to reduce duplicate calls
       retry: (failureCount, error) => {
         // For auth errors, we'll handle token refresh in the error boundary
         // For now, just retry once for auth errors to allow the refresh to work
