@@ -11,7 +11,7 @@ use tracing::{debug, error, info, warn};
 
 /// HTTP client for making API requests with proper error handling and authentication
 pub struct ApiClient {
-    app_handle: AppHandle,
+    _app_handle: AppHandle,
     server_provider_service: Arc<ServerProviderService>,
     client: reqwest::Client,
 }
@@ -26,7 +26,7 @@ impl ApiClient {
             .expect("Failed to create HTTP client");
 
         Self {
-            app_handle,
+            _app_handle: app_handle,
             server_provider_service,
             client,
         }
@@ -539,7 +539,10 @@ impl ApiClient {
         );
 
         let token_manager_guard = token_manager.read().await;
-        let access_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+        let access_token = match token_manager_guard
+            .retrieve_access_token_with_correlation(user_id, Some(&correlation_id))
+            .await
+        {
             Ok(Some(token)) => {
                 info!(
                     user_id = user_id,
@@ -550,7 +553,7 @@ impl ApiClient {
                     "[api_client] Access token retrieved successfully - proceeding with API call"
                 );
                 token
-            },
+            }
             Ok(None) => {
                 error!(
                     user_id = user_id,
@@ -601,7 +604,10 @@ impl ApiClient {
 
                 // Token expired, try to refresh
                 let token_manager_guard = token_manager.read().await;
-                if let Err(e) = token_manager_guard.refresh_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                if let Err(e) = token_manager_guard
+                    .refresh_access_token_with_correlation(user_id, Some(&correlation_id))
+                    .await
+                {
                     error!(
                         user_id = user_id,
                         endpoint = endpoint,
@@ -615,7 +621,10 @@ impl ApiClient {
                 }
 
                 // Get the new token and retry
-                let new_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                let new_token = match token_manager_guard
+                    .retrieve_access_token_with_correlation(user_id, Some(&correlation_id))
+                    .await
+                {
                     Ok(Some(token)) => token,
                     Ok(None) => {
                         return Err(AppError::AuthenticationError {
@@ -672,7 +681,10 @@ impl ApiClient {
 
         // First attempt: Get current access token and try the request
         let token_manager_guard = token_manager.read().await;
-        let access_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+        let access_token = match token_manager_guard
+            .retrieve_access_token_with_correlation(user_id, Some(&correlation_id))
+            .await
+        {
             Ok(Some(token)) => token,
             Ok(None) => {
                 debug_token_op!(
@@ -724,7 +736,10 @@ impl ApiClient {
 
                 // Token expired, try to refresh
                 let token_manager_guard = token_manager.read().await;
-                if let Err(e) = token_manager_guard.refresh_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                if let Err(e) = token_manager_guard
+                    .refresh_access_token_with_correlation(user_id, Some(&correlation_id))
+                    .await
+                {
                     error!(
                         user_id = user_id,
                         endpoint = endpoint,
@@ -738,7 +753,10 @@ impl ApiClient {
                 }
 
                 // Get the new token and retry
-                let new_token = match token_manager_guard.retrieve_access_token_with_correlation(user_id, Some(&correlation_id)).await {
+                let new_token = match token_manager_guard
+                    .retrieve_access_token_with_correlation(user_id, Some(&correlation_id))
+                    .await
+                {
                     Ok(Some(token)) => token,
                     Ok(None) => {
                         return Err(AppError::AuthenticationError {

@@ -4,7 +4,7 @@ use crate::logging::log_sync_event;
 use crate::models::{SyncMode, SyncState};
 use crate::services::{NetworkMonitorService, ServerProviderService, SyncStateManager};
 use crate::storage::AppDatabase;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use specta::Type;
@@ -37,6 +37,8 @@ pub struct NetworkAwareSyncService {
     token_manager: Arc<tokio::sync::RwLock<crate::crypto::token_manager::TokenManager>>,
     // Sync coordination to prevent concurrent syncs for the same user
     sync_locks: Arc<Mutex<HashMap<String, Arc<Mutex<()>>>>>,
+    // Rate limiting: track last sync attempt per user (additional safety)
+    last_sync_attempts: Arc<Mutex<HashMap<String, DateTime<Utc>>>>,
 }
 
 impl NetworkAwareSyncService {
@@ -57,6 +59,7 @@ impl NetworkAwareSyncService {
             sync_state_manager,
             token_manager,
             sync_locks: Arc::new(Mutex::new(HashMap::new())),
+            last_sync_attempts: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -286,25 +289,57 @@ impl NetworkAwareSyncService {
             "[network_aware_sync] Starting network-aware vault synchronization with auto-refresh (lock acquired)"
         );
 
+        // Additional rate limiting check (safety mechanism)
+        {
+            let mut attempts = self.last_sync_attempts.lock().await;
+            let now = Utc::now();
+
+            if let Some(last_attempt) = attempts.get(user_id) {
+                let time_since_attempt = now.signed_duration_since(*last_attempt);
+                if time_since_attempt.num_seconds() < 2 {
+                    error!(
+                        user_id = user_id,
+                        seconds_since_attempt = time_since_attempt.num_seconds(),
+                        "[network_aware_sync] RATE LIMIT: Rejecting sync attempt - too frequent (< 2 seconds)"
+                    );
+                    return Ok(NetworkAwareSyncResult {
+                        success: false,
+                        sync_mode: SyncMode::Offline,
+                        last_sync: "".to_string(),
+                        revision_date: None,
+                        message: format!("Rate limited - only {} seconds since last attempt", time_since_attempt.num_seconds()),
+                        items_synced: 0,
+                        network_state: "rate_limited".to_string(),
+                        cached_items_count: 0,
+                    });
+                }
+            }
+
+            // Record this attempt
+            attempts.insert(user_id.to_string(), now);
+        }
+
         // Check if already syncing (double-check after acquiring lock)
         if let Some(current_state) = self.sync_state_manager.get_sync_state(user_id).await? {
             if current_state.is_syncing {
-                info!(
+                warn!(
                     user_id = user_id,
-                    "[network_aware_sync] Sync already in progress, skipping duplicate request"
+                    "[network_aware_sync] Sync already in progress, rejecting duplicate request"
                 );
                 return Ok(NetworkAwareSyncResult {
-                    success: true,
+                    success: false, // Changed to false to indicate rejection
                     sync_mode: current_state.sync_mode,
                     last_sync: current_state.last_sync.map(|d| d.to_rfc3339()).unwrap_or_default(),
                     revision_date: current_state.revision_date.map(|d| d.to_rfc3339()),
-                    message: "Sync already in progress".to_string(),
+                    message: "Sync already in progress - request rejected".to_string(),
                     items_synced: 0,
                     network_state: current_state.network_state,
                     cached_items_count: current_state.cached_items_count,
                 });
             }
         }
+
+        // We'll mark as syncing after getting the sync state
 
         // Get current sync state and network status
         let sync_state = self
@@ -313,13 +348,29 @@ impl NetworkAwareSyncService {
             .await?
             .unwrap_or_else(|| self.create_default_sync_state(user_id));
 
+        // Mark as syncing IMMEDIATELY to prevent race conditions
+        let mut updated_sync_state = sync_state.clone();
+        updated_sync_state.is_syncing = true;
+        self.sync_state_manager.update_sync_state(&updated_sync_state).await?;
+
         // Debounce rapid sync requests (minimum 5 seconds between syncs)
         if let Some(last_sync) = sync_state.last_sync {
             let time_since_last_sync = Utc::now().signed_duration_since(last_sync);
-            if time_since_last_sync.num_seconds() < 5 {
+            let seconds_since = time_since_last_sync.num_seconds();
+
+            info!(
+                user_id = user_id,
+                last_sync_time = %last_sync,
+                current_time = %Utc::now(),
+                seconds_since_last = seconds_since,
+                "[network_aware_sync] Checking debounce: {} seconds since last sync",
+                seconds_since
+            );
+
+            if seconds_since < 5 {
                 info!(
                     user_id = user_id,
-                    seconds_since_last = time_since_last_sync.num_seconds(),
+                    seconds_since_last = seconds_since,
                     "[network_aware_sync] Debouncing sync request - too soon since last sync"
                 );
                 return Ok(NetworkAwareSyncResult {
@@ -327,7 +378,7 @@ impl NetworkAwareSyncService {
                     sync_mode: sync_state.sync_mode,
                     last_sync: last_sync.to_rfc3339(),
                     revision_date: sync_state.revision_date.map(|d| d.to_rfc3339()),
-                    message: "Sync debounced - too soon since last sync".to_string(),
+                    message: format!("Sync debounced - only {} seconds since last sync (minimum 5 required)", seconds_since),
                     items_synced: 0,
                     network_state: sync_state.network_state,
                     cached_items_count: sync_state.cached_items_count,
@@ -357,30 +408,61 @@ impl NetworkAwareSyncService {
             .set_sync_mode(user_id, sync_mode.clone())
             .await?;
 
-        // Perform sync based on mode
+        // Perform sync based on mode with proper error handling
         let result = match sync_mode {
             SyncMode::Online => {
                 self.sync_online_mode_with_auto_refresh(user_id, &sync_state)
-                    .await?
+                    .await
             }
-            SyncMode::Offline => self.sync_offline_mode(user_id, &sync_state).await?,
+            SyncMode::Offline => self.sync_offline_mode(user_id, &sync_state).await,
         };
 
-        // Emit sync completed event
-        if let Err(e) = self.app_handle.emit("vault_sync_completed", &result) {
-            warn!(
-                "[network_aware_sync] Failed to emit sync completed event: {}",
-                e
-            );
+        // Always reset is_syncing flag, regardless of success/failure
+        let mut final_sync_state = sync_state.clone();
+        final_sync_state.is_syncing = false;
+
+        match result {
+            Ok(sync_result) => {
+                // Update last_sync timestamp on success
+                final_sync_state.last_sync = Some(Utc::now());
+                final_sync_state.last_online_sync = if sync_mode == SyncMode::Online {
+                    Some(Utc::now())
+                } else {
+                    final_sync_state.last_online_sync
+                };
+
+                if let Err(e) = self.sync_state_manager.update_sync_state(&final_sync_state).await {
+                    error!(user_id = user_id, error = %e, "[network_aware_sync] Failed to update sync state after successful sync");
+                }
+
+                // Emit sync completed event
+                if let Err(e) = self.app_handle.emit("vault_sync_completed", &sync_result) {
+                    warn!(
+                        "[network_aware_sync] Failed to emit sync completed event: {}",
+                        e
+                    );
+                }
+
+                log_sync_event(
+                    "network_aware_sync_completed",
+                    user_id,
+                    Some(&format!("mode: {}, success: {}", sync_mode, sync_result.success)),
+                );
+
+                Ok(sync_result)
+            }
+            Err(e) => {
+                // Reset sync state on error
+                if let Err(state_err) = self.sync_state_manager.update_sync_state(&final_sync_state).await {
+                    error!(user_id = user_id, error = %state_err, "[network_aware_sync] Failed to reset sync state after error");
+                }
+
+                error!(user_id = user_id, error = %e, "[network_aware_sync] Sync failed");
+                Err(e)
+            }
         }
 
-        log_sync_event(
-            "network_aware_sync_completed",
-            user_id,
-            Some(&format!("mode: {}, success: {}", sync_mode, result.success)),
-        );
 
-        Ok(result)
     }
 
     /// Perform online mode sync with auto-refresh and full server communication

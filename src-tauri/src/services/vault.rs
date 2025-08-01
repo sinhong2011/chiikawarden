@@ -224,7 +224,8 @@ impl VaultService {
 
     /// Decrypt a cipher with resilient error handling (no aggressive key clearing)
     async fn decrypt_cipher_resilient(&self, cipher: &Cipher) -> AppResult<CipherView> {
-        debug!(
+        // Only log individual cipher decryption start in trace mode
+        tracing::trace!(
             cipher_id = %cipher.id,
             cipher_type = cipher.cipher_type,
             "[vault] Starting resilient cipher decryption"
@@ -255,7 +256,11 @@ impl VaultService {
         };
 
         // Decrypt the basic cipher fields with better error classification
-        let decrypted_name = match CipherCrypto::decrypt_string(&cipher.name, &user_key) {
+        let decrypted_name = match CipherCrypto::decrypt_string_with_context(
+            &cipher.name,
+            &user_key,
+            Some(&format!("cipher:{}/name", cipher.id)),
+        ) {
             Ok(name) => name,
             Err(e) => {
                 // Classify the error type based on Bitwarden patterns
@@ -265,7 +270,11 @@ impl VaultService {
             }
         };
 
-        let decrypted_notes = CipherCrypto::decrypt_optional_string(&cipher.notes, &user_key)?;
+        let decrypted_notes = Self::decrypt_optional_string_with_context(
+            &cipher.notes,
+            &user_key,
+            Some(&format!("cipher:{}/notes", cipher.id)),
+        )?;
 
         // Continue with the rest of the decryption...
         let cipher_type = match cipher.cipher_type {
@@ -278,11 +287,13 @@ impl VaultService {
 
         // Parse the encrypted_data JSON without decrypting it first
         // Individual fields will be decrypted by the parse_*_data methods
-        let encrypted_data_json: Value = serde_json::from_str(&cipher.encrypted_data)
-            .map_err(|e| AppError::permanent_decryption_error(
-                "parse_cipher_data_json".to_string(),
-                format!("Invalid JSON in cipher data: {}", e),
-            ))?;
+        let encrypted_data_json: Value =
+            serde_json::from_str(&cipher.encrypted_data).map_err(|e| {
+                AppError::permanent_decryption_error(
+                    "parse_cipher_data_json".to_string(),
+                    format!("Invalid JSON in cipher data: {}", e),
+                )
+            })?;
 
         // Parse type-specific data
         let (login, secure_note, card, identity) = match cipher_type {
@@ -559,7 +570,8 @@ impl VaultService {
 
     /// Decrypt a cipher
     async fn decrypt_cipher(&self, cipher: &Cipher) -> AppResult<CipherView> {
-        debug!(
+        // Only log individual cipher decryption start in trace mode
+        tracing::trace!(
             cipher_id = %cipher.id,
             cipher_type = cipher.cipher_type,
             "[vault] Starting cipher decryption"
@@ -590,7 +602,11 @@ impl VaultService {
         };
 
         // Decrypt the basic cipher fields
-        let decrypted_name = match CipherCrypto::decrypt_string(&cipher.name, &user_key) {
+        let decrypted_name = match CipherCrypto::decrypt_string_with_context(
+            &cipher.name,
+            &user_key,
+            Some(&format!("cipher:{}/name", cipher.id)),
+        ) {
             Ok(name) => name,
             Err(e) => {
                 warn!("[vault] Failed to decrypt cipher {}: {:?}", cipher.id, e);
@@ -646,11 +662,13 @@ impl VaultService {
 
         // Parse the encrypted_data JSON without decrypting it first
         // Individual fields will be decrypted by the parse_*_data methods
-        let encrypted_data_json: Value = serde_json::from_str(&cipher.encrypted_data)
-            .map_err(|e| AppError::permanent_decryption_error(
-                "parse_cipher_data_json".to_string(),
-                format!("Invalid JSON in cipher data: {}", e),
-            ))?;
+        let encrypted_data_json: Value =
+            serde_json::from_str(&cipher.encrypted_data).map_err(|e| {
+                AppError::permanent_decryption_error(
+                    "parse_cipher_data_json".to_string(),
+                    format!("Invalid JSON in cipher data: {}", e),
+                )
+            })?;
 
         // Parse type-specific data
         let (login, secure_note, card, identity) = match cipher_type {
@@ -672,7 +690,8 @@ impl VaultService {
             }
         };
 
-        debug!(
+        // Only log individual cipher decryption in trace mode to reduce noise
+        tracing::trace!(
             cipher_id = %cipher.id,
             cipher_name = %decrypted_name,
             "[vault] Successfully decrypted cipher"
@@ -964,5 +983,19 @@ impl VaultService {
             passport_number,
             license_number,
         })
+    }
+
+    /// Helper method to decrypt optional string with context
+    fn decrypt_optional_string_with_context(
+        encrypted_str: &Option<String>,
+        user_key: &UserKey,
+        context: Option<&str>,
+    ) -> AppResult<Option<String>> {
+        match encrypted_str {
+            Some(s) if !s.is_empty() => Ok(Some(CipherCrypto::decrypt_string_with_context(
+                s, user_key, context,
+            )?)),
+            _ => Ok(None),
+        }
     }
 }

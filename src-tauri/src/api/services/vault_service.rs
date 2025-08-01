@@ -483,13 +483,13 @@ impl ApiVaultService {
         let user_key = self.get_user_key(user_id).await?;
 
         // Decrypt top-level fields with priority handling
-        let name = self.decrypt_cipher_name(&raw_cipher, &user_key)?;
-        let notes = self.decrypt_cipher_notes(&raw_cipher, &user_key)?;
+        let name = self.decrypt_cipher_name(&raw_cipher, &user_key, &raw_cipher.id)?;
+        let notes = self.decrypt_cipher_notes(&raw_cipher, &user_key, &raw_cipher.id)?;
 
         // Decrypt type-specific data
         let login = if let Some(raw_login) = &raw_cipher.login {
             Some(
-                self.decrypt_login_data(raw_login, &raw_cipher.data, &user_key)
+                self.decrypt_login_data(raw_login, &raw_cipher.data, &user_key, &raw_cipher.id)
                     .await?,
             )
         } else {
@@ -589,6 +589,7 @@ impl ApiVaultService {
         &self,
         raw_cipher: &RawCipherResponse,
         user_key: &UserKey,
+        cipher_id: &str,
     ) -> AppResult<String> {
         // Priority: data object > top-level
         let encrypted_name = CipherCrypto::get_encrypted_field(
@@ -599,7 +600,11 @@ impl ApiVaultService {
 
         if let Some(encrypted_str) = encrypted_name {
             if !encrypted_str.is_empty() {
-                return CipherCrypto::decrypt_string(encrypted_str, user_key);
+                return CipherCrypto::decrypt_string_with_context(
+                    encrypted_str,
+                    user_key,
+                    Some(&format!("cipher:{}/name", cipher_id)),
+                );
             }
         }
 
@@ -612,6 +617,7 @@ impl ApiVaultService {
         &self,
         raw_cipher: &RawCipherResponse,
         user_key: &UserKey,
+        cipher_id: &str,
     ) -> AppResult<Option<String>> {
         // Priority: data object > top-level
         let encrypted_notes = CipherCrypto::get_encrypted_field(
@@ -622,7 +628,11 @@ impl ApiVaultService {
 
         if let Some(encrypted_str) = encrypted_notes {
             if !encrypted_str.is_empty() {
-                return Ok(Some(CipherCrypto::decrypt_string(encrypted_str, user_key)?));
+                return Ok(Some(CipherCrypto::decrypt_string_with_context(
+                    encrypted_str,
+                    user_key,
+                    Some(&format!("cipher:{}/notes", cipher_id)),
+                )?));
             }
         }
 
@@ -635,6 +645,7 @@ impl ApiVaultService {
         raw_login: &RawLoginData,
         raw_data: &Option<RawCipherData>,
         user_key: &UserKey,
+        cipher_id: &str,
     ) -> AppResult<LoginData> {
         // Decrypt username with priority: login > data
         let username = if let Some(encrypted_username) = CipherCrypto::get_encrypted_field(
@@ -643,7 +654,11 @@ impl ApiVaultService {
             raw_login.username.as_deref(),
         ) {
             if !encrypted_username.is_empty() {
-                Some(CipherCrypto::decrypt_string(encrypted_username, user_key)?)
+                Some(CipherCrypto::decrypt_string_with_context(
+                    encrypted_username,
+                    user_key,
+                    Some(&format!("cipher:{}/login/username", cipher_id)),
+                )?)
             } else {
                 None
             }
@@ -658,7 +673,11 @@ impl ApiVaultService {
             raw_login.password.as_deref(),
         ) {
             if !encrypted_password.is_empty() {
-                Some(CipherCrypto::decrypt_string(encrypted_password, user_key)?)
+                Some(CipherCrypto::decrypt_string_with_context(
+                    encrypted_password,
+                    user_key,
+                    Some(&format!("cipher:{}/login/password", cipher_id)),
+                )?)
             } else {
                 None
             }
@@ -824,7 +843,7 @@ impl ApiVaultService {
     }
 
     /// Parse ciphers response from API using new two-step pipeline
-    async fn parse_ciphers_response(&self, response: Value) -> AppResult<Vec<CipherData>> {
+    async fn parse_ciphers_response(&self, _response: Value) -> AppResult<Vec<CipherData>> {
         debug!("[vault_service] Parsing ciphers response using new two-step pipeline");
 
         // For now, return error asking for user_id to be passed
@@ -956,7 +975,7 @@ impl ApiVaultService {
 
         // Step 2: Extract user_id from context (this should be passed in, but for now we'll try to infer)
         // TODO: Modify the API to pass user_id explicitly
-        let user_id = ""; // This will need to be passed from the calling context
+        let _user_id = ""; // This will need to be passed from the calling context
 
         // For now, return error asking for user_id to be passed
         Err(AppError::ValidationError {
