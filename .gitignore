@@ -79,9 +79,14 @@ src-tauri/target/
 src-tauri/gen/
 
 # =============================================================================
-# Internationalization (Paraglide)
+# Internationalization
 # =============================================================================
+# Paraglide (if used)
 src/paraglide/
+
+# Lingui - Ignore compiled message files (generated from .po sources)
+src/locales/*/messages.js
+src/locales/**/*.js
 
 # =============================================================================
 # Logs
