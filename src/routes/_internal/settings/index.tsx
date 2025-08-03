@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@heroui/link";
+import { createFileRoute } from "@tanstack/react-router";
 import { Bug, ExternalLink } from "lucide-react";
 import { useSettingsQueries } from "@/hooks/queries/use-settings-queries";
 
@@ -50,7 +51,7 @@ function SettingsIndexComponent() {
 
       <div className="space-y-6">
         {/* Theme Settings */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-card p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Appearance</h2>
           <div className="space-y-2">
             <label htmlFor="theme-select" className="block text-sm font-medium text-gray-700">
@@ -71,7 +72,7 @@ function SettingsIndexComponent() {
         </div>
 
         {/* Security Settings */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-card p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Security</h2>
           <div className="space-y-4">
             <div>
@@ -104,11 +105,71 @@ function SettingsIndexComponent() {
                 Enable biometric unlock
               </label>
             </div>
+
+            {/* Auto-lock Settings */}
+            <div className="border-t pt-4">
+              <h3 className="text-md font-medium text-gray-900 mb-3">Auto-Lock</h3>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="auto-lock-enabled"
+                    checked={settings.auto_lock_enabled}
+                    onChange={(e) => {
+                      const currentSettings = settingsQueries.getCurrentSettings();
+                      settingsQueries.updateSettings.mutate({
+                        ...currentSettings,
+                        auto_lock_enabled: e.target.checked,
+                      });
+                    }}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="auto-lock-enabled" className="ml-2 block text-sm text-gray-900">
+                    Enable automatic vault locking
+                  </label>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="activity-sensitivity"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Activity Detection Sensitivity
+                  </label>
+                  <select
+                    id="activity-sensitivity"
+                    value={settings.activity_detection_sensitivity}
+                    onChange={(e) => {
+                      const currentSettings = settingsQueries.getCurrentSettings();
+                      settingsQueries.updateSettings.mutate({
+                        ...currentSettings,
+                        activity_detection_sensitivity: e.target.value as "Low" | "Medium" | "High",
+                      });
+                    }}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="Low">Low (UI interactions only)</option>
+                    <option value="Medium">Medium (Mouse + keyboard + UI)</option>
+                    <option value="High">High (All system activity)</option>
+                  </select>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <p>
+                    Auto-lock will automatically lock your vault after the specified timeout period
+                    when no user activity is detected.
+                  </p>
+                  <p className="mt-1">
+                    Activity sensitivity determines what actions reset the timeout timer.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Application Settings */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-card p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Application</h2>
           <div className="space-y-4">
             <div className="flex items-center">
@@ -154,7 +215,7 @@ function SettingsIndexComponent() {
 
         {/* Diagnostics Section - Only show in development mode */}
         {__DEV__ && (
-          <div className="bg-white p-4 rounded-lg shadow">
+          <div className="bg-card p-4 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Bug className="w-5 h-5 text-primary" />
               Diagnostics
@@ -163,7 +224,7 @@ function SettingsIndexComponent() {
               Advanced diagnostic tools for troubleshooting authentication and keyring issues.
             </p>
             <Link
-              to="/settings/diagnostics"
+              target="/settings/diagnostics"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
             >
               <Bug className="w-4 h-4" />
@@ -174,7 +235,7 @@ function SettingsIndexComponent() {
         )}
 
         {/* Reset Settings */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-card p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Reset</h2>
           <button
             type="button"
