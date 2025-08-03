@@ -269,6 +269,106 @@ async forceRelogin(userId: string) : Promise<Result<null, AppError>> {
 }
 },
 /**
+ * Start auto-lock monitoring for a user
+ */
+async startAutoLockMonitoring(request: StartAutoLockRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_auto_lock_monitoring", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stop auto-lock monitoring
+ */
+async stopAutoLockMonitoring() : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("stop_auto_lock_monitoring") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Reset the activity timer (called when user activity is detected)
+ */
+async resetActivityTimer() : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("reset_activity_timer") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Update auto-lock configuration
+ */
+async updateAutoLockConfig(request: UpdateAutoLockConfigRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_auto_lock_config", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get current auto-lock status
+ */
+async getAutoLockStatus() : Promise<Result<AutoLockStatusResponse, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_auto_lock_status") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Manually trigger vault lock
+ */
+async triggerManualLock(userId: string) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("trigger_manual_lock", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Check if auto-lock is supported on the current platform
+ */
+async checkAutoLockSupport() : Promise<Result<boolean, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_auto_lock_support") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get recommended auto-lock settings based on system capabilities
+ */
+async getRecommendedAutoLockSettings() : Promise<Result<UpdateAutoLockConfigRequest, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_recommended_auto_lock_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get auto-lock event types (for TypeScript type generation)
+ * This command exists solely to ensure auto-lock event types are exported to TypeScript
+ */
+async getAutoLockEventTypes() : Promise<Result<AutoLockEventTypes, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_auto_lock_event_types") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Store a test refresh token for diagnostic purposes
  */
 async storeTestRefreshToken(userId: string, token: string) : Promise<Result<null, AppError>> {
@@ -1052,6 +1152,61 @@ async generateSampleData() : Promise<Result<string, AppError>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Minimize the application window
+ */
+async minimizeWindow(request: MinimizeWindowRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("minimize_window", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Maximize or restore the application window
+ */
+async maximizeWindow(request: MaximizeWindowRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("maximize_window", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Close the application window
+ */
+async closeWindow(request: CloseWindowRequest) : Promise<Result<null, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("close_window", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get the current window state
+ */
+async getWindowState(request: GetWindowStateRequest) : Promise<Result<WindowState, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_window_state", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get platform information for window controls positioning
+ */
+async getPlatformInfo(request: GetPlatformInfoRequest) : Promise<Result<PlatformInfo, AppError>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_platform_info", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -1065,6 +1220,42 @@ async generateSampleData() : Promise<Result<string, AppError>> {
 
 /** user-defined types **/
 
+/**
+ * Activity event types that can be detected
+ */
+export type ActivityEvent = 
+/**
+ * User performed an action (mouse, keyboard, UI interaction)
+ */
+"UserActive" | 
+/**
+ * User has been idle for the specified duration
+ */
+{ UserIdle: { idle_duration_ms: number } } | 
+/**
+ * Activity detection started
+ */
+"MonitoringStarted" | 
+/**
+ * Activity detection stopped
+ */
+"MonitoringStopped"
+/**
+ * Activity detection sensitivity levels
+ */
+export type ActivitySensitivity = 
+/**
+ * Only major UI interactions reset timer
+ */
+"Low" | 
+/**
+ * Mouse movement, keyboard input, and UI interactions
+ */
+"Medium" | 
+/**
+ * Any system activity including window focus changes
+ */
+"High"
 /**
  * Request to add a new custom server provider
  */
@@ -1101,6 +1292,14 @@ export type AppError = { AuthenticationError: { message: string } } | { ReAuthen
  * Circuit breaker is open - too many failures detected
  */
 { CircuitBreakerError: { service: string; message: string; failure_count: number } } | { DatabaseError: { message: string } } | { NetworkError: { status: number; message: string } } | { StorageError: { message: string } } | { ValidationError: { field: string; message: string } } | { ConfigurationError: { message: string } } | { BiometricError: { message: string } } | { SyncError: { message: string } } | { InternalError: { message: string } }
+/**
+ * Container for auto-lock event types (for TypeScript export)
+ */
+export type AutoLockEventTypes = { activity_event: ActivityEvent; vault_timeout_event: VaultTimeoutEvent }
+/**
+ * Response for auto-lock status
+ */
+export type AutoLockStatusResponse = { monitoring_enabled: boolean; current_user_id: string | null; timeout_config: VaultTimeout; activity_sensitivity: ActivitySensitivity }
 export type BiometricAuthRequest = { prompt: string }
 export type BiometricAuthResponse = { success: boolean }
 export type BiometricStatusResponse = { status: string; available: boolean }
@@ -1115,11 +1314,15 @@ export type CardView = { cardholder_name: string | null; brand: string | null; n
 /**
  * Cipher types
  */
-export type CipherType = "Login" | "SecureNote" | "Card" | "Identity"
+export type CipherType = "Login" | "SecureNote" | "Card" | "Identity" | "SSHKey"
 /**
  * Decrypted cipher view for frontend
  */
-export type CipherView = { id: string; organization_id: string | null; folder_id: string | null; name: string; notes: string | null; cipher_type: CipherType; login: LoginView | null; secure_note: SecureNoteView | null; card: CardView | null; identity: IdentityView | null; favorite: boolean; reprompt: boolean; revision_date: string; created_date: string }
+export type CipherView = { id: string; organization_id: string | null; folder_id: string | null; name: string; notes: string | null; cipher_type: CipherType; login: LoginView | null; secure_note: SecureNoteView | null; card: CardView | null; identity: IdentityView | null; ssh_key: SSHKeyView | null; favorite: boolean; reprompt: boolean; revision_date: string; created_date: string }
+/**
+ * Request to close the window
+ */
+export type CloseWindowRequest = { window_label: string | null }
 /**
  * Collection model
  */
@@ -1173,11 +1376,19 @@ export type GetCiphersRequest = { user_id: string }
 export type GetCollectionsRequest = { organization_id: string }
 export type GetFoldersRequest = { user_id: string }
 export type GetNetworkStatusRequest = Record<string, never>
+/**
+ * Request to get platform information
+ */
+export type GetPlatformInfoRequest = Record<string, never>
 export type GetSyncModeRequest = { user_id: string }
 export type GetSyncStatusRequest = { user_id: string }
 export type GetValueRequest = { store_name: string; key: string }
 export type GetValueResponse = { value: string | null }
 export type GetWebSocketStatusRequest = Record<string, never>
+/**
+ * Request to get window state
+ */
+export type GetWindowStateRequest = { window_label: string | null }
 /**
  * Health status enumeration
  */
@@ -1205,6 +1416,22 @@ export type IntegrityStatus = { status: HealthStatus; integrity_check_result: st
 export type KdfConfig = { kdf_type: number; iterations: number; memory: number | null; parallelism: number | null }
 export type KeyringBackendStatus = { backend_available: boolean; backend_type: string; can_store_retrieve: boolean; error_message: string | null; timestamp: string }
 /**
+ * Reasons why the vault was locked
+ */
+export type LockReason = 
+/**
+ * User inactivity timeout
+ */
+"InactivityTimeout" | 
+/**
+ * Manual lock request
+ */
+"ManualLock" | 
+/**
+ * System event (sleep, shutdown, etc.)
+ */
+"SystemEvent"
+/**
  * Log entry structure for frontend logging
  */
 export type LogEntry = { level: LogLevel; message: string; context: string | null; component: string | null; error_id: string | null; severity: string | null }
@@ -1227,6 +1454,10 @@ export type LoginView = { username: string | null; password: string | null; totp
  */
 export type MaintenanceResult = { operation: string; success: boolean; message: string; timestamp: string }
 /**
+ * Request to maximize/restore the window
+ */
+export type MaximizeWindowRequest = { window_label: string | null }
+/**
  * Migration-specific health status
  */
 export type MigrationHealthStatus = { status: HealthStatus; current_version: number; latest_version: number; pending_migrations: number[]; applied_migrations: ([number, string])[] }
@@ -1234,6 +1465,10 @@ export type MigrationHealthStatus = { status: HealthStatus; current_version: num
  * Migration status information
  */
 export type MigrationStatusResponse = { current_version: number; latest_version: number; applied_migrations: ([number, string])[]; pending_migrations: number[]; is_up_to_date: boolean; timestamp: string }
+/**
+ * Request to minimize the window
+ */
+export type MinimizeWindowRequest = { window_label: string | null }
 export type NetworkAwareSyncRequest = { user_id: string }
 /**
  * Sync operation result with mode information
@@ -1255,6 +1490,10 @@ export type NotificationPayload = { id: string | null; user_id: string | null; o
  * Performance metrics
  */
 export type PerformanceMetrics = { database_size_mb: number; page_count: number; page_size: number; cache_hit_ratio: number | null; slow_queries: string[]; index_usage: Partial<{ [key in string]: IndexUsage }> }
+/**
+ * Platform information for window controls
+ */
+export type PlatformInfo = { platform: string; is_macos: boolean; is_windows: boolean; is_linux: boolean }
 export type PreloginRequest = { email: string }
 export type PreloginResponse = { kdf: number; kdfIterations: number; kdfMemory: number | null; kdfParallelism: number | null }
 /**
@@ -1263,6 +1502,10 @@ export type PreloginResponse = { kdf: number; kdfIterations: number; kdfMemory: 
 export type RemoveProviderRequest = { provider_id: string }
 export type RetrieveBiometricKeyRequest = { user_id: string; prompt: string }
 export type RetrieveBiometricKeyResponse = { success: boolean; user_key: number[] | null }
+/**
+ * SSH Key cipher data
+ */
+export type SSHKeyView = { private_key: string | null; public_key: string | null; fingerprint: string | null; passphrase: string | null; key_type: string | null }
 export type SaveCipherRequest = { cipher: CipherView; user_id: string }
 export type SaveFolderRequest = { folder: Folder }
 export type SaveSettingsRequest = { settings: Settings }
@@ -1299,10 +1542,14 @@ export type SetSyncModeRequest = { user_id: string; mode: SyncMode }
 /**
  * Settings model for application configuration
  */
-export type Settings = { theme: string; language: string; vault_timeout: VaultTimeout; vault_timeout_action: string; biometric_unlock: boolean; clear_clipboard: number; minimize_to_tray: boolean; start_to_tray: boolean; auto_start: boolean; server_url: string | null; debug_token_operations: boolean }
+export type Settings = { theme: string; language: string; vault_timeout: VaultTimeout; vault_timeout_action: string; biometric_unlock: boolean; clear_clipboard: number; auto_lock_enabled: boolean; activity_detection_sensitivity: ActivitySensitivity; minimize_to_tray: boolean; start_to_tray: boolean; auto_start: boolean; server_url: string | null; debug_token_operations: boolean }
 export type SetupAccountRequest = { email: string; password: string; kdf_config: KdfConfig }
 export type SetupAccountResponse = { user_id: string; master_key: number[]; master_key_hash: string; user_key: number[]; encrypted_user_key: number[]; public_key: number[]; encrypted_private_key: number[] }
 export type SetupBiometricRequest = { user_id: string; user_key: number[] }
+/**
+ * Request to start auto-lock monitoring
+ */
+export type StartAutoLockRequest = { user_id: string; timeout: VaultTimeout; enabled: boolean }
 export type StoreValueRequest = { store_name: string; key: string; value: string }
 /**
  * Sync mode indicating current operational state
@@ -1331,6 +1578,10 @@ export type TrustedDevice = { id: string; user_id: string; device_identifier: st
 export type UnlockRequest = { user_id: string; password: string }
 export type UnlockResponse = { success: boolean; master_key: number[] | null; user_key: number[] | null }
 /**
+ * Request to update auto-lock configuration
+ */
+export type UpdateAutoLockConfigRequest = { timeout: VaultTimeout; enabled: boolean; activity_sensitivity: ActivitySensitivity }
+/**
  * Request to update an existing server provider
  */
 export type UpdateProviderRequest = { provider_id: string; label: string | null; urls: ServerProviderUrls | null }
@@ -1355,6 +1606,26 @@ export type VaultTimeout =
  */
 "Never"
 /**
+ * Events emitted by the vault timeout manager
+ */
+export type VaultTimeoutEvent = 
+/**
+ * Vault should be locked due to timeout
+ */
+{ VaultLockTriggered: { user_id: string; reason: LockReason } } | 
+/**
+ * Timeout timer was reset due to activity
+ */
+{ TimeoutReset: { user_id: string; remaining_ms: number } } | 
+/**
+ * Timeout monitoring started
+ */
+{ MonitoringStarted: { user_id: string; timeout_ms: number } } | 
+/**
+ * Timeout monitoring stopped
+ */
+{ MonitoringStopped: { user_id: string } }
+/**
  * View information
  */
 export type ViewInfo = { name: string; sql: string }
@@ -1371,6 +1642,10 @@ export type WebSocketState = "disconnected" | "connecting" | "connected" | "reco
  * WebSocket connection status
  */
 export type WebSocketStatus = { state: WebSocketState; connected_at: string | null; last_ping: string | null; last_pong: string | null; reconnect_count: number; error_message: string | null; server_url: string | null }
+/**
+ * Window state information
+ */
+export type WindowState = { is_maximized: boolean; is_minimized: boolean; is_focused: boolean; is_visible: boolean }
 
 /** tauri-specta globals **/
 
