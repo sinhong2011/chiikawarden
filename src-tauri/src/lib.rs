@@ -20,6 +20,9 @@ use app_state::AppState;
 use tauri::Manager;
 // Removed unused tracing imports since we're using log crate now
 
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
+
 // Tauri-specta imports
 use tauri_specta::{collect_commands, Builder};
 
@@ -37,6 +40,11 @@ use crate::commands::auth::{
     prelogin, reauth_with_master_password, refresh_token, retrieve_test_refresh_token,
     revoke_device_trust, setup_account, setup_biometric_unlock, store_test_refresh_token,
     unlock_with_auto_key, unlock_with_biometric, unlock_with_password,
+};
+use crate::commands::auto_lock::{
+    check_auto_lock_support, get_auto_lock_event_types, get_auto_lock_status, get_recommended_auto_lock_settings,
+    reset_activity_timer, start_auto_lock_monitoring, stop_auto_lock_monitoring,
+    trigger_manual_lock, update_auto_lock_config,
 };
 use crate::commands::biometric::{
     authenticate_biometric, check_biometric_availability, delete_biometric_unlock,
@@ -78,6 +86,9 @@ use crate::commands::vault::{
     delete_cipher, delete_folder, get_all_ciphers, get_collections, get_folders, save_cipher,
     save_folder, search_ciphers,
 };
+use crate::commands::window::{
+    close_window, get_platform_info, get_window_state, maximize_window, minimize_window,
+};
 
 /// Create TypeScript configuration with strict type safety
 #[cfg(debug_assertions)]
@@ -117,6 +128,16 @@ pub fn run() {
         check_keyring_backend,
         clear_user_tokens,
         force_relogin,
+        // Auto-lock commands
+        start_auto_lock_monitoring,
+        stop_auto_lock_monitoring,
+        reset_activity_timer,
+        update_auto_lock_config,
+        get_auto_lock_status,
+        trigger_manual_lock,
+        check_auto_lock_support,
+        get_recommended_auto_lock_settings,
+        get_auto_lock_event_types,
         // Diagnostic commands
         store_test_refresh_token,
         retrieve_test_refresh_token,
@@ -200,6 +221,12 @@ pub fn run() {
         optimize_database,
         reset_database,
         generate_sample_data,
+        // Window management commands
+        minimize_window,
+        maximize_window,
+        close_window,
+        get_window_state,
+        get_platform_info,
     ]);
 
     #[cfg(not(debug_assertions))]
@@ -308,6 +335,12 @@ pub fn run() {
             is_database_initialized,
             get_database_path,
             run_database_maintenance,
+            // Window management commands
+            minimize_window,
+            maximize_window,
+            close_window,
+            get_window_state,
+            get_platform_info,
         ])
         .events(collect_events![]);
 
@@ -334,6 +367,72 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
+            // Get the main window that was created from tauri.conf.json
+            let main_window = app
+                .get_webview_window("main")
+                .expect("Main window should exist");
+
+            // Apply platform-specific window configurations
+            #[cfg(target_os = "macos")]
+            {
+                let _ = main_window.set_decorations(true);
+                let _ = main_window.set_title_bar_style(TitleBarStyle::Overlay);
+                let _ = main_window.set_title("");
+            }
+
+            #[cfg(all(not(target_os = "macos"), desktop))]
+            {
+                let _ = main_window.set_decorations(false);
+                let _ = main_window.set_shadow(true);
+                let _ = main_window.set_title("Chiikawarden");
+
+                // Note: Transparency must be set during window creation via WebviewWindowBuilder.transparent()
+                // It cannot be changed at runtime in Tauri 2.x
+            }
+
+            // Production-specific configurations
+            #[cfg(not(debug_assertions))]
+            {
+                // Disable context menu in production
+                main_window.with_webview(|webview| {
+                    #[cfg(target_os = "windows")]
+                    {
+                        use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings;
+                        unsafe {
+                            let _ = webview.controller().CoreWebView2().and_then(|core_webview2| {
+                                core_webview2.Settings().and_then(|settings| {
+                                    let _ = settings.SetAreDefaultContextMenusEnabled(false);
+                                    let _ = settings.SetAreDevToolsEnabled(false);
+                                    let _ = settings.SetAreHostObjectsAllowed(false);
+                                    Ok(())
+                                })
+                            });
+                        }
+                    }
+
+                    #[cfg(target_os = "linux")]
+                    {
+                        use webkit2gtk::WebViewExt;
+                        let settings = webview.settings().unwrap();
+                        settings.set_enable_developer_extras(false);
+                        settings.set_enable_write_console_messages_to_stdout(false);
+                    }
+
+                    #[cfg(target_os = "macos")]
+                    {
+                        // macOS WebView settings would go here if needed
+                        // Currently handled by devtools: false in tauri.conf.json
+                    }
+                })?;
+
+                log::info!("[startup] Production mode: Development features disabled");
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                log::info!("[startup] Development mode: All features enabled");
+            }
+
             // Initialize our enhanced logging system after tauri-plugin-log
             match logging::init_enhanced_logging() {
                 Ok(_) => {
@@ -388,7 +487,8 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_http::init())
         // Application behavior plugins
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // Temporarily disabled to test window decoration issue
+        // .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
         }))
