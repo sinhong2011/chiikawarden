@@ -810,6 +810,24 @@ struct ItemDetail: View {
                 }
 
                 VStack(spacing: 0) {
+                    if let address = item.uri ?? item.host,
+                       let url = URL(string: address.contains("://") ? address : "https://" + address) {
+                        DetailRow(symbol: "globe", title: "Website") {
+                            Button { NSWorkspace.shared.open(url) } label: {
+                                HStack(spacing: 5) {
+                                    Text(verbatim: address).lineLimit(1).truncationMode(.middle)
+                                    Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .semibold))
+                                }
+                                .foregroundStyle(Color.brand)
+                                .contentShape(.rect)
+                            }
+                            .buttonStyle(.plain)
+                            .help(Text("Open in your browser"))
+                            .contextMenu {
+                                Button("Copy", systemImage: "doc.on.doc") { model.copyPlain(address) }
+                            }
+                        }
+                    }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
                         DetailRow(symbol: "building.2", title: "Organization") {
                             let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
@@ -874,6 +892,21 @@ struct ItemDetail: View {
                 if !item.attachments.isEmpty || !item.isDeleted {
                     AttachmentsSection(item: item)
                 }
+
+                // When it was last changed, in full.
+                if item.revised != nil || item.created != nil {
+                    VStack(spacing: 2) {
+                        if let revised = item.revised {
+                            Text("Last edited \(revised.formatted(date: .complete, time: .standard))")
+                        }
+                        if let created = item.created {
+                            Text("Created \(created.formatted(date: .complete, time: .standard))").foregroundStyle(.tertiary)
+                        }
+                    }
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .textSelection(.enabled)
+                }
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
@@ -931,9 +964,6 @@ struct ItemDetail: View {
                 toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
                     .foregroundStyle(.red)
             } else {
-                if let host = item.host, let url = URL(string: "https://\(host)") {
-                    toolbarButton("arrow.up.right.square", help: "Open website") { NSWorkspace.shared.open(url) }
-                }
                 if item.password != nil || item.fields.contains(where: \.secret) {
                     toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)",
                                   spoken: reveal.wrappedValue ? "Hide" : "Reveal") {
@@ -999,17 +1029,13 @@ extension HeroCard {
                         Tile(style: style) {
                             model.copy(code, label: String(localized: "Code"))
                         } content: {
-                            HStack {
-                                Text("One-time code")
-                                Spacer()
-                                Text(verbatim: "\(left)s").monospacedDigit()
+                            Text("One-time code")
+                                .font(.system(size: 12)).foregroundStyle(style.muted)
+                            HStack(alignment: .center) {
+                                OTPCode(code: code, size: 22, urgent: left <= 5)
+                                Spacer(minLength: 8)
+                                CountdownRing(fraction: remaining, seconds: left, size: 34)
                             }
-                            .font(.system(size: 12)).foregroundStyle(style.muted)
-                            Text(verbatim: code.prefix(code.count / 2) + " " + code.suffix(code.count - code.count / 2))
-                                .font(.system(size: 20, weight: .semibold, design: .monospaced))
-                                .frame(height: 24, alignment: .leading)
-                                .contentTransition(.numericText())
-                            LevelBar(fraction: remaining, color: left <= 5 ? .orange : .brand)
                         }
                         .animation(.snappy, value: code)
                     }

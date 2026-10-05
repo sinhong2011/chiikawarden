@@ -101,16 +101,12 @@ private struct LoginForm: View {
                             .textContentType(.username)
                             .focused($focus, equals: .email)
                     }
-                    LabeledField("Master password") {
+                    LabeledField("Master password", accessory: { ForgotPasswordButton(email: model.email) }) {
                         PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
                     }
-                    HStack {
-                        Toggle("Remember email", isOn: $rememberEmail)
-                            .toggleStyle(.switch).controlSize(.mini).tint(.brand)
-                            .font(.system(size: 12))
-                        Spacer()
-                        ForgotPasswordButton(email: model.email)
-                    }
+                    Toggle("Remember email", isOn: $rememberEmail)
+                        .toggleStyle(TrailingSwitchStyle(size: .mini))
+                        .font(.system(size: 12))
                 }
                 .textFieldStyle(SoftFieldStyle())
             } else if step == .ssoPassword {

@@ -27,6 +27,9 @@ struct VaultItem: Identifiable, Hashable {
     var isDeleted = false
     var organizationId: String?
     var collectionIds: [String] = []
+    /// When the item was last changed and first created (from the server).
+    var revised: Date?
+    var created: Date?
     /// Filled in after sync: how many other items share this password.
     var reuseCount = 0
 

@@ -91,7 +91,12 @@ enum Snapshot {
 
         let vault = AppModel()
         vault.phase = .vault
-        vault.items = demoItems
+        vault.items = demoItems.map { item in
+            var item = item
+            item.revised = Date(timeIntervalSince1970: 1_791_123_456) // a fixed moment, so renders don't change
+            item.created = Date(timeIntervalSince1970: 1_748_500_000)
+            return item
+        }
         vault.previewUnlocked = true
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark"),

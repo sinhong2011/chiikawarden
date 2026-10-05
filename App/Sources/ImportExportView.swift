@@ -303,7 +303,7 @@ struct ImportSheet: View {
                                 .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }
-                    .toggleStyle(.switch).controlSize(.small).tint(.brand)
+                    .toggleStyle(.trailingSwitch)
                 }
 
                 if !preview.problems.isEmpty {

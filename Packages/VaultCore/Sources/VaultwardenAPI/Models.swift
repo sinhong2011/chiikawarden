@@ -119,6 +119,8 @@ public struct SyncResponse: Decodable, Sendable {
         public let attachments: [Attachment]?
         public let favorite: Bool?
         public let deletedDate: String?
+        public var revisionDate: String? = nil
+        public var creationDate: String? = nil
     }
 
     public struct Login: Decodable, Sendable {

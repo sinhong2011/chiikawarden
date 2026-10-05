@@ -56,6 +56,29 @@ extension ButtonStyle where Self == AppButtonStyle {
     static var appDestructive: AppButtonStyle { AppButtonStyle(kind: .destructive) }
 }
 
+/// A switch at the end of its row, like the app's other inputs (label on the left, control on the right).
+struct TrailingSwitchStyle: ToggleStyle {
+    var size: ControlSize = .small
+
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            configuration.label
+            Spacer(minLength: 8)
+            Toggle("", isOn: configuration.$isOn)
+                .toggleStyle(.switch)
+                .controlSize(size)
+                .tint(.brand)
+                .labelsHidden()
+        }
+        .contentShape(.rect)
+        .onTapGesture { configuration.isOn.toggle() } // the whole row toggles, as in System Settings
+    }
+}
+
+extension ToggleStyle where Self == TrailingSwitchStyle {
+    static var trailingSwitch: TrailingSwitchStyle { TrailingSwitchStyle() }
+}
+
 /// Capsule tabs with a raised thumb that slides between options.
 struct AppSegmented<Value: Hashable>: View {
     let options: [(Value, LocalizedStringKey)]

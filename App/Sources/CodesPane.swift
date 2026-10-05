@@ -66,25 +66,18 @@ private struct CodeCard: View {
                         Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer(minLength: 4)
-                    ZStack {
-                        Circle().stroke(Color.brand.opacity(0.15), lineWidth: 3)
-                        Circle().trim(from: 1 - remaining, to: 1)
-                            .stroke(left <= 5 ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                        Text(verbatim: "\(left)").font(.system(size: 9, weight: .semibold)).monospacedDigit().foregroundStyle(.secondary)
-                    }
-                    .frame(width: 24, height: 24)
-                }
-                HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: code.prefix(code.count / 2) + " " + code.suffix(code.count - code.count / 2))
-                        .font(.system(size: 26, weight: .semibold, design: .monospaced))
-                        .contentTransition(.numericText())
-                        .animation(.snappy, value: code)
-                    Spacer()
-                    Text(copied ? "Copied" : "Copy")
-                        .font(.system(size: 11, weight: .semibold))
+                    // Copy state as an icon: appears on hover, turns to a check once copied.
+                    Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(copied ? Color.brand : .secondary)
+                        .contentTransition(.symbolEffect(.replace))
                         .opacity(copied || hovering ? 1 : 0)
+                        .accessibilityHidden(true)
+                }
+                HStack(alignment: .center) {
+                    OTPCode(code: code, size: 28, urgent: left <= 5)
+                    Spacer(minLength: 8)
+                    CountdownRing(fraction: remaining, seconds: left, size: 40)
                 }
             }
             .padding(16)

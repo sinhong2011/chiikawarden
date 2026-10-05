@@ -357,6 +357,34 @@
         }
       }
     },
+    "%lld seconds left": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残り %lld 秒"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲有 %lld 秒"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 %lld 秒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩餘 %lld 秒"
+          }
+        }
+      }
+    },
     "%lld words": {
       "localizations": {
         "ja": {
@@ -7373,6 +7401,34 @@
         }
       }
     },
+    "Last edited %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終編集：%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最後編輯：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最后编辑于 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最後編輯於 %@"
+          }
+        }
+      }
+    },
     "Last name": {
       "localizations": {
         "ja": {
@@ -10117,6 +10173,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "登入時開啟"
+          }
+        }
+      }
+    },
+    "Open in your browser": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ブラウザで開く"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺瀏覽器打開"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在浏览器中打开"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在瀏覽器中打開"
           }
         }
       }

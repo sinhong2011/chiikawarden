@@ -14,6 +14,16 @@ struct DecodedVault {
 }
 
 enum VaultDecoder {
+    /// Server timestamps, with or without fractional seconds (Vaultwarden sends six digits).
+    static func date(_ string: String?) -> Date? {
+        guard var s = string else { return nil }
+        if let dot = s.firstIndex(of: "."), let end = s[dot...].firstIndex(where: { $0 == "Z" || $0 == "+" || $0 == "-" }) {
+            s.removeSubrange(dot..<end)
+        }
+        if !s.hasSuffix("Z") && !s.contains("+") && s.count == 19 { s += "Z" }
+        return try? Date(s, strategy: .iso8601)
+    }
+
     static func decode(_ data: Data, userKey: SymmetricKeyPair, accountId: String = "") throws -> DecodedVault {
         let sync = try SyncResponse.decode(data)
         let keyring = Keyring(userKey: userKey, profile: sync.profile)
@@ -45,6 +55,8 @@ enum VaultDecoder {
                 organizationId: cipher.organizationId,
                 collectionIds: cipher.collectionIds ?? []
             )
+            item.revised = Self.date(cipher.revisionDate)
+            item.created = Self.date(cipher.creationDate)
             // Raw values for the editor, by API name.
             func raw(_ pairs: [(String, String?)]) -> [String: String] {
                 Dictionary(pairs.compactMap { k, v in dec(v).map { (k, $0) } }, uniquingKeysWith: { a, _ in a })

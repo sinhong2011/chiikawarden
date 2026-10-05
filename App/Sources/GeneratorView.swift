@@ -388,9 +388,7 @@ private struct SwitchRow: View {
     init(_ title: LocalizedStringKey, isOn: Binding<Bool>) { self.title = title; _isOn = isOn }
     var body: some View {
         Toggle(isOn: $isOn) { Text(title).font(.system(size: 13)) }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .tint(.brand)
+            .toggleStyle(.trailingSwitch)
     }
 }
 
