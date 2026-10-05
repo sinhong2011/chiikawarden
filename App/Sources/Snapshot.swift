@@ -43,6 +43,27 @@ enum Snapshot {
                    to: dir.appending(path: "unlock-\(name).png"))
         }
 
+        // The vault door's sequence, frozen at key moments.
+        let doorFrames: [(String, VaultDoorStage.Motion)] = [
+            ("0-closed", .init()),
+            ("1-dial", .init(dial: -250, wheel: 40)),
+            ("2-bolts", .init(dial: -216, wheel: 150, bolts: 1)),
+            ("3-swing", .init(dial: -216, wheel: 150, bolts: 1, swing: 0.55, light: 0.4)),
+            ("4-light", .init(dial: -216, wheel: 150, bolts: 1, swing: 0.95, light: 0.9)),
+        ]
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            for (frame, motion) in doorFrames {
+                // ImageRenderer draws SwiftUI's 3D projection (the swing); the window cache would drop it.
+                let renderer = ImageRenderer(content: VaultDoorStage(frozen: motion).environment(model)
+                    .environment(\.colorScheme, name == "dark" ? .dark : .light).frame(width: 520, height: 600))
+                renderer.scale = 2
+                if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                    try? png.write(to: dir.appending(path: "door-\(frame)-\(name).png"))
+                }
+            }
+        }
+
         // The unlock animation's open moment, and Settings at its default size.
         let opening = AppModel()
         opening.setPreviewAccounts([SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted",

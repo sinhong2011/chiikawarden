@@ -10,7 +10,7 @@ struct UnlockView: View {
             let showStage = geo.size.width >= 820
             HStack(spacing: 0) {
                 if showStage {
-                    BrandStage()
+                    VaultDoorStage()
                         .frame(width: min(max(geo.size.width * 0.46, 380), 560))
                         .transition(.move(edge: .leading).combined(with: .opacity))
                 }

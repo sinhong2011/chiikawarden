@@ -617,7 +617,8 @@ final class AppModel {
         }
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         Task {
-            try? await Task.sleep(for: .milliseconds(620))
+            // The vault door's sequence (dial, wheel, bolts, swing, light) runs ~1.5 s; the vault takes over at the light.
+            try? await Task.sleep(for: .milliseconds(1450))
             phase = .vault
             try? await Task.sleep(for: .milliseconds(400))
             unlockOpening = false
