@@ -19,8 +19,8 @@ struct LoginView: View {
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 60, height: 60)
-                    .background(Color.mochi.gradient, in: .rect(cornerRadius: 18))
-                    .shadow(color: .mochi.opacity(0.4), radius: 14, y: 8)
+                    .background(Color.brand.gradient, in: .rect(cornerRadius: 18))
+                    .shadow(color: .brand.opacity(0.4), radius: 14, y: 8)
                     .contentTransition(.symbolEffect(.replace))
 
                 VStack(spacing: 4) {
@@ -110,9 +110,9 @@ struct Backdrop: View {
             [0, 0.5], [0.6, 0.45], [1, 0.5],
             [0, 1], [0.5, 1], [1, 1],
         ], colors: [
-            Color(red: 0.98, green: 0.80, blue: 0.85), Color(red: 1.0, green: 0.93, blue: 0.86), Color(red: 1.0, green: 0.86, blue: 0.68),
-            Color(red: 0.93, green: 0.88, blue: 0.97), Color(red: 1.0, green: 0.98, blue: 0.95), Color(red: 0.84, green: 0.93, blue: 0.90),
-            Color(red: 0.78, green: 0.84, blue: 0.97), Color(red: 0.95, green: 0.89, blue: 0.95), Color(red: 0.98, green: 0.84, blue: 0.86),
+            Color(red: 0.62, green: 0.71, blue: 0.95), Color(red: 0.84, green: 0.88, blue: 1.0), Color(red: 0.97, green: 0.80, blue: 0.86),
+            Color(red: 0.75, green: 0.80, blue: 0.98), Color(red: 0.96, green: 0.97, blue: 1.0), Color(red: 0.80, green: 0.92, blue: 0.95),
+            Color(red: 0.56, green: 0.84, blue: 0.78), Color(red: 0.80, green: 0.78, blue: 0.97), Color(red: 0.66, green: 0.74, blue: 0.98),
         ])
         .ignoresSafeArea()
     }

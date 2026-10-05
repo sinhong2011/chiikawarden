@@ -8,7 +8,7 @@ struct ChiikawardenApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
-                .tint(.mochi)
+                .tint(.brand)
                 .frame(minWidth: 860, minHeight: 560)
         }
         .windowStyle(.hiddenTitleBar)
@@ -41,6 +41,6 @@ struct RootView: View {
 }
 
 extension Color {
-    /// Strawberry accent from the Mochi direction.
-    static let mochi = Color(red: 0xC9 / 255, green: 0x3B / 255, blue: 0x63 / 255)
+    /// Brand blue, shared with the app icon (Assets: AccentColor, adapts to dark mode).
+    static let brand = Color("AccentColor")
 }

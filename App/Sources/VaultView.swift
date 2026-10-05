@@ -110,7 +110,7 @@ struct Monogram: View {
     let name: String
     let size: CGFloat
 
-    private static let palette: [Color] = [.mochi, .orange, .indigo, .teal, .purple, .brown, .blue, .green]
+    private static let palette: [Color] = [.brand, .orange, .indigo, .teal, .purple, .brown, .blue, .green]
 
     var body: some View {
         let hue = name.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }

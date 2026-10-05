@@ -1,0 +1,17 @@
+{
+	# Caddy's internal CA; the root lives in data/caddy/caddy/pki/authorities/local/root.crt
+	local_certs
+	skip_install_trust
+	# Clients send no SNI when connecting by IP address.
+	default_sni {$DEV_HOST}
+}
+
+https://{$DEV_HOST}:18843, https://localhost:18843 {
+	tls internal
+	reverse_proxy vaultwarden:80
+}
+
+https://{$DEV_HOST}:18844, https://localhost:18844 {
+	tls internal
+	reverse_proxy vaultwarden-legacy:80
+}

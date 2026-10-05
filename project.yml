@@ -24,6 +24,8 @@ targets:
     sources:
       - App/Sources
       - App/Resources
+      - path: Design/AppIcon/AppIcon.icon
+        buildPhase: resources
     dependencies:
       - package: VaultCore
         product: ChiikawaCrypto
@@ -41,7 +43,12 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, zh-Hant, zh-Hans, ja]
+        # Self-hosted servers on the LAN (IPs, .local) are often plain HTTP or private-CA.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.sinhong2011.chiikawarden
         GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

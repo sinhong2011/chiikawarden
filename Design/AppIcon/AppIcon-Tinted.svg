@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><defs><linearGradient id="gd-tint-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2C2C2F" stop-opacity="1"></stop><stop offset="1" stop-color="#141416" stop-opacity="1"></stop></linearGradient>
+<radialGradient id="gd-tint-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#7FA7FF" stop-opacity=".45"></stop><stop offset="1" stop-color="#7FA7FF" stop-opacity="0"></stop></radialGradient>
+<linearGradient id="gd-tint-rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".6"></stop><stop offset=".55" stop-color="#FFFFFF" stop-opacity=".12"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity=".35"></stop></linearGradient>
+<linearGradient id="gd-tint-disc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".2"></stop><stop offset="1" stop-color="#FFFFFF" stop-opacity=".03"></stop></linearGradient>
+<linearGradient id="gd-tint-key" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9C4FF"></stop><stop offset="1" stop-color="#5E8BFF"></stop></linearGradient>
+<clipPath id="gd-tint-clip"><circle cx="512" cy="512" r="236"></circle></clipPath>
+<filter id="gd-tint-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="22"></feGaussianBlur></filter></defs>
+        <rect width="1024" height="1024" rx="230" fill="url(#gd-tint-bg)"></rect>
+        <rect x="3" y="3" width="1018" height="1018" rx="227" fill="none" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="6"></rect>
+        <circle cx="512" cy="512" r="430" fill="url(#gd-tint-glow)"></circle>
+        <circle cx="512" cy="512" r="360" fill="#FFFFFF" fill-opacity=".05" stroke="url(#gd-tint-rim)" stroke-width="12"></circle>
+        <circle cx="512" cy="512" r="318" fill="none" stroke="#FFFFFF" stroke-opacity=".32" stroke-width="16" stroke-dasharray="3 30.3" transform="rotate(-90.27 512 512)"></circle>
+        <circle cx="512" cy="512" r="318" fill="none" stroke="#FFFFFF" stroke-opacity=".85" stroke-width="34" stroke-dasharray="7 159.5" transform="rotate(-90.63 512 512)"></circle>
+        <rect x="496" y="160" width="32" height="70" rx="16" fill="url(#gd-tint-key)"></rect>
+        <circle cx="512" cy="540" r="236" fill="#000000" fill-opacity=".45" filter="url(#gd-tint-blur)"></circle>
+        <circle cx="512" cy="512" r="236" fill="url(#gd-tint-disc)"></circle>
+        <g clip-path="url(#gd-tint-clip)">
+          <ellipse cx="512" cy="318" rx="230" ry="120" fill="#FFFFFF" fill-opacity=".13"></ellipse>
+          <rect x="560" y="180" width="70" height="700" fill="#FFFFFF" fill-opacity=".07" transform="rotate(32 512 512)"></rect>
+        </g>
+        <circle cx="512" cy="512" r="236" fill="none" stroke="url(#gd-tint-rim)" stroke-width="6"></circle>
+        <circle cx="512" cy="512" r="150" fill="url(#gd-tint-glow)"></circle>
+        <polygon points="512,402 590,434 622,512 590,590 512,622 434,590 402,512 434,434" fill="url(#gd-tint-key)"></polygon>
+        <polygon points="512,452 554,470 572,512 554,554 512,572 470,554 452,512 470,470" fill="#FFFFFF" fill-opacity=".18" stroke="#FFFFFF" stroke-opacity=".45" stroke-width="4"></polygon>
+        <path d="M512 402 L512 452 M590 434 L554 470 M622 512 L572 512 M590 590 L554 554 M512 622 L512 572 M434 590 L470 554 M402 512 L452 512 M434 434 L470 470" stroke="#FFFFFF" stroke-opacity=".4" stroke-width="4"></path>
+        <polygon points="512,402 434,434 470,470 512,452" fill="#FFFFFF" fill-opacity=".35"></polygon>
+      </svg>

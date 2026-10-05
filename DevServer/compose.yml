@@ -1,0 +1,50 @@
+# Chiikawarden dev environment: two Vaultwarden versions behind Caddy (internal CA) + Mailpit.
+# Runs on the m1pro dev box; see DevServer/README.md.
+name: chiikawarden-dev
+
+x-vw-env: &vw-env
+  SIGNUPS_ALLOWED: "true"
+  SIGNUPS_VERIFY: "false"
+  INVITATIONS_ALLOWED: "true"
+  ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+  SMTP_HOST: mailpit
+  SMTP_PORT: "1025"
+  SMTP_SECURITY: "off"
+  SMTP_FROM: vaultwarden@chiikawarden.test
+  LOG_LEVEL: info
+  # Dev only: generous rate limits so the test suite doesn't trip them.
+  LOGIN_RATELIMIT_MAX_BURST: "1000"
+  ADMIN_RATELIMIT_MAX_BURST: "1000"
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:${VW_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *vw-env
+      DOMAIN: https://${DEV_HOST}:18843
+    volumes: [./data/latest:/data]
+    ports: ["18880:80"]   # plain HTTP, for quick curl checks
+
+  vaultwarden-legacy:
+    image: vaultwarden/server:${VW_LEGACY_VERSION:-1.30.5}
+    restart: unless-stopped
+    environment:
+      <<: *vw-env
+      DOMAIN: https://${DEV_HOST}:18844
+    volumes: [./data/legacy:/data]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      DEV_HOST: ${DEV_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/caddy:/data
+    ports: ["18843:18843", "18844:18844"]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports: ["18826:8025"]
