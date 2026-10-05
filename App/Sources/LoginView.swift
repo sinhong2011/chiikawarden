@@ -79,10 +79,13 @@ private struct LoginForm: View {
 
                 VStack(alignment: .leading, spacing: 14) {
                     if model.serverKind == .selfHosted {
-                        LabeledField("Server URL") {
-                            TextField("Server URL", text: $model.serverURL, prompt: Text(verbatim: "https://vault.example.com"))
-                                .textContentType(.URL)
-                                .focused($focus, equals: .server)
+                        VStack(alignment: .leading, spacing: 8) {
+                            LabeledField("Server URL") {
+                                TextField("Server URL", text: $model.serverURL, prompt: Text(verbatim: "https://vault.example.com"))
+                                    .textContentType(.URL)
+                                    .focused($focus, equals: .server)
+                            }
+                            CustomEnvironmentFields()
                         }
                         .transition(.opacity.combined(with: .move(edge: .top)))
                     }
@@ -331,5 +334,69 @@ private struct ServerStatusLine: View {
         }
         .font(.system(size: 12))
         .animation(.easeOut(duration: 0.15), value: status)
+    }
+}
+
+/// "Custom environment": per-service URLs for self-hosted servers. Empty fields derive from the server URL.
+private struct CustomEnvironmentFields: View {
+    @Environment(AppModel.self) private var model
+    @State private var expanded = false
+
+    var body: some View {
+        @Bindable var model = model
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                withAnimation(.snappy(duration: 0.25)) { expanded.toggle() }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .bold))
+                        .rotationEffect(.degrees(expanded ? 90 : 0))
+                    Text("Custom environment")
+                    if model.hasCustomURLs && !expanded {
+                        Text("· in use").foregroundStyle(Color.brand)
+                    }
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+
+            if expanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Only if your services live on different URLs. Leave empty to use the server URL.")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                    row("Web vault", $model.customWebVault, derived(""))
+                    row("API", $model.customAPI, derived("/api"))
+                    row("Identity", $model.customIdentity, derived("/identity"))
+                    row("Icons", $model.customIcons, derived("/icons"))
+                    row("Notifications", $model.customNotifications, derived("/notifications"))
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+            if let problem = model.serverURLProblem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11)).foregroundStyle(.orange)
+            }
+        }
+        .onAppear { expanded = model.hasCustomURLs }
+    }
+
+    /// What an empty field will use: the server URL (or web vault) plus the service path.
+    private func derived(_ suffix: String) -> String {
+        let root = AppModel.parseURL(model.customWebVault.isEmpty ? model.serverURL : model.serverURL.isEmpty ? model.customWebVault : model.serverURL)
+        return root.map { $0.absoluteString + suffix } ?? String(localized: "Server URL") + suffix
+    }
+
+    private func row(_ label: LocalizedStringKey, _ text: Binding<String>, _ placeholder: String) -> some View {
+        HStack(spacing: 10) {
+            Text(label).font(.system(size: 12)).foregroundStyle(.secondary).frame(width: 92, alignment: .leading)
+            TextField(label, text: text, prompt: Text(verbatim: placeholder).foregroundStyle(.tertiary))
+                .textFieldStyle(SoftFieldStyle(height: 30))
+                .font(.system(size: 12))
+                .labelsHidden()
+                .textContentType(.URL)
+        }
     }
 }

@@ -38,13 +38,7 @@ final class AccountSession {
         if let cache = AccountStore.loadCache(account.id) { try? load(cache) }
     }
 
-    var environment: ServerEnvironment? {
-        switch account.serverKind {
-        case "bitwardenUS": .bitwardenUS
-        case "bitwardenEU": .bitwardenEU
-        default: URL(string: account.serverURL).map(ServerEnvironment.selfHosted)
-        }
-    }
+    var environment: ServerEnvironment? { account.environment }
 
     // MARK: Sync
 

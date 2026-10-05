@@ -16,9 +16,12 @@ struct SavedAccount: Codable, Equatable, Identifiable {
     var kdf: KDFConfig
     var protectedUserKey: String
     var addedAt = Date()
+    /// Self-hosted "Custom environment" overrides; nil when every service derives from `serverURL`.
+    var customURLs: CustomURLs?
 
-    static func makeID(serverKind: String, serverURL: String, email: String) -> String {
-        let server = serverKind == "selfHosted" ? serverURL.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) : serverKind
+    static func makeID(serverKind: String, serverURL: String, email: String, customURLs: CustomURLs? = nil) -> String {
+        let anchor = customURLs.flatMap { ($0.base ?? $0.webVault ?? $0.api)?.absoluteString } ?? serverURL
+        let server = serverKind == "selfHosted" ? anchor.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) : serverKind
         let digest = SHA256.hash(data: Data("\(server)|\(KDF.normalizedEmail(email))".utf8))
         return digest.prefix(8).map { String(format: "%02x", $0) }.joined()
     }
@@ -27,7 +30,16 @@ struct SavedAccount: Codable, Equatable, Identifiable {
         switch serverKind {
         case "bitwardenUS": "bitwarden.com"
         case "bitwardenEU": "bitwarden.eu"
-        default: URL(string: serverURL)?.host() ?? serverURL
+        default: (customURLs.flatMap { $0.webVault ?? $0.base ?? $0.api }?.host()) ?? URL(string: serverURL)?.host() ?? serverURL
+        }
+    }
+
+    var environment: ServerEnvironment? {
+        switch serverKind {
+        case "bitwardenUS": .bitwardenUS
+        case "bitwardenEU": .bitwardenEU
+        default:
+            if let customURLs { .custom(customURLs) } else { URL(string: serverURL).map(ServerEnvironment.selfHosted) }
         }
     }
 }

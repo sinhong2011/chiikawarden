@@ -27,6 +27,13 @@ enum Snapshot {
                    size: CGSize(width: 900, height: 600), appearance: appearance,
                    to: dir.appending(path: "login-\(name).png"))
         }
+        let custom = AppModel()
+        custom.serverKind = .selfHosted
+        custom.serverURL = "https://vault.example.com"
+        custom.customIdentity = "https://login.example.com"
+        custom.customNotifications = "http://push.example.com"
+        render(desktop(LoginView().environment(custom).tint(.brand), dark: false),
+               size: CGSize(width: 900, height: 760), appearance: .aqua, to: dir.appending(path: "login-custom-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(UnlockView().environment(model).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 900, height: 600), appearance: appearance,
@@ -247,6 +254,25 @@ enum SelfTest {
                 await model.unlock(password: password2, accountId: id2)
                 check(model.sessions.count == 2 && model.items.contains { $0.accountId == id2 }, "unlock that account again")
             }
+
+            // Custom environment: no server URL, explicit per-service URLs.
+            model.beginAddAccount()
+            model.serverKind = .selfHosted
+            model.serverURL = "http://example.com"
+            model.email = email
+            await model.login(password: password)
+            check(model.errorMessage?.contains("https://") == true, "public http:// server rejected")
+            model.serverURL = ""
+            model.customAPI = server + "/api"
+            model.customIdentity = server + "/identity"
+            model.customNotifications = server + "/notifications"
+            model.errorMessage = nil
+            await model.login(password: password)
+            let customAccount = model.accounts.first { $0.customURLs != nil }
+            check(customAccount != nil && model.session(for: customAccount!.id)?.items.isEmpty == false
+                  && model.session(for: customAccount!.id)?.environment.map { if case .custom = $0 { true } else { false } } == true,
+                  "log in through custom API / Identity URLs, saved with the account")
+            if let customAccount { model.logOut(customAccount.id) }
 
             model.lock()
             check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")

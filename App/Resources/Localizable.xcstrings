@@ -90,10 +90,10 @@
     },
     "%lld of %lld logins need attention.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%2$lld 個登入資料中有 %1$lld 個需要處理。"
+            "value": "%2$lld 件中 %1$lld 件のログインに対応が必要です。"
           }
         },
         "zh-HK": {
@@ -108,10 +108,10 @@
             "value": "%2$lld 个登录信息中有 %1$lld 个需要处理。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%2$lld 件中 %1$lld 件のログインに対応が必要です。"
+            "value": "%2$lld 個登入資料中有 %1$lld 個需要處理。"
           }
         }
       }
@@ -370,6 +370,9 @@
           }
         }
       }
+    },
+    "API": {
+      "shouldTranslate": false
     },
     "About": {
       "localizations": {
@@ -1020,10 +1023,10 @@
     },
     "Change Password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "更改密碼"
+            "value": "パスワードを変更"
           }
         },
         "zh-HK": {
@@ -1038,10 +1041,10 @@
             "value": "更改密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードを変更"
+            "value": "更改密碼"
           }
         }
       }
@@ -1076,10 +1079,10 @@
     },
     "Check again": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新檢查"
+            "value": "もう一度確認"
           }
         },
         "zh-HK": {
@@ -1094,20 +1097,20 @@
             "value": "重新检查"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "もう一度確認"
+            "value": "重新檢查"
           }
         }
       }
     },
     "Check for breaches": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "檢查是否外洩"
+            "value": "漏えいを確認"
           }
         },
         "zh-HK": {
@@ -1122,20 +1125,20 @@
             "value": "检查是否泄露"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "漏えいを確認"
+            "value": "檢查是否外洩"
           }
         }
       }
     },
     "Checked %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@檢查過"
+            "value": "%@に確認"
           }
         },
         "zh-HK": {
@@ -1150,10 +1153,10 @@
             "value": "%@检查过"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@に確認"
+            "value": "%@檢查過"
           }
         }
       }
@@ -1608,10 +1611,10 @@
     },
     "Couldn't reach Have I Been Pwned. Try again later.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法連線到 Have I Been Pwned，請稍後再試。"
+            "value": "Have I Been Pwned に接続できませんでした。後でもう一度お試しください。"
           }
         },
         "zh-HK": {
@@ -1626,10 +1629,10 @@
             "value": "无法连接到 Have I Been Pwned，请稍后再试。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Have I Been Pwned に接続できませんでした。後でもう一度お試しください。"
+            "value": "無法連線到 Have I Been Pwned，請稍後再試。"
           }
         }
       }
@@ -1686,6 +1689,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法開啟 Touch ID"
+          }
+        }
+      }
+    },
+    "Custom environment": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂環境"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂環境"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义环境"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタム環境"
           }
         }
       }
@@ -2084,10 +2115,10 @@
     },
     "Exposed in data breaches": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "曾在資料外洩中曝光"
+            "value": "データ漏えいで流出"
           }
         },
         "zh-HK": {
@@ -2102,10 +2133,10 @@
             "value": "曾在数据泄露中曝光"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "データ漏えいで流出"
+            "value": "曾在資料外洩中曝光"
           }
         }
       }
@@ -2502,12 +2533,40 @@
         }
       }
     },
-    "Icons come from your own server (or Bitwarden for bitwarden.com accounts), so no one else learns which sites you use. Cached icons are encrypted.": {
+    "Icons": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "圖示來自你自己的伺服器（bitwarden.com 帳號則來自 Bitwarden），其他人無從得知你使用哪些網站。快取的圖示會加密。"
+            "value": "圖示"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图标"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アイコン"
+          }
+        }
+      }
+    },
+    "Icons come from your own server (or Bitwarden for bitwarden.com accounts), so no one else learns which sites you use. Cached icons are encrypted.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アイコンは自分のサーバー（bitwarden.com のアカウントは Bitwarden）から取得するため、利用サイトが他者に知られることはありません。キャッシュは暗号化されます。"
           }
         },
         "zh-HK": {
@@ -2522,10 +2581,38 @@
             "value": "图标来自你自己的服务器（bitwarden.com 账户则来自 Bitwarden），其他人无从得知你使用哪些网站。缓存的图标会加密。"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖示來自你自己的伺服器（bitwarden.com 帳號則來自 Bitwarden），其他人無從得知你使用哪些網站。快取的圖示會加密。"
+          }
+        }
+      }
+    },
+    "Identity": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身分驗證"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身分驗證"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アイコンは自分のサーバー（bitwarden.com のアカウントは Bitwarden）から取得するため、利用サイトが他者に知られることはありません。キャッシュは暗号化されます。"
+            "value": "認証"
           }
         }
       }
@@ -3036,10 +3123,10 @@
     },
     "Looking good": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "狀況良好"
+            "value": "問題ありません"
           }
         },
         "zh-HK": {
@@ -3054,10 +3141,10 @@
             "value": "状况良好"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "問題ありません"
+            "value": "狀況良好"
           }
         }
       }
@@ -3540,10 +3627,10 @@
     },
     "No issues found.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "沒有發現問題。"
+            "value": "問題は見つかりませんでした。"
           }
         },
         "zh-HK": {
@@ -3558,10 +3645,10 @@
             "value": "没有发现问题。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "問題は見つかりませんでした。"
+            "value": "沒有發現問題。"
           }
         }
       }
@@ -3624,10 +3711,10 @@
     },
     "No weak, reused or unsecured passwords. Check for breaches to be sure.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "沒有弱、重複或不安全的密碼。檢查一下是否外洩會更安心。"
+            "value": "弱い・使い回し・安全でないパスワードはありません。念のため漏えいも確認してください。"
           }
         },
         "zh-HK": {
@@ -3642,10 +3729,10 @@
             "value": "没有弱、重复或不安全的密码。检查一下是否泄露会更放心。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "弱い・使い回し・安全でないパスワードはありません。念のため漏えいも確認してください。"
+            "value": "沒有弱、重複或不安全的密碼。檢查一下是否外洩會更安心。"
           }
         }
       }
@@ -3730,6 +3817,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "備註"
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
           }
         }
       }
@@ -3820,10 +3935,10 @@
     },
     "One leak exposes every site that shares a password. Give each its own.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "一次外洩就會波及所有共用密碼的網站。請為每個網站設定不同密碼。"
+            "value": "1 件の漏えいで同じパスワードのサイトすべてが危険になります。サイトごとに別のパスワードを。"
           }
         },
         "zh-HK": {
@@ -3838,10 +3953,10 @@
             "value": "一次泄露就会波及所有共用密码的网站。请为每个网站设置不同密码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 件の漏えいで同じパスワードのサイトすべてが危険になります。サイトごとに別のパスワードを。"
+            "value": "一次外洩就會波及所有共用密碼的網站。請為每個網站設定不同密碼。"
           }
         }
       }
@@ -3898,6 +4013,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "一次性驗證碼密鑰"
+          }
+        }
+      }
+    },
+    "Only if your services live on different URLs. Leave empty to use the server URL.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅在各項服務位於不同網址時使用。留空則使用伺服器網址。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅在各項服務位於不同網址時使用。留空則使用伺服器網址。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在各项服务位于不同网址时使用。留空则使用服务器网址。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サービスごとに URL が異なる場合のみ入力します。空欄ならサーバー URL を使います。"
           }
         }
       }
@@ -4688,10 +4831,10 @@
     },
     "Reused passwords": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "重複使用的密碼"
+            "value": "使い回しのパスワード"
           }
         },
         "zh-HK": {
@@ -4706,10 +4849,10 @@
             "value": "重复使用的密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "使い回しのパスワード"
+            "value": "重複使用的密碼"
           }
         }
       }
@@ -4940,10 +5083,10 @@
     },
     "Seen %lld times": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "出現過 %lld 次"
+            "value": "%lld 回確認"
           }
         },
         "zh-HK": {
@@ -4958,10 +5101,10 @@
             "value": "出现过 %lld 次"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld 回確認"
+            "value": "出現過 %lld 次"
           }
         }
       }
@@ -5024,10 +5167,10 @@
     },
     "Sends only the first 5 characters of each password's SHA-1 hash to Have I Been Pwned. Passwords never leave this Mac.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "只會把每個密碼 SHA-1 雜湊的前 5 個字元傳給 Have I Been Pwned，密碼本身不會離開這部 Mac。"
+            "value": "各パスワードの SHA-1 ハッシュの先頭 5 文字だけを Have I Been Pwned に送信します。パスワード自体はこの Mac から出ません。"
           }
         },
         "zh-HK": {
@@ -5042,10 +5185,10 @@
             "value": "只会把每个密码 SHA-1 哈希的前 5 个字符发给 Have I Been Pwned，密码本身不会离开这台 Mac。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "各パスワードの SHA-1 ハッシュの先頭 5 文字だけを Have I Been Pwned に送信します。パスワード自体はこの Mac から出ません。"
+            "value": "只會把每個密碼 SHA-1 雜湊的前 5 個字元傳給 Have I Been Pwned，密碼本身不會離開這部 Mac。"
           }
         }
       }
@@ -5192,10 +5335,10 @@
     },
     "Shared with ^[%lld other item](inflect: true)": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "與其他 %lld 個項目共用"
+            "value": "他の %lld 件と共用"
           }
         },
         "zh-HK": {
@@ -5210,20 +5353,20 @@
             "value": "与其他 %lld 个项目共用"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "他の %lld 件と共用"
+            "value": "與其他 %lld 個項目共用"
           }
         }
       }
     },
     "Short or simple passwords are easy to guess. Generate a longer one.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "過短或過於簡單的密碼容易被猜中。請產生更長的密碼。"
+            "value": "短い・単純なパスワードは推測されやすいです。長いものを生成しましょう。"
           }
         },
         "zh-HK": {
@@ -5238,20 +5381,20 @@
             "value": "过短或过于简单的密码容易被猜中。请生成更长的密码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "短い・単純なパスワードは推測されやすいです。長いものを生成しましょう。"
+            "value": "過短或過於簡單的密碼容易被猜中。請產生更長的密碼。"
           }
         }
       }
     },
     "Show item": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示項目"
+            "value": "項目を表示"
           }
         },
         "zh-HK": {
@@ -5266,20 +5409,20 @@
             "value": "显示项目"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "項目を表示"
+            "value": "顯示項目"
           }
         }
       }
     },
     "Show website icons": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示網站圖示"
+            "value": "Web サイトのアイコンを表示"
           }
         },
         "zh-HK": {
@@ -5294,10 +5437,10 @@
             "value": "显示网站图标"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Web サイトのアイコンを表示"
+            "value": "顯示網站圖示"
           }
         }
       }
@@ -5584,10 +5727,10 @@
     },
     "These passwords appear in known breaches. Change them on each site.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "這些密碼出現在已知的外洩資料中，請到各網站更改。"
+            "value": "これらのパスワードは既知の漏えいに含まれています。各サイトで変更してください。"
           }
         },
         "zh-HK": {
@@ -5602,20 +5745,20 @@
             "value": "这些密码出现在已知的泄露数据中，请到各网站更改。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "これらのパスワードは既知の漏えいに含まれています。各サイトで変更してください。"
+            "value": "這些密碼出現在已知的外洩資料中，請到各網站更改。"
           }
         }
       }
     },
     "These sites are saved with http://, so the password travels unencrypted.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "這些網站以 http:// 儲存，密碼會以未加密方式傳送。"
+            "value": "これらのサイトは http:// で保存されており、パスワードが暗号化されずに送信されます。"
           }
         },
         "zh-HK": {
@@ -5630,10 +5773,10 @@
             "value": "这些网站以 http:// 保存，密码会以未加密方式传输。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "これらのサイトは http:// で保存されており、パスワードが暗号化されずに送信されます。"
+            "value": "這些網站以 http:// 儲存，密碼會以未加密方式傳送。"
           }
         }
       }
@@ -6063,10 +6206,10 @@
     },
     "Unsecured websites": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "不安全的網站"
+            "value": "安全でない Web サイト"
           }
         },
         "zh-HK": {
@@ -6081,10 +6224,10 @@
             "value": "不安全的网站"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全でない Web サイト"
+            "value": "不安全的網站"
           }
         }
       }
@@ -6141,6 +6284,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用此密碼"
+          }
+        }
+      }
+    },
+    "Use https:// for servers on the internet. http:// is only allowed on your local network.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網際網路上的伺服器請使用 https://，http:// 只允許用於區域網路。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互聯網上的伺服器請使用 https://，http:// 只允許用於區域網絡。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互联网上的服务器请使用 https://，http:// 只允许用于局域网。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インターネット上のサーバーには https:// を使ってください。http:// はローカルネットワークでのみ使えます。"
           }
         }
       }
@@ -6514,10 +6685,10 @@
     },
     "Weak passwords": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "弱密碼"
+            "value": "弱いパスワード"
           }
         },
         "zh-HK": {
@@ -6532,10 +6703,38 @@
             "value": "弱密码"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弱密碼"
+          }
+        }
+      }
+    },
+    "Web vault": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網頁版保險庫"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網頁版保險庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网页版密码库"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "弱いパスワード"
+            "value": "Web 保管庫"
           }
         }
       }
@@ -6800,10 +6999,10 @@
     },
     "score": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "分數"
+            "value": "スコア"
           }
         },
         "zh-HK": {
@@ -6818,10 +7017,10 @@
             "value": "分数"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "スコア"
+            "value": "分數"
           }
         }
       }
@@ -6854,6 +7053,34 @@
         }
       }
     },
+    "· in use": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 使用中"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 使用中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 使用中"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 使用中"
+          }
+        }
+      }
+    },
     "· reachable": {
       "localizations": {
         "ja": {
@@ -6878,6 +7105,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "· 可連線"
+          }
+        }
+      }
+    },
+    "“%@” isn't a valid URL.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」不是有效的網址。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」不是有效的網址。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”不是有效的网址。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」は有効な URL ではありません。"
           }
         }
       }

@@ -68,6 +68,16 @@ final class AppModel {
     var serverKind = ServerKind(rawValue: UserDefaults.standard.string(forKey: "serverKind") ?? "") ?? .selfHosted
     var serverURL = UserDefaults.standard.string(forKey: "serverURL") ?? "https://"
     var email = UserDefaults.standard.string(forKey: "email") ?? ""
+    /// Optional "Custom environment" fields for self-hosted servers (empty = derive from the server URL).
+    var customWebVault = ""
+    var customAPI = ""
+    var customIdentity = ""
+    var customIcons = ""
+    var customNotifications = ""
+    var hasCustomURLs: Bool {
+        ![customWebVault, customAPI, customIdentity, customIcons, customNotifications]
+            .allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty }
+    }
 
     var isUnlocked: Bool { phase.id == Phase.vault.id && !sessions.isEmpty }
 
@@ -229,6 +239,7 @@ final class AppModel {
         errorMessage = nil
         email = ""
         serverURL = "https://"
+        (customWebVault, customAPI, customIdentity, customIcons, customNotifications) = ("", "", "", "", "")
         phase = .login
     }
 
@@ -238,13 +249,46 @@ final class AppModel {
         phase = sessions.isEmpty ? (accounts.isEmpty ? .login : .locked) : .vault
     }
 
+    /// Why the self-hosted URLs can't be used, or nil when they're fine.
+    var serverURLProblem: String? {
+        guard serverKind == .selfHosted else { return nil }
+        let fields = [serverURL, customWebVault, customAPI, customIdentity, customIcons, customNotifications]
+            .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty && $0 != "https://" && $0 != "http://" }
+        for text in fields {
+            guard let url = Self.parseURL(text) else { return String(localized: "“\(text)” isn't a valid URL.") }
+            if url.scheme == "http", WatchtowerReport.isInsecure(url.absoluteString) {
+                return String(localized: "Use https:// for servers on the internet. http:// is only allowed on your local network.")
+            }
+        }
+        return nil
+    }
+
+    /// Accepts "vault.example.com" (adds https://) and trims trailing slashes, like the official clients.
+    static func parseURL(_ text: String) -> URL? {
+        var t = text.trimmingCharacters(in: .whitespaces)
+        while t.hasSuffix("/") { t.removeLast() }
+        guard !t.isEmpty else { return nil }
+        if !t.contains("://") { t = "https://" + t }
+        guard let url = URL(string: t), let scheme = url.scheme?.lowercased(), ["http", "https"].contains(scheme), url.host() != nil else { return nil }
+        return url
+    }
+
+    private var customURLs: CustomURLs? {
+        guard hasCustomURLs else { return nil }
+        let urls = CustomURLs(base: Self.parseURL(serverURL), webVault: Self.parseURL(customWebVault), api: Self.parseURL(customAPI),
+                              identity: Self.parseURL(customIdentity), icons: Self.parseURL(customIcons),
+                              notifications: Self.parseURL(customNotifications))
+        return urls.isUsable ? urls : nil
+    }
+
     private func environment() -> ServerEnvironment? {
         switch serverKind {
         case .bitwardenUS: return .bitwardenUS
         case .bitwardenEU: return .bitwardenEU
         case .selfHosted:
-            guard let url = URL(string: serverURL.trimmingCharacters(in: .whitespaces)), url.host() != nil else { return nil }
-            return .selfHosted(url)
+            guard serverURLProblem == nil else { return nil }
+            if hasCustomURLs { return customURLs.map(ServerEnvironment.custom) }
+            return Self.parseURL(serverURL).map(ServerEnvironment.selfHosted)
         }
     }
 
@@ -311,7 +355,7 @@ final class AppModel {
     ///   - code: the authenticator code in `.twoFactor`, or the emailed code in `.deviceVerification`.
     func login(password: String, code: String? = nil) async {
         guard let environment = environment() else {
-            errorMessage = String(localized: "Enter a valid server URL.")
+            errorMessage = serverURLProblem ?? String(localized: "Enter a valid server URL.")
             return
         }
         isBusy = true
@@ -329,9 +373,10 @@ final class AppModel {
             UserDefaults.standard.set(serverKind.rawValue, forKey: "serverKind")
             UserDefaults.standard.set(serverURL, forKey: "serverURL")
             UserDefaults.standard.set(email, forKey: "email")
-            let id = SavedAccount.makeID(serverKind: serverKind.rawValue, serverURL: serverURL, email: email)
+            let custom: CustomURLs? = if case .custom(let urls) = environment { urls } else { nil }
+            let id = SavedAccount.makeID(serverKind: serverKind.rawValue, serverURL: serverURL, email: email, customURLs: custom)
             let account = SavedAccount(id: id, email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
-                                       kdf: result.kdf, protectedUserKey: result.protectedUserKey)
+                                       kdf: result.kdf, protectedUserKey: result.protectedUserKey, customURLs: custom)
             AccountStore.save(account)
             AccountStore.setRefreshToken(result.refreshToken, id)
             let session = open(account, key: result.userKey, client: client)
