@@ -81,6 +81,7 @@ struct VaultView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button { showGenerator = true } label: { Label("Password Generator", systemImage: "dice") }
                         .help(Text("Password Generator (⌘G)"))
+                        .keyboardShortcut("g", modifiers: .command)
                         .popover(isPresented: $showGenerator) { GeneratorView() }
                     Menu {
                         Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
