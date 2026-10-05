@@ -42,6 +42,10 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
 - **AutoFill** never fills without you there. Every request requires Touch ID or the master password inside
   the extension, and `provideCredentialWithoutUserInteraction` always refuses. Only domains, usernames and
   passkey ids are shared with the system's QuickType list, never passwords.
+- **SSH agent** (off by default) listens on a `0600` socket in the App Group container. It only lists and
+  signs; it never adds, removes or exports keys. Every signature asks for Touch ID or the Mac password, names
+  the requesting program, and can optionally be remembered for 1 or 10 minutes per key and program. Keys
+  are only available while their account is unlocked.
 - **Leaked-password check** (Watchtower) uses the Have I Been Pwned k-anonymity range API with padding.
   Only the first 5 hex characters of each SHA-1 are sent.
 - **Self-hosted servers**: public `http://` servers are refused, while local-network `http://` is allowed for

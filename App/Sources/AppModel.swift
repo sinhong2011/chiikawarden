@@ -90,8 +90,14 @@ final class AppModel {
     /// Whether any locked account can be opened with Touch ID (unlock screen).
     var touchIDEnabled = false
 
+    /// Serves SSH key items to ssh/git while unlocked (Settings › SSH).
+    @ObservationIgnored private(set) var sshAgent: SSHAgentService!
+
     init() {
         AttachmentFiles.wipe() // leftovers from a crash
+        sshAgent = SSHAgentService(model: self)
+        let tooling = CommandLine.arguments.contains { $0 == "--selftest" || $0 == "--snapshot" }
+        if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }
@@ -314,6 +320,13 @@ final class AppModel {
     }
 
     /// Copies a secret, hides it from clipboard managers, and clears it after the configured delay if unchanged.
+    /// Copies non-secret text (config snippets, public keys) without the clipboard timer.
+    func copyPlain(_ value: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(value, forType: .string)
+        flash(String(localized: "Copied"))
+    }
+
     func copy(_ value: String, label: String) {
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -680,6 +693,7 @@ final class AppModel {
     func lock() {
         previewURL = nil
         AttachmentFiles.wipe()
+        sshAgent?.reset()
         breachCounts = nil
         breachesCheckedAt = nil
         sessions.forEach { $0.close() }

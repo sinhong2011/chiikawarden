@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .library(name: "ChiikawaCrypto", targets: ["ChiikawaCrypto"]),
         .library(name: "VaultwardenAPI", targets: ["VaultwardenAPI"]),
+        .library(name: "SSHAgent", targets: ["SSHAgent"]),
     ],
     dependencies: [
         // Reference Argon2 (CC0 / Apache-2.0), pinned.
@@ -15,6 +16,8 @@ let package = Package(
     targets: [
         .target(name: "ChiikawaCrypto", dependencies: [.product(name: "argon2", package: "phc-winner-argon2")]),
         .target(name: "VaultwardenAPI", dependencies: ["ChiikawaCrypto"]),
+        .target(name: "SSHAgent"),
+        .testTarget(name: "SSHAgentTests", dependencies: ["SSHAgent"]),
         .testTarget(name: "ChiikawaCryptoTests", dependencies: ["ChiikawaCrypto"]),
         .testTarget(name: "VaultwardenAPITests", dependencies: ["VaultwardenAPI"]),
     ]

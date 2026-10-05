@@ -10,6 +10,7 @@ struct SettingsView: View {
             Tab("General", systemImage: "gearshape") { GeneralSettings() }
             Tab("Accounts", systemImage: "person.2") { AccountsSettings() }
             Tab("Security", systemImage: "lock.shield") { SecuritySettings() }
+            Tab("SSH", systemImage: "terminal") { SSHSettings() }
             Tab("Server", systemImage: "server.rack") { ServerSettings() }
             Tab("About", systemImage: "info.circle") { AboutSettings() }
         }
@@ -145,6 +146,68 @@ private struct SecuritySettings: View {
             } footer: {
                 Text("Copied secrets are marked as concealed, so clipboard managers skip them.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+// MARK: SSH
+
+private struct SSHSettings: View {
+    @Environment(AppModel.self) private var model
+    @AppStorage(Pref.sshAgent) private var enabled = false
+    @AppStorage(Pref.sshApprovalSeconds) private var approvalSeconds = 0
+
+    private var configLine: String { "Host *\n  IdentityAgent \"\(model.sshAgent.socketPath)\"" }
+
+    var body: some View {
+        let agent = model.sshAgent!
+        Form {
+            Section {
+                Toggle("Use Chiikawarden as SSH agent", isOn: $enabled)
+                    .onChange(of: enabled) { _, on in on ? agent.start() : agent.stop() }
+                Picker("Ask before signing", selection: $approvalSeconds) {
+                    Text("Every time").tag(0)
+                    Text("Once per minute, per app").tag(60)
+                    Text("Once per 10 minutes, per app").tag(600)
+                }
+                if let error = agent.lastError {
+                    Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.caption)
+                }
+            } header: {
+                Text("Agent")
+            } footer: {
+                Text("SSH key items from unlocked accounts are offered to ssh and git. Every signature needs Touch ID or your Mac password; keys never leave the app.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                LabeledContent("Add to ~/.ssh/config") {
+                    Button("Copy") { model.copyPlain(configLine) }
+                }
+                Text(verbatim: configLine)
+                    .font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                    .foregroundStyle(.secondary)
+                LabeledContent("Or for one shell") {
+                    Button("Copy") { model.copyPlain("export SSH_AUTH_SOCK=\"\(agent.socketPath)\"") }
+                }
+            } header: {
+                Text("Setup")
+            }
+
+            if !agent.recent.isEmpty {
+                Section("Recent requests") {
+                    ForEach(Array(agent.recent.enumerated()), id: \.offset) { _, entry in
+                        HStack {
+                            Image(systemName: entry.allowed ? "checkmark.circle" : "xmark.circle")
+                                .foregroundStyle(entry.allowed ? .green : .red)
+                            Text(verbatim: "\(entry.program) → \(entry.key)")
+                            Spacer()
+                            Text(entry.date, style: .relative).foregroundStyle(.secondary).font(.caption)
+                        }
+                    }
+                }
             }
         }
         .formStyle(.grouped)

@@ -34,6 +34,8 @@ targets:
         product: ChiikawaCrypto
       - package: VaultCore
         product: VaultwardenAPI
+      - package: VaultCore
+        product: SSHAgent
       - target: ChiikawardenAutoFill
         embed: true
     entitlements:

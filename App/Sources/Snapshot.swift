@@ -139,6 +139,27 @@ enum Snapshot {
         }
     }
 
+    /// Runs a command-line tool for the self-test.
+    /// Runs off the main actor: the SSH agent being tested needs the main actor to answer.
+    nonisolated static func tool(_ name: String, _ args: [String], env: [String: String] = [:], stdin: Data? = nil) async -> (status: Int32, output: String) {
+        await Task.detached { runTool(name, args, env: env, stdin: stdin) }.value
+    }
+
+    nonisolated static func runTool(_ name: String, _ args: [String], env: [String: String], stdin: Data?) -> (status: Int32, output: String) {
+        let p = Process()
+        p.executableURL = URL(filePath: "/usr/bin/\(name)")
+        p.arguments = args
+        p.environment = ProcessInfo.processInfo.environment.merging(env) { $1 }
+        let out = Pipe(), input = Pipe()
+        p.standardOutput = out; p.standardError = out; p.standardInput = input
+        do { try p.run() } catch { return (-1, "\(error)") }
+        if let stdin { input.fileHandleForWriting.write(stdin) }
+        try? input.fileHandleForWriting.close()
+        let data = out.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        return (p.terminationStatus, String(decoding: data, as: UTF8.self))
+    }
+
     static let demoItems: [VaultItem] = [
         VaultItem(id: "1", name: "Cloudflare", username: "ops@momonga.dev", host: "dash.cloudflare.com",
                   password: "cf-9xQ!m2Lp#Vt7", totp: TOTP("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"), notes: nil, favorite: false),
@@ -312,6 +333,33 @@ enum SelfTest {
                 _ = await model.createItem(.sshKey, edit: sshEdit)
                 let ssh = model.items.first { $0.name == "Selftest SSH" }
                 check(ssh?.properties["publicKey"] == pair.publicKey && ssh?.username == pair.fingerprint, "create SSH key")
+
+                // SSH agent: real ssh-add / ssh-keygen talk to it; approvals go through our hook.
+                let socket = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AccountStore.appGroup)!
+                    .appending(path: "t.sock")
+                var asked: [String] = []
+                model.sshAgent.approveOverride = { key, program in asked.append("\(program)→\(key)"); return true }
+                model.sshAgent.start(at: socket)
+                let env = ["SSH_AUTH_SOCK": socket.path]
+                let listed = await Snapshot.tool("ssh-add", ["-L"], env: env)
+                check(listed.status == 0 && listed.output.contains(pair.publicKey.split(separator: " ")[1]), "ssh-add lists the vault's SSH key")
+                let pubFile = FileManager.default.temporaryDirectory.appending(path: "selftest-key.pub")
+                try? Data((pair.publicKey + "\n").utf8).write(to: pubFile)
+                let message = Data("signed commit\n".utf8)
+                let agentSigned = await Snapshot.tool("ssh-keygen", ["-Y", "sign", "-n", "git", "-f", pubFile.path, "-q"], env: env, stdin: message)
+                let signers = FileManager.default.temporaryDirectory.appending(path: "selftest-signers")
+                let sigFile = FileManager.default.temporaryDirectory.appending(path: "selftest.sig")
+                try? Data("usagi \(pair.publicKey)\n".utf8).write(to: signers)
+                try? Data(agentSigned.output.utf8).write(to: sigFile)
+                let verified = await Snapshot.tool("ssh-keygen", ["-Y", "verify", "-n", "git", "-I", "usagi", "-f", signers.path, "-s", sigFile.path],
+                                         stdin: message)
+                check(agentSigned.status == 0 && verified.status == 0 && asked == ["ssh-keygen→Selftest SSH"],
+                      "git-style signing through the agent asks once and verifies")
+                model.sshAgent.approveOverride = { _, _ in false }
+                let denied = await Snapshot.tool("ssh-keygen", ["-Y", "sign", "-n", "git", "-f", pubFile.path, "-q"], env: env, stdin: message)
+                check(denied.status != 0, "denied approval fails the signature")
+                model.sshAgent.stop()
+                model.sshAgent.approveOverride = nil
                 if let ssh { await model.deleteForever(ssh) }
 
                 // Passkey stored on a login: decoded, signable, published, preserved by edits.

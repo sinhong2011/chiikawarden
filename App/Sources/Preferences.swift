@@ -9,6 +9,8 @@ enum Pref {
     static let lockOnSleep = "lockOnSleep"
     static let clipboardSeconds = "clipboardSeconds" // 0 = never clear
     static let showIcons = "showIcons"
+    static let sshAgent = "sshAgent"                 // serve SSH key items over the agent socket
+    static let sshApprovalSeconds = "sshApprovalSeconds" // 0 = ask for every signature
 
     static func register() {
         UserDefaults.standard.register(defaults: [

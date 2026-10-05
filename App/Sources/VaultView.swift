@@ -561,6 +561,19 @@ struct ItemDetail: View {
                             Text(verbatim: folder.name).foregroundStyle(.secondary)
                         }
                     }
+                    if item.kind == .sshKey, let publicKey = item.properties["publicKey"], !publicKey.isEmpty {
+                        DetailRow(symbol: "signature", title: "Git signing") {
+                            Button("Copy Setup") {
+                                model.copyPlain("""
+                                git config --global gpg.format ssh
+                                git config --global user.signingkey "key::\(publicKey)"
+                                git config --global commit.gpgsign true
+                                """)
+                            }
+                            .buttonStyle(.borderless)
+                            .help(Text("Commands that make git sign commits with this key through the Chiikawarden SSH agent"))
+                        }
+                    }
                     if item.hasPasskey {
                         DetailRow(symbol: "person.badge.key", title: "Passkey") {
                             if let pk = item.passkeys.first {

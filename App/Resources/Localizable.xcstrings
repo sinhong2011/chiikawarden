@@ -572,10 +572,10 @@
     },
     "Add Files…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入檔案…"
+            "value": "ファイルを追加…"
           }
         },
         "zh-HK": {
@@ -590,10 +590,10 @@
             "value": "添加文件…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ファイルを追加…"
+            "value": "加入檔案…"
           }
         }
       }
@@ -622,6 +622,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "加入標頭"
+          }
+        }
+      }
+    },
+    "Add to ~/.ssh/config": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入 ~/.ssh/config"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入 ~/.ssh/config"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到 ~/.ssh/config"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.ssh/config に追加"
           }
         }
       }
@@ -738,6 +766,34 @@
         }
       }
     },
+    "Agent": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理程式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理程式"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エージェント"
+          }
+        }
+      }
+    },
     "All": {
       "localizations": {
         "ja": {
@@ -822,12 +878,40 @@
         }
       }
     },
-    "Attached “%@”": {
+    "Ask before signing": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已附加「%@」"
+            "value": "簽署前詢問"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簽署前詢問"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签名前询问"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "署名前に確認"
+          }
+        }
+      }
+    },
+    "Attached “%@”": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」を添付しました"
           }
         },
         "zh-HK": {
@@ -842,20 +926,20 @@
             "value": "已附加“%@”"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」を添付しました"
+            "value": "已附加「%@」"
           }
         }
       }
     },
     "Attachments": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "附件"
+            "value": "添付ファイル"
           }
         },
         "zh-HK": {
@@ -870,10 +954,10 @@
             "value": "附件"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "添付ファイル"
+            "value": "附件"
           }
         }
       }
@@ -1665,6 +1749,34 @@
         }
       }
     },
+    "Commands that make git sign commits with this key through the Chiikawarden SSH agent": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讓 git 透過 Chiikawarden SSH 代理程式以此金鑰簽署提交的指令"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "令 git 透過 Chiikawarden SSH 代理程式用此密鑰簽署提交的指令"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让 git 通过 Chiikawarden SSH 代理用此密钥签名提交的命令"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden SSH エージェント経由でこの鍵を使って git のコミットに署名するためのコマンド"
+          }
+        }
+      }
+    },
     "Company": {
       "localizations": {
         "ja": {
@@ -1717,6 +1829,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "聯絡資訊"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拷貝"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーしました"
           }
         }
       }
@@ -1857,6 +1997,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝密碼"
+          }
+        }
+      }
+    },
+    "Copy Setup": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝設定"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製設定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制设置"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定をコピー"
           }
         }
       }
@@ -2025,6 +2193,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法傳送提示，請檢查伺服器後再試一次。"
+          }
+        }
+      }
+    },
+    "Couldn't start the SSH agent: %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動 SSH 代理程式：%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動 SSH 代理程式：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动 SSH 代理：%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH エージェントを起動できませんでした：%@"
+          }
+        }
+      }
+    },
+    "Couldn't start the SSH agent: the socket path is longer than macOS allows (104 bytes). This happens with very long user names.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動 SSH 代理程式：通訊端路徑超過 macOS 上限（104 位元組），通常是因為使用者名稱過長。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動 SSH 代理程式：通訊端路徑超過 macOS 上限（104 位元組），通常係因為用戶名稱太長。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动 SSH 代理：套接字路径超过 macOS 上限（104 字节），通常是因为用户名过长。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH エージェントを起動できませんでした：ソケットのパスが macOS の上限（104 バイト）を超えています。ユーザ名が非常に長い場合に起こります。"
           }
         }
       }
@@ -2227,10 +2451,10 @@
     },
     "Delete": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "刪除"
+            "value": "削除"
           }
         },
         "zh-HK": {
@@ -2245,10 +2469,10 @@
             "value": "删除"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "削除"
+            "value": "刪除"
           }
         }
       }
@@ -2311,10 +2535,10 @@
     },
     "Delete “%@”?": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "要刪除「%@」嗎？"
+            "value": "「%@」を削除しますか？"
           }
         },
         "zh-HK": {
@@ -2329,10 +2553,10 @@
             "value": "要删除“%@”吗？"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」を削除しますか？"
+            "value": "要刪除「%@」嗎？"
           }
         }
       }
@@ -2367,10 +2591,10 @@
     },
     "Deleted “%@”": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已刪除「%@」"
+            "value": "「%@」を削除しました"
           }
         },
         "zh-HK": {
@@ -2385,10 +2609,38 @@
             "value": "已删除“%@”"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已刪除「%@」"
+          }
+        }
+      }
+    },
+    "Deny": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒絕"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒絕"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」を削除しました"
+            "value": "拒否"
           }
         }
       }
@@ -2451,10 +2703,10 @@
     },
     "Drop files here to attach them, encrypted.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "將檔案拖放到這裡，即可加密附加。"
+            "value": "ここにファイルをドロップすると暗号化して添付します。"
           }
         },
         "zh-HK": {
@@ -2469,20 +2721,20 @@
             "value": "将文件拖放到这里，即可加密附加。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ここにファイルをドロップすると暗号化して添付します。"
+            "value": "將檔案拖放到這裡，即可加密附加。"
           }
         }
       }
     },
     "Drop to attach": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "放開以附加"
+            "value": "ドロップして添付"
           }
         },
         "zh-HK": {
@@ -2497,10 +2749,10 @@
             "value": "松开以附加"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ドロップして添付"
+            "value": "放開以附加"
           }
         }
       }
@@ -2697,6 +2949,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入伺服器位址"
+          }
+        }
+      }
+    },
+    "Every time": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎回"
           }
         }
       }
@@ -3229,6 +3509,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "產生密碼"
+          }
+        }
+      }
+    },
+    "Git signing": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 簽署"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 簽署"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 签名"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 署名"
           }
         }
       }
@@ -5109,6 +5417,62 @@
         }
       }
     },
+    "Once per 10 minutes, per app": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每個 App 每 10 分鐘一次"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每個 App 每 10 分鐘一次"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个 App 每 10 分钟一次"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリごとに 10 分に 1 回"
+          }
+        }
+      }
+    },
+    "Once per minute, per app": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每個 App 每分鐘一次"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每個 App 每分鐘一次"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个 App 每分钟一次"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリごとに 1 分に 1 回"
+          }
+        }
+      }
+    },
     "One leak exposes every site that shares a password. Give each its own.": {
       "localizations": {
         "ja": {
@@ -5525,6 +5889,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "或在下方輸入主密碼。"
+          }
+        }
+      }
+    },
+    "Or for one shell": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "或只用於一個 Shell"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "或只用於一個 Shell"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "或仅用于一个 Shell"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "または 1 つのシェルだけで"
           }
         }
       }
@@ -5951,10 +6343,10 @@
     },
     "Quick Look": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "快速查看"
+            "value": "クイックルック"
           }
         },
         "zh-HK": {
@@ -5969,10 +6361,10 @@
             "value": "快速查看"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "クイックルック"
+            "value": "快速查看"
           }
         }
       }
@@ -6029,6 +6421,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "結束"
+          }
+        }
+      }
+    },
+    "Recent requests": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的請求"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的請求"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的请求"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近のリクエスト"
           }
         }
       }
@@ -6257,6 +6677,34 @@
         }
       }
     },
+    "SSH": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH"
+          }
+        }
+      }
+    },
     "SSH Key": {
       "localizations": {
         "ja": {
@@ -6313,6 +6761,34 @@
         }
       }
     },
+    "SSH key items from unlocked accounts are offered to ssh and git. Every signature needs Touch ID or your Mac password; keys never leave the app.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解鎖帳號中的 SSH 金鑰項目會提供給 ssh 和 git 使用。每次簽署都需要 Touch ID 或 Mac 密碼；金鑰永遠不會離開 App。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解鎖帳戶中的 SSH 密鑰項目會提供俾 ssh 同 git 使用。每次簽署都需要 Touch ID 或 Mac 密碼；密鑰永遠唔會離開 App。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解锁账户中的 SSH 密钥项会提供给 ssh 和 git 使用。每次签名都需要 Touch ID 或 Mac 密码；密钥永远不会离开 App。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロック解除済みアカウントの SSH 鍵を ssh と git に提供します。署名のたびに Touch ID または Mac のパスワードが必要で、鍵がアプリの外に出ることはありません。"
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "ja": {
@@ -6343,10 +6819,10 @@
     },
     "Save As…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "另存新檔…"
+            "value": "別名で保存…"
           }
         },
         "zh-HK": {
@@ -6361,10 +6837,10 @@
             "value": "存储为…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "別名で保存…"
+            "value": "另存新檔…"
           }
         }
       }
@@ -6455,10 +6931,10 @@
     },
     "Saved “%@”": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已儲存「%@」"
+            "value": "「%@」を保存しました"
           }
         },
         "zh-HK": {
@@ -6473,10 +6949,10 @@
             "value": "已保存“%@”"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」を保存しました"
+            "value": "已儲存「%@」"
           }
         }
       }
@@ -6869,6 +7345,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "設定…"
+          }
+        }
+      }
+    },
+    "Setup": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定方式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定方式"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置方法"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定方法"
           }
         }
       }
@@ -7379,10 +7883,10 @@
     },
     "The file is removed from your vault on every device.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "檔案會從你所有裝置上的保險庫中移除。"
+            "value": "すべてのデバイスの保管庫からファイルが削除されます。"
           }
         },
         "zh-HK": {
@@ -7397,10 +7901,10 @@
             "value": "文件会从你所有设备上的密码库中移除。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "すべてのデバイスの保管庫からファイルが削除されます。"
+            "value": "檔案會從你所有裝置上的保險庫中移除。"
           }
         }
       }
@@ -8249,6 +8753,34 @@
         }
       }
     },
+    "Use Chiikawarden as SSH agent": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Chiikawarden 作為 SSH 代理程式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Chiikawarden 作為 SSH 代理程式"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Chiikawarden 作为 SSH 代理"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden を SSH エージェントとして使う"
+          }
+        }
+      }
+    },
     "Use Password": {
       "localizations": {
         "ja": {
@@ -8980,6 +9512,40 @@
         }
       }
     },
+    "allow “%@” to sign with the SSH key “%@”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "allow “%1$@” to sign with the SSH key “%2$@”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許「%1$@」使用 SSH 金鑰「%2$@」簽署"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許「%1$@」使用 SSH 密鑰「%2$@」簽署"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许“%1$@”使用 SSH 密钥“%2$@”签名"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%1$@」が SSH 鍵「%2$@」で署名することを許可"
+          }
+        }
+      }
+    },
     "bitwarden.com": {
       "shouldTranslate": false
     },
@@ -9271,10 +9837,10 @@
     },
     "“%@” is larger than 500 MB.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」超過 500 MB。"
+            "value": "「%@」は 500 MB を超えています。"
           }
         },
         "zh-HK": {
@@ -9289,10 +9855,10 @@
             "value": "“%@”超过 500 MB。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」は 500 MB を超えています。"
+            "value": "「%@」超過 500 MB。"
           }
         }
       }
