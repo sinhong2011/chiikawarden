@@ -689,37 +689,71 @@ struct ItemDetail: View {
     }
 }
 
+/// Light: a white card with a faint brand wash. Dark: the deep navy card. Same layout in both.
+private struct HeroStyle {
+    let dark: Bool
+    var ink: Color { dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16) }
+    var muted: Color { dark ? .white.opacity(0.72) : Color(red: 0.07, green: 0.09, blue: 0.16).opacity(0.58) }
+    var tile: Color { dark ? .white.opacity(0.12) : Color.brand.opacity(0.06) }
+    var tileEdge: Color { dark ? .white.opacity(0.18) : Color.brand.opacity(0.14) }
+    var track: Color { dark ? .white.opacity(0.15) : Color.brand.opacity(0.14) }
+    var bar: Color { dark ? .white : .brand }
+    var avatar: Color { dark ? .white.opacity(0.14) : Color.brand.opacity(0.10) }
+    var avatarInk: Color { dark ? .white : .brand }
+    var secondaryButton: Color { dark ? .white.opacity(0.14) : Color.primary.opacity(0.06) }
+}
+
 private struct HeroCard: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
     let item: VaultItem
     @Binding var reveal: Bool
 
     var body: some View {
+        let style = HeroStyle(dark: scheme == .dark)
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
                 Text(item.name.prefix(1).uppercased())
                     .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .foregroundStyle(style.avatarInk)
                     .frame(width: 52, height: 52)
-                    .background(.white.opacity(0.14), in: .rect(cornerRadius: 15, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(.white.opacity(0.25)))
+                    .background(style.avatar, in: .rect(cornerRadius: 15, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(style.tileEdge))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).font(.system(size: 30, weight: .heavy)).tracking(-0.8).lineLimit(1)
                     Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
-                        .foregroundStyle(.white.opacity(0.75)).lineLimit(1)
+                        .foregroundStyle(style.muted).lineLimit(1)
                 }
             }
 
-            HStack(spacing: 10) {
+            // Tiles share one height: the row sizes to the tallest, each tile fills it.
+            HStack(alignment: .top, spacing: 10) {
                 if let password = item.password {
-                    Tile {
+                    Tile(style: style) {
                         model.copy(password, label: String(localized: "Password"))
                     } content: {
-                        Text("Password · click to copy").font(.system(size: 12)).foregroundStyle(.white.opacity(0.75))
+                        let strength = StrengthMeter(password: password).level
+                        HStack {
+                            Text("Password · click to copy")
+                            Spacer()
+                            Text(strength.1)
+                        }
+                        .font(.system(size: 12)).foregroundStyle(style.muted)
                         Text(verbatim: reveal ? password : String(repeating: "•", count: 12))
-                            .font(.system(size: 16, design: .monospaced))
-                            .tracking(reveal ? 0.5 : 3)
+                            .font(.system(size: reveal ? 16 : 20, weight: .semibold, design: .monospaced))
+                            .tracking(reveal ? 0.5 : 2)
                             .lineLimit(1)
+                            .frame(height: 24, alignment: .leading)
                             .contentTransition(.opacity)
+                        // Same place and size as the code's countdown bar, so the tiles line up.
+                        GeometryReader { g in
+                            Capsule().fill(style.track)
+                                .overlay(alignment: .leading) {
+                                    Capsule().fill(strength.0 <= 1 ? Color.red : strength.0 == 2 ? Color.orange : Color.green)
+                                        .frame(width: g.size.width * Double(strength.0) / 4)
+                                }
+                        }
+                        .frame(height: 4)
                     }
                 }
                 if let totp = item.totp {
@@ -728,7 +762,7 @@ private struct HeroCard: View {
                         let left = totp.secondsRemaining(at: context.date)
                         let period = Double(totp.period)
                         let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                        Tile {
+                        Tile(style: style) {
                             model.copy(code, label: String(localized: "Code"))
                         } content: {
                             HStack {
@@ -736,14 +770,15 @@ private struct HeroCard: View {
                                 Spacer()
                                 Text(verbatim: "\(left)s").monospacedDigit()
                             }
-                            .font(.system(size: 12)).foregroundStyle(.white.opacity(0.75))
+                            .font(.system(size: 12)).foregroundStyle(style.muted)
                             Text(verbatim: code.prefix(code.count / 2) + " " + code.suffix(code.count - code.count / 2))
                                 .font(.system(size: 20, weight: .semibold, design: .monospaced))
+                                .frame(height: 24, alignment: .leading)
                                 .contentTransition(.numericText())
                             GeometryReader { g in
-                                Capsule().fill(.white.opacity(0.15))
+                                Capsule().fill(style.track)
                                     .overlay(alignment: .leading) {
-                                        Capsule().fill(left <= 5 ? Color.orange : Color.white)
+                                        Capsule().fill(left <= 5 ? Color.orange : style.bar)
                                             .frame(width: g.size.width * remaining)
                                     }
                             }
@@ -753,15 +788,16 @@ private struct HeroCard: View {
                     }
                 }
             }
+            .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 8) {
                 if let host = item.host, let url = URL(string: "https://\(host)") {
                     Link(destination: url) {
                         Label("Open website", systemImage: "arrow.up.right.square")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(Color.hero)
+                            .foregroundStyle(style.dark ? Color.hero : .white)
                             .padding(.horizontal, 18).frame(height: 40)
-                            .background(.white, in: .capsule)
+                            .background(style.dark ? Color.white : Color.brand, in: .capsule)
                     }
                     .buttonStyle(.plain)
                 }
@@ -770,30 +806,32 @@ private struct HeroCard: View {
                         Label(reveal ? "Hide" : "Reveal", systemImage: reveal ? "eye.slash" : "eye")
                             .font(.system(size: 13, weight: .semibold))
                             .padding(.horizontal, 18).frame(height: 40)
-                            .background(.white.opacity(0.14), in: .capsule)
+                            .background(style.secondaryButton, in: .capsule)
                             .contentTransition(.symbolEffect(.replace))
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(style.ink)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             ZStack {
-                Color.hero
-                RadialGradient(colors: [Color.brand.opacity(0.55), .clear],
-                               center: UnitPoint(x: 0.95, y: -0.1), startRadius: 0, endRadius: 280)
+                if style.dark { Color.hero } else { Color.panelStrong }
+                RadialGradient(colors: [Color.brand.opacity(style.dark ? 0.55 : 0.12), .clear],
+                               center: UnitPoint(x: 0.95, y: -0.1), startRadius: 0, endRadius: 300)
             }
             .clipShape(.rect(cornerRadius: 24, style: .continuous))
         }
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.white.opacity(0.08)))
-        .shadow(color: .black.opacity(0.3), radius: 24, y: 16)
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .strokeBorder(style.dark ? Color.white.opacity(0.08) : Color.panelEdge))
+        .shadow(color: .black.opacity(style.dark ? 0.3 : 0.07), radius: style.dark ? 24 : 18, y: style.dark ? 16 : 8)
     }
 }
 
 private struct Tile<Content: View>: View {
+    let style: HeroStyle
     let action: () -> Void
     @ViewBuilder let content: Content
 
@@ -801,9 +839,9 @@ private struct Tile<Content: View>: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) { content }
                 .padding(.horizontal, 16).padding(.vertical, 14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white.opacity(0.12), in: .rect(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.18)))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(style.tile, in: .rect(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(style.tileEdge))
                 .contentShape(.rect)
         }
         .buttonStyle(PressScale())

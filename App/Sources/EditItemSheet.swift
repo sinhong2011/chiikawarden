@@ -424,7 +424,8 @@ struct StrengthMeter: View {
         bits = Double(password.count) * log2(Double(max(pool, 2)))
     }
 
-    private var level: (Int, LocalizedStringKey, Color) {
+    /// 1…4 with a label and colour; shared with the item card.
+    var level: (Int, LocalizedStringKey, Color) {
         switch bits {
         case ..<40: (1, "Weak", .red)
         case ..<64: (2, "Fair", .orange)
