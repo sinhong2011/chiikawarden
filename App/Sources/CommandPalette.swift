@@ -60,12 +60,12 @@ struct CommandPalette: View {
 
     var body: some View {
         let dark = scheme == .dark
-        VStack(spacing: 6) {
+        VStack(spacing: 0) {
             HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass").font(.system(size: 18, weight: .medium)).foregroundStyle(.secondary)
+                Image(systemName: "magnifyingglass").font(.system(size: 17)).foregroundStyle(.secondary)
                 TextField("Search or run a command", text: $query)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 21, weight: .semibold))
+                    .font(.system(size: 19))
                     .focused($focused)
                     .onKeyPress(.downArrow) { move(1); return .handled }
                     .onKeyPress(.upArrow) { move(-1); return .handled }
@@ -79,23 +79,21 @@ struct CommandPalette: View {
                 }
             }
             .padding(.horizontal, 18)
-            .frame(height: 56)
-            .background(dark ? Color.white.opacity(0.07) : Color.white.opacity(0.75), in: .rect(cornerRadius: 22, style: .continuous))
+            .frame(height: 54)
+            Divider().opacity(0.6)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 if !model.isUnlocked {
                     Label("Vault locked: unlock Chiikawarden to search it", systemImage: "lock.fill")
                         .font(.system(size: 13)).foregroundStyle(.secondary).padding(12)
                 }
                 ForEach(Array(entries.enumerated()), id: \.element.id) { i, entry in
-                    if i == items.count, !commands.isEmpty {
-                        Text("Commands").font(.system(size: 11, weight: .bold)).tracking(0.6).textCase(.uppercase)
-                            .foregroundStyle(.secondary).padding(.horizontal, 14).padding(.top, i == 0 ? 2 : 8).padding(.bottom, 2)
-                    }
+                    if i == 0, !items.isEmpty { sectionLabel(q.isEmpty ? "Suggestions" : "Items", first: true) }
+                    if i == items.count, !commands.isEmpty { sectionLabel("Commands", first: i == 0) }
                     Group {
                         switch entry {
                         case .item(let item):
-                            if i == index { SelectedItemCard(item: item, dark: dark) } else { ItemLine(item: item) }
+                            ItemLine(item: item, selected: i == index)
                         case .command(let command):
                             CommandLine(command: command, selected: i == index)
                         }
@@ -111,18 +109,26 @@ struct CommandPalette: View {
                     Text("Nothing matches “\(q)”").font(.system(size: 13)).foregroundStyle(.secondary).padding(14)
                 }
             }
-            .padding(4)
-            .animation(.spring(duration: 0.3, bounce: 0.15), value: index)
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .animation(.snappy(duration: 0.18), value: index)
+
+            Divider().opacity(0.6)
+            HStack(spacing: 16) {
+                footerHint("↑↓", "Navigate")
+                footerHint("↵", "Open")
+                Spacer()
+                footerHint("esc", "Close")
+            }
+            .padding(.horizontal, 16).frame(height: 36)
         }
-        .padding(8)
-        .frame(width: 660)
-        .background(.regularMaterial, in: .rect(cornerRadius: 30, style: .continuous))
-        .background((dark ? Color.black.opacity(0.2) : Color.white.opacity(0.45)), in: .rect(cornerRadius: 30, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(dark ? 0.12 : 0.9), lineWidth: 1))
-        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.35), radius: 40, y: 24)
+        .frame(width: 640)
+        .background(.regularMaterial, in: .rect(cornerRadius: 22, style: .continuous))
+        .background((dark ? Color.black.opacity(0.15) : Color.white.opacity(0.55)), in: .rect(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.14 : 0.08), lineWidth: 0.5))
+        .shadow(color: .black.opacity(dark ? 0.35 : 0.14), radius: 18, y: 8)
         .scaleEffect(x: appeared ? 1 : 0.6, y: appeared ? 1 : 0.8, anchor: .top)
         .opacity(appeared ? 1 : 0)
-        .padding(40) // room for the shadow inside the panel
+        .padding(28) // room for the shadow inside the panel
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         // The transparent margin is part of the panel: a click there counts as outside.
         .background(Color.black.opacity(0.001).onTapGesture { close() })
@@ -132,6 +138,18 @@ struct CommandPalette: View {
             withAnimation(.spring(duration: 0.5, bounce: 0.3)) { appeared = true }
         }
         .onChange(of: query) { index = 0 }
+    }
+
+    private func sectionLabel(_ title: LocalizedStringKey, first: Bool) -> some View {
+        Text(title).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+            .padding(.horizontal, 10).padding(.top, first ? 4 : 10).padding(.bottom, 2)
+    }
+
+    private func footerHint(_ keys: String, _ label: LocalizedStringKey) -> some View {
+        HStack(spacing: 6) {
+            Keycap(keys: keys)
+            Text(label).font(.system(size: 12)).foregroundStyle(.secondary)
+        }
     }
 
     private func move(_ delta: Int) {
@@ -200,78 +218,85 @@ struct CommandPalette: View {
     }
 }
 
-/// The highlighted login, opened up: name, live code with its countdown, and what ↵ / ⌘↵ / ⌥↵ / ⇧↵ do.
-/// A raised light panel like the rest of the app (no dark slab).
-private struct SelectedItemCard: View {
-    let item: VaultItem
-    let dark: Bool
+/// Spotlight-style selection: a soft neutral wash, no border, no colour slab.
+private struct RowHighlight: ViewModifier {
+    let selected: Bool
+    @Environment(\.colorScheme) private var scheme
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                ItemIcon(item: item, size: 40)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(item.name).font(.system(size: 15, weight: .bold)).lineLimit(1)
-                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                Spacer()
-                if let totp = item.totp {
-                    TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                        Text(verbatim: totp.displayCode(at: ctx.date))
-                            .font(.system(size: 19, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color.brand)
-                            .contentTransition(.numericText())
-                    }
-                }
+    func body(content: Content) -> some View {
+        content.background {
+            if selected {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.primary.opacity(scheme == .dark ? 0.10 : 0.06))
             }
-            if let totp = item.totp {
-                TimelineView(.animation(minimumInterval: 1 / 30)) { ctx in
-                    let period = Double(totp.period)
-                    LevelBar(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period)
-                }
-            }
-            HStack(spacing: 6) {
-                hint("↵", "Open", primary: true)
-                if item.password != nil { hint("⌘↵", "Password") }
-                if item.totp != nil { hint("⌥↵", "Code") }
-                if item.host != nil { hint("⇧↵", "Website") }
-            }
-        }
-        .padding(14)
-        .background(dark ? Color.white.opacity(0.10) : Color.white, in: .rect(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.brandFill.opacity(dark ? 0.35 : 0.55), lineWidth: 1.5))
-        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0.35 : 0.12), radius: 14, y: 6)
-    }
-
-    /// Keycap + label; the default action is the small primary button.
-    private func hint(_ keys: String, _ label: LocalizedStringKey, primary: Bool = false) -> some View {
-        HStack(spacing: 5) {
-            Text(verbatim: keys).font(.system(size: 11, weight: .semibold, design: .rounded))
-                .padding(.horizontal, 5).padding(.vertical, 1)
-                .background((primary ? Color.white : Color.primary).opacity(primary ? 0.25 : 0.07), in: .rect(cornerRadius: 4))
-            Text(label).font(.system(size: 12, weight: .semibold))
-        }
-        .foregroundStyle(primary ? Color.white : .primary)
-        .padding(.horizontal, 10).frame(height: 28)
-        .background {
-            if primary { Capsule().fill(Color.brandButton) } else { Capsule().fill(Color.primary.opacity(dark ? 0.10 : 0.05)) }
         }
     }
 }
 
-private struct ItemLine: View {
-    let item: VaultItem
+/// A small keycap, used for shortcuts and the hint bar.
+struct Keycap: View {
+    let keys: String
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        HStack(spacing: 12) {
-            ItemIcon(item: item, size: 36)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.name).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+        Text(verbatim: keys)
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 5).frame(minWidth: 20, minHeight: 18)
+            .background(Color.primary.opacity(scheme == .dark ? 0.10 : 0.05), in: .rect(cornerRadius: 5, style: .continuous))
+    }
+}
+
+/// A login row; when highlighted it shows its live code and what the modifier keys do, quietly.
+private struct ItemLine: View {
+    let item: VaultItem
+    let selected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                ItemIcon(item: item, size: 32)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
+                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                if selected, let totp = item.totp {
+                    TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                        let period = Double(totp.period)
+                        let left = 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
+                        HStack(spacing: 8) {
+                            Text(verbatim: totp.displayCode(at: ctx.date))
+                                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                                .contentTransition(.numericText())
+                            Circle().trim(from: 1 - left, to: 1)
+                                .stroke(Color.brand, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                                .background(Circle().stroke(Color.primary.opacity(0.10), lineWidth: 2))
+                                .frame(width: 12, height: 12)
+                        }
+                    }
+                }
             }
-            Spacer()
+            if selected, item.password != nil || item.totp != nil || item.host != nil {
+                HStack(spacing: 14) {
+                    if item.password != nil { hint("⌘↵", "Copy password") }
+                    if item.totp != nil { hint("⌥↵", "Copy code") }
+                    if item.host != nil { hint("⇧↵", "Open website") }
+                }
+                .padding(.leading, 44)
+                .transition(.opacity)
+            }
         }
-        .padding(.horizontal, 14).padding(.vertical, 8)
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .modifier(RowHighlight(selected: selected))
+    }
+
+    private func hint(_ keys: String, _ label: LocalizedStringKey) -> some View {
+        HStack(spacing: 5) {
+            Keycap(keys: keys)
+            Text(label).font(.system(size: 12)).foregroundStyle(.secondary)
+        }
     }
 }
 
@@ -282,18 +307,14 @@ private struct CommandLine: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: command.symbol)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(selected ? Color.onBrandFill : Color.brand)
-                .frame(width: 32, height: 32)
-                .background(selected ? Color.white.opacity(0.35) : Color.brand.opacity(0.10), in: .rect(cornerRadius: 10, style: .continuous))
-            Text(command.title).font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 14))
+                .foregroundStyle(selected ? Color.brand : .secondary)
+                .frame(width: 32)
+            Text(command.title).font(.system(size: 14))
             Spacer()
-            if let shortcut = command.shortcut {
-                Text(verbatim: shortcut).font(.system(size: 12, weight: .medium)).foregroundStyle(selected ? Color.onBrandFill.opacity(0.7) : .secondary)
-            }
+            if let shortcut = command.shortcut { Keycap(keys: shortcut) }
         }
-        .foregroundStyle(selected ? Color.onBrandFill : .primary)
-        .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(selected ? Color.brandFill : .clear, in: .rect(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 10).frame(height: 36)
+        .modifier(RowHighlight(selected: selected))
     }
 }

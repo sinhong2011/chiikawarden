@@ -289,13 +289,13 @@ struct NewSendSheet: View {
                 Text("The link holds the key; the server never sees your content.")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
-                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Cancel") { dismiss() }.buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
                 Button {
                     Task { await create() }
                 } label: {
                     HStack(spacing: 6) { if saving { ProgressView().controlSize(.small) }; Text("Create & Copy Link") }
                 }
-                .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
+                .buttonStyle(.appPrimary).keyboardShortcut(.defaultAction)
                 .disabled(!ready || saving)
             }
             .padding(14)

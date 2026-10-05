@@ -112,6 +112,12 @@ final class QuickSearchController {
     func show() {
         let panel = self.panel ?? makePanel()
         self.panel = panel
+        // Follow the app's Appearance setting, not just the system's.
+        panel.appearance = switch Pref.colorScheme {
+        case .light: NSAppearance(named: .aqua)
+        case .dark: NSAppearance(named: .darkAqua)
+        default: nil
+        }
         // Over the vault window when it's in front, else high on the screen.
         if NSApp.isActive, let window = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain && $0 != panel }) {
             let f = window.frame
@@ -128,7 +134,7 @@ final class QuickSearchController {
     func close() { panel?.orderOut(nil) }
 
     private func makePanel() -> QuickSearchPanel {
-        let panel = QuickSearchPanel(contentRect: NSRect(x: 0, y: 0, width: 740, height: 640),
+        let panel = QuickSearchPanel(contentRect: NSRect(x: 0, y: 0, width: 700, height: 620),
                                      styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
                                      backing: .buffered, defer: false)
         panel.isFloatingPanel = true

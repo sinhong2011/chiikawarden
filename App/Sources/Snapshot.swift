@@ -93,9 +93,18 @@ enum Snapshot {
             render(EditItemSheet(mode: .create(.sshKey)).environment(vault).tint(.brand),
                    size: CGSize(width: 540, height: 620), appearance: appearance,
                    to: dir.appending(path: "edit-ssh-\(name).png"))
-            render(desktop(ScrollView { GeneratorView().padding(24) }.environment(vault).tint(.brand), dark: name == "dark"),
-                   size: CGSize(width: 680, height: 820), appearance: appearance,
-                   to: dir.appending(path: "generator-\(name).png"))
+            if vault.generatorHistory.isEmpty {
+                vault.rememberGenerated("correct-Horse-battery-staple4", kind: "passphrase")
+                vault.rememberGenerated("k#9vR!2mWq$7zLp", kind: "password")
+                vault.rememberGenerated("usagi+k3x9q2ma@proton.me", kind: "username")
+            }
+            for (label, size) in [("", CGSize(width: 1120, height: 760)), ("-narrow", CGSize(width: 680, height: 900))] {
+                render(desktop(GeometryReader { geo in
+                    ScrollView { GeneratorView().padding(28).frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top) }
+                }.environment(vault).tint(.brand), dark: name == "dark"),
+                       size: size, appearance: appearance,
+                       to: dir.appending(path: "generator\(label)-\(name).png"))
+            }
         }
         vault.sends = [
             SendItem(id: "s1", accountId: "", accessId: "a1", kind: .text, name: "Wi-Fi for guests", notes: nil,

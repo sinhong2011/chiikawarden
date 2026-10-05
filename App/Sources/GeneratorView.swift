@@ -34,24 +34,123 @@ struct GeneratorView: View {
         return modes.contains(m) ? m : modes[0]
     }
 
+    @State private var pageWidth: CGFloat = 1000
+
     var body: some View {
-        VStack(alignment: .leading, spacing: compact ? 12 : 18) {
-            if modes.count > 1 {
-                AppSegmented(options: modes.map { ($0, $0.title) },
-                             selection: Binding(get: { mode }, set: { storedMode = $0.rawValue }))
+        Group { if compact { compactBody } else { page } }
+            .onAppear(perform: load)
+            .onChange(of: password) { save(); regenerate() }
+            .onChange(of: passphrase) { save(); regenerate() }
+            .onChange(of: username) { save(); regenerate() }
+            .onChange(of: storedMode) { regenerate() }
+    }
+
+    private var modePicker: some View {
+        AppSegmented(options: modes.map { ($0, $0.title) },
+                     selection: Binding(get: { mode }, set: { storedMode = $0.rawValue }))
+    }
+
+    @ViewBuilder private var options: some View {
+        switch mode {
+        case .password: passwordOptions
+        case .passphrase: passphraseOptions
+        case .username: usernameOptions
+        }
+    }
+
+    // MARK: Full page
+
+    /// Header with the mode switch, the result as a hero panel, then options and history side by side
+    /// (stacked when the window is narrow); the row stretches to fill the window.
+    private var page: some View {
+        let wide = pageWidth >= 820
+        return VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 16) {
+                Text("Generator").font(.system(size: 22, weight: .bold)).tracking(-0.3)
+                Spacer(minLength: 16)
+                modePicker.frame(maxWidth: 380)
             }
-
-            output
-
-            if !compact { Text("Options").font(.system(size: 13, weight: .semibold)).padding(.top, 2) }
-            Group {
-                switch mode {
-                case .password: passwordOptions
-                case .passphrase: passphraseOptions
-                case .username: usernameOptions
+            hero
+            (wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 16)) : AnyLayout(VStackLayout(spacing: 16))) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Options").font(.system(size: 13, weight: .semibold))
+                    options
+                    if wide { Spacer(minLength: 0) }
                 }
+                .padding(20)
+                .frame(maxWidth: .infinity, maxHeight: wide ? .infinity : nil, alignment: .topLeading)
+                .modifier(PanelCard())
+                HistorySection()
+                    .frame(width: wide ? min(360, pageWidth * 0.36) : nil)
+                    .frame(maxWidth: wide ? nil : .infinity, maxHeight: wide ? .infinity : nil)
             }
-            .modifier(OptionsCard(enabled: !compact))
+            .frame(maxHeight: wide ? .infinity : nil, alignment: .top)
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
+    }
+
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            ColoredSecret(value: value.isEmpty ? " " : value, separator: mode == .passphrase ? passphrase.separator : nil)
+                .font(.system(size: value.count > 40 ? 20 : 28, weight: .medium, design: .monospaced))
+                .textSelection(.enabled)
+                .lineLimit(4)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                .contentTransition(.opacity)
+                .accessibilityLabel(Text(verbatim: value))
+            HStack(spacing: 12) {
+                if mode != .username {
+                    let bits = mode == .password ? password.entropyBits : passphrase.entropyBits
+                    StrengthMeter(bits: bits).fixedSize()
+                    statsText(bits: bits)
+                } else if value.isEmpty {
+                    Text(username.kind == .plusAddressed ? "Enter your email address below." : "Enter your catch-all domain below.")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 12)
+                Button { regenerate() } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
+                    .buttonStyle(.appSecondary)
+                    .keyboardShortcut("r", modifiers: .command)
+                Button { copy() } label: {
+                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .buttonStyle(.appPrimary)
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                .disabled(value.isEmpty)
+            }
+        }
+        .padding(24)
+        .modifier(PanelCard())
+    }
+
+    /// "20 characters · centuries to crack" — offline guessing at 10 billion tries a second.
+    private func statsText(bits: Double) -> some View {
+        let count = mode == .password ? Text("\(value.count) characters") : Text("\(passphrase.words) words")
+        return (count + Text(verbatim: " · ") + Text(Self.crackTime(bits: bits)))
+            .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+    }
+
+    static func crackTime(bits: Double) -> LocalizedStringKey {
+        let seconds = pow(2, bits - 1) / 1e10
+        switch seconds {
+        case ..<1: return "cracked instantly"
+        case ..<3600: return "minutes to crack"
+        case ..<86_400: return "hours to crack"
+        case ..<(86_400 * 365): return "days to crack"
+        case ..<(86_400 * 365 * 1000): return "years to crack"
+        default: return "centuries to crack"
+        }
+    }
+
+    // MARK: Compact (popover)
+
+    private var compactBody: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if modes.count > 1 { modePicker }
+            output
+            options
 
             if let onUse {
                 HStack {
@@ -61,15 +160,9 @@ struct GeneratorView: View {
                         .disabled(value.isEmpty)
                 }
             }
-            if !compact { HistorySection() }
         }
-        .padding(compact ? 16 : 0)
-        .frame(width: compact ? 360 : nil)
-        .onAppear(perform: load)
-        .onChange(of: password) { save(); regenerate() }
-        .onChange(of: passphrase) { save(); regenerate() }
-        .onChange(of: username) { save(); regenerate() }
-        .onChange(of: storedMode) { regenerate() }
+        .padding(16)
+        .frame(width: 360)
     }
 
     // MARK: Output
@@ -78,7 +171,7 @@ struct GeneratorView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 6) {
                 ColoredSecret(value: value, separator: mode == .passphrase ? passphrase.separator : nil)
-                    .font(.system(size: compact ? 15 : 17, weight: .medium, design: .monospaced))
+                    .font(.system(size: 15, weight: .medium, design: .monospaced))
                     .textSelection(.enabled)
                     .lineLimit(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,7 +189,7 @@ struct GeneratorView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
-        .padding(compact ? 12 : 18)
+        .padding(12)
         .background(Color.panelStrong, in: .rect(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.panelEdge))
     }
@@ -300,74 +393,87 @@ private struct SwitchRow: View {
     }
 }
 
-private struct OptionsCard: ViewModifier {
-    let enabled: Bool
+private struct PanelCard: ViewModifier {
     func body(content: Content) -> some View {
-        if enabled {
-            content
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.panelStrong, in: .rect(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.panelEdge))
-        } else {
-            content
-        }
+        content
+            .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
     }
 }
 
 /// Recently copied or used values. In memory only; cleared when the vault locks.
 private struct HistorySection: View {
     @Environment(AppModel.self) private var model
-    @State private var expanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button { withAnimation(.snappy) { expanded.toggle() } } label: {
-                HStack {
-                    Text("Generator history").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.brand)
-                    Text(verbatim: "\(model.generatorHistory.count)").font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.brand)
-                        .rotationEffect(.degrees(expanded ? 90 : 0))
+            HStack(spacing: 6) {
+                Text("History").font(.system(size: 13, weight: .semibold))
+                if !model.generatorHistory.isEmpty {
+                    Text(verbatim: "\(model.generatorHistory.count)").font(.system(size: 12)).foregroundStyle(.secondary)
                 }
-                .padding(.horizontal, 18).frame(height: 44)
-                .contentShape(.rect)
+                Spacer()
+                if !model.generatorHistory.isEmpty {
+                    Button("Clear") {
+                        model.confirm(String(localized: "Clear generator history?"),
+                                      message: String(localized: "The values listed here are forgotten. Items you saved are not affected."),
+                                      action: String(localized: "Clear History")) { model.generatorHistory.removeAll() }
+                    }
+                    .buttonStyle(.appSecondarySmall)
+                }
             }
-            .buttonStyle(.plain)
-            if expanded {
-                if model.generatorHistory.isEmpty {
+            .padding(.horizontal, 20).frame(height: 52)
+
+            if model.generatorHistory.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath").font(.system(size: 22)).foregroundStyle(.tertiary)
+                    Text("Nothing yet").font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
                     Text("Values you copy or use appear here until the vault locks.")
-                        .font(.caption).foregroundStyle(.secondary).padding(.horizontal, 18).padding(.bottom, 14)
-                } else {
-                    ForEach(model.generatorHistory) { entry in
-                        HStack(spacing: 10) {
-                            ColoredSecret(value: entry.value).font(.system(size: 13, design: .monospaced)).lineLimit(1).truncationMode(.middle)
-                            Spacer()
-                            Text(entry.date, style: .relative).font(.caption).foregroundStyle(.secondary)
-                            Button { model.copy(entry.value, label: String(localized: "Password")) } label: {
-                                Image(systemName: "doc.on.doc").font(.system(size: 12))
-                            }
-                            .buttonStyle(.borderless)
-                            .help(Text("Copy"))
-                            .accessibilityLabel(Text("Copy"))
-                        }
-                        .padding(.horizontal, 18).padding(.vertical, 8)
-                        .overlay(alignment: .top) { Divider().opacity(0.5) }
-                    }
-                    HStack {
-                        Spacer()
-                        Button("Clear History", role: .destructive) {
-                            model.confirm(String(localized: "Clear generator history?"),
-                                          message: String(localized: "The values listed here are forgotten. Items you saved are not affected."),
-                                          action: String(localized: "Clear History")) { model.generatorHistory.removeAll() }
-                        }
-                            .buttonStyle(.borderless).font(.caption)
-                    }
-                    .padding(.horizontal, 18).padding(.vertical, 10)
+                        .font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(model.generatorHistory) { entry in HistoryRow(entry: entry) }
+                    }
+                    .padding(.horizontal, 8).padding(.bottom, 8)
+                }
+                .scrollIndicators(.automatic)
+                .frame(minHeight: 120)
             }
         }
-        .background(Color.panelStrong, in: .rect(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.panelEdge))
+        .modifier(PanelCard())
+    }
+}
+
+private struct HistoryRow: View {
+    @Environment(AppModel.self) private var model
+    let entry: AppModel.GeneratedEntry
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: entry.kind == "username" ? "person" : entry.kind == "passphrase" ? "text.quote" : "key")
+                .font(.system(size: 12)).foregroundStyle(.secondary).frame(width: 18)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: entry.value).font(.system(size: 13, design: .monospaced)).lineLimit(1).truncationMode(.middle)
+                Text(entry.date, format: .relative(presentation: .named)).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 4)
+            Button {
+                model.copy(entry.value, label: entry.kind == "username" ? String(localized: "Username") : String(localized: "Password"))
+            } label: {
+                Image(systemName: "doc.on.doc").font(.system(size: 12)).frame(width: 26, height: 26).contentShape(.rect)
+            }
+            .buttonStyle(HeaderIconStyle())
+            .opacity(hovering ? 1 : 0.5)
+            .help(Text("Copy"))
+            .accessibilityLabel(Text("Copy"))
+        }
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .background(Color.primary.opacity(hovering ? 0.05 : 0), in: .rect(cornerRadius: 10, style: .continuous))
+        .onHover { hovering = $0 }
     }
 }

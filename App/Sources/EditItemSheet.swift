@@ -116,7 +116,7 @@ struct EditItemSheet: View {
                 }
                 Spacer()
                 Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
+                    .keyboardShortcut(.cancelAction).buttonStyle(.appSecondary)
                 Button {
                     Task { await save() }
                 } label: {
@@ -126,7 +126,7 @@ struct EditItemSheet: View {
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || saving)
             }
             .padding(14)

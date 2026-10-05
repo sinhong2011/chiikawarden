@@ -105,6 +105,34 @@
         }
       }
     },
+    "%lld characters": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 文字"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個字元"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个字符"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個字元"
+          }
+        }
+      }
+    },
     "%lld of %lld logins need attention.": {
       "localizations": {
         "ja": {
@@ -129,6 +157,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$lld 個登入資料中有 %1$lld 個需要處理。"
+          }
+        }
+      }
+    },
+    "%lld words": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 語"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個字"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个单词"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個字"
           }
         }
       }
@@ -2357,7 +2413,6 @@
       }
     },
     "Clear": {
-      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2443,10 +2498,10 @@
     },
     "Clear generator history?": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "要清除產生記錄嗎？"
+            "value": "生成履歴を消去しますか？"
           }
         },
         "zh-HK": {
@@ -2461,10 +2516,10 @@
             "value": "要清除生成记录吗？"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成履歴を消去しますか？"
+            "value": "要清除產生記錄嗎？"
           }
         }
       }
@@ -2527,7 +2582,6 @@
       }
     },
     "Close": {
-      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -3143,6 +3197,34 @@
         }
       }
     },
+    "Copy Server Address": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サーバアドレスをコピー"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製伺服器地址"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制服务器地址"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝伺服器位址"
+          }
+        }
+      }
+    },
     "Copy Setup": {
       "localizations": {
         "ja": {
@@ -3200,7 +3282,6 @@
       }
     },
     "Copy code": {
-      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -3257,7 +3338,6 @@
       }
     },
     "Copy password": {
-      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -3763,10 +3843,10 @@
     },
     "Decrease": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "減少"
+            "value": "減らす"
           }
         },
         "zh-HK": {
@@ -3781,10 +3861,10 @@
             "value": "减少"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "減らす"
+            "value": "減少"
           }
         }
       }
@@ -5276,6 +5356,7 @@
       }
     },
     "Generator history": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -5555,6 +5636,34 @@
         }
       }
     },
+    "History": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歷史記錄"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歷史記錄"
+          }
+        }
+      }
+    },
     "Icons": {
       "localizations": {
         "ja": {
@@ -5781,10 +5890,10 @@
     },
     "Increase": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "增加"
+            "value": "増やす"
           }
         },
         "zh-HK": {
@@ -5799,10 +5908,10 @@
             "value": "增加"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "増やす"
+            "value": "增加"
           }
         }
       }
@@ -5887,6 +5996,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "已建立項目"
+          }
+        }
+      }
+    },
+    "Items": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目"
           }
         }
       }
@@ -6734,10 +6871,10 @@
     },
     "Move to Trash…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "移到垃圾桶…"
+            "value": "ゴミ箱に入れる…"
           }
         },
         "zh-HK": {
@@ -6752,20 +6889,20 @@
             "value": "移到废纸篓…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ゴミ箱に入れる…"
+            "value": "移到垃圾桶…"
           }
         }
       }
     },
     "Move “%@” to Trash?": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "要將「%@」移到垃圾桶嗎？"
+            "value": "「%@」をゴミ箱に入れますか？"
           }
         },
         "zh-HK": {
@@ -6780,10 +6917,10 @@
             "value": "要将“%@”移到废纸篓吗？"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」をゴミ箱に入れますか？"
+            "value": "要將「%@」移到垃圾桶嗎？"
           }
         }
       }
@@ -6896,6 +7033,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "身分證字號"
+          }
+        }
+      }
+    },
+    "Navigate": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移動"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移動"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移动"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移動"
           }
         }
       }
@@ -7824,6 +7989,34 @@
         }
       }
     },
+    "Nothing yet": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだありません"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未有記錄"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚無記錄"
+          }
+        }
+      }
+    },
     "Notifications": {
       "localizations": {
         "ja": {
@@ -8521,6 +8714,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "打開 Watchtower"
+          }
+        }
+      }
+    },
+    "Open Web Vault": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウェブ保管庫を開く"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打開網頁版密碼庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开网页版密码库"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟網頁版密碼庫"
           }
         }
       }
@@ -11333,6 +11554,34 @@
         }
       }
     },
+    "Suggestions": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候補"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建議"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候選項目"
+          }
+        }
+      }
+    },
     "Symbols (!@#…)": {
       "extractionState": "stale",
       "localizations": {
@@ -11672,10 +11921,10 @@
     },
     "The account and its saved vault are removed from this Mac. Your vault stays on the server.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "帳號及其儲存的保險庫會從這部 Mac 移除，伺服器上的保險庫不受影響。"
+            "value": "アカウントと保存された保管庫はこの Mac から削除されます。サーバ上の保管庫はそのままです。"
           }
         },
         "zh-HK": {
@@ -11690,10 +11939,10 @@
             "value": "账户及其保存的密码库会从这台 Mac 移除，服务器上的密码库不受影响。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アカウントと保存された保管庫はこの Mac から削除されます。サーバ上の保管庫はそのままです。"
+            "value": "帳號及其儲存的保險庫會從這部 Mac 移除，伺服器上的保險庫不受影響。"
           }
         }
       }
@@ -11812,10 +12061,10 @@
     },
     "The values listed here are forgotten. Items you saved are not affected.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "這裡列出的值會被清除，已儲存的項目不受影響。"
+            "value": "ここに表示されている値は消去されます。保存済みの項目には影響しません。"
           }
         },
         "zh-HK": {
@@ -11830,10 +12079,10 @@
             "value": "这里列出的值会被清除，已保存的项目不受影响。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ここに表示されている値は消去されます。保存済みの項目には影響しません。"
+            "value": "這裡列出的值會被清除，已儲存的項目不受影響。"
           }
         }
       }
@@ -13840,10 +14089,10 @@
     },
     "You can restore it from Trash later.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "之後可以從垃圾桶復原。"
+            "value": "あとでゴミ箱から戻せます。"
           }
         },
         "zh-HK": {
@@ -13858,10 +14107,10 @@
             "value": "之后可以从废纸篓恢复。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "あとでゴミ箱から戻せます。"
+            "value": "之後可以從垃圾桶復原。"
           }
         }
       }
@@ -14114,6 +14363,62 @@
     "bitwarden.eu": {
       "shouldTranslate": false
     },
+    "centuries to crack": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解読に数百年"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要幾百年先破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需数百年破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需數百年破解"
+          }
+        }
+      }
+    },
+    "cracked instantly": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瞬時に解読される"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瞬間就破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瞬间即可破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瞬間即可破解"
+          }
+        }
+      }
+    },
     "cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.": {
       "localizations": {
         "ja": {
@@ -14138,6 +14443,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+          }
+        }
+      }
+    },
+    "days to crack": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解読に数日"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要幾日先破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需数天破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需數天破解"
           }
         }
       }
@@ -14288,6 +14621,34 @@
         }
       }
     },
+    "hours to crack": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解読に数時間"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要幾個鐘先破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需数小时破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需數小時破解"
+          }
+        }
+      }
+    },
     "list your vault items": {
       "localizations": {
         "ja": {
@@ -14312,6 +14673,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "列出你的保險庫項目"
+          }
+        }
+      }
+    },
+    "minutes to crack": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数分で解読される"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幾分鐘就破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数分钟即可破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數分鐘即可破解"
           }
         }
       }
@@ -14543,6 +14932,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "解鎖你的保險庫"
+          }
+        }
+      }
+    },
+    "years to crack": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解読に数年"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要幾年先破解到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需数年破解"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需數年破解"
           }
         }
       }

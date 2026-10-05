@@ -276,24 +276,104 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 10) {
-                Image(systemName: "server.rack")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(verbatim: model.serverDisplayName.isEmpty ? "vault" : model.serverDisplayName)
-                        .font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                    SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 0)
-                Button { model.lock() } label: { Image(systemName: "lock").accessibilityLabel(Text("Lock")) }
-                    .buttonStyle(.borderless)
-                    .help(Text("Lock Vault"))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+        .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
+    }
+}
+
+/// Who's signed in, where, and how fresh the vault is — with sync and lock at hand and the rest in a menu.
+private struct SidebarAccountCard: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    @State private var hovering = false
+
+    private var email: String {
+        let name = model.sessions.count == 1 ? model.sessions[0].account.email : model.serverDisplayName
+        return name.isEmpty ? String(localized: "Vault") : name
+    }
+    private var host: String {
+        let hosts = Set(model.sessions.compactMap { $0.environment?.displayHost })
+        return hosts.count == 1 ? hosts.first! : model.serverDisplayName
+    }
+    private var webVault: URL? {
+        guard model.sessions.count == 1, let env = model.sessions[0].environment else { return nil }
+        return switch env {
+        case .bitwardenUS: URL(string: "https://vault.bitwarden.com")
+        case .bitwardenEU: URL(string: "https://vault.bitwarden.eu")
+        case .selfHosted(let base): base
+        case .custom(let urls): urls.webVault ?? urls.base
         }
+    }
+
+    var body: some View {
+        let dark = scheme == .dark
+        HStack(spacing: 10) {
+            Menu {
+                Section { Text(verbatim: email); if !host.isEmpty { Text(verbatim: host) } }
+                Button("Sync Now", systemImage: "arrow.triangle.2.circlepath") { sync() }
+                if let webVault {
+                    Button("Open Web Vault", systemImage: "safari") { NSWorkspace.shared.open(webVault) }
+                }
+                if !host.isEmpty {
+                    Button("Copy Server Address", systemImage: "doc.on.doc") { model.copy(host, label: String(localized: "Server")) }
+                }
+                Divider()
+                Button("Add Account…", systemImage: "person.badge.plus") { model.beginAddAccount() }
+                Button("Settings…", systemImage: "gearshape") { NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) }
+                Divider()
+                Button("Lock Vault", systemImage: "lock") { model.lock() }
+                Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                    model.confirmLogOut(model.sessions.count == 1 ? model.sessions[0].account.id : nil)
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Monogram(name: email, size: 30)
+                        .overlay(alignment: .bottomTrailing) {
+                            Circle().fill(model.isSyncing ? Color.secondary : Color.brandFill)
+                                .frame(width: 9, height: 9)
+                                .overlay(Circle().strokeBorder(dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
+                                .offset(x: 2, y: 2)
+                        }
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(verbatim: email).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                        SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .contentShape(.rect)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .help(Text(verbatim: host))
+            .accessibilityLabel(Text("Account"))
+
+            footerButton("arrow.triangle.2.circlepath", help: "Sync Now", spinning: model.isSyncing) { sync() }
+            footerButton("lock", help: "Lock Vault") { model.lock() }
+        }
+        .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(dark ? Color.white.opacity(hovering ? 0.09 : 0.06) : Color.white.opacity(hovering ? 0.75 : 0.55))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
+        }
+        .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
+    }
+
+    private func sync() { Task { try? await model.refresh() } }
+
+    private func footerButton(_ symbol: String, help: LocalizedStringKey, spinning: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .symbolEffect(.rotate, isActive: spinning)
+                .frame(width: 26, height: 26)
+                .contentShape(.rect)
+        }
+        .buttonStyle(HeaderIconStyle())
+        .disabled(spinning)
+        .help(Text(help))
+        .accessibilityLabel(Text(help))
     }
 }
 
@@ -444,16 +524,15 @@ private struct NewItemButton: View {
 /// Sidebar › Generator: passwords, passphrases and usernames as a page.
 private struct GeneratorPane: View {
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Generator").font(.system(size: 22, weight: .bold)).tracking(-0.3)
+        GeometryReader { geo in
+            ScrollView {
                 GeneratorView()
+                    .padding(28)
+                    .frame(maxWidth: 1180)
+                    .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
             }
-            .padding(24)
-            .frame(maxWidth: 640, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollIndicators(.never)
         }
-        .scrollIndicators(.never)
     }
 }
 
@@ -960,20 +1039,16 @@ struct ToastView: View {
 struct Monogram: View {
     let name: String
     let size: CGFloat
+    @Environment(\.colorScheme) private var scheme
 
-    private static let palette: [Color] = [
-        Color(red: 0.14, green: 0.16, blue: 0.18), Color(red: 0.96, green: 0.51, blue: 0.13), Color(red: 0.43, green: 0.29, blue: 1),
-        Color(red: 0.18, green: 0.64, blue: 0.42), Color(red: 0.24, green: 0.51, blue: 0.96), Color(red: 0.89, green: 0.26, blue: 0.16),
-        Color(red: 0.23, green: 0.27, blue: 0.32), Color(red: 0.91, green: 0.64, blue: 0.24),
-    ]
-
+    /// One calm style for every initial (no per-name rainbow): a soft tail-sky tile with the letter in the brand ink.
     var body: some View {
-        let hue = name.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
+        let dark = scheme == .dark
         Text(name.prefix(1).uppercased())
-            .font(.system(size: size * 0.42, weight: .heavy, design: .rounded))
-            .foregroundStyle(.white)
+            .font(.system(size: size * 0.42, weight: .semibold, design: .rounded))
+            .foregroundStyle(dark ? Color.brandFill : Color.onBrandFill)
             .frame(width: size, height: size)
-            .background(Self.palette[abs(hue) % Self.palette.count], in: .rect(cornerRadius: size * 0.29, style: .continuous))
+            .background(Color.brandFill.opacity(dark ? 0.16 : 0.28), in: .rect(cornerRadius: size * 0.29, style: .continuous))
     }
 }
 
@@ -998,7 +1073,7 @@ private struct AccountUnlockPane: View {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }
             Button("Unlock") { submit() }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
                 .disabled(password.isEmpty || model.isBusy)
         }
         .padding(24)

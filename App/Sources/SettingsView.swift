@@ -511,8 +511,8 @@ private struct ShortcutRecorder: View {
                     .font(.system(size: 12, weight: .semibold, design: recording ? .default : .rounded))
                     .frame(minWidth: 96)
             }
-            .buttonStyle(.bordered)
-            .tint(recording ? .accentColor : nil)
+            .buttonStyle(.appSecondarySmall)
+            .foregroundStyle(recording ? Color.brand : .primary)
             if shortcut != .paletteDefault {
                 Button { apply(.paletteDefault) } label: { Image(systemName: "arrow.uturn.backward") }
                     .buttonStyle(.borderless)

@@ -3,7 +3,7 @@ import SwiftUI
 // Shared controls so every screen speaks the same visual language: soft panel capsules, a tail-sky primary,
 // raised white thumbs, no system chrome where it clashes with the window backdrop.
 
-/// Primary (tail-sky gradient, white label) and secondary (soft panel capsule) buttons, regular or small.
+/// Flat buttons: primary is solid tail sky with a white label, secondary a quiet neutral capsule. No gradients or glows.
 struct AppButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary, destructive }
     var kind: Kind = .secondary
@@ -23,17 +23,13 @@ struct AppButtonStyle: ButtonStyle {
                 switch kind {
                 case .primary:
                     Capsule().fill(Color.brandButton)
-                        .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.2 : 0.45), radius: configuration.isPressed ? 2 : 6, y: 2)
+                        .overlay(Capsule().fill(Color.black.opacity(configuration.isPressed ? 0.12 : 0)))
                 case .secondary:
-                    Capsule().fill(dark ? Color.white.opacity(configuration.isPressed ? 0.16 : 0.10)
-                                        : Color.white.opacity(configuration.isPressed ? 0.6 : 0.9))
-                        .overlay(Capsule().strokeBorder(dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)))
-                        .shadow(color: .black.opacity(dark ? 0 : 0.05), radius: 3, y: 1)
+                    Capsule().fill(Color.primary.opacity(configuration.isPressed ? (dark ? 0.16 : 0.10) : (dark ? 0.10 : 0.06)))
                 case .destructive:
                     Capsule().fill(Color.red.opacity(configuration.isPressed ? 0.18 : 0.10))
                 }
             }
-            .shadow(color: kind == .primary ? Color.onBrandFill.opacity(0.3) : .clear, radius: 0.8, y: 0.8)
             .opacity(isEnabled ? 1 : 0.45)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)

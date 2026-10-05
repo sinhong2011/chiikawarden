@@ -319,7 +319,7 @@ private struct LockedCard: View {
             Image(systemName: "lock.fill").font(.system(size: 22)).foregroundStyle(.secondary)
             Text("Vault locked").font(.system(size: 14, weight: .semibold))
             Button("Unlock…") { model.bringToFront() }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimarySmall)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 22)

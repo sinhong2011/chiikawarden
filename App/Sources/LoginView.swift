@@ -208,7 +208,7 @@ private struct LoginForm: View {
     }
 }
 
-/// Full-width brand button: tail-sky gradient with a white label when ready, a quiet neutral fill when not.
+/// Full-width brand button: flat tail sky with a white label when ready, a quiet neutral fill when not.
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var scheme
@@ -217,16 +217,13 @@ struct PrimaryButtonStyle: ButtonStyle {
         let dark = scheme == .dark
         configuration.label
             .foregroundStyle(isEnabled ? Color.white : Color.secondary)
-            .shadow(color: isEnabled ? Color.onBrandFill.opacity(0.3) : .clear, radius: 0.8, y: 0.8)
             .frame(maxWidth: .infinity, minHeight: 40)
             .background {
                 if isEnabled {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.brandButton)
-                        .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.2 : 0.45),
-                                radius: configuration.isPressed ? 3 : 10, y: 3)
+                    Capsule().fill(Color.brandButton)
+                        .overlay(Capsule().fill(Color.black.opacity(configuration.isPressed ? 0.12 : 0)))
                 } else {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))
+                    Capsule().fill(dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))
                 }
             }
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
