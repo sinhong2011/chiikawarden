@@ -23,7 +23,7 @@ You can replace the official desktop app for **reading** your vault:
 | 7 | Copy, reveal, live TOTP, open website | Core jobs | ✅ |
 | 8 | Search + filters + sidebar categories | Core jobs | ✅ |
 | 9 | Settings: appearance, auto-lock, lock on sleep, clipboard, custom CA, extra headers | Self-hosters and security defaults | ✅ |
-| 10 | Quick Search (⌥Space) + menu bar extra | The reason to go native | ⬜ |
+| 10 | Quick Search (⌥Space, global) + menu bar extra (codes, favorites, lock) | The reason to go native | ✅ |
 | 11 | Localized: en, zh-Hant, zh-HK, zh-Hans, ja | Day-one requirement | ✅ (kept current per change) |
 
 ## v0.2 — "use it instead of the browser extension"

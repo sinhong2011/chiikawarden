@@ -39,6 +39,12 @@ struct ItemField: Hashable, Identifiable {
 
 extension TOTP: @retroactive Hashable {
     public func hash(into h: inout Hasher) { h.combine(secret) }
+
+    /// "621 115" — grouped for reading aloud and typing.
+    func displayCode(at date: Date = .now) -> String {
+        let c = code(at: date)
+        return c.prefix(c.count / 2) + " " + c.suffix(c.count - c.count / 2)
+    }
 }
 
 @MainActor @Observable
@@ -101,6 +107,9 @@ final class AppModel {
     }
     var serverStatus: ServerStatus = .unknown
     private var statusTask: Task<Void, Never>?
+
+    /// Bumped each time Quick Search opens, so the panel resets and focuses.
+    var quickSearchNonce = 0
 
     /// Transient confirmation shown after copying.
     var toast: String?

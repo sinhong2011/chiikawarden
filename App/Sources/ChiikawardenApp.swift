@@ -4,6 +4,8 @@ import SwiftUI
 struct ChiikawardenApp: App {
     @State private var model = AppModel()
     @AppStorage(Pref.appearance) private var appearance = AppearanceSetting.system
+    @State private var quickSearch: QuickSearchController?
+    @State private var hotKey: GlobalHotKey?
 
     init() {
         Pref.register()
@@ -26,11 +28,27 @@ struct ChiikawardenApp: App {
                 .environment(model)
                 .tint(.brand)
                 .preferredColorScheme(appearance.scheme)
-                .onAppear { model.startAutoLock() }
+                .onAppear {
+                    model.startAutoLock()
+                    if hotKey == nil {
+                        let controller = QuickSearchController(model: model)
+                        quickSearch = controller
+                        hotKey = GlobalHotKey { controller.toggle() }
+                    }
+                }
                 // Solid soft base from the spec (light lavender-gray / deep graphite); no glass.
                 .containerBackground(Color.windowBase, for: .window)
         }
         .windowStyle(.hiddenTitleBar)
+
+        MenuBarExtra {
+            MenuBarContent()
+                .environment(model)
+                .tint(.brand)
+        } label: {
+            Image(systemName: model.isUnlocked ? "lock.open" : "lock")
+        }
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView()
@@ -41,6 +59,8 @@ struct ChiikawardenApp: App {
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(after: .appSettings) {
+                Button("Quick Search") { quickSearch?.show() }
+                    .keyboardShortcut(.space, modifiers: .option)
                 Button("Lock Vault") { model.lock() }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)

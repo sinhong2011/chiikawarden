@@ -40,6 +40,14 @@ enum Snapshot {
                    size: CGSize(width: 1180, height: 760), appearance: appearance,
                    to: dir.appending(path: "vault-\(name).png"))
         }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(QuickSearchView(close: {}).environment(vault).tint(.brand).padding(30),
+                   size: CGSize(width: 700, height: 480), appearance: appearance,
+                   to: dir.appending(path: "quicksearch-\(name).png"))
+            render(MenuBarContent().environment(vault).tint(.brand).background(Color.windowBase),
+                   size: CGSize(width: 300, height: 460), appearance: appearance,
+                   to: dir.appending(path: "menubar-\(name).png"))
+        }
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
