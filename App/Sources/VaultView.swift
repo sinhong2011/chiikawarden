@@ -23,7 +23,7 @@ extension Color {
     static let panelStrong = adaptive(light: .white.opacity(0.78), dark: .white.opacity(0.09))
     static let panelEdge = adaptive(light: .white.opacity(0.9), dark: .white.opacity(0.08))
     static let rowSelected = adaptive(light: .white, dark: .white.opacity(0.12))
-    static let hero = adaptive(light: Color(red: 0.08, green: 0.09, blue: 0.11), dark: Color(red: 0.11, green: 0.13, blue: 0.20))
+    static let hero = adaptive(light: Color(red: 0.08, green: 0.09, blue: 0.11), dark: Color(red: 0.07, green: 0.15, blue: 0.22))
 }
 
 struct VaultView: View {

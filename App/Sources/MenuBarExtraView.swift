@@ -140,7 +140,7 @@ private struct FeaturedCard: View {
                         ZStack {
                             Circle().stroke(.white.opacity(0.18), lineWidth: 3)
                             Circle().trim(from: 1 - remaining, to: 1)
-                                .stroke(Color(red: 0.56, green: 0.69, blue: 1), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                                .stroke(Color(red: 0.55, green: 0.78, blue: 0.95), style: StrokeStyle(lineWidth: 3, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                         }
                         .frame(width: 26, height: 26)
@@ -163,8 +163,8 @@ private struct FeaturedCard: View {
             }
             .foregroundStyle(.white)
             .padding(14)
-            .background(Color(red: 0.09, green: 0.13, blue: 0.29), in: .rect(cornerRadius: 18, style: .continuous))
-            .shadow(color: Color(red: 0.08, green: 0.12, blue: 0.31).opacity(0.5), radius: 14, y: 8)
+            .background(Color(red: 0.06, green: 0.17, blue: 0.27), in: .rect(cornerRadius: 18, style: .continuous))
+            .shadow(color: Color(red: 0.05, green: 0.15, blue: 0.25).opacity(0.5), radius: 14, y: 8)
         }
     }
 
@@ -172,7 +172,7 @@ private struct FeaturedCard: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 12, weight: prominent ? .bold : .semibold))
-                .foregroundStyle(prominent ? Color(red: 0.09, green: 0.13, blue: 0.29) : .white)
+                .foregroundStyle(prominent ? Color(red: 0.06, green: 0.17, blue: 0.27) : .white)
                 .frame(maxWidth: .infinity).frame(height: 32)
                 .background(prominent ? Color.white : Color.white.opacity(0.14), in: .capsule)
                 .contentShape(.capsule)

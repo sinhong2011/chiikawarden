@@ -14,7 +14,7 @@ struct WindowBackdrop: View {
             glow(Color(red: 1.00, green: 0.84, blue: 0.60), at: UnitPoint(x: 0.92, y: 0.04), strength: dark ? 0.06 : 0.32)
             glow(Color(red: 0.56, green: 0.84, blue: 0.78), at: UnitPoint(x: 0.74, y: 0.98), strength: dark ? 0.10 : 0.34)
             glow(Color(red: 0.73, green: 0.65, blue: 0.95), at: UnitPoint(x: 0.22, y: 0.92), strength: dark ? 0.14 : 0.34)
-            glow(Color(red: 0.42, green: 0.56, blue: 1.00), at: UnitPoint(x: 0.55, y: 0.40), strength: dark ? 0.08 : 0.10)
+            glow(Color(red: 0.80, green: 0.89, blue: 0.96), at: UnitPoint(x: 0.55, y: 0.40), strength: dark ? 0.06 : 0.45) // the tail
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)

@@ -35,14 +35,16 @@ With Full Keyboard Access on (System Settings › Keyboard › Keyboard navigati
 
 ## Contrast
 
-The brand blue was tuned to meet WCAG 2.2 AA (checked with the WCAG relative-luminance formula):
+The brand colour is the sky blue of the mascot's tail (tint #CBE4F6), deepened until it meets WCAG 2.2 AA
+(relative-luminance formula):
 
 | Use | Light | Dark |
 |---|---|---|
-| Blue text / chips on the window background | #3A63E8 on #F2F2F7: **4.56:1** | #6390FF on #1E1E1E: **5.53:1** |
-| Blue text on panels | #3A63E8 on #FFFFFF: **5.08:1** | #6390FF on #2C2C2E: **4.62:1** |
-| White text on blue buttons | **5.08:1** | **3.02:1** (AA for large/bold text only) |
+| Blue text / links on the window background | #2371A9 on #F2F2F7: **4.70:1** | #47A0E1 on #1E1E1E: **5.86:1** |
+| Blue text on panels | #2371A9 on #FFFFFF: **5.24:1** | #47A0E1 on #2C2C2E: **4.90:1** |
+| White text on blue buttons | **5.24:1** | **2.84:1** (below AA; see known gaps) |
 
+The pale tail tint itself is only used for washes and soft fills, never for text.
 All other text uses system semantic colours (`.primary`, `.secondary`), which follow macOS Increase Contrast.
 
 ## Motion
@@ -52,7 +54,7 @@ The animated dial on the login screen stops when **Reduce Motion** is on.
 ## Known gaps
 
 - Short UI transitions (list changes, the toast, sheet content) still animate with Reduce Motion on.
-- White on the dark-mode blue (3.02:1) meets AA only for large or bold text. Prominent buttons use semibold
-  13 pt labels, which is just under the “large text” size.
+- White on the dark-mode sky blue is 2.84:1, under AA. Prominent buttons in dark mode should move to dark
+  label text; tracked as a follow-up.
 - There is no automated accessibility test yet. Checks so far are code review plus snapshot review.
   A VoiceOver walkthrough on real hardware is tracked in the issues.

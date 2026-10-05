@@ -4,7 +4,7 @@
   if (window.__chiikawarden) return;
   window.__chiikawarden = true;
   const api = globalThis.browser ?? globalThis.chrome;
-  const BRAND = "#3A63E8";
+  const BRAND = "#2371A9";
   const KEY_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14.5 3a6.5 6.5 0 0 0-6.2 8.5L3 16.8V21h4.2v-2.1h2.1v-2.1h2.1l1.1-1.1A6.5 6.5 0 1 0 14.5 3Zm1.6 3.6a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6Z"/></svg>`;
 
   const send = (message) =>
@@ -53,7 +53,7 @@
   root.innerHTML = `<style>
     .key{position:absolute;width:22px;height:22px;border:0;border-radius:6px;padding:0;display:grid;place-items:center;
       color:${BRAND};background:transparent;cursor:pointer;opacity:.85}
-    .key:hover{background:rgba(58,99,232,.12);opacity:1}
+    .key:hover{background:rgba(35,113,169,.12);opacity:1}
     .menu{position:absolute;min-width:240px;max-width:340px;padding:6px;border-radius:12px;font:13px -apple-system,system-ui,sans-serif;
       background:Canvas;color:CanvasText;box-shadow:0 10px 30px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.15)}
     .row{display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;cursor:pointer}

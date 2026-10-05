@@ -19,7 +19,11 @@ struct BrandStage: View {
                 let d = min(size.width * 0.84, size.height * 0.62, 440)
                 let center = CGPoint(x: size.width * 0.5, y: size.height * 0.44)
                 ZStack {
+                    // Fades out on the right so the stage melts into the window backdrop (no hard seam).
                     palette.background
+                        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.72),
+                                                     .init(color: .clear, location: 1)],
+                                             startPoint: .leading, endPoint: .trailing))
 
                     // Orbits
                     ForEach([0.5, 0.33, 0.19], id: \.self) { f in
@@ -84,16 +88,16 @@ struct BrandStage: View {
 
 struct StagePalette {
     let dark: Bool
-    var brand: Color { dark ? Color(red: 0.39, green: 0.56, blue: 1) : Color(red: 0.23, green: 0.39, blue: 0.91) }
-    var ink: Color { dark ? .white : Color(red: 0.07, green: 0.12, blue: 0.33) }
-    var orbit: Color { dark ? .white.opacity(0.10) : Color(red: 0.23, green: 0.39, blue: 0.91).opacity(0.16) }
+    var brand: Color { dark ? Color(red: 0.28, green: 0.63, blue: 0.88) : Color(red: 0.14, green: 0.44, blue: 0.66) }
+    var ink: Color { dark ? .white : Color(red: 0.05, green: 0.16, blue: 0.27) }
+    var orbit: Color { dark ? .white.opacity(0.10) : Color(red: 0.14, green: 0.44, blue: 0.66).opacity(0.16) }
     var token: Color { dark ? Color(red: 0.12, green: 0.16, blue: 0.31) : .white }
-    var tokenEdge: Color { dark ? .white.opacity(0.10) : Color(red: 0.23, green: 0.39, blue: 0.91).opacity(0.14) }
+    var tokenEdge: Color { dark ? .white.opacity(0.10) : Color(red: 0.14, green: 0.44, blue: 0.66).opacity(0.14) }
 
     var background: some View {
         ZStack {
-            LinearGradient(colors: dark ? [Color(red: 0.07, green: 0.10, blue: 0.22), Color(red: 0.03, green: 0.04, blue: 0.11)]
-                                        : [Color(red: 0.96, green: 0.97, blue: 1), Color(red: 0.89, green: 0.92, blue: 0.99)],
+            LinearGradient(colors: dark ? [Color(red: 0.05, green: 0.11, blue: 0.17), Color(red: 0.02, green: 0.05, blue: 0.09)]
+                                        : [Color(red: 0.95, green: 0.98, blue: 1), Color(red: 0.80, green: 0.89, blue: 0.96)],
                            startPoint: .top, endPoint: .bottom)
             RadialGradient(colors: [brand.opacity(dark ? 0.22 : 0.12), .clear],
                            center: UnitPoint(x: 0.5, y: 0.44), startRadius: 0, endRadius: 320)

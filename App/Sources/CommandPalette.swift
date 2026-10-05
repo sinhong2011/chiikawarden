@@ -229,7 +229,7 @@ private struct SelectedItemCard: View {
                     GeometryReader { g in
                         Capsule().fill(.white.opacity(0.15))
                             .overlay(alignment: .leading) {
-                                Capsule().fill(Color(red: 0.43, green: 0.61, blue: 1)).frame(width: g.size.width * remaining)
+                                Capsule().fill(Color(red: 0.55, green: 0.78, blue: 0.95)).frame(width: g.size.width * remaining)
                             }
                     }
                     .frame(height: 4)
@@ -244,7 +244,7 @@ private struct SelectedItemCard: View {
         }
         .foregroundStyle(.white)
         .padding(14)
-        .background(dark ? Color(red: 0.13, green: 0.17, blue: 0.33) : Color(red: 0.08, green: 0.09, blue: 0.11),
+        .background(dark ? Color(red: 0.07, green: 0.20, blue: 0.31) : Color(red: 0.08, green: 0.09, blue: 0.11),
                     in: .rect(cornerRadius: 22, style: .continuous))
         .shadow(color: Color(red: 0.08, green: 0.1, blue: 0.24).opacity(0.5), radius: 20, y: 12)
     }
