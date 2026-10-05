@@ -31,3 +31,19 @@ import Testing
             == .twoFactorRequired(providers: ["0", "1"]))
     }
 }
+
+@Suite struct PwnedPasswordsTests {
+    @Test func parsesAndIgnoresPadding() {
+        let counts = PwnedPasswords.parse("0018A45C4D1DEF81644B54AB7F969B88D65:10\r\n00D4F6E8FA6EECAD2A3AA415EEC418D38EC:0\n")
+        #expect(counts == ["0018A45C4D1DEF81644B54AB7F969B88D65": 10])
+    }
+
+    /// Live call to api.pwnedpasswords.com (sends only 5-char hash prefixes).
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["CHIIKAWARDEN_NETWORK_TESTS"] != nil))
+    func knownBreachedPassword() async throws {
+        let random = UUID().uuidString + UUID().uuidString
+        let result = try await PwnedPasswords.check(["password", random])
+        #expect((result["password"] ?? 0) > 1000)
+        #expect(result[random] == 0)
+    }
+}

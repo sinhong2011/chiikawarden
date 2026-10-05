@@ -198,7 +198,7 @@ private struct QuickRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Monogram(name: item.name, size: 32)
+            ItemIcon(item: item, size: 32)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 if let sub = item.username ?? item.host {
@@ -293,7 +293,7 @@ private struct MenuRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Monogram(name: item.name, size: 22)
+                ItemIcon(item: item, size: 22)
                 Text(item.name).font(.system(size: 13)).lineLimit(1)
                 Spacer()
                 if let trailing {

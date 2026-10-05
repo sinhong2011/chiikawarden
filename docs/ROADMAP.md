@@ -33,7 +33,7 @@ You can replace the official desktop app for **reading** your vault:
 - Passkey provider
 - ✅ Create / edit logins & notes (lossless patching: item key, passkeys, history kept; conflict-safe), Trash (restore / delete forever), password generator (unbiased CSPRNG), hold ⌥ to reveal, Item menu shortcuts
 - ⬜ Edit cards / identities / SSH keys, custom fields, attachments
-- Favicons (privacy-respecting, cached), Watchtower screen (weak / reused / breached via HIBP k-anonymity)
+- ✅ Website icons from your own server, encrypted cache with keyed-hash names, placeholder detection; Watchtower (breached via HIBP k-anonymity on demand, reused, weak, unsecured http) with score
 
 ### Adopted from reviewing prizm (ideas only — its license is MIT + Commons Clause, so no code)
 

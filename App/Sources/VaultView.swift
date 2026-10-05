@@ -58,6 +58,12 @@ struct VaultView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             HStack(spacing: 8) {
+                if section == .watchtower {
+                    WatchtowerView { item in
+                        section = .section(item.isDeleted ? .trash : .all)
+                        model.selectedID = item.id
+                    }
+                } else {
                 Group {
                     if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
                         AccountUnlockPane(account: account)
@@ -76,6 +82,7 @@ struct VaultView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .padding(8)
             .background(Color.windowBase)
@@ -113,9 +120,11 @@ enum SidebarSelection: Hashable {
     case organization(String)
     case collection(String)
     case account(String)
+    case watchtower
 
     func includes(_ item: VaultItem) -> Bool {
         switch self {
+        case .watchtower: false
         case .account(let id): !item.isDeleted && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let id): !item.isDeleted && item.folderId == id
@@ -173,6 +182,9 @@ private struct Sidebar: View {
                         .badge(count(.section(s)))
                         .tag(SidebarSelection.section(s))
                 }
+                Label("Watchtower", systemImage: "checkmark.shield")
+                    .badge(model.watchtowerIssueCount)
+                    .tag(SidebarSelection.watchtower)
             }
             if !model.folders.isEmpty {
                 Section("Folders") {
@@ -352,7 +364,7 @@ struct ItemRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Monogram(name: item.name, size: 38)
+            ItemIcon(item: item, size: 38)
                 .overlay(alignment: .bottomTrailing) {
                     if let accountDot {
                         Circle().fill(accountDot).frame(width: 11, height: 11)

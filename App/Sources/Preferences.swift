@@ -9,6 +9,7 @@ enum Pref {
     static let lockOnSleep = "lockOnSleep"
     static let clipboardSeconds = "clipboardSeconds" // 0 = never clear
     static let trustedCAs = "trustedCAs"           // [Data], PEM/DER certificates (public)
+    static let showIcons = "showIcons"
 
     static func register() {
         UserDefaults.standard.register(defaults: [

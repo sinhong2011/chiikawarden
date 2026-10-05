@@ -86,6 +86,13 @@ enum Snapshot {
             render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 500),
                    appearance: appearance, to: dir.appending(path: "autofill-list-\(name).png"))
         }
+        vault.breachCounts = ["4": 1203]
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(WatchtowerView(onOpen: { _ in }).environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 820, height: 760), appearance: appearance,
+                   to: dir.appending(path: "watchtower-\(name).png"))
+        }
+        vault.breachCounts = nil
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -184,6 +191,16 @@ enum SelfTest {
                       && model.items.contains { SidebarSelection.collection(collection.id).includes($0) },
                       "org and collection filters match their items")
             }
+
+            // Watchtower on the seeded vault.
+            let report = WatchtowerReport(items: model.items, breaches: nil)
+            let names = { (issue: WatchtowerReport.Issue) in Set(report.issues[issue, default: []].map(\.name)) }
+            check(names(.weak).contains("Weak example") && names(.reused).isSuperset(of: ["Synology NAS", "Router"])
+                  && !names(.insecure).contains("Router"),
+                  "watchtower: weak, reused, private-IP http not flagged")
+            await model.checkBreaches()
+            let breached = Set(WatchtowerReport(items: model.items, breaches: model.breachCounts).issues[.breached, default: []].map(\.name))
+            check(breached.contains("Weak example") && !breached.contains("GitHub"), "breach check (k-anonymity) flags 123456 only among known")
 
             // Editing lifecycle through the app model.
             let created = await model.createItem(.login, edit: CipherEdit(name: "Selftest Item", username: "u", password: "p-old", uri: "https://example.org"))

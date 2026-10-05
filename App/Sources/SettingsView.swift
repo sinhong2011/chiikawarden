@@ -77,6 +77,18 @@ private struct GeneralSettings: View {
             }
 
             Section {
+                Toggle("Show website icons", isOn: Binding(
+                    get: { IconStore.enabled },
+                    set: { on in
+                        UserDefaults.standard.set(on, forKey: Pref.showIcons)
+                        if !on { IconStore.shared.clear() }
+                    }))
+            } footer: {
+                Text("Icons come from your own server (or Bitwarden for bitwarden.com accounts), so no one else learns which sites you use. Cached icons are encrypted.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
                 LabeledContent("Language") {
                     Button("Change in System Settings…") {
                         // Per-app language lives in Language & Region › Applications.

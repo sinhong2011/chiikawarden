@@ -78,6 +78,7 @@ final class AppModel {
     var touchIDEnabled = false
 
     init() {
+        IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }
     }
@@ -91,6 +92,29 @@ final class AppModel {
     }
 
     func session(for accountId: String) -> AccountSession? { sessions.first { $0.id == accountId } }
+
+    // MARK: Watchtower
+
+    /// Item id → times seen in breaches; nil until the user runs a check.
+    var breachCounts: [String: Int]?
+    var breachesCheckedAt: Date?
+    var isCheckingBreaches = false
+
+    func checkBreaches() async {
+        isCheckingBreaches = true
+        defer { isCheckingBreaches = false }
+        let logins = items.filter { !$0.isDeleted && $0.password != nil }
+        do {
+            let counts = try await PwnedPasswords.check(Set(logins.compactMap(\.password)), session: makeSession())
+            breachCounts = Dictionary(logins.map { ($0.id, counts[$0.password!] ?? 0) }, uniquingKeysWith: { a, _ in a })
+            breachesCheckedAt = .now
+        } catch {
+            flash(String(localized: "Couldn't reach Have I Been Pwned. Try again later."))
+        }
+    }
+
+    /// Logins with any locally-detectable issue (sidebar badge).
+    var watchtowerIssueCount: Int { WatchtowerReport(items: items, breaches: breachCounts).problemCount }
 
     #if DEBUG
     /// Snapshot/demo only: pretend these accounts are saved.
@@ -522,6 +546,8 @@ final class AppModel {
 
     /// Locks every account.
     func lock() {
+        breachCounts = nil
+        breachesCheckedAt = nil
         sessions.forEach { $0.close() }
         sessions = []
         selectedID = nil
