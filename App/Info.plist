@@ -35,5 +35,24 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Generate Password with Chiikawarden</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>generatePassword</string>
+			<key>NSPortName</key>
+			<string>Chiikawarden</string>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>public.utf8-plain-text</string>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

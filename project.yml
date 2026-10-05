@@ -38,6 +38,11 @@ targets:
         product: SSHAgent
       - target: ChiikawardenAutoFill
         embed: true
+      - target: cw
+        embed: true
+        codeSign: false # keep cw's own signature (and its App Group entitlement)
+        copy:
+          destination: executables
     entitlements:
       path: App/Chiikawarden.entitlements
       properties:
@@ -55,6 +60,11 @@ targets:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, zh-Hant, zh-HK, zh-Hans, ja]
         # Self-hosted servers on the LAN (IPs, .local) are often plain HTTP or private-CA.
+        NSServices:
+          - NSMenuItem: {default: "Generate Password with Chiikawarden"}
+            NSMessage: generatePassword
+            NSPortName: Chiikawarden
+            NSReturnTypes: [public.utf8-plain-text, NSStringPboardType]
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
     settings:
@@ -63,6 +73,24 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  cw:
+    type: tool
+    platform: macOS
+    sources:
+      - CLI/main.swift
+    dependencies:
+      - package: VaultCore
+        product: SSHAgent
+    entitlements:
+      path: CLI/cw.entitlements
+      properties:
+        com.apple.security.application-groups: [FX3VR69P5K.io.github.sinhong2011.chiikawarden] # reach the app's socket
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.sinhong2011.chiikawarden.cw
+        ENABLE_HARDENED_RUNTIME: YES
+        SKIP_INSTALL: YES
 
   ChiikawardenAutoFill:
     type: app-extension

@@ -43,3 +43,14 @@ cd Packages/VaultCore && swift test
 
 See [SECURITY.md](SECURITY.md) for where keys live and how to report a vulnerability, and
 [ACCESSIBILITY.md](ACCESSIBILITY.md) for VoiceOver, keyboard and contrast notes.
+
+## Command line
+
+Turn on **Settings › Developer › Answer the cw command**, then link the bundled tool:
+
+```bash
+sudo ln -sf /Applications/Chiikawarden.app/Contents/MacOS/cw /usr/local/bin/cw
+```
+
+`cw get github | pbcopy`, `cw code github`, `cw list mail`, `cw generate --length 32`, `cw lock`.
+Reading from the vault asks for Touch ID in the app.

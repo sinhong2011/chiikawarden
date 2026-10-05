@@ -46,6 +46,12 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
   signs; it never adds, removes or exports keys. Every signature asks for Touch ID or the Mac password, names
   the requesting program, and can optionally be remembered for 1 or 10 minutes per key and program. Keys
   are only available while their account is unlocked.
+- **`cw` command line** (off by default) talks to the app over a `0600` socket in the App Group container.
+  Status, generate and lock work without approval. Listing or reading anything needs the vault unlocked and
+  Touch ID or the Mac password, with a prompt that names the calling program. Secrets go to stdout only,
+  never into arguments or environment variables.
+- **Shortcuts / Spotlight actions** only expose item names and usernames. Copying a password or a code works
+  only while unlocked, and passwords go through the same concealed, auto-clearing clipboard.
 - **Leaked-password check** (Watchtower) uses the Have I Been Pwned k-anonymity range API with padding.
   Only the first 5 hex characters of each SHA-1 are sent.
 - **Self-hosted servers**: public `http://` servers are refused, while local-network `http://` is allowed for

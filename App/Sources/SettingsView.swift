@@ -10,7 +10,7 @@ struct SettingsView: View {
             Tab("General", systemImage: "gearshape") { GeneralSettings() }
             Tab("Accounts", systemImage: "person.2") { AccountsSettings() }
             Tab("Security", systemImage: "lock.shield") { SecuritySettings() }
-            Tab("SSH", systemImage: "terminal") { SSHSettings() }
+            Tab("Developer", systemImage: "terminal") { DeveloperSettings() }
             Tab("Server", systemImage: "server.rack") { ServerSettings() }
             Tab("About", systemImage: "info.circle") { AboutSettings() }
         }
@@ -154,10 +154,14 @@ private struct SecuritySettings: View {
 
 // MARK: SSH
 
-private struct SSHSettings: View {
+private struct DeveloperSettings: View {
     @Environment(AppModel.self) private var model
     @AppStorage(Pref.sshAgent) private var enabled = false
     @AppStorage(Pref.sshApprovalSeconds) private var approvalSeconds = 0
+    @AppStorage(Pref.cli) private var cliEnabled = false
+    @AppStorage(Pref.cliApprovalSeconds) private var cliApprovalSeconds = 0
+
+    private var installCommand: String { "sudo ln -sf \"\(CLIBridge.toolPath)\" /usr/local/bin/cw" }
 
     private var configLine: String { "Host *\n  IdentityAgent \"\(model.sshAgent.socketPath)\"" }
 
@@ -176,7 +180,7 @@ private struct SSHSettings: View {
                     Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.caption)
                 }
             } header: {
-                Text("Agent")
+                Text("SSH agent")
             } footer: {
                 Text("SSH key items from unlocked accounts are offered to ssh and git. Every signature needs Touch ID or your Mac password; keys never leave the app.")
                     .font(.caption).foregroundStyle(.secondary)
@@ -193,7 +197,30 @@ private struct SSHSettings: View {
                     Button("Copy") { model.copyPlain("export SSH_AUTH_SOCK=\"\(agent.socketPath)\"") }
                 }
             } header: {
-                Text("Setup")
+                Text("SSH setup")
+            }
+
+            Section {
+                Toggle("Answer the cw command", isOn: $cliEnabled)
+                    .onChange(of: cliEnabled) { _, on in on ? model.cli.start() : model.cli.stop() }
+                Picker("Ask before revealing", selection: $cliApprovalSeconds) {
+                    Text("Every time").tag(0)
+                    Text("Once per minute, per app").tag(60)
+                    Text("Once per 10 minutes, per app").tag(600)
+                }
+                LabeledContent("Install cw") {
+                    Button("Copy Command") { model.copyPlain(installCommand) }
+                }
+                Text(verbatim: installCommand)
+                    .font(.system(size: 11, design: .monospaced)).textSelection(.enabled).foregroundStyle(.secondary)
+                if let error = model.cli.lastError {
+                    Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.caption)
+                }
+            } header: {
+                Text("Command line")
+            } footer: {
+                Text("cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             if !agent.recent.isEmpty {

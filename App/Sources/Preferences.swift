@@ -11,6 +11,8 @@ enum Pref {
     static let showIcons = "showIcons"
     static let sshAgent = "sshAgent"                 // serve SSH key items over the agent socket
     static let sshApprovalSeconds = "sshApprovalSeconds" // 0 = ask for every signature
+    static let cli = "cli"                               // answer the `cw` command
+    static let cliApprovalSeconds = "cliApprovalSeconds"
 
     static func register() {
         UserDefaults.standard.register(defaults: [

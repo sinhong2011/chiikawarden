@@ -14,7 +14,9 @@ x-vw-env: &vw-env
   LOG_LEVEL: info
   # Dev only: generous rate limits so the test suite doesn't trip them.
   LOGIN_RATELIMIT_MAX_BURST: "1000"
+  LOGIN_RATELIMIT_SECONDS: "1"   # refill quickly; the default (60 s) drains during a day of test runs
   ADMIN_RATELIMIT_MAX_BURST: "1000"
+  ADMIN_RATELIMIT_SECONDS: "1"
 
 services:
   vaultwarden:

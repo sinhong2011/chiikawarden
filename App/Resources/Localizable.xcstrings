@@ -4,6 +4,9 @@
     "": {
       "shouldTranslate": false
     },
+    "%@": {
+      "shouldTranslate": false
+    },
     "%@ copied": {
       "localizations": {
         "ja": {
@@ -628,10 +631,10 @@
     },
     "Add to ~/.ssh/config": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入 ~/.ssh/config"
+            "value": "~/.ssh/config に追加"
           }
         },
         "zh-HK": {
@@ -646,10 +649,10 @@
             "value": "添加到 ~/.ssh/config"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "~/.ssh/config に追加"
+            "value": "加入 ~/.ssh/config"
           }
         }
       }
@@ -767,11 +770,12 @@
       }
     },
     "Agent": {
+      "extractionState": "stale",
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "代理程式"
+            "value": "エージェント"
           }
         },
         "zh-HK": {
@@ -786,10 +790,10 @@
             "value": "代理"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "エージェント"
+            "value": "代理程式"
           }
         }
       }
@@ -850,6 +854,34 @@
         }
       }
     },
+    "Answer the cw command": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回應 cw 指令"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回應 cw 指令"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "响应 cw 命令"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw コマンドに応答"
+          }
+        }
+      }
+    },
     "Appearance": {
       "localizations": {
         "ja": {
@@ -878,12 +910,40 @@
         }
       }
     },
-    "Ask before signing": {
+    "Ask before revealing": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "簽署前詢問"
+            "value": "顯示前詢問"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示前詢問"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示前询问"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示する前に確認"
+          }
+        }
+      }
+    },
+    "Ask before signing": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "署名前に確認"
           }
         },
         "zh-HK": {
@@ -898,10 +958,10 @@
             "value": "签名前询问"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "署名前に確認"
+            "value": "簽署前詢問"
           }
         }
       }
@@ -1525,6 +1585,62 @@
         }
       }
     },
+    "Chiikawarden is locked.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已鎖定。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已鎖定。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已锁定。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden をロックしました。"
+          }
+        }
+      }
+    },
+    "Chiikawarden is locked. Unlock it first.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已鎖定，請先解鎖。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已鎖定，請先解鎖。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已锁定，请先解锁。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden はロックされています。先にロックを解除してください。"
+          }
+        }
+      }
+    },
     "Choose where your vault lives.": {
       "localizations": {
         "ja": {
@@ -1749,12 +1865,40 @@
         }
       }
     },
-    "Commands that make git sign commits with this key through the Chiikawarden SSH agent": {
+    "Command line": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "讓 git 透過 Chiikawarden SSH 代理程式以此金鑰簽署提交的指令"
+            "value": "命令列"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令行"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令行"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドライン"
+          }
+        }
+      }
+    },
+    "Commands that make git sign commits with this key through the Chiikawarden SSH agent": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden SSH エージェント経由でこの鍵を使って git のコミットに署名するためのコマンド"
           }
         },
         "zh-HK": {
@@ -1769,10 +1913,10 @@
             "value": "让 git 通过 Chiikawarden SSH 代理用此密钥签名提交的命令"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden SSH エージェント経由でこの鍵を使って git のコミットに署名するためのコマンド"
+            "value": "讓 git 透過 Chiikawarden SSH 代理程式以此金鑰簽署提交的指令"
           }
         }
       }
@@ -1835,10 +1979,10 @@
     },
     "Copied": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已拷貝"
+            "value": "コピーしました"
           }
         },
         "zh-HK": {
@@ -1853,10 +1997,10 @@
             "value": "已复制"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コピーしました"
+            "value": "已拷貝"
           }
         }
       }
@@ -1885,6 +2029,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝的機密資料會標記為隱藏，剪貼板管理工具不會記錄。"
+          }
+        }
+      }
+    },
+    "Copied the password for %@.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拷貝 %@ 的密碼。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製 %@ 的密碼。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制 %@ 的密码。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ のパスワードをコピーしました。"
+          }
+        }
+      }
+    },
+    "Copies an item's password. It's cleared from the clipboard after the delay set in Chiikawarden.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝項目的密碼，並在 Chiikawarden 設定的時間後從剪貼板清除。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製項目的密碼，並喺 Chiikawarden 設定的時間後從剪貼簿清除。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制项目的密码，并在 Chiikawarden 设定的时间后从剪贴板清除。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目のパスワードをコピーします。Chiikawarden で設定した時間が経つとクリップボードから消去されます。"
           }
         }
       }
@@ -1941,6 +2141,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝%@"
+          }
+        }
+      }
+    },
+    "Copy Command": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝指令"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製指令"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制命令"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドをコピー"
           }
         }
       }
@@ -2003,10 +2231,10 @@
     },
     "Copy Setup": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝設定"
+            "value": "設定をコピー"
           }
         },
         "zh-HK": {
@@ -2021,10 +2249,10 @@
             "value": "复制设置"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定をコピー"
+            "value": "拷貝設定"
           }
         }
       }
@@ -2109,6 +2337,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝密碼"
+          }
+        }
+      }
+    },
+    "Copy the password of ${item}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝 ${item} 的密碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製 ${item} 的密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制 ${item} 的密码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${item} のパスワードをコピー"
           }
         }
       }
@@ -2199,10 +2455,10 @@
     },
     "Couldn't start the SSH agent: %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法啟動 SSH 代理程式：%@"
+            "value": "SSH エージェントを起動できませんでした：%@"
           }
         },
         "zh-HK": {
@@ -2217,20 +2473,20 @@
             "value": "无法启动 SSH 代理：%@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH エージェントを起動できませんでした：%@"
+            "value": "無法啟動 SSH 代理程式：%@"
           }
         }
       }
     },
     "Couldn't start the SSH agent: the socket path is longer than macOS allows (104 bytes). This happens with very long user names.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法啟動 SSH 代理程式：通訊端路徑超過 macOS 上限（104 位元組），通常是因為使用者名稱過長。"
+            "value": "SSH エージェントを起動できませんでした：ソケットのパスが macOS の上限（104 バイト）を超えています。ユーザ名が非常に長い場合に起こります。"
           }
         },
         "zh-HK": {
@@ -2245,10 +2501,38 @@
             "value": "无法启动 SSH 代理：套接字路径超过 macOS 上限（104 字节），通常是因为用户名过长。"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動 SSH 代理程式：通訊端路徑超過 macOS 上限（104 位元組），通常是因為使用者名稱過長。"
+          }
+        }
+      }
+    },
+    "Couldn't start the command-line bridge: %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動命令列橋接：%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法啟動命令行橋接：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动命令行桥接：%@"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH エージェントを起動できませんでした：ソケットのパスが macOS の上限（104 バイト）を超えています。ユーザ名が非常に長い場合に起こります。"
+            "value": "コマンドライン連携を開始できませんでした：%@"
           }
         }
       }
@@ -2361,6 +2645,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "建立於 %@"
+          }
+        }
+      }
+    },
+    "Creates a random password with your generator settings. Works while locked.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "依產生器設定建立隨機密碼，鎖定時也可使用。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按產生器設定建立隨機密碼，鎖定時都可以用。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按生成器设置创建随机密码，锁定时也可使用。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ジェネレータの設定でランダムなパスワードを作成します。ロック中でも使えます。"
           }
         }
       }
@@ -2619,10 +2931,10 @@
     },
     "Deny": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拒絕"
+            "value": "拒否"
           }
         },
         "zh-HK": {
@@ -2637,10 +2949,38 @@
             "value": "拒绝"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒絕"
+          }
+        }
+      }
+    },
+    "Developer": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開發者"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開發者"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开发者"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拒否"
+            "value": "デベロッパ"
           }
         }
       }
@@ -2955,10 +3295,10 @@
     },
     "Every time": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "每次"
+            "value": "毎回"
           }
         },
         "zh-HK": {
@@ -2973,10 +3313,10 @@
             "value": "每次"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "毎回"
+            "value": "每次"
           }
         }
       }
@@ -3485,6 +3825,34 @@
         }
       }
     },
+    "Generate Password": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生密碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成密码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスワードを生成"
+          }
+        }
+      }
+    },
     "Generate password": {
       "localizations": {
         "ja": {
@@ -3513,12 +3881,68 @@
         }
       }
     },
-    "Git signing": {
+    "Get One-Time Code": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Git 簽署"
+            "value": "取得一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取得一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタイムコードを取得"
+          }
+        }
+      }
+    },
+    "Get the one-time code for ${item}": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取得 ${item} 的一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取得 ${item} 的一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取 ${item} 的一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${item} のワンタイムコードを取得"
+          }
+        }
+      }
+    },
+    "Git signing": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 署名"
           }
         },
         "zh-HK": {
@@ -3533,10 +3957,10 @@
             "value": "Git 签名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Git 署名"
+            "value": "Git 簽署"
           }
         }
       }
@@ -3733,6 +4157,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "位於垃圾桶。還原後即可再次使用，或將其永久刪除。"
+          }
+        }
+      }
+    },
+    "Install cw": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安裝 cw"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安裝 cw"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装 cw"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw をインストール"
           }
         }
       }
@@ -4069,6 +4521,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "已鎖定"
+          }
+        }
+      }
+    },
+    "Locks every account in Chiikawarden.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定 Chiikawarden 中的所有帳號。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定 Chiikawarden 中的所有帳戶。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定 Chiikawarden 中的所有账户。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden のすべてのアカウントをロックします。"
           }
         }
       }
@@ -5419,10 +5899,10 @@
     },
     "Once per 10 minutes, per app": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "每個 App 每 10 分鐘一次"
+            "value": "アプリごとに 10 分に 1 回"
           }
         },
         "zh-HK": {
@@ -5437,20 +5917,20 @@
             "value": "每个 App 每 10 分钟一次"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アプリごとに 10 分に 1 回"
+            "value": "每個 App 每 10 分鐘一次"
           }
         }
       }
     },
     "Once per minute, per app": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "每個 App 每分鐘一次"
+            "value": "アプリごとに 1 分に 1 回"
           }
         },
         "zh-HK": {
@@ -5465,10 +5945,10 @@
             "value": "每个 App 每分钟一次"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アプリごとに 1 分に 1 回"
+            "value": "每個 App 每分鐘一次"
           }
         }
       }
@@ -5497,6 +5977,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "一次外洩就會波及所有共用密碼的網站。請為每個網站設定不同密碼。"
+          }
+        }
+      }
+    },
+    "One-Time Code": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタイムコード"
           }
         }
       }
@@ -5895,10 +6403,10 @@
     },
     "Or for one shell": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "或只用於一個 Shell"
+            "value": "または 1 つのシェルだけで"
           }
         },
         "zh-HK": {
@@ -5913,10 +6421,10 @@
             "value": "或仅用于一个 Shell"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "または 1 つのシェルだけで"
+            "value": "或只用於一個 Shell"
           }
         }
       }
@@ -6427,10 +6935,10 @@
     },
     "Recent requests": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近的請求"
+            "value": "最近のリクエスト"
           }
         },
         "zh-HK": {
@@ -6445,10 +6953,10 @@
             "value": "最近的请求"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近のリクエスト"
+            "value": "最近的請求"
           }
         }
       }
@@ -6593,6 +7101,34 @@
         }
       }
     },
+    "Returns an item's current one-time code and copies it.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回傳項目目前的一次性驗證碼並拷貝。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "傳回項目目前的一次性驗證碼並複製。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回项目当前的一次性验证码并复制。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目の現在のワンタイムコードを返し、コピーします。"
+          }
+        }
+      }
+    },
     "Reused in %lld items": {
       "localizations": {
         "ja": {
@@ -6678,8 +7214,9 @@
       }
     },
     "SSH": {
+      "extractionState": "stale",
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "SSH"
@@ -6697,7 +7234,7 @@
             "value": "SSH"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "SSH"
@@ -6761,12 +7298,40 @@
         }
       }
     },
-    "SSH key items from unlocked accounts are offered to ssh and git. Every signature needs Touch ID or your Mac password; keys never leave the app.": {
+    "SSH agent": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已解鎖帳號中的 SSH 金鑰項目會提供給 ssh 和 git 使用。每次簽署都需要 Touch ID 或 Mac 密碼；金鑰永遠不會離開 App。"
+            "value": "SSH 代理程式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 代理程式"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 代理"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH エージェント"
+          }
+        }
+      }
+    },
+    "SSH key items from unlocked accounts are offered to ssh and git. Every signature needs Touch ID or your Mac password; keys never leave the app.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロック解除済みアカウントの SSH 鍵を ssh と git に提供します。署名のたびに Touch ID または Mac のパスワードが必要で、鍵がアプリの外に出ることはありません。"
           }
         },
         "zh-HK": {
@@ -6781,10 +7346,38 @@
             "value": "已解锁账户中的 SSH 密钥项会提供给 ssh 和 git 使用。每次签名都需要 Touch ID 或 Mac 密码；密钥永远不会离开 App。"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解鎖帳號中的 SSH 金鑰項目會提供給 ssh 和 git 使用。每次簽署都需要 Touch ID 或 Mac 密碼；金鑰永遠不會離開 App。"
+          }
+        }
+      }
+    },
+    "SSH setup": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 設定"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 設定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 设置"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ロック解除済みアカウントの SSH 鍵を ssh と git に提供します。署名のたびに Touch ID または Mac のパスワードが必要で、鍵がアプリの外に出ることはありません。"
+            "value": "SSH の設定"
           }
         }
       }
@@ -7350,11 +7943,12 @@
       }
     },
     "Setup": {
+      "extractionState": "stale",
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定方式"
+            "value": "設定方法"
           }
         },
         "zh-HK": {
@@ -7369,10 +7963,10 @@
             "value": "设置方法"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定方法"
+            "value": "設定方式"
           }
         }
       }
@@ -7877,6 +8471,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "該檔案不是憑證。"
+          }
+        }
+      }
+    },
+    "That item has no one-time code.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目沒有一次性驗證碼。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目沒有一次性驗證碼。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该项目没有一次性验证码。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その項目にはワンタイムコードがありません。"
+          }
+        }
+      }
+    },
+    "That item has no password.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目沒有密碼。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目沒有密碼。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该项目没有密码。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その項目にはパスワードがありません。"
+          }
+        }
+      }
+    },
+    "That item is no longer in your vault.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目已不在你的保險庫中。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該項目已經唔喺你的保險庫。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该项目已不在你的密码库中。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その項目はもう保管庫にありません。"
           }
         }
       }
@@ -8755,10 +9433,10 @@
     },
     "Use Chiikawarden as SSH agent": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用 Chiikawarden 作為 SSH 代理程式"
+            "value": "Chiikawarden を SSH エージェントとして使う"
           }
         },
         "zh-HK": {
@@ -8773,10 +9451,10 @@
             "value": "使用 Chiikawarden 作为 SSH 代理"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden を SSH エージェントとして使う"
+            "value": "使用 Chiikawarden 作為 SSH 代理程式"
           }
         }
       }
@@ -8945,6 +9623,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "保險庫"
+          }
+        }
+      }
+    },
+    "Vault Item": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码库项目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫の項目"
           }
         }
       }
@@ -9512,6 +10218,40 @@
         }
       }
     },
+    "allow “%@” to %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "allow “%1$@” to %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許「%1$@」%2$@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許「%1$@」%2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许“%1$@”%2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%1$@」に%2$@ことを許可"
+          }
+        }
+      }
+    },
     "allow “%@” to sign with the SSH key “%@”": {
       "localizations": {
         "en": {
@@ -9520,10 +10260,10 @@
             "value": "allow “%1$@” to sign with the SSH key “%2$@”"
           }
         },
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "允許「%1$@」使用 SSH 金鑰「%2$@」簽署"
+            "value": "「%1$@」が SSH 鍵「%2$@」で署名することを許可"
           }
         },
         "zh-HK": {
@@ -9538,10 +10278,10 @@
             "value": "允许“%1$@”使用 SSH 密钥“%2$@”签名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%1$@」が SSH 鍵「%2$@」で署名することを許可"
+            "value": "允許「%1$@」使用 SSH 金鑰「%2$@」簽署"
           }
         }
       }
@@ -9551,6 +10291,34 @@
     },
     "bitwarden.eu": {
       "shouldTranslate": false
+    },
+    "cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw get github · cw code github · cw list · cw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cw get github · cw code github · cw list · cw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
+          }
+        }
+      }
     },
     "e.g. GitHub": {
       "localizations": {
@@ -9636,6 +10404,34 @@
         }
       }
     },
+    "list your vault items": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列出你的保險庫項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列出你的保險庫項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列出你的密码库项目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫の項目を一覧表示する"
+          }
+        }
+      }
+    },
     "otpauth://… or base32 key": {
       "localizations": {
         "ja": {
@@ -9660,6 +10456,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "otpauth://… 或 base32 金鑰"
+          }
+        }
+      }
+    },
+    "read %@ of “%@”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "read %1$@ of “%2$@”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讀取「%2$@」的%1$@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讀取「%2$@」的%1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取“%2$@”的%1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%2$@」の%1$@を読み取る"
           }
         }
       }
@@ -9744,6 +10574,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用通行密鑰登入"
+          }
+        }
+      }
+    },
+    "the one-time code": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタイムコード"
           }
         }
       }

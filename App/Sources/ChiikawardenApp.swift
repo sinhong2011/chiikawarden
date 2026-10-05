@@ -22,6 +22,8 @@ struct ChiikawardenApp: App {
         #endif
     }
 
+    private let services = ServicesProvider()
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -32,6 +34,8 @@ struct ChiikawardenApp: App {
                     model.appDidBecomeActive()
                 }
                 .onAppear {
+                    NSApp.servicesProvider = services
+                    NSUpdateDynamicServices()
                     model.startAutoLock()
                     if hotKey == nil {
                         let controller = QuickSearchController(model: model)

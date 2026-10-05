@@ -1,3 +1,4 @@
+import AppIntents
 import AuthenticationServices
 #if DEBUG
 import AppKit
@@ -147,7 +148,7 @@ enum Snapshot {
 
     nonisolated static func runTool(_ name: String, _ args: [String], env: [String: String], stdin: Data?) -> (status: Int32, output: String) {
         let p = Process()
-        p.executableURL = URL(filePath: "/usr/bin/\(name)")
+        p.executableURL = URL(filePath: name.hasPrefix("/") ? name : "/usr/bin/\(name)")
         p.arguments = args
         p.environment = ProcessInfo.processInfo.environment.merging(env) { $1 }
         let out = Pipe(), input = Pipe()
@@ -236,7 +237,7 @@ enum SelfTest {
             model.email = email
             await model.login(password: password)
             let firstID = SavedAccount.makeID(serverKind: "selfHosted", serverURL: server, email: email)
-            check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items)")
+            check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items) \(model.errorMessage ?? "")")
             check(AccountStore.load(firstID) != nil && AccountStore.loadCache(firstID) != nil && AccountStore.refreshToken(firstID) != nil,
                   "account, encrypted cache and refresh token persisted")
             check(Keychain.isShared(service: "io.github.sinhong2011.chiikawarden.SelfTestAccounts.refresh.\(firstID)"),
@@ -397,6 +398,45 @@ enum SelfTest {
                     }
                     if let n = model.items.first(where: { $0.id == note.id }) { await model.deleteForever(n) }
                 }
+
+                // cw command line and App Intents.
+                var cliEdit = CipherEdit(name: "Selftest cli", username: "cli-user", password: "cli-secret-42", totp: "JBSWY3DPEHPK3PXP")
+                cliEdit.customFields = [CustomField(name: "PIN", value: "2468", kind: .hidden)]
+                _ = await model.createItem(.login, edit: cliEdit)
+                let cliSocket = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AccountStore.appGroup)!
+                    .appending(path: "c.sock")
+                var approvals: [String] = []
+                model.cli.approveOverride = { approvals.append($0); return true }
+                model.cli.start(at: cliSocket)
+                let cw = CLIBridge.toolPath, cwEnv = ["CW_SOCKET": cliSocket.path]
+                let status = await Snapshot.tool(cw, ["status"], env: cwEnv)
+                let cwPassword = await Snapshot.tool(cw, ["get", "selftest cli"], env: cwEnv)
+                let pin = await Snapshot.tool(cw, ["get", "Selftest cli", "--field", "PIN"], env: cwEnv)
+                let cwCode = await Snapshot.tool(cw, ["code", "Selftest cli"], env: cwEnv)
+                let generated = await Snapshot.tool(cw, ["generate", "--length", "32"], env: cwEnv)
+                let missing = await Snapshot.tool(cw, ["get", "no-such-item-xyz"], env: cwEnv)
+                check(status.output.hasPrefix("unlocked") && cwPassword.output == "cli-secret-42" && pin.output == "2468"
+                      && cwCode.output.count == 6 && generated.output.count == 32 && missing.status != 0
+                      && approvals.count == 3, "cw: status, get, custom field, code, generate, not found")
+                model.cli.approveOverride = { _ in false }
+                let refused = await Snapshot.tool(cw, ["get", "Selftest cli"], env: cwEnv)
+                check(refused.status != 0 && refused.output.contains("Not approved"), "cw: refused approval reveals nothing")
+                model.cli.stop()
+                model.cli.approveOverride = nil
+
+                var gen = GeneratePasswordIntent()
+                gen.length = 24
+                let intentPassword = (try? await gen.perform())?.value
+                let found = try? await VaultItemQuery().entities(matching: "selftest cli")
+                var intentCode: String?
+                if let entity = found?.first {
+                    var codeIntent = GetOneTimeCodeIntent()
+                    codeIntent.item = entity
+                    intentCode = (try? await codeIntent.perform())?.value
+                }
+                check(intentPassword?.count == 24 && found?.count == 1 && intentCode?.count == 6,
+                      "App Intents: generate, find item, get code (\(found?.count ?? -1) found)")
+                if let cliItem = model.items.first(where: { $0.name == "Selftest cli" }) { await model.deleteForever(cliItem) }
 
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()

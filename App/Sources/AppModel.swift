@@ -92,12 +92,19 @@ final class AppModel {
 
     /// Serves SSH key items to ssh/git while unlocked (Settings › SSH).
     @ObservationIgnored private(set) var sshAgent: SSHAgentService!
+    @ObservationIgnored private(set) var cli: CLIBridge!
+
+    /// The app's live model, for App Intents and the CLI bridge.
+    nonisolated(unsafe) static weak var current: AppModel?
 
     init() {
         AttachmentFiles.wipe() // leftovers from a crash
+        Self.current = self
         sshAgent = SSHAgentService(model: self)
         let tooling = CommandLine.arguments.contains { $0 == "--selftest" || $0 == "--snapshot" }
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
+        cli = CLIBridge(model: self)
+        if !tooling, UserDefaults.standard.bool(forKey: Pref.cli) { cli.start() }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }
@@ -694,6 +701,7 @@ final class AppModel {
         previewURL = nil
         AttachmentFiles.wipe()
         sshAgent?.reset()
+        cli?.reset()
         breachCounts = nil
         breachesCheckedAt = nil
         sessions.forEach { $0.close() }
