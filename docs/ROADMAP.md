@@ -2,6 +2,10 @@
 
 Owner: product. Updated 2026-10-05. Status: ✅ done · 🟡 in progress · ⬜ planned
 
+> **Work is tracked in [GitHub Issues](https://github.com/sinhong2011/chiikawarden/issues)** by milestone
+> ([v0.2](https://github.com/sinhong2011/chiikawarden/milestone/1), [v0.3](https://github.com/sinhong2011/chiikawarden/milestone/2), [v1.0](https://github.com/sinhong2011/chiikawarden/milestone/3)).
+> This page keeps the product intent, exit criteria and decisions.
+
 ## North star
 
 A Mac-native password manager for Vaultwarden (and Bitwarden) people *prefer* over the official
@@ -67,3 +71,4 @@ You can replace the official desktop app for **reading** your vault:
 - 2026-10-05 UI follows the canvas "Vault window (static spec)"; **no Liquid Glass on custom components**, system sidebar only.
 - 2026-10-05 Keyguard is reference-only (All Rights Reserved) — never port its code.
 - 2026-10-05 prizm (b0x42/prizm) is reference-only (MIT + Commons Clause) — never port its code.
+- 2026-10-05 Swift app replaces the earlier Tauri prototype on `main`; the prototype is kept on branch `tauri-legacy`.
