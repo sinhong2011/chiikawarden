@@ -32,6 +32,8 @@ targets:
       - AutoFill/AutoFillView.swift # also rendered by --snapshot
       - path: Design/AppIcon/AppIcon.icon
         buildPhase: resources
+      - path: THIRD_PARTY_NOTICES.md # shown in Settings › About › Acknowledgements
+        buildPhase: resources
     dependencies:
       - package: VaultCore
         product: ChiikawaCrypto

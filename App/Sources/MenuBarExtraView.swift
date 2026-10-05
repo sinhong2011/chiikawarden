@@ -117,6 +117,11 @@ private enum Pill {
 
 /// The featured login: a raised light panel with its live code and quick copy buttons.
 private struct FeaturedCard: View {
+    static func fraction(_ totp: TOTP, _ date: Date) -> Double {
+        let period = Double(totp.period)
+        return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
+    }
+
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
     let item: VaultItem
@@ -134,16 +139,10 @@ private struct FeaturedCard: View {
                     }
                     Spacer()
                     if let totp = item.totp {
-                        Text(verbatim: totp.displayCode(at: context.date))
-                            .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color.brand)
-                            .contentTransition(.numericText())
+                        let left = totp.secondsRemaining(at: context.date)
+                        OTPCode(code: totp.code(at: context.date), size: 18, urgent: left <= 5)
+                        CountdownRing(fraction: Self.fraction(totp, context.date), seconds: left, size: 28)
                     }
-                }
-                if let totp = item.totp {
-                    let period = Double(totp.period)
-                    LevelBar(fraction: 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
-                             color: totp.secondsRemaining(at: context.date) <= 5 ? .orange : .brand)
                 }
                 HStack(spacing: 6) {
                     if let password = item.password {
@@ -182,7 +181,7 @@ private struct CodesSection: View {
                         .foregroundStyle(.secondary).padding(.horizontal, 10).padding(.bottom, 4)
                     ForEach(Array(items)) { item in
                         if let totp = item.totp {
-                            CodeRow(item: item, code: totp.displayCode(at: context.date), copied: copiedID == item.id) {
+                            CodeRow(item: item, totp: totp, date: context.date, copied: copiedID == item.id) {
                                 model.copy(totp.code(), label: String(localized: "Code"))
                                 withAnimation(.snappy) { copiedID = item.id }
                                 Task {
@@ -192,14 +191,6 @@ private struct CodesSection: View {
                             }
                         }
                     }
-                    let period = 30.0
-                    let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                    GeometryReader { g in
-                        Capsule().fill(Color.primary.opacity(0.08))
-                            .overlay(alignment: .leading) { Capsule().fill(Color.brand).frame(width: g.size.width * remaining) }
-                    }
-                    .frame(height: 3)
-                    .padding(.horizontal, 10).padding(.top, 6)
                 }
                 .padding(.horizontal, 4).padding(.top, 6).padding(.bottom, 2)
             }
@@ -209,29 +200,38 @@ private struct CodesSection: View {
 
 private struct CodeRow: View {
     let item: VaultItem
-    let code: String
+    let totp: TOTP
+    let date: Date
     let copied: Bool
     let action: () -> Void
     @State private var hovering = false
 
     var body: some View {
+        let left = totp.secondsRemaining(at: date)
         Button(action: action) {
             HStack(spacing: 12) {
                 ItemIcon(item: item, size: 30)
                 Text(item.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer()
-                Text(copied ? String(localized: "Copied") : code)
-                    .font(.system(size: 15, weight: .medium, design: .monospaced))
-                    .foregroundStyle(copied ? Color.brand : .primary)
-                    .contentTransition(.numericText())
+                OTPCode(code: totp.code(at: date), size: 15, urgent: left <= 5)
+                ZStack {
+                    if copied {
+                        Image(systemName: "checkmark.circle.fill").font(.system(size: 20)).foregroundStyle(Color.brand)
+                            .transition(.scale.combined(with: .opacity))
+                    } else {
+                        CountdownRing(fraction: FeaturedCard.fraction(totp, date), seconds: left, size: 24)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .frame(width: 24, height: 24)
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
-            .background(copied ? Color.brand.opacity(0.10) : hovering ? Color.primary.opacity(0.06) : .clear,
-                        in: .rect(cornerRadius: 14, style: .continuous))
+            .background(hovering ? Color.primary.opacity(0.06) : .clear, in: .rect(cornerRadius: 14, style: .continuous))
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
+        .accessibilityLabel(Text(verbatim: "\(item.name), \(totp.code(at: date))"))
     }
 }
 

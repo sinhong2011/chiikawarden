@@ -23,6 +23,27 @@ private struct AccountPicker: View {
     }
 }
 
+/// Personal or an organization: where an export reads from or an import goes to.
+private struct VaultPicker: View {
+    let vaults: [(id: String?, name: String)]
+    @Binding var selection: String?
+    let label: LocalizedStringKey
+
+    var body: some View {
+        if vaults.count > 1 {
+            VStack(alignment: .leading, spacing: 6) {
+                SheetLabel(label)
+                Picker(label, selection: $selection) {
+                    ForEach(vaults, id: \.id) { vault in
+                        Label(vault.name, systemImage: vault.id == nil ? "person" : "building.2").tag(vault.id)
+                    }
+                }
+                .labelsHidden()
+            }
+        }
+    }
+}
+
 private struct SheetLabel: View {
     let text: LocalizedStringKey
     init(_ text: LocalizedStringKey) { self.text = text }
@@ -52,7 +73,9 @@ private struct SheetHeader: View {
 // MARK: - Export
 
 struct ExportSheet: View {
+    var initialAccount: String?
     @Environment(AppModel.self) private var model
+    @State private var vaultId: String?
     @Environment(\.dismiss) private var dismiss
     @AppStorage("exportFormat") private var formatRaw = VaultExport.Format.encryptedJSON.rawValue
     @State private var accountId = ""
@@ -76,6 +99,7 @@ struct ExportSheet: View {
                         subtitle: "Your personal items and folders, in a file any Bitwarden app can import.")
 
             AccountPicker(accountId: $accountId)
+            VaultPicker(vaults: session?.transferVaults() ?? [], selection: $vaultId, label: "Vault")
 
             VStack(alignment: .leading, spacing: 8) {
                 SheetLabel("Format")
@@ -119,7 +143,8 @@ struct ExportSheet: View {
         }
         .padding(24)
         .frame(width: 500)
-        .onAppear { if accountId.isEmpty { accountId = model.sessions.first?.id ?? "" } }
+        .onAppear { if accountId.isEmpty { accountId = initialAccount ?? model.sessions.first?.id ?? "" } }
+        .onChange(of: accountId) { vaultId = nil }
     }
 
     private var description: LocalizedStringKey {
@@ -138,9 +163,9 @@ struct ExportSheet: View {
         }
         working = true
         defer { working = false }
-        let result: (data: Data, skipped: Int)
+        let result: (data: Data, skipped: Int, count: Int)
         do {
-            result = try session.export(format, filePassword: filePassword)
+            result = try session.export(format, filePassword: filePassword, organizationId: vaultId)
         } catch {
             self.error = String(localized: "Couldn't read the vault. Sync, then try again.")
             return
@@ -158,7 +183,7 @@ struct ExportSheet: View {
             error = String(localized: "Couldn't save the file there.")
             return
         }
-        let count = session.items.filter { !$0.isDeleted && $0.organizationId == nil }.count - result.skipped
+        let count = result.count
         model.flash(result.skipped > 0
                     ? String(localized: "Exported \(count) items · \(result.skipped) not supported by CSV")
                     : String(localized: "Exported \(count) items"))
@@ -171,6 +196,7 @@ struct ExportSheet: View {
 struct ImportSheet: View {
     var initialFile: URL?
     @Environment(AppModel.self) private var model
+    @State private var vaultId: String?
     @Environment(\.dismiss) private var dismiss
     @State private var accountId = ""
     @State private var file: URL?
@@ -190,7 +216,7 @@ struct ImportSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SheetHeader(symbol: "square.and.arrow.down", title: "Import",
-                        subtitle: "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.")
+                        subtitle: "From Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords or your browser.")
             switch phase {
             case .choose: chooser
             case .preview: previewBody
@@ -236,7 +262,7 @@ struct ImportSheet: View {
                     VStack(spacing: 8) {
                         Image(systemName: "doc.badge.arrow.up").font(.system(size: 26)).foregroundStyle(.secondary)
                         Text("Choose a file, or drop it here").font(.system(size: 13, weight: .medium))
-                        Text("Bitwarden JSON or CSV · browser CSV exports").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text("JSON, CSV, KeePass XML or 1Password .1pux").font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, minHeight: 140)
                     .background(Color.primary.opacity(dropTargeted ? 0.08 : 0.04), in: .rect(cornerRadius: 16, style: .continuous))
@@ -267,7 +293,7 @@ struct ImportSheet: View {
     private func isDuplicate(_ item: ImportedItem) -> Bool {
         let name = item.name.lowercased()
         return model.items.contains { existing in
-            existing.accountId == accountId && !existing.isDeleted && existing.name.lowercased() == name
+            existing.accountId == accountId && existing.organizationId == vaultId && !existing.isDeleted && existing.name.lowercased() == name
                 && (existing.username ?? "") == (item.username ?? "") && existing.host == item.host
         }
     }
@@ -282,6 +308,7 @@ struct ImportSheet: View {
                     Text(formatName(preview.format)).font(.system(size: 13)).foregroundStyle(.secondary)
                 }
                 AccountPicker(accountId: $accountId)
+                VaultPicker(vaults: session?.transferVaults() ?? [], selection: $vaultId, label: "Import into")
 
                 let counts = Dictionary(grouping: included, by: \.type).mapValues(\.count)
                 HStack(spacing: 8) {
@@ -290,7 +317,7 @@ struct ImportSheet: View {
                     }
                     if !preview.folders.isEmpty {
                         let used = Set(included.compactMap(\.folder)).count
-                        Label("\(used) folders", systemImage: "folder").font(.system(size: 12, weight: .medium))
+                        Label(vaultId == nil ? "\(used) folders" : "\(used) collections", systemImage: vaultId == nil ? "folder" : "rectangle.stack").font(.system(size: 12, weight: .medium))
                             .padding(.horizontal, 10).frame(height: 26).background(Color.primary.opacity(0.06), in: .capsule)
                     }
                 }
@@ -340,6 +367,13 @@ struct ImportSheet: View {
         case .chromeCSV: "Chrome, Edge, Brave or Arc CSV"
         case .safariCSV: "Safari or Apple Passwords CSV"
         case .firefoxCSV: "Firefox CSV"
+        case .onePassword1pux: "1Password (.1pux)"
+        case .onePasswordCSV: "1Password CSV"
+        case .lastPassCSV: "LastPass CSV"
+        case .keePassXCCSV: "KeePassXC CSV"
+        case .keePassXML: "KeePass 2 XML"
+        case .protonPassCSV: "Proton Pass CSV"
+        case .dashlaneCSV: "Dashlane CSV"
         }
     }
 
@@ -378,7 +412,7 @@ struct ImportSheet: View {
 
     private func choose() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.json, .commaSeparatedText, .plainText]
+        panel.allowedContentTypes = [.json, .commaSeparatedText, .plainText, .xml] + [UTType(filenameExtension: "1pux")].compactMap { $0 }
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url { load(url) }
     }
@@ -427,7 +461,7 @@ struct ImportSheet: View {
         withAnimation(.snappy) { phase = .importing }
         Task {
             do {
-                try await session.importItems(items, folders: preview.folders)
+                try await session.importItems(items, folders: preview.folders, organizationId: vaultId)
                 withAnimation(.snappy) { phase = .done(items.count) }
             } catch {
                 self.error = String(localized: "The import didn't go through: \(error.localizedDescription)")

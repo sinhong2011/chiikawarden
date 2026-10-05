@@ -99,6 +99,16 @@ public struct SyncResponse: Decodable, Sendable {
         public let name: String?
         /// Org symmetric key, RSA-encrypted to the user's public key.
         public let key: String?
+        /// 0 owner, 1 admin, 2 user, 3 manager, 4 custom.
+        public var type: Int? = nil
+        public var permissions: Permissions? = nil
+
+        public struct Permissions: Decodable, Sendable {
+            public var accessImportExport: Bool? = nil
+        }
+
+        /// Owners and admins (or custom roles with the permission) may import and export the organization vault.
+        public var canImportExport: Bool { type == 0 || type == 1 || permissions?.accessImportExport == true }
     }
 
     public struct Cipher: Decodable, Sendable, Identifiable {

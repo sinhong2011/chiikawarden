@@ -65,14 +65,17 @@ final class AppModel {
     var transfer: Transfer?
 
     enum Transfer: Identifiable {
-        case export
+        case export(accountId: String?)
         case importFile(URL?)
         var id: String {
-            switch self { case .export: "export"; case .importFile(let url): "import-" + (url?.path ?? "") }
+            switch self {
+            case .export(let account): "export-" + (account ?? "")
+            case .importFile(let url): "import-" + (url?.path ?? "")
+            }
         }
     }
 
-    func beginExport() { bringToFront(); transfer = .export }
+    func beginExport(accountId: String? = nil) { bringToFront(); transfer = .export(accountId: accountId) }
     func beginImport(_ url: URL? = nil) { bringToFront(); transfer = .importFile(url) }
 
     /// Checks a master password offline (re-entry before an export).
@@ -504,7 +507,7 @@ final class AppModel {
         self.client = nil
         try await session.refresh()
         addingAccount = false
-        phase = .vault
+        enterVault()
     }
 
     // MARK: Single sign-on
@@ -609,15 +612,21 @@ final class AppModel {
             Task { await session.resume() }
         }
         noteActivity()
-        // From the lock screen: the lock opens first, then the vault comes in. Instant for tooling and Reduce Motion.
+        enterVault()
+    }
+
+    /// From the lock or login screen: the vault door opens first, then the vault comes in.
+    /// Instant for tooling, Reduce Motion, and when already in the vault.
+    private func enterVault() {
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
-        guard phase.id == Phase.locked.id, !tooling, Self.doorAnimates else {
+        let fromDoor = phase.id == Phase.locked.id || phase.id == Phase.login.id
+        guard fromDoor, !tooling, Self.doorAnimates else {
             phase = .vault
             return
         }
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         Task {
-            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock layer dissolves over the vault.
+            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock or login screen gives way to the vault.
             try? await Task.sleep(for: .milliseconds(780))
             phase = .vault
             try? await Task.sleep(for: .milliseconds(400))

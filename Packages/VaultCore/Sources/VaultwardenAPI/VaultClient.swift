@@ -277,6 +277,13 @@ public actor VaultClient {
         _ = try await sendRaw(authorized(post(environment.apiURL, "ciphers/import", jsonBody: body)))
     }
 
+    /// Imports into an organization (body from `VaultImport.organizationRequestBody`): ciphers and collections,
+    /// encrypted with the organization key.
+    public func importOrganizationCiphers(_ body: Data, organizationId: String) async throws(APIError) {
+        let id = organizationId.addingPercentEncoding(withAllowedCharacters: .alphanumerics.union(["-"])) ?? organizationId
+        _ = try await sendRaw(authorized(post(environment.apiURL, "ciphers/import-organization?organizationId=\(id)", jsonBody: body)))
+    }
+
     /// Replaces an item with a body from `CipherEditor.updatedCipher`.
     public func updateCipher(id: String, _ body: Data) async throws(APIError) {
         var r = try post(environment.apiURL, "ciphers/\(id)", jsonBody: body)

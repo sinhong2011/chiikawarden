@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Login: a dark brand stage on the left, a calm native form on the right.
+/// Login: the vault door on the left, a calm native form on the right.
 /// The stage bleeds to the window edge so the traffic lights sit on it, and hides on narrow windows.
 struct LoginView: View {
     var body: some View {
@@ -9,7 +9,7 @@ struct LoginView: View {
             let showStage = geo.size.width >= 820
             HStack(spacing: 0) {
                 if showStage {
-                    BrandStage()
+                    LoginDoorStage()
                         .frame(width: min(max(geo.size.width * 0.46, 380), 560))
                         .transition(.move(edge: .leading).combined(with: .opacity))
                 }
@@ -217,15 +217,16 @@ private struct LoginForm: View {
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
 
     func makeBody(configuration: Configuration) -> some View {
         let dark = scheme == .dark
         configuration.label
-            .foregroundStyle(isEnabled ? Color.white : Color.secondary)
+            .foregroundStyle(isEnabled ? (contrast == .increased ? Color.onBrandFill : Color.white) : Color.secondary)
             .frame(maxWidth: .infinity, minHeight: 40)
             .background {
                 if isEnabled {
-                    Capsule().fill(Color.brandButton)
+                    Capsule().fill(contrast == .increased ? Color.brandFill : Color.brandButton)
                         .overlay(Capsule().fill(Color.black.opacity(configuration.isPressed ? 0.12 : 0)))
                 } else {
                     Capsule().fill(dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))

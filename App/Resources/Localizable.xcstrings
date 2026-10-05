@@ -189,6 +189,34 @@
         }
       }
     },
+    "%lld collections": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個のコレクション"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個集合"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个集合"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個集合"
+          }
+        }
+      }
+    },
     "%lld entries can't be imported": {
       "localizations": {
         "ja": {
@@ -581,6 +609,8 @@
         }
       }
     },
+    "1Password (.1pux)": {},
+    "1Password CSV": {},
     "2 days": {
       "localizations": {
         "ja": {
@@ -975,6 +1005,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "帳號"
+          }
+        }
+      }
+    },
+    "Acknowledgements": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "謝辞"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鳴謝"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "致谢"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "致謝"
           }
         }
       }
@@ -1937,6 +1995,7 @@
       }
     },
     "Bitwarden JSON or CSV · browser CSV exports": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2609,6 +2668,7 @@
       }
     },
     "Check for updates daily": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2693,6 +2753,7 @@
       }
     },
     "Chiikawarden %@ is up to date.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -4067,6 +4128,7 @@
       }
     },
     "Couldn't check for updates.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -4598,6 +4660,7 @@
         }
       }
     },
+    "Dashlane CSV": {},
     "Decrease": {
       "localizations": {
         "ja": {
@@ -5551,7 +5614,36 @@
         }
       }
     },
+    "Every login,\nbehind one door.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのログインを、\nひとつの扉の奥に。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一個登入資料，\n都喺同一道門後面。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一组登录信息，\n都在同一道门后。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一組登入資料，\n都在同一道門後。"
+          }
+        }
+      }
+    },
     "Every login,\nin one quiet orbit.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -5800,6 +5892,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "匯出密碼庫⋯"
+          }
+        }
+      }
+    },
+    "Export this account's vault": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアカウントの保管庫を書き出す"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出呢個帳戶嘅密碼庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出这个账户的密码库"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出這個帳號的密碼庫"
           }
         }
       }
@@ -6392,7 +6512,64 @@
         }
       }
     },
+    "Free software under the GNU General Public License v3.0. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GNU 一般公衆利用許諾書 第 3 版のもとで公開されている自由ソフトウェアです。Bitwarden, Inc. および Vaultwarden プロジェクトとは関係ありません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共授權條款第 3 版發佈嘅自由軟件。同 Bitwarden, Inc. 及 Vaultwarden 項目無關。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共许可证第 3 版发布的自由软件。与 Bitwarden, Inc. 及 Vaultwarden 项目无关。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共授權條款第 3 版發佈的自由軟體。與 Bitwarden, Inc. 及 Vaultwarden 專案無關。"
+          }
+        }
+      }
+    },
+    "From Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords or your browser.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple のパスワード、ブラウザから読み込めます。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以由 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple「密碼」或你嘅瀏覽器匯入。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可从 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple“密码”或你的浏览器导入。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可從 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple「密碼」或你的瀏覽器匯入。"
+          }
+        }
+      }
+    },
     "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7037,6 +7214,34 @@
         }
       }
     },
+    "Import into": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込み先"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入去"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入到"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入至"
+          }
+        }
+      }
+    },
     "Imported %lld items": {
       "localizations": {
         "ja": {
@@ -7401,6 +7606,36 @@
         }
       }
     },
+    "JSON, CSV, KeePass XML or 1Password .1pux": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML、1Password の .1pux"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
+          }
+        }
+      }
+    },
+    "KeePass 2 XML": {},
+    "KeePassXC CSV": {},
     "Language": {
       "localizations": {
         "ja": {
@@ -7513,6 +7748,7 @@
         }
       }
     },
+    "LastPass CSV": {},
     "Length": {
       "localizations": {
         "ja": {
@@ -7565,6 +7801,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "駕照號碼"
+          }
+        }
+      }
+    },
+    "License": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンス"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授權條款"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可证"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授權條款"
           }
         }
       }
@@ -9841,6 +10105,7 @@
       }
     },
     "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -10824,6 +11089,34 @@
         }
       }
     },
+    "Personal": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        }
+      }
+    },
     "Phone": {
       "localizations": {
         "ja": {
@@ -11020,6 +11313,7 @@
         }
       }
     },
+    "Proton Pass CSV": {},
     "Public key": {
       "localizations": {
         "ja": {
@@ -12144,6 +12438,34 @@
         }
       }
     },
+    "Sealed tight.\nOpens only for you.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "しっかり施錠。\nあなたにだけ開く。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封得密實，\n只為你打開。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严密封锁，\n只为你开启。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "嚴密封鎖，\n只為你開啟。"
+          }
+        }
+      }
+    },
     "Search": {
       "localizations": {
         "ja": {
@@ -13123,6 +13445,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "略過 %lld 個可能重複的項目"
+          }
+        }
+      }
+    },
+    "Source Code": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソースコード"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始碼"
           }
         }
       }
@@ -15605,6 +15955,7 @@
       }
     },
     "Version %@ is available": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -16244,6 +16595,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的個人項目與資料夾，存成任何 Bitwarden App 都能匯入的檔案。"
+          }
+        }
+      }
+    },
+    "Your vault is encrypted on this Mac until you unlock it.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを解除するまで、保管庫はこの Mac 上で暗号化されています。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺你解鎖之前，密碼庫都係加密咗存喺呢部 Mac。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你解锁之前，密码库都以加密形式存放在这台 Mac 上。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你解鎖之前，密碼庫都以加密形式存放在這台 Mac 上。"
           }
         }
       }

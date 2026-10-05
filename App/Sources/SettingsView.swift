@@ -380,6 +380,8 @@ private struct AccountsSettings: View {
                                 .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
                             Spacer()
                             if unlocked {
+                                Button("Export…") { model.beginExport(accountId: account.id) }
+                                    .help(Text("Export this account's vault"))
                                 Button("Lock") { model.lock(account.id) }
                             }
                             Button("Log Out…", role: .destructive) { confirmLogOut = account }
@@ -524,6 +526,8 @@ private struct ServerSettings: View {
 // MARK: About
 
 private struct AboutSettings: View {
+    @State private var showingNotices = false
+
     var body: some View {
         VStack(spacing: 10) {
             Image(nsImage: NSApplication.shared.applicationIconImage)
@@ -533,14 +537,55 @@ private struct AboutSettings: View {
                 .foregroundStyle(.secondary)
             Text("A native Mac client for Vaultwarden and Bitwarden.")
                 .padding(.top, 4)
-            Text("Open source under the MIT License. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.")
+            Text("Free software under the GNU General Public License v3.0. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.")
                 .font(.caption).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 360)
+                .frame(maxWidth: 380)
                 .padding(.top, 8)
+            HStack(spacing: 8) {
+                Link(destination: URL(string: "https://github.com/sinhong2011/chiikawarden")!) {
+                    Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
+                .buttonStyle(.appSecondarySmall)
+                Link(destination: URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!) {
+                    Label("License", systemImage: "doc.text")
+                }
+                .buttonStyle(.appSecondarySmall)
+                Button { showingNotices = true } label: { Label("Acknowledgements", systemImage: "heart.text.square") }
+                    .buttonStyle(.appSecondarySmall)
+            }
+            .padding(.top, 10)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 28)
+        .sheet(isPresented: $showingNotices) { NoticesSheet() }
+    }
+}
+
+/// The third-party notices bundled with the app (Sparkle, Argon2, EFF wordlist).
+private struct NoticesSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    private let text: String = Bundle.main.url(forResource: "THIRD_PARTY_NOTICES", withExtension: "md")
+        .flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Acknowledgements").font(.system(size: 15, weight: .semibold))
+                Spacer()
+                Button("Done") { dismiss() }.buttonStyle(.appPrimarySmall).keyboardShortcut(.defaultAction)
+            }
+            .padding(16)
+            Divider()
+            ScrollView {
+                Text(verbatim: text)
+                    .font(.system(size: 11, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+            }
+        }
+        .frame(width: 620, height: 520)
     }
 }
 

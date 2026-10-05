@@ -227,13 +227,13 @@ struct VaultView: View {
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .sheet(item: $model.transfer) { transfer in
             switch transfer {
-            case .export: ExportSheet()
+            case .export(let accountId): ExportSheet(initialAccount: accountId)
             case .importFile(let url): ImportSheet(initialFile: url)
             }
         }
         // Drop an export file (from any supported app) on the window to import it.
         .dropDestination(for: URL.self) { urls, _ in
-            guard let url = urls.first, ["csv", "json"].contains(url.pathExtension.lowercased()), !model.sessions.isEmpty else { return false }
+            guard let url = urls.first, ["csv", "json", "xml", "1pux"].contains(url.pathExtension.lowercased()), !model.sessions.isEmpty else { return false }
             model.beginImport(url)
             return true
         }

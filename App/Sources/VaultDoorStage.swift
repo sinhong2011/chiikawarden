@@ -605,3 +605,46 @@ private struct VaultDoorArt: View, Animatable {
         c.stroke(path, with: .color(p.engrave), lineWidth: width)
     }
 }
+
+// MARK: - Login
+
+/// The login screen's side panel: the same vault door, closed, under the brand and a caption. A successful sign-in
+/// opens it like an unlock.
+struct LoginDoorStage: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    @State private var openedAt: Date?
+
+    var body: some View {
+        let dark = scheme == .dark
+        let ink = dark ? Color.white : Color(red: 0.05, green: 0.16, blue: 0.27)
+        GeometryReader { geo in
+            let size = geo.size
+            let radius = min(size.width * 0.34, size.height * 0.27, 200)
+            ZStack {
+                VaultDoorStage(radius: radius, center: CGPoint(x: size.width / 2, y: size.height * 0.40), typed: 0, turns: 0,
+                               busy: model.isBusy, errorAt: nil, openedAt: openedAt, closedAt: nil)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(verbatim: "Chiikawarden")
+                        .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
+                        .foregroundStyle(dark ? Color.brandFill : Color(red: 0.06, green: 0.45, blue: 0.70))
+                        .padding(.bottom, 4)
+                    Text("Every login,\nbehind one door.")
+                        .font(.system(size: 26, weight: .semibold)).tracking(-0.4)
+                        .foregroundStyle(ink)
+                    Text("Passwords, passkeys, codes and SSH keys — native on your Mac.")
+                        .font(.system(size: 13)).foregroundStyle(ink.opacity(0.62))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .padding(36)
+                .opacity(openedAt == nil ? 1 : 0)
+                .animation(.easeIn(duration: 0.25), value: openedAt == nil)
+            }
+        }
+        // Fades out on the right so the stage melts into the form's side (no hard seam).
+        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.78),
+                                     .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
+        .onChange(of: model.unlockOpening) { _, now in openedAt = now ? .now : nil }
+        .accessibilityHidden(true)
+    }
+}

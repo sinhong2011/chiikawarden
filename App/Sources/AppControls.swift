@@ -12,6 +12,8 @@ struct AppButtonStyle: ButtonStyle {
     var large = false
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var scheme
+    /// Increase Contrast: navy on the light tail sky (7.9:1) instead of white on the deeper sky.
+    @Environment(\.colorSchemeContrast) private var contrast
 
     func makeBody(configuration: Configuration) -> some View {
         let dark = scheme == .dark
@@ -25,7 +27,7 @@ struct AppButtonStyle: ButtonStyle {
             .background {
                 switch kind {
                 case .primary:
-                    Capsule().fill(Color.brandButton)
+                    Capsule().fill(contrast == .increased ? Color.brandFill : Color.brandButton)
                         .overlay(Capsule().fill(Color.black.opacity(configuration.isPressed ? 0.12 : 0)))
                 case .secondary:
                     Capsule().fill(Color.primary.opacity(configuration.isPressed ? (dark ? 0.16 : 0.10) : (dark ? 0.10 : 0.06)))
@@ -41,7 +43,7 @@ struct AppButtonStyle: ButtonStyle {
 
     private func foreground(_ dark: Bool) -> Color {
         switch kind {
-        case .primary: .white
+        case .primary: contrast == .increased ? Color.onBrandFill : .white
         case .secondary: dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16)
         case .destructive: .red
         }

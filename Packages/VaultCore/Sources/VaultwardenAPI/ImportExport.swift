@@ -77,6 +77,31 @@ public enum VaultExport {
         return (folders, items)
     }
 
+    /// One organization's vault (nothing in Trash), decrypted, with its collections — Bitwarden's organization export.
+    public static func organizationVault(syncData: Data, userKey: SymmetricKeyPair, organizationId: String) throws
+        -> (collections: [[String: Any]], items: [[String: Any]]) {
+        let sync = try SyncResponse.decode(syncData)
+        let keyring = Keyring(userKey: userKey, profile: sync.profile)
+        guard let orgKey = keyring.orgKeys[organizationId] else { throw APIError.http(status: -1, message: "No key for this organization") }
+        let raw = CipherEditor.rawCiphers(fromSync: syncData)
+        let collections: [[String: Any]] = (sync.collections ?? []).filter { $0.organizationId == organizationId }.map { c in
+            ["id": c.id, "organizationId": organizationId, "externalId": NSNull(),
+             "name": (try? EncString(c.name).decryptString(with: orgKey)) ?? c.name]
+        }
+        var items: [[String: Any]] = []
+        for cipher in sync.ciphers where cipher.organizationId == organizationId && cipher.deletedDate == nil {
+            guard let data = raw[cipher.id], let key = keyring.key(for: cipher),
+                  let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let plain = CipherFields.decrypt(dict, key: key) as? [String: Any] else { continue }
+            var item = exportItem(plain)
+            item["organizationId"] = organizationId
+            item["folderId"] = NSNull()
+            item["collectionIds"] = cipher.collectionIds ?? []
+            items.append(item)
+        }
+        return (collections, items)
+    }
+
     /// Keeps the fields Bitwarden's export has; drops server bookkeeping (keys, attachments, permissions).
     static func exportItem(_ c: [String: Any]) -> [String: Any] {
         var item: [String: Any] = [:]
@@ -102,6 +127,12 @@ public enum VaultExport {
 
     public static func json(folders: [[String: Any]], items: [[String: Any]]) throws -> Data {
         try JSONSerialization.data(withJSONObject: ["encrypted": false, "folders": folders, "items": items],
+                                   options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+    }
+
+    /// An organization export: collections instead of folders.
+    public static func json(collections: [[String: Any]], items: [[String: Any]]) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["encrypted": false, "collections": collections, "items": items],
                                    options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
     }
 
@@ -134,9 +165,18 @@ public enum VaultExport {
 
     /// Bitwarden CSV: logins and secure notes only (the format holds nothing else).
     public static func csv(folders: [[String: Any]], items: [[String: Any]]) -> (data: Data, skipped: Int) {
-        let folderNames = Dictionary(folders.compactMap { f in (f["id"] as? String).map { ($0, f["name"] as? String ?? "") } },
+        csv(groups: folders, items: items, organization: false)
+    }
+
+    /// Bitwarden's organization CSV: a "collections" column (comma-separated names) instead of "folder".
+    public static func csv(collections: [[String: Any]], items: [[String: Any]]) -> (data: Data, skipped: Int) {
+        csv(groups: collections, items: items, organization: true)
+    }
+
+    static func csv(groups: [[String: Any]], items: [[String: Any]], organization: Bool) -> (data: Data, skipped: Int) {
+        let folderNames = Dictionary(groups.compactMap { f in (f["id"] as? String).map { ($0, f["name"] as? String ?? "") } },
                                      uniquingKeysWith: { a, _ in a })
-        var rows = [csvHeader]
+        var rows = [organization ? ["collections"] + csvHeader.filter { $0 != "folder" && $0 != "favorite" } : csvHeader]
         var skipped = 0
         for item in items {
             let type = item["type"] as? Int
@@ -144,9 +184,10 @@ public enum VaultExport {
             let login = item["login"] as? [String: Any] ?? [:]
             let fields = (item["fields"] as? [[String: Any]] ?? []).map { "\($0["name"] as? String ?? ""): \($0["value"] as? String ?? "")" }
             let uris = (login["uris"] as? [[String: Any]] ?? []).compactMap { $0["uri"] as? String }
-            rows.append([
-                (item["folderId"] as? String).flatMap { folderNames[$0] } ?? "",
-                (item["favorite"] as? Bool) == true ? "1" : "",
+            let group = organization
+                ? (item["collectionIds"] as? [String] ?? []).compactMap { folderNames[$0] }.joined(separator: ",")
+                : (item["folderId"] as? String).flatMap { folderNames[$0] } ?? ""
+            rows.append((organization ? [group] : [group, (item["favorite"] as? Bool) == true ? "1" : ""]) + [
                 type == 1 ? "login" : "note",
                 item["name"] as? String ?? "",
                 item["notes"] as? String ?? "",
@@ -183,6 +224,7 @@ public struct ImportPreview: Sendable {
     public enum Format: String, Sendable {
         case bitwardenJSON, bitwardenPasswordProtected, bitwardenAccountEncrypted, bitwardenCSV
         case chromeCSV, safariCSV, firefoxCSV
+        case onePassword1pux, onePasswordCSV, lastPassCSV, keePassXCCSV, keePassXML, protonPassCSV, dashlaneCSV
     }
     public var format: Format
     public var folders: [String]
@@ -212,8 +254,10 @@ public enum VaultImport {
     /// Reads any supported file. `password` is for password-protected exports; `accountKey` decrypts
     /// account-encrypted exports made from the same account.
     public static func preview(_ data: Data, password: String? = nil, accountKey: SymmetricKeyPair? = nil) throws(ImportError) -> ImportPreview {
+        if data.starts(with: [0x50, 0x4B, 0x03, 0x04]) { return try onePux(data) } // a ZIP: 1Password's .1pux
         let text = String(decoding: data, as: UTF8.self).trimmingCharacters(in: CharacterSet(charactersIn: "\u{FEFF}").union(.whitespacesAndNewlines))
         guard !text.isEmpty else { throw .empty }
+        if text.hasPrefix("<") { return try keePassXML(Data(text.utf8)) }
         if text.hasPrefix("{"), let root = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any] {
             return try bitwardenJSON(root, password: password, accountKey: accountKey)
         }
@@ -258,7 +302,9 @@ public enum VaultImport {
             format = .bitwardenAccountEncrypted
         }
 
-        let folderList = root["folders"] as? [[String: Any]] ?? []
+        // Organization exports group by collection; they import as folders (or collections, into an organization).
+        let byCollection = (root["folders"] as? [[String: Any]] ?? []).isEmpty && root["collections"] != nil
+        let folderList = (byCollection ? root["collections"] : root["folders"]) as? [[String: Any]] ?? []
         let folders = folderList.map { $0["name"] as? String ?? "" }
         let folderIndex = Dictionary(folderList.enumerated().compactMap { i, f in (f["id"] as? String).map { ($0, i) } },
                                      uniquingKeysWith: { a, _ in a })
@@ -269,7 +315,8 @@ public enum VaultImport {
                 problems.append(.unknownType(item: i + 1))
                 continue
             }
-            items.append(ImportedItem(json: item, folder: (raw["folderId"] as? String).flatMap { folderIndex[$0] }))
+            let group = byCollection ? (raw["collectionIds"] as? [String])?.first : raw["folderId"] as? String
+            items.append(ImportedItem(json: item, folder: group.flatMap { folderIndex[$0] }))
         }
         guard !items.isEmpty || !folders.isEmpty else { throw problems.isEmpty ? .empty : .unsupported }
         return ImportPreview(format: format, folders: folders, items: items, problems: problems)
@@ -305,6 +352,12 @@ public enum VaultImport {
         guard let header = rows.first?.map({ $0.trimmingCharacters(in: .whitespaces).lowercased() }), rows.count > 1 else { throw .empty }
         func col(_ name: String) -> Int? { header.firstIndex(of: name) }
         let body = rows.dropFirst().filter { !$0.allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty } }
+
+        // Other password managers first: some of their headers also contain the browsers' columns.
+        if col("login_uri") == nil, let other = otherCSV(header: header, rows: Array(body)) {
+            guard !other.items.isEmpty else { throw .empty }
+            return other
+        }
 
         var folders: [String] = []
         var items: [ImportedItem] = []
@@ -351,7 +404,10 @@ public enum VaultImport {
                             "type": 0, "linkedId": NSNull()]
                 }
                 if !fields.isEmpty { item["fields"] = fields }
-                let folderName = value(row, col("folder")).trimmingCharacters(in: .whitespaces)
+                // Organization CSVs have "collections" (comma-separated); the first one groups the item.
+                let folderName = (col("folder") != nil ? value(row, col("folder"))
+                                  : value(row, col("collections")).split(separator: ",").first.map(String.init) ?? "")
+                    .trimmingCharacters(in: .whitespaces)
                 var folder: Int?
                 if !folderName.isEmpty {
                     if let existing = folders.firstIndex(of: folderName) { folder = existing } else { folders.append(folderName); folder = folders.count - 1 }
@@ -409,6 +465,44 @@ public enum VaultImport {
         let relationships = items.enumerated().compactMap { i, item in item.folder.flatMap { remap[$0] }.map { ["key": i, "value": $0] } }
         return try JSONSerialization.data(withJSONObject: ["ciphers": ciphers, "folders": encryptedFolders,
                                                            "folderRelationships": relationships])
+    }
+}
+
+extension VaultImport {
+    /// Splits a large import into requests of at most `limit` items. Items are grouped by folder and whole folders are
+    /// kept together where they fit, so a folder is created once (a folder bigger than the limit is split across batches).
+    public static func batches(_ items: [ImportedItem], limit: Int) -> [[ImportedItem]] {
+        guard items.count > limit else { return [items] }
+        let groups = Dictionary(grouping: items, by: { $0.folder ?? -1 }).sorted { $0.key < $1.key }.map(\.value)
+        var batches: [[ImportedItem]] = [[]]
+        for group in groups {
+            for part in stride(from: 0, to: group.count, by: limit).map({ Array(group[$0..<min($0 + limit, group.count)]) }) {
+                if batches[batches.count - 1].count + part.count > limit { batches.append([]) }
+                batches[batches.count - 1] += part
+            }
+        }
+        return batches.filter { !$0.isEmpty }
+    }
+
+    /// The `POST /api/ciphers/import-organization` body: items and collections encrypted with the organization key.
+    /// Folders in the file become collections, as in Bitwarden.
+    public static func organizationRequestBody(items: [ImportedItem], collections: [String], organizationId: String,
+                                               key: SymmetricKeyPair) throws -> Data {
+        let used = Array(Set(items.compactMap(\.folder))).sorted()
+        let remap = Dictionary(uniqueKeysWithValues: used.enumerated().map { ($1, $0) })
+        let ciphers = try items.map { item -> Any in
+            var json = item.json
+            json["folderId"] = NSNull()
+            guard var encrypted = try CipherFields.encrypt(json, key: key) as? [String: Any] else { return [String: Any]() }
+            encrypted["organizationId"] = organizationId
+            return encrypted
+        }
+        let encryptedCollections = try used.map {
+            ["name": try EncString.encrypt(Data(collections[$0].utf8), with: key).description, "organizationId": organizationId]
+        }
+        let relationships = items.enumerated().compactMap { i, item in item.folder.flatMap { remap[$0] }.map { ["key": i, "value": $0] } }
+        return try JSONSerialization.data(withJSONObject: ["ciphers": ciphers, "collections": encryptedCollections,
+                                                           "collectionRelationships": relationships])
     }
 }
 
