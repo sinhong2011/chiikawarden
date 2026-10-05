@@ -252,7 +252,7 @@ private struct Sidebar: View {
                     SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
-                Button { model.lock() } label: { Image(systemName: "lock") }
+                Button { model.lock() } label: { Image(systemName: "lock").accessibilityLabel(Text("Lock")) }
                     .buttonStyle(.borderless)
                     .help(Text("Lock Vault"))
             }
@@ -361,7 +361,7 @@ private struct SearchField: View {
                 .focused($focused)
                 .onExitCommand { query = ""; focused = false }
             if !query.isEmpty {
-                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary) }
+                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary).accessibilityLabel(Text("Clear search")) }
                     .buttonStyle(.plain)
                     .help(Text("Clear"))
             } else {
@@ -387,6 +387,14 @@ private struct ItemColumn: View {
     @Binding var query: String
     @Binding var chip: VaultView.Chip
 
+    private func step(_ delta: Int, _ proxy: ScrollViewProxy) {
+        guard !items.isEmpty else { return }
+        let current = items.firstIndex { $0.id == selection } ?? (delta > 0 ? -1 : items.count)
+        let next = items[min(max(current + delta, 0), items.count - 1)].id
+        selection = next
+        proxy.scrollTo(next)
+    }
+
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 6) {
@@ -402,15 +410,25 @@ private struct ItemColumn: View {
                 Spacer()
             }
 
+            ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 2) {
                     ForEach(items) { item in
                         ItemRow(item: item, isSelected: item.id == selection, highlight: query)
                             .onTapGesture { selection = item.id }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
+                            .accessibilityAction { selection = item.id }
                             .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
                     }
                 }
                 .padding(6)
+            }
+            // ↑/↓ move the selection; the search field hands focus here with ↓ too.
+            .focusable()
+            .focusEffectDisabled()
+            .onKeyPress(.downArrow) { step(1, proxy); return .handled }
+            .onKeyPress(.upArrow) { step(-1, proxy); return .handled }
             }
             .scrollIndicators(.never)
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
@@ -602,6 +620,7 @@ struct ItemDetail: View {
         }
         .buttonStyle(.plain)
         .help(Text(help))
+        .accessibilityLabel(Text(help))
     }
 }
 
@@ -752,7 +771,7 @@ private struct FieldLine: View {
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentTransition(.opacity)
-            Button { model.copy(field.value, label: field.label) } label: { Image(systemName: "doc.on.doc") }
+            Button { model.copy(field.value, label: field.label) } label: { Image(systemName: "doc.on.doc").accessibilityLabel(Text("Copy \(field.label)")) }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
                 .help(Text("Copy"))

@@ -190,7 +190,7 @@ private struct IssueCard: View {
                     Spacer()
                     Button("Change Password") { model.editing = EditRequest(mode: .edit(item)) }
                         .controlSize(.small)
-                    Button { onOpen(item) } label: { Image(systemName: "arrow.right.circle") }
+                    Button { onOpen(item) } label: { Image(systemName: "arrow.right.circle").accessibilityLabel(Text("Open item")) }
                         .buttonStyle(.borderless)
                         .help(Text("Show item"))
                 }

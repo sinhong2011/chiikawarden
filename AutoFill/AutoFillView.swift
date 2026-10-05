@@ -262,7 +262,7 @@ struct AutoFillView: View {
             }
         }
         .frame(width: 440, height: 500)
-        .tint(Color(red: 0.25, green: 0.42, blue: 0.94))
+        .tint(Color(nsColor: .chiikawardenBrand))
     }
 }
 
@@ -358,6 +358,9 @@ private struct PickList: View {
                         ForEach(Array(candidates.enumerated()), id: \.element.id) { i, item in
                             Row(item: item, mode: state.mode, selected: i == index)
                                 .onTapGesture { state.fill(item) }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { state.fill(item) }
                         }
                     }
                     .padding(.horizontal, 8)
@@ -394,7 +397,7 @@ private struct Row: View {
         }
         .foregroundStyle(selected ? .white : .primary)
         .padding(.horizontal, 10).frame(height: 44)
-        .background(selected ? Color(red: 0.25, green: 0.42, blue: 0.94) : .clear, in: .rect(cornerRadius: 9))
+        .background(selected ? Color(nsColor: .chiikawardenBrand) : .clear, in: .rect(cornerRadius: 9))
         .contentShape(.rect)
     }
 }
@@ -418,6 +421,9 @@ private struct PasskeyList: View {
                                                 host: c.passkey.rpId, password: nil, totp: nil, notes: nil, favorite: false),
                                 mode: .passkey, selected: i == index)
                                 .onTapGesture { Task { await state.signIn(c.item, c.passkey) } }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { Task { await state.signIn(c.item, c.passkey) } }
                         }
                     }
                     .padding(8)

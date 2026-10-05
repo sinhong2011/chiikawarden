@@ -247,7 +247,7 @@ private struct ServerSettings: View {
                         Image(systemName: "checkmark.seal").foregroundStyle(.green)
                         Text(verbatim: certificateName(data))
                         Spacer()
-                        Button(role: .destructive) { cas.remove(at: index); saveCAs() } label: { Image(systemName: "minus.circle") }
+                        Button(role: .destructive) { cas.remove(at: index); saveCAs() } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                             .buttonStyle(.borderless)
                             .help(Text("Remove"))
                     }
@@ -269,7 +269,7 @@ private struct ServerSettings: View {
                     HStack {
                         TextField("Name", text: $header.name, prompt: Text(verbatim: "CF-Access-Client-Id"))
                         SecureField("Value", text: $header.value, prompt: Text("Value"))
-                        Button(role: .destructive) { headers.removeAll { $0.id == header.id } } label: { Image(systemName: "minus.circle") }
+                        Button(role: .destructive) { headers.removeAll { $0.id == header.id } } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                             .buttonStyle(.borderless)
                             .help(Text("Remove"))
                     }

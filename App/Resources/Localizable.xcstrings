@@ -1469,6 +1469,34 @@
         }
       }
     },
+    "Clear search": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜尋"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜尋"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜索"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索をクリア"
+          }
+        }
+      }
+    },
     "Clipboard": {
       "localizations": {
         "ja": {
@@ -1665,6 +1693,34 @@
         }
       }
     },
+    "Copy %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@をコピー"
+          }
+        }
+      }
+    },
     "Copy One-Time Code": {
       "localizations": {
         "ja": {
@@ -1835,10 +1891,10 @@
     },
     "Couldn't save the passkey: %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法儲存通行密鑰：%@"
+            "value": "パスキーを保存できませんでした：%@"
           }
         },
         "zh-HK": {
@@ -1853,10 +1909,10 @@
             "value": "无法保存通行密钥：%@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスキーを保存できませんでした：%@"
+            "value": "無法儲存通行密鑰：%@"
           }
         }
       }
@@ -1975,10 +2031,10 @@
     },
     "Created %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "建立於 %@"
+            "value": "%@ に作成"
           }
         },
         "zh-HK": {
@@ -1993,10 +2049,10 @@
             "value": "创建于 %@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ に作成"
+            "value": "建立於 %@"
           }
         }
       }
@@ -4299,10 +4355,10 @@
     },
     "New login": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增登入項目"
+            "value": "新規ログイン"
           }
         },
         "zh-HK": {
@@ -4317,10 +4373,10 @@
             "value": "新建登录项"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規ログイン"
+            "value": "新增登入項目"
           }
         }
       }
@@ -4551,10 +4607,10 @@
     },
     "No passkeys for this site": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "此網站沒有通行密鑰"
+            "value": "このサイトのパスキーはありません"
           }
         },
         "zh-HK": {
@@ -4569,10 +4625,10 @@
             "value": "此网站没有通行密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "このサイトのパスキーはありません"
+            "value": "此網站沒有通行密鑰"
           }
         }
       }
@@ -4999,10 +5055,10 @@
     },
     "Open Chiikawarden and sign in to this account again.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請開啟 Chiikawarden 並重新登入此帳號。"
+            "value": "Chiikawarden を開いて、このアカウントに再度サインインしてください。"
           }
         },
         "zh-HK": {
@@ -5017,10 +5073,10 @@
             "value": "请打开 Chiikawarden 并重新登录此账户。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden を開いて、このアカウントに再度サインインしてください。"
+            "value": "請開啟 Chiikawarden 並重新登入此帳號。"
           }
         }
       }
@@ -5055,10 +5111,10 @@
     },
     "Open Chiikawarden once to refresh your vault.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請開啟 Chiikawarden 一次以更新保險庫。"
+            "value": "保管庫を更新するために Chiikawarden を一度開いてください。"
           }
         },
         "zh-HK": {
@@ -5073,10 +5129,10 @@
             "value": "请打开 Chiikawarden 一次以刷新密码库。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保管庫を更新するために Chiikawarden を一度開いてください。"
+            "value": "請開啟 Chiikawarden 一次以更新保險庫。"
           }
         }
       }
@@ -5133,6 +5189,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "登入時開啟"
+          }
+        }
+      }
+    },
+    "Open item": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开项目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目を開く"
           }
         }
       }
@@ -5335,10 +5419,10 @@
     },
     "Passkeys you save with Chiikawarden appear here.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "你用 Chiikawarden 儲存的通行密鑰會顯示在這裡。"
+            "value": "Chiikawarden で保存したパスキーがここに表示されます。"
           }
         },
         "zh-HK": {
@@ -5353,10 +5437,10 @@
             "value": "你用 Chiikawarden 保存的通行密钥会显示在这里。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden で保存したパスキーがここに表示されます。"
+            "value": "你用 Chiikawarden 儲存的通行密鑰會顯示在這裡。"
           }
         }
       }
@@ -6007,10 +6091,10 @@
     },
     "Save Passkey": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "儲存通行密鑰"
+            "value": "パスキーを保存"
           }
         },
         "zh-HK": {
@@ -6025,20 +6109,20 @@
             "value": "保存通行密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスキーを保存"
+            "value": "儲存通行密鑰"
           }
         }
       }
     },
     "Save a passkey": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "儲存通行密鑰"
+            "value": "パスキーを保存"
           }
         },
         "zh-HK": {
@@ -6053,20 +6137,20 @@
             "value": "保存通行密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスキーを保存"
+            "value": "儲存通行密鑰"
           }
         }
       }
     },
     "Save to": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "儲存至"
+            "value": "保存先"
           }
         },
         "zh-HK": {
@@ -6081,10 +6165,10 @@
             "value": "保存到"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存先"
+            "value": "儲存至"
           }
         }
       }
@@ -6623,10 +6707,10 @@
     },
     "Sign In": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "登入"
+            "value": "サインイン"
           }
         },
         "zh-HK": {
@@ -6641,10 +6725,10 @@
             "value": "登录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "サインイン"
+            "value": "登入"
           }
         }
       }
@@ -6679,10 +6763,10 @@
     },
     "Stored with a key type Chiikawarden can't use": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "此金鑰類型 Chiikawarden 無法使用"
+            "value": "Chiikawarden では使用できない鍵の種類です"
           }
         },
         "zh-HK": {
@@ -6697,10 +6781,10 @@
             "value": "Chiikawarden 无法使用此密钥类型"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden では使用できない鍵の種類です"
+            "value": "此金鑰類型 Chiikawarden 無法使用"
           }
         }
       }
@@ -7155,10 +7239,10 @@
     },
     "This passkey can't be used here.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法在此使用這個通行密鑰。"
+            "value": "このパスキーはここでは使用できません。"
           }
         },
         "zh-HK": {
@@ -7173,10 +7257,10 @@
             "value": "无法在此使用此通行密钥。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "このパスキーはここでは使用できません。"
+            "value": "無法在此使用這個通行密鑰。"
           }
         }
       }
@@ -7211,10 +7295,10 @@
     },
     "This replaces the passkey already saved on that login.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "這會取代該登入項目上已儲存的通行密鑰。"
+            "value": "そのログインに保存済みのパスキーが置き換えられます。"
           }
         },
         "zh-HK": {
@@ -7229,20 +7313,20 @@
             "value": "这会替换该登录项上已保存的通行密钥。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "そのログインに保存済みのパスキーが置き換えられます。"
+            "value": "這會取代該登入項目上已儲存的通行密鑰。"
           }
         }
       }
     },
     "This site needs a key type Chiikawarden can't create.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "此網站需要 Chiikawarden 無法建立的金鑰類型。"
+            "value": "このサイトには Chiikawarden で作成できない鍵の種類が必要です。"
           }
         },
         "zh-HK": {
@@ -7257,10 +7341,10 @@
             "value": "此网站需要 Chiikawarden 无法创建的密钥类型。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "このサイトには Chiikawarden で作成できない鍵の種類が必要です。"
+            "value": "此網站需要 Chiikawarden 無法建立的金鑰類型。"
           }
         }
       }
@@ -7635,10 +7719,10 @@
     },
     "Unlock to save passkey": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "解鎖以儲存通行密鑰"
+            "value": "ロックを解除してパスキーを保存"
           }
         },
         "zh-HK": {
@@ -7653,20 +7737,20 @@
             "value": "解锁以保存通行密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ロックを解除してパスキーを保存"
+            "value": "解鎖以儲存通行密鑰"
           }
         }
       }
     },
     "Unlock to sign in": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "解鎖以登入"
+            "value": "ロックを解除してサインイン"
           }
         },
         "zh-HK": {
@@ -7681,10 +7765,10 @@
             "value": "解锁以登录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ロックを解除してサインイン"
+            "value": "解鎖以登入"
           }
         }
       }
@@ -8680,10 +8764,10 @@
     },
     "save a passkey": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "儲存通行密鑰"
+            "value": "パスキーを保存"
           }
         },
         "zh-HK": {
@@ -8698,10 +8782,10 @@
             "value": "保存通行密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスキーを保存"
+            "value": "儲存通行密鑰"
           }
         }
       }
@@ -8736,10 +8820,10 @@
     },
     "sign in with a passkey": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用通行密鑰登入"
+            "value": "パスキーでサインイン"
           }
         },
         "zh-HK": {
@@ -8754,10 +8838,10 @@
             "value": "使用通行密钥登录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスキーでサインイン"
+            "value": "使用通行密鑰登入"
           }
         }
       }

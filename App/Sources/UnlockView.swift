@@ -176,7 +176,7 @@ private struct InlineTouchID: View {
                 Text("Or enter your master password below.").font(.system(size: 12)).foregroundStyle(.secondary)
             }
             Spacer()
-            Button { attempt += 1 } label: { Image(systemName: "arrow.clockwise") }
+            Button { attempt += 1 } label: { Image(systemName: "arrow.clockwise").accessibilityLabel(Text("Try Touch ID again")) }
                 .buttonStyle(.borderless)
                 .help(Text("Try Touch ID again"))
         }

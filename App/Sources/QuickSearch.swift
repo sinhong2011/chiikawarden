@@ -135,6 +135,9 @@ struct QuickSearchView: View {
                     ForEach(Array(results.enumerated()), id: \.element.id) { i, item in
                         QuickRow(item: item, isSelected: i == index)
                             .onTapGesture { index = i; act([]) }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction { index = i; act([]) }
                     }
                 }
                 .padding(8)
@@ -231,7 +234,7 @@ struct MenuBarContent: View {
                 Text(verbatim: "Chiikawarden").font(.system(size: 13, weight: .semibold))
                 Spacer()
                 if model.isUnlocked {
-                    Button { model.lock() } label: { Image(systemName: "lock") }
+                    Button { model.lock() } label: { Image(systemName: "lock").accessibilityLabel(Text("Lock")) }
                         .buttonStyle(.borderless).help(Text("Lock Vault"))
                 }
             }

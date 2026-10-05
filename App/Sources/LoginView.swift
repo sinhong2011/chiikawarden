@@ -185,7 +185,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, minHeight: 40)
             // Fixed deep blue in both appearances so white text keeps ≥4.5:1 contrast.
-            .background(Color(red: 0.25, green: 0.42, blue: 0.94).opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
+            .background(Color(nsColor: .chiikawardenBrand).opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.12)))
             .shadow(color: Color.brand.opacity(configuration.isPressed ? 0.15 : 0.3), radius: configuration.isPressed ? 3 : 8, y: 3)
             .scaleEffect(configuration.isPressed ? 0.985 : 1)

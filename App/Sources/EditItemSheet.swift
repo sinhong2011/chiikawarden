@@ -153,9 +153,9 @@ struct EditItemSheet: View {
                     }
                     .labelsHidden()
                     .font(.system(.body, design: .monospaced))
-                    Button { showPassword.toggle() } label: { Image(systemName: showPassword ? "eye.slash" : "eye") }
+                    Button { showPassword.toggle() } label: { Image(systemName: showPassword ? "eye.slash" : "eye").accessibilityLabel(showPassword ? Text("Hide") : Text("Reveal")) }
                         .buttonStyle(.borderless).help(showPassword ? Text("Hide") : Text("Reveal"))
-                    Button { showGenerator = true } label: { Image(systemName: "dice") }
+                    Button { showGenerator = true } label: { Image(systemName: "dice").accessibilityLabel(Text("Generate password")) }
                         .buttonStyle(.borderless).help(Text("Generate password"))
                         .popover(isPresented: $showGenerator, arrowEdge: .trailing) {
                             GeneratorView { generated in
@@ -271,7 +271,7 @@ struct EditItemSheet: View {
                     }
                     .labelsHidden()
                     .frame(width: 96)
-                    Button { customFields.removeAll { $0.id == field.id } } label: { Image(systemName: "minus.circle") }
+                    Button { customFields.removeAll { $0.id == field.id } } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                         .buttonStyle(.borderless).help(Text("Remove"))
                 }
             }

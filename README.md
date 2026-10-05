@@ -40,3 +40,6 @@ cd Packages/VaultCore && swift test
 ## License
 
 [MIT](LICENSE). Chiikawarden is not affiliated with Bitwarden, Inc. or the Vaultwarden project.
+
+See [SECURITY.md](SECURITY.md) for where keys live and how to report a vulnerability, and
+[ACCESSIBILITY.md](ACCESSIBILITY.md) for VoiceOver, keyboard and contrast notes.
