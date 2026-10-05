@@ -74,7 +74,7 @@ struct ChiikawardenApp: App {
                 .tint(.brand)
                 .preferredColorScheme(appearance.scheme)
         }
-        .defaultSize(width: 760, height: 640)
+        .defaultSize(width: 820, height: 640)
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {

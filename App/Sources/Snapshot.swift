@@ -50,8 +50,10 @@ enum Snapshot {
         opening.unlockOpening = true
         render(desktop(UnlockView().environment(opening).tint(.brand), dark: false),
                size: CGSize(width: 900, height: 600), appearance: .aqua, to: dir.appending(path: "unlock-opening-light.png"))
-        renderWindow(SettingsView().environment(model).tint(.brand), size: CGSize(width: 760, height: 640),
-                     appearance: .aqua, to: dir.appending(path: "settings-light.png"))
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(SettingsView().environment(model).tint(.brand), size: CGSize(width: 820, height: 640),
+                   appearance: appearance, to: dir.appending(path: "settings-\(name).png"))
+        }
 
         let multi = AppModel()
         multi.setPreviewAccounts([

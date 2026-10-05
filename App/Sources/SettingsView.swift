@@ -4,19 +4,62 @@ import ServiceManagement
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
+    enum Pane: String, CaseIterable, Identifiable {
+        case general, accounts, security, developer, server, about
+        var id: Self { self }
+        var title: LocalizedStringKey {
+            switch self {
+            case .general: "General"
+            case .accounts: "Accounts"
+            case .security: "Security"
+            case .developer: "Developer"
+            case .server: "Server"
+            case .about: "About"
+            }
+        }
+        var symbol: String {
+            switch self {
+            case .general: "gearshape"
+            case .accounts: "person.2"
+            case .security: "lock.shield"
+            case .developer: "terminal"
+            case .server: "server.rack"
+            case .about: "info.circle"
+            }
+        }
+    }
+
+    @AppStorage("settingsPane") private var paneRaw = Pane.general.rawValue
+    private var pane: Binding<Pane?> {
+        Binding(get: { Pane(rawValue: paneRaw) ?? .general }, set: { paneRaw = ($0 ?? .general).rawValue })
+    }
+
     var body: some View {
-        TabView {
-            Tab("General", systemImage: "gearshape") { GeneralSettings() }
-            Tab("Accounts", systemImage: "person.2") { AccountsSettings() }
-            Tab("Security", systemImage: "lock.shield") { SecuritySettings() }
-            Tab("Developer", systemImage: "terminal") { DeveloperSettings() }
-            Tab("Server", systemImage: "server.rack") { ServerSettings() }
-            Tab("About", systemImage: "info.circle") { AboutSettings() }
+        NavigationSplitView {
+            List(selection: pane) {
+                ForEach(Pane.allCases) { pane in
+                    Label(pane.title, systemImage: pane.symbol).tag(pane)
+                }
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 170, ideal: 190, max: 240)
+        } detail: {
+            Group {
+                switch pane.wrappedValue ?? .general {
+                case .general: GeneralSettings()
+                case .accounts: AccountsSettings()
+                case .security: SecuritySettings()
+                case .developer: DeveloperSettings()
+                case .server: ServerSettings()
+                case .about: AboutSettings()
+                }
+            }
+            .navigationTitle(pane.wrappedValue?.title ?? "General")
         }
         // Opens roomy and resizes freely; forms scroll when the window is shorter than their content.
-        .frame(minWidth: 560, idealWidth: 760, maxWidth: .infinity, minHeight: 440, idealHeight: 640, maxHeight: .infinity)
-        .scenePadding()
+        .frame(minWidth: 680, idealWidth: 820, maxWidth: .infinity, minHeight: 460, idealHeight: 640, maxHeight: .infinity)
     }
 }
 
