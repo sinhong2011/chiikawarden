@@ -38,7 +38,8 @@ ACCOUNTS = [
     ("momonga@chiikawarden.test", "Momonga", {"kdf": 0, "kdfIterations": 600_000, "totp": True}),
 ]
 
-TOTP_SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"  # 20-byte demo secret; dev only
+TOTP_SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"  # 20-byte demo secret; dev only (GitHub item, momonga's 2FA)
+CLOUDFLARE_TOTP = "MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43U"  # a second secret so the two seeded codes differ
 
 # ---------------------------------------------------------------- crypto
 
@@ -180,7 +181,7 @@ class Session:
         items = [
             self.login_item("GitHub", "usagi", "m7Kq#vR2!tLp9wZe$Hu", "https://github.com", TOTP_SECRET,
                             "Recovery codes are in the “GitHub recovery” note.", favorite=True),
-            self.login_item("Cloudflare", "ops@momonga.dev", "cf-Dev-Only-1234!", "https://dash.cloudflare.com", TOTP_SECRET),
+            self.login_item("Cloudflare", "ops@momonga.dev", "cf-Dev-Only-1234!", "https://dash.cloudflare.com", CLOUDFLARE_TOTP),
             self.login_item("Proton Mail", "usagi@proton.me", "pm-Dev-Only-5678!", "https://account.proton.me"),
             self.login_item("Synology NAS", "admin", "reused-password", "https://nas.home.arpa:5001"),
             self.login_item("Router", "admin", "reused-password", "http://192.168.1.1"),
@@ -226,6 +227,31 @@ class Session:
                                "https://netflix.com", key=org_key, org=org_id)
         self.req("POST", "api/ciphers/create", json={"cipher": item, "collectionIds": [col_id]})
 
+    def fix_shared_totp(self) -> int:
+        """Older seeds gave Cloudflare the same secret as GitHub (identical codes). Re-key it in place."""
+        def lower(o):
+            if isinstance(o, dict):
+                return {(k[:1].lower() + k[1:]): lower(v) for k, v in o.items()}
+            if isinstance(o, list):
+                return [lower(v) for v in o]
+            return o
+        logins = {}
+        for c in lower(self.req("GET", "api/sync?excludeDomains=true")).get("ciphers", []):
+            if c.get("type") != 1 or c.get("organizationId") or c.get("key") or not (c.get("login") or {}).get("totp"):
+                continue
+            try:
+                logins[decrypt(c["name"], self.user_key).decode()] = (c, decrypt(c["login"]["totp"], self.user_key).decode())
+            except Exception:
+                continue
+        fixed = 0
+        if "Cloudflare" in logins and "GitHub" in logins and logins["Cloudflare"][1] == logins["GitHub"][1]:
+            c = logins["Cloudflare"][0]
+            c["login"]["totp"] = enc(CLOUDFLARE_TOTP, self.user_key)
+            c["lastKnownRevisionDate"] = c.get("revisionDate")
+            self.req("PUT", f"api/ciphers/{c['id']}", json=c)
+            fixed = 1
+        return fixed
+
     def enable_totp(self):
         self.req("POST", "api/two-factor/get-authenticator", json={"masterPasswordHash": self.pw_hash})
         self.req("POST", "api/two-factor/authenticator",
@@ -246,6 +272,8 @@ def main():
             sess.seed_personal()
             if email.startswith("usagi"):
                 sess.seed_org(email)
+        elif sess.fix_shared_totp():
+            print(f"    re-keyed Cloudflare's one-time code for {email}")
         if kdf.get("totp") and not sess.used_2fa:
             sess.enable_totp()
         print(f"  ✓ {email:32} kdf={'Argon2id' if kdf['kdf'] else 'PBKDF2'}"

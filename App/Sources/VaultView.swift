@@ -23,7 +23,7 @@ extension Color {
     static let panelStrong = adaptive(light: .white.opacity(0.78), dark: .white.opacity(0.09))
     static let panelEdge = adaptive(light: .white.opacity(0.9), dark: .white.opacity(0.08))
     static let rowSelected = adaptive(light: .white, dark: .white.opacity(0.12))
-    static let hero = adaptive(light: Color(red: 0.08, green: 0.09, blue: 0.11), dark: Color(red: 0.07, green: 0.15, blue: 0.22))
+    static let hero = adaptive(light: Color(red: 0.08, green: 0.09, blue: 0.11), dark: Color(red: 0.15, green: 0.16, blue: 0.19))
 }
 
 struct VaultView: View {
@@ -876,8 +876,9 @@ private struct HeroCard: View {
         .background {
             ZStack {
                 if style.dark { Color.hero } else { Color.panelStrong }
-                RadialGradient(colors: [Color.brand.opacity(style.dark ? 0.55 : 0.12), .clear],
-                               center: UnitPoint(x: 0.95, y: -0.1), startRadius: 0, endRadius: 300)
+                // A faint wash of the tail sky in the corner; quiet in dark mode so the card stays neutral.
+                RadialGradient(colors: [Color.brandFill.opacity(style.dark ? 0.14 : 0.18), .clear],
+                               center: UnitPoint(x: 0.95, y: -0.1), startRadius: 0, endRadius: 320)
             }
             .clipShape(.rect(cornerRadius: 24, style: .continuous))
         }
