@@ -1695,10 +1695,10 @@
     },
     "Custom environment": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "自訂環境"
+            "value": "カスタム環境"
           }
         },
         "zh-HK": {
@@ -1713,10 +1713,10 @@
             "value": "自定义环境"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "カスタム環境"
+            "value": "自訂環境"
           }
         }
       }
@@ -2535,10 +2535,10 @@
     },
     "Icons": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "圖示"
+            "value": "アイコン"
           }
         },
         "zh-HK": {
@@ -2553,10 +2553,10 @@
             "value": "图标"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アイコン"
+            "value": "圖示"
           }
         }
       }
@@ -2591,10 +2591,10 @@
     },
     "Identity": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "身分驗證"
+            "value": "認証"
           }
         },
         "zh-HK": {
@@ -2609,10 +2609,10 @@
             "value": "身份验证"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "認証"
+            "value": "身分驗證"
           }
         }
       }
@@ -3823,7 +3823,7 @@
     },
     "Notifications": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "通知"
@@ -3841,7 +3841,7 @@
             "value": "通知"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "通知"
@@ -4019,10 +4019,10 @@
     },
     "Only if your services live on different URLs. Leave empty to use the server URL.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "僅在各項服務位於不同網址時使用。留空則使用伺服器網址。"
+            "value": "サービスごとに URL が異なる場合のみ入力します。空欄ならサーバー URL を使います。"
           }
         },
         "zh-HK": {
@@ -4037,10 +4037,10 @@
             "value": "仅在各项服务位于不同网址时使用。留空则使用服务器网址。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "サービスごとに URL が異なる場合のみ入力します。空欄ならサーバー URL を使います。"
+            "value": "僅在各項服務位於不同網址時使用。留空則使用伺服器網址。"
           }
         }
       }
@@ -5952,6 +5952,34 @@
         }
       }
     },
+    "Touch ID to unlock": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Touch ID 解鎖"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Touch ID 解鎖"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用触控 ID 解锁"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID でロック解除"
+          }
+        }
+      }
+    },
     "Touch ID · Safari, Chrome": {
       "localizations": {
         "ja": {
@@ -6032,6 +6060,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "信任的憑證"
+          }
+        }
+      }
+    },
+    "Try Touch ID again": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試一次 Touch ID"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試一次 Touch ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再试一次触控 ID"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID をもう一度試す"
           }
         }
       }
@@ -6290,10 +6346,10 @@
     },
     "Use https:// for servers on the internet. http:// is only allowed on your local network.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "網際網路上的伺服器請使用 https://，http:// 只允許用於區域網路。"
+            "value": "インターネット上のサーバーには https:// を使ってください。http:// はローカルネットワークでのみ使えます。"
           }
         },
         "zh-HK": {
@@ -6308,10 +6364,10 @@
             "value": "互联网上的服务器请使用 https://，http:// 只允许用于局域网。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "インターネット上のサーバーには https:// を使ってください。http:// はローカルネットワークでのみ使えます。"
+            "value": "網際網路上的伺服器請使用 https://，http:// 只允許用於區域網路。"
           }
         }
       }
@@ -6713,10 +6769,10 @@
     },
     "Web vault": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "網頁版保險庫"
+            "value": "Web 保管庫"
           }
         },
         "zh-HK": {
@@ -6731,10 +6787,10 @@
             "value": "网页版密码库"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Web 保管庫"
+            "value": "網頁版保險庫"
           }
         }
       }
@@ -7055,7 +7111,7 @@
     },
     "· in use": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "· 使用中"
@@ -7073,7 +7129,7 @@
             "value": "· 使用中"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "· 使用中"
@@ -7111,10 +7167,10 @@
     },
     "“%@” isn't a valid URL.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」不是有效的網址。"
+            "value": "「%@」は有効な URL ではありません。"
           }
         },
         "zh-HK": {
@@ -7129,10 +7185,10 @@
             "value": "“%@”不是有效的网址。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」は有効な URL ではありません。"
+            "value": "「%@」不是有效的網址。"
           }
         }
       }

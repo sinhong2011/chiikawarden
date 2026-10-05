@@ -1,5 +1,6 @@
 import AppKit
 import ChiikawaCrypto
+import LocalAuthentication
 import Foundation
 import Observation
 import VaultwardenAPI
@@ -429,10 +430,11 @@ final class AppModel {
     }
 
     /// One Touch ID prompt unlocks every locked account that has it turned on.
-    func unlockWithTouchID() async {
+    /// - Parameter context: pass the context shown by an embedded Touch ID view to prompt inline.
+    func unlockWithTouchID(context: LAContext = LAContext()) async {
         errorMessage = nil
         let locked = accounts.map(\.id).filter { !isUnlocked($0) }
-        let keys = await AccountStore.unlockAllWithTouchID(locked, reason: String(localized: "unlock your vault"))
+        let keys = await AccountStore.unlockAllWithTouchID(locked, reason: String(localized: "unlock your vault"), context: context)
         if !keys.isEmpty { finishUnlock(keys) }
     }
 

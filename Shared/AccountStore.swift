@@ -170,10 +170,10 @@ enum AccountStore {
     }
 
     /// One Touch ID prompt, then every enrolled account in `ids` is unsealed with the same context.
-    static func unlockAllWithTouchID(_ ids: [String], reason: String) async -> [String: SymmetricKeyPair] {
+    @MainActor
+    static func unlockAllWithTouchID(_ ids: [String], reason: String, context: LAContext = LAContext()) async -> [String: SymmetricKeyPair] {
         let enrolled = ids.filter(isTouchIDEnabled)
         guard !enrolled.isEmpty else { return [:] }
-        let context = LAContext()
         guard (try? await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)) == true else {
             return [:]
         }

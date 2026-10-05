@@ -1,4 +1,6 @@
 import AppKit
+import LocalAuthentication
+import LocalAuthenticationEmbeddedUI
 import SwiftUI
 
 /// Signed in, vault locked: Touch ID first, master password as fallback. Works offline.
@@ -52,21 +54,7 @@ private struct UnlockForm: View {
             }
 
             if model.touchIDEnabled {
-                Button { Task { await model.unlockWithTouchID() } } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "touchid").font(.system(size: 22, weight: .regular)).foregroundStyle(Color.brand)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Unlock with Touch ID").font(.system(size: 13, weight: .semibold))
-                            Text("Or enter your master password below.").font(.system(size: 12)).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(14)
-                    .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
-                    .contentShape(.rect)
-                }
-                .buttonStyle(.plain)
+                InlineTouchID()
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -106,7 +94,6 @@ private struct UnlockForm: View {
         .animation(.easeOut(duration: 0.2), value: model.errorMessage)
         .onAppear {
             focused = true
-            if model.touchIDEnabled { Task { await model.unlockWithTouchID() } }
         }
     }
 
@@ -165,5 +152,71 @@ private struct AccountChooser: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+}
+
+/// Embedded Touch ID prompt (the system's own sensor glyph) that unseals every enrolled account in place.
+private struct InlineTouchID: View {
+    @Environment(AppModel.self) private var model
+    @State private var context = LAContext()
+    @State private var attempt = 0
+    @State private var prompting = false
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                // The system glyph only draws during a prompt; show ours otherwise.
+                Image(systemName: "touchid").font(.system(size: 24)).foregroundStyle(Color.brand)
+                    .opacity(prompting ? 0 : 1)
+                TouchIDGlyph(context: context).opacity(prompting ? 1 : 0)
+            }
+            .frame(width: 34, height: 34)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Touch ID to unlock").font(.system(size: 13, weight: .semibold))
+                Text("Or enter your master password below.").font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button { attempt += 1 } label: { Image(systemName: "arrow.clockwise") }
+                .buttonStyle(.borderless)
+                .help(Text("Try Touch ID again"))
+        }
+        .padding(14)
+        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+        .task(id: attempt) {
+            // A fresh context per attempt; the embedded view shows its prompt inline.
+            let fresh = LAContext()
+            context = fresh
+            try? await Task.sleep(for: .milliseconds(150)) // let the view attach to the new context
+            prompting = true
+            await model.unlockWithTouchID(context: fresh)
+            prompting = false
+        }
+    }
+}
+
+private struct TouchIDGlyph: NSViewRepresentable {
+    let context: LAContext
+
+    func makeNSView(context: Context) -> NSView {
+        let container = NSView()
+        install(in: container)
+        return container
+    }
+
+    func updateNSView(_ container: NSView, context: Context) {
+        // LAAuthenticationView is bound to one LAContext; swap the child when it changes.
+        if (container.subviews.first as? LAAuthenticationView)?.context !== self.context { install(in: container) }
+    }
+
+    private func install(in container: NSView) {
+        container.subviews.forEach { $0.removeFromSuperview() }
+        let glyph = LAAuthenticationView(context: self.context, controlSize: .large)
+        glyph.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(glyph)
+        NSLayoutConstraint.activate([
+            glyph.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            glyph.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        ])
     }
 }
