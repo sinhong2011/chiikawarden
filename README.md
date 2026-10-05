@@ -69,3 +69,7 @@ make snapshots  # light/dark UI renders into build/snapshots
 
 `make selftest-cloud` runs the self-test against Bitwarden cloud with an **empty test account** from `.env`
 (`BITWARDEN_ACCOUNT`, `BITWARDEN_PASSWORD`; git ignores the file). It asks in the terminal for any emailed device code.
+
+## Credits
+
+Passphrases and random usernames use the [EFF Large Wordlist](https://www.eff.org/dice) (CC BY 3.0) by the Electronic Frontier Foundation.

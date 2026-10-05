@@ -222,7 +222,7 @@ private struct Sidebar: View {
                 Label("One-Time Codes", systemImage: "clock.badge.checkmark")
                     .badge(model.items.filter { !$0.isDeleted && $0.totp != nil }.count)
                     .tag(SidebarSelection.codes)
-                Label("Password Generator", systemImage: "dice")
+                Label("Generator", systemImage: "dice")
                     .tag(SidebarSelection.generator)
             }
             if !model.folders.isEmpty {
@@ -438,20 +438,19 @@ private struct NewItemButton: View {
     }
 }
 
-/// Sidebar › Password Generator: the generator as a page, not a popover.
+/// Sidebar › Generator: passwords, passphrases and usernames as a page.
 private struct GeneratorPane: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Password Generator").font(.system(size: 22, weight: .bold)).tracking(-0.3)
-            GeneratorView()
-                .padding(20)
-                .frame(maxWidth: 520, alignment: .leading)
-                .background(Color.panelStrong, in: .rect(cornerRadius: 22, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.panelEdge))
-            Spacer()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Generator").font(.system(size: 22, weight: .bold)).tracking(-0.3)
+                GeneratorView()
+            }
+            .padding(24)
+            .frame(maxWidth: 640, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .scrollIndicators(.never)
     }
 }
 
@@ -726,6 +725,14 @@ struct ItemDetail: View {
                 toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
                     .foregroundStyle(.red)
             } else {
+                if let host = item.host, let url = URL(string: "https://\(host)") {
+                    toolbarButton("arrow.up.right.square", help: "Open website") { NSWorkspace.shared.open(url) }
+                }
+                if item.password != nil || item.fields.contains(where: \.secret) {
+                    toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)") {
+                        withAnimation(.snappy) { reveal.wrappedValue.toggle() }
+                    }
+                }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
                 toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
@@ -846,29 +853,6 @@ private struct HeroCard: View {
             }
             .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 8) {
-                if let host = item.host, let url = URL(string: "https://\(host)") {
-                    Link(destination: url) {
-                        Label("Open website", systemImage: "arrow.up.right.square")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white)
-                            .shadow(color: Color.onBrandFill.opacity(0.35), radius: 1, y: 1)
-                            .padding(.horizontal, 18).frame(height: 40)
-                            .background(Color.brandButton, in: .capsule)
-                    }
-                    .buttonStyle(.plain)
-                }
-                if item.password != nil || item.fields.contains(where: \.secret) {
-                    Button { withAnimation(.snappy) { reveal.toggle() } } label: {
-                        Label(reveal ? "Hide" : "Reveal", systemImage: reveal ? "eye.slash" : "eye")
-                            .font(.system(size: 13, weight: .semibold))
-                            .padding(.horizontal, 18).frame(height: 40)
-                            .background(style.secondaryButton, in: .capsule)
-                            .contentTransition(.symbolEffect(.replace))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
         }
         .foregroundStyle(style.ink)
         .padding(24)

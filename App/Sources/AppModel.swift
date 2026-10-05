@@ -188,6 +188,16 @@ final class AppModel {
     var requestedSection: SidebarSelection?
     var showingGenerator = false
 
+    /// Generated values the user copied or used, newest first. Memory only; cleared on lock.
+    struct GeneratedEntry: Identifiable { let id = UUID(); let value: String; let kind: String; let date: Date }
+    var generatorHistory: [GeneratedEntry] = []
+
+    func rememberGenerated(_ value: String, kind: String) {
+        guard !value.isEmpty, generatorHistory.first?.value != value else { return }
+        generatorHistory.insert(GeneratedEntry(value: value, kind: kind, date: .now), at: 0)
+        if generatorHistory.count > 50 { generatorHistory.removeLast() }
+    }
+
     /// Shows the main window, e.g. after a palette command run from another app.
     func bringToFront() {
         NSApp.activate()
@@ -808,6 +818,7 @@ final class AppModel {
     /// Locks every account.
     func lock() {
         previewURL = nil
+        generatorHistory = []
         AttachmentFiles.wipe()
         sshAgent?.reset()
         cli?.reset()

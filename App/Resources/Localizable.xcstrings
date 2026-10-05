@@ -556,6 +556,34 @@
         }
       }
     },
+    "A random address at a domain that accepts any mailbox.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在可接收任何信箱的網域產生隨機地址。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺接收任何郵箱嘅網域產生隨機地址。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在可接收任意邮箱的域名生成随机地址。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任意のメールボックスを受け付けるドメインでランダムなアドレスを作ります。"
+          }
+        }
+      }
+    },
     "API": {
       "shouldTranslate": false
     },
@@ -979,6 +1007,34 @@
         }
       }
     },
+    "Adds a random tag, e.g. you+k3x9q2ma@example.com, so you can tell who shared your address.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入隨機標籤，例如 you+k3x9q2ma@example.com，讓你知道是誰洩露了你的地址。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入隨機標籤，例如 you+k3x9q2ma@example.com，等你知道係邊個洩露咗你個地址。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加随机标签，例如 you+k3x9q2ma@example.com，让你知道是谁泄露了你的地址。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "you+k3x9q2ma@example.com のようなランダムなタグを付け、誰がアドレスを共有したか分かるようにします。"
+          }
+        }
+      }
+    },
     "Agent": {
       "extractionState": "stale",
       "localizations": {
@@ -1094,10 +1150,10 @@
     },
     "Another app uses %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "其他 App 正在使用 %@"
+            "value": "%@ は別のアプリが使用中です"
           }
         },
         "zh-HK": {
@@ -1112,10 +1168,10 @@
             "value": "其他 App 正在使用 %@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ は別のアプリが使用中です"
+            "value": "其他 App 正在使用 %@"
           }
         }
       }
@@ -1344,7 +1400,36 @@
         }
       }
     },
+    "Avoid ambiguous characters": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "避免易混淆字元"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "避免易混淆字元"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "避免易混淆字符"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紛らわしい文字を避ける"
+          }
+        }
+      }
+    },
     "Avoid look-alike characters": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -1599,6 +1684,34 @@
         }
       }
     },
+    "Capitalize": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首字大寫"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首字大寫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首字母大写"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先頭を大文字に"
+          }
+        }
+      }
+    },
     "Card": {
       "localizations": {
         "ja": {
@@ -1707,6 +1820,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "卡片"
+          }
+        }
+      }
+    },
+    "Catch-all email": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "萬用收件地址"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "萬用收件地址"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全收邮箱"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャッチオールメール"
           }
         }
       }
@@ -2244,6 +2385,34 @@
         }
       }
     },
+    "Clear History": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除記錄"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除記錄"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除记录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を消去"
+          }
+        }
+      }
+    },
     "Clear copied items after": {
       "localizations": {
         "ja": {
@@ -2472,10 +2641,10 @@
     },
     "Command palette": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "命令面板"
+            "value": "コマンドパレット"
           }
         },
         "zh-HK": {
@@ -2490,10 +2659,10 @@
             "value": "命令面板"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コマンドパレット"
+            "value": "命令面板"
           }
         }
       }
@@ -3901,6 +4070,7 @@
       }
     },
     "Digits (0–9)": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -3980,6 +4150,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "證件"
+          }
+        }
+      }
+    },
+    "Domain": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網域"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網域"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "域名"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドメイン"
           }
         }
       }
@@ -4204,6 +4402,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入驗證器 App 中的 6 位數驗證碼。"
+          }
+        }
+      }
+    },
+    "Enter your catch-all domain below.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請在下方輸入萬用收件網域。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請喺下面輸入萬用收件網域。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在下方输入全收域名。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下にキャッチオールのドメインを入力してください。"
+          }
+        }
+      }
+    },
+    "Enter your email address below.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請在下方輸入你的電子郵件地址。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請喺下面輸入你嘅電郵地址。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在下方输入你的电子邮件地址。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下にメールアドレスを入力してください。"
           }
         }
       }
@@ -4937,6 +5191,62 @@
         }
       }
     },
+    "Generator": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生器"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生器"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ジェネレータ"
+          }
+        }
+      }
+    },
+    "Generator history": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生記錄"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "產生記錄"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成记录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成履歴"
+          }
+        }
+      }
+    },
     "Get One-Time Code": {
       "localizations": {
         "ja": {
@@ -5329,12 +5639,68 @@
         }
       }
     },
-    "Include ⌘, ⌥ or ⌃": {
+    "Include": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請包含 ⌘、⌥ 或 ⌃"
+            "value": "包含"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "含める文字"
+          }
+        }
+      }
+    },
+    "Include number": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含數字"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含數字"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含数字"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数字を含める"
+          }
+        }
+      }
+    },
+    "Include ⌘, ⌥ or ⌃": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘、⌥、⌃ のいずれかを含めてください"
           }
         },
         "zh-HK": {
@@ -5349,10 +5715,10 @@
             "value": "请包含 ⌘、⌥ 或 ⌃"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "⌘、⌥、⌃ のいずれかを含めてください"
+            "value": "請包含 ⌘、⌥ 或 ⌃"
           }
         }
       }
@@ -6002,6 +6368,7 @@
       }
     },
     "Lowercase (a–z)": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -6137,6 +6504,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "中間名"
+          }
+        }
+      }
+    },
+    "Minimum numbers": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少數字"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少數字"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少数字"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数字の最小数"
+          }
+        }
+      }
+    },
+    "Minimum special": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少符號"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少符號"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少符号"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記号の最小数"
           }
         }
       }
@@ -7289,6 +7712,34 @@
         }
       }
     },
+    "Number of words": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "字數"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "字數"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单词数"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "単語数"
+          }
+        }
+      }
+    },
     "Off": {
       "localizations": {
         "ja": {
@@ -8046,6 +8497,34 @@
         }
       }
     },
+    "Options": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選項"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選項"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オプション"
+          }
+        }
+      }
+    },
     "Or enter your master password below.": {
       "localizations": {
         "ja": {
@@ -8243,6 +8722,34 @@
         }
       }
     },
+    "Passphrase": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密語"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密語"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码短语"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスフレーズ"
+          }
+        }
+      }
+    },
     "Passport number": {
       "localizations": {
         "ja": {
@@ -8328,6 +8835,7 @@
       }
     },
     "Password Generator": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -8464,6 +8972,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "電話"
+          }
+        }
+      }
+    },
+    "Plus-addressed email": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加號別名電子郵件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加號別名電郵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加号别名邮箱"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プラスアドレス"
           }
         }
       }
@@ -8690,6 +9226,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "結束"
+          }
+        }
+      }
+    },
+    "Random word": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隨機單字"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隨機單字"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随机单词"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ランダムな単語"
           }
         }
       }
@@ -8921,10 +9485,10 @@
     },
     "Reset to ⌘K": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "重設為 ⌘K"
+            "value": "⌘K に戻す"
           }
         },
         "zh-HK": {
@@ -8939,10 +9503,10 @@
             "value": "重置为 ⌘K"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "⌘K に戻す"
+            "value": "重設為 ⌘K"
           }
         }
       }
@@ -9111,6 +9675,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示"
+          }
+        }
+      }
+    },
+    "Reveal (hold ⌥)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示（按住 ⌥）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示（撳住 ⌥）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示（按住 ⌥）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示（⌥ を押したまま）"
           }
         }
       }
@@ -10239,10 +10831,10 @@
     },
     "Shortcuts": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "快速鍵"
+            "value": "ショートカット"
           }
         },
         "zh-HK": {
@@ -10257,10 +10849,10 @@
             "value": "快捷键"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ショートカット"
+            "value": "快速鍵"
           }
         }
       }
@@ -10602,6 +11194,7 @@
       }
     },
     "Symbols (!@#…)": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -11612,10 +12205,10 @@
     },
     "Type shortcut…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請按下快速鍵…"
+            "value": "ショートカットを入力…"
           }
         },
         "zh-HK": {
@@ -11630,10 +12223,10 @@
             "value": "请按下快捷键…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ショートカットを入力…"
+            "value": "請按下快速鍵…"
           }
         }
       }
@@ -11981,6 +12574,7 @@
       }
     },
     "Uppercase (A–Z)": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -12088,6 +12682,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用此密碼"
+          }
+        }
+      }
+    },
+    "Use Username": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用使用者名稱"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用用戶名稱"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用用户名"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ユーザ名を使用"
           }
         }
       }
@@ -12200,6 +12822,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "值"
+          }
+        }
+      }
+    },
+    "Value must be between 3 and 20. Use 6 words or more to generate a strong passphrase.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數值須介於 3 到 20。使用 6 個字以上可產生強密語。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數值要喺 3 至 20 之間。用 6 個字或以上就可以產生強密語。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值须介于 3 到 20。使用 6 个或更多单词可生成强密码短语。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3〜20 の値にしてください。強いパスフレーズには 6 語以上を使います。"
+          }
+        }
+      }
+    },
+    "Value must be between 5 and 128.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數值須介於 5 到 128。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數值要喺 5 至 128 之間。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值须介于 5 到 128。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5〜128 の値にしてください。"
+          }
+        }
+      }
+    },
+    "Values you copy or use appear here until the vault locks.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你拷貝或使用的值會顯示在這裡，直到保險庫鎖定。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你複製或使用嘅值會顯示喺呢度，直到保險庫鎖定。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你复制或使用的值会显示在这里，直到密码库锁定。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーまたは使用した値は、保管庫がロックされるまでここに表示されます。"
           }
         }
       }
@@ -12740,12 +13446,40 @@
         }
       }
     },
-    "Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.": {
+    "Word separator": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "在所有 App 中都可使用。Chiikawarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
+            "value": "分隔符號"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分隔符號"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分隔符"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "単語の区切り"
+          }
+        }
+      }
+    },
+    "Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのアプリで使えます。Chiikawarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
           }
         },
         "zh-HK": {
@@ -12760,10 +13494,10 @@
             "value": "在所有 App 中都可使用。Chiikawarden 运行时，⌘K 这类常用快捷键会被占用，其他 App 无法使用；如需在别处使用，请换一个。在密码库窗口内，⌘K 和 ⌘F 始终会打开命令面板。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "すべてのアプリで使えます。Chiikawarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
+            "value": "在所有 App 中都可使用。Chiikawarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
           }
         }
       }

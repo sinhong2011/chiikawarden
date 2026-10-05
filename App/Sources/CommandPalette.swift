@@ -179,8 +179,8 @@ struct CommandPalette: View {
                 PaletteCommand(id: "new-send", title: String(localized: "New Send"), symbol: "paperplane", keywords: ["share", "link"]) {
                     model.bringToFront(); model.requestedSection = .sends; model.composingSend = true
                 },
-                PaletteCommand(id: "generator", title: String(localized: "Password Generator"), symbol: "dice", shortcut: "⌘G",
-                               keywords: ["random", "generate"]) { model.bringToFront(); model.showingGenerator = true },
+                PaletteCommand(id: "generator", title: String(localized: "Generator"), symbol: "dice", shortcut: "⌘G",
+                               keywords: ["random", "generate", "password", "passphrase", "username"]) { model.bringToFront(); model.showingGenerator = true },
                 PaletteCommand(id: "codes", title: String(localized: "One-Time Codes"), symbol: "clock.badge.checkmark",
                                keywords: ["totp", "2fa", "otp", "authenticator"]) { model.bringToFront(); model.requestedSection = .codes },
                 PaletteCommand(id: "watchtower", title: String(localized: "Watchtower"), symbol: "checkmark.shield",

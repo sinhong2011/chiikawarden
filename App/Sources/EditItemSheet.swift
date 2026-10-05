@@ -158,7 +158,7 @@ struct EditItemSheet: View {
                     Button { showGenerator = true } label: { Image(systemName: "dice").accessibilityLabel(Text("Generate password")) }
                         .buttonStyle(.borderless).help(Text("Generate password"))
                         .popover(isPresented: $showGenerator, arrowEdge: .trailing) {
-                            GeneratorView { generated in
+                            GeneratorView(modes: [.password, .passphrase], compact: true) { generated in
                                 password = generated
                                 showPassword = true
                                 showGenerator = false
@@ -354,62 +354,6 @@ struct EditItemSheet: View {
 }
 
 /// Password generator: length, character classes, look-alike avoidance, entropy meter.
-struct GeneratorView: View {
-    var onUse: ((String) -> Void)?
-    @AppStorage("generator") private var stored = Data()
-    @State private var options = PasswordGenerator()
-    @State private var value = ""
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(verbatim: value)
-                .font(.system(size: 16, weight: .medium, design: .monospaced))
-                .textSelection(.enabled)
-                .lineLimit(3)
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .padding(10)
-                .background(.background.secondary, in: .rect(cornerRadius: 8))
-                .contentTransition(.opacity)
-
-            StrengthMeter(bits: options.entropyBits)
-
-            HStack {
-                Text("Length")
-                Slider(value: Binding(get: { Double(options.length) }, set: { options.length = Int($0) }), in: 8...64, step: 1)
-                Text(verbatim: "\(options.length)").monospacedDigit().frame(width: 26, alignment: .trailing)
-            }
-            Toggle("Uppercase (A–Z)", isOn: $options.uppercase)
-            Toggle("Lowercase (a–z)", isOn: $options.lowercase)
-            Toggle("Digits (0–9)", isOn: $options.digits)
-            Toggle("Symbols (!@#…)", isOn: $options.symbols)
-            Toggle("Avoid look-alike characters", isOn: $options.avoidAmbiguous)
-
-            HStack {
-                Button { regenerate() } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
-                    .keyboardShortcut("r", modifiers: .command)
-                Spacer()
-                Button("Copy") { model.copy(value, label: String(localized: "Password")) }
-                if let onUse {
-                    Button("Use Password") { onUse(value) }.buttonStyle(.borderedProminent)
-                }
-            }
-        }
-        .padding(18)
-        .frame(width: 340)
-        .onAppear {
-            if let saved = try? JSONDecoder().decode(PasswordGenerator.self, from: stored) { options = saved }
-            regenerate()
-        }
-        .onChange(of: options) { _, new in
-            stored = (try? JSONEncoder().encode(new)) ?? Data()
-            regenerate()
-        }
-    }
-
-    private func regenerate() { withAnimation(.snappy) { value = options.generate() } }
-}
-
 /// Four-segment strength meter.
 struct StrengthMeter: View {
     let bits: Double

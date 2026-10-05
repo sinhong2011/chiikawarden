@@ -93,8 +93,8 @@ enum Snapshot {
             render(EditItemSheet(mode: .create(.sshKey)).environment(vault).tint(.brand),
                    size: CGSize(width: 540, height: 620), appearance: appearance,
                    to: dir.appending(path: "edit-ssh-\(name).png"))
-            render(GeneratorView(onUse: { _ in }).environment(vault).tint(.brand).background(Color.windowBase),
-                   size: CGSize(width: 340, height: 420), appearance: appearance,
+            render(desktop(ScrollView { GeneratorView().padding(24) }.environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 680, height: 820), appearance: appearance,
                    to: dir.appending(path: "generator-\(name).png"))
         }
         vault.sends = [
