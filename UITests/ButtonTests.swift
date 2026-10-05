@@ -100,6 +100,22 @@ final class ButtonTests: XCTestCase {
         XCTAssertTrue(window.staticTexts["GitHub"].firstMatch.exists, "item vanished after cancelling trash")
     }
 
+    func testFavoriteButton() {
+        select("GitHub") // a favorite in the demo vault
+        let star = window.toolbars.buttons["Favorite"].firstMatch
+        XCTAssertTrue(star.waitForExistence(timeout: 3))
+        XCTAssertEqual(star.identifier, "star.fill", "GitHub should start as a favorite")
+        star.click()
+        XCTAssertTrue(window.toolbars.buttons.matching(identifier: "star").firstMatch.waitForExistence(timeout: 2), "star did not empty")
+        window.buttons["Favorites"].firstMatch.click() // the list chip
+        XCTAssertFalse(window.buttons.matching(NSPredicate(format: "label CONTAINS 'GitHub,'")).firstMatch.waitForExistence(timeout: 1),
+                       "GitHub still listed under Favorites")
+        window.buttons["All"].firstMatch.click()
+        select("GitHub")
+        window.toolbars.buttons["Favorite"].firstMatch.click()
+        XCTAssertTrue(window.toolbars.buttons.matching(identifier: "star.fill").firstMatch.waitForExistence(timeout: 2), "star did not fill again")
+    }
+
     func testPasswordAndCodeTilesCopy() {
         select("GitHub")
         window.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Password")).firstMatch.click()

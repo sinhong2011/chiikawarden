@@ -796,6 +796,11 @@ final class AppModel {
     }
 
     func toggleFavorite(_ item: VaultItem) async {
+        // `--demo` / previews have no server: apply it here so the UI (and its tests) still work.
+        if sessions.isEmpty, previewUnlocked, let i = items.firstIndex(where: { $0.id == item.id }) {
+            items[i].favorite.toggle()
+            return
+        }
         await updateItem(item.id, edit: CipherEdit(favorite: !item.favorite))
     }
 

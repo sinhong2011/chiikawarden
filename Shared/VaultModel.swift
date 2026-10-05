@@ -19,7 +19,7 @@ struct VaultItem: Identifiable, Hashable {
     let notes: String?
     var totpSecret: String?
     var uri: String?
-    let favorite: Bool
+    var favorite: Bool
     var hasPasskey = false
     var folderId: String?
     /// Decrypted folder name, e.g. "Work/Servers" (nested by "/").

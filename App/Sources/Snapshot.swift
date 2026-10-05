@@ -81,6 +81,10 @@ enum Snapshot {
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 430, height: 760),
                          resizeFrom: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-resized-\(name).png"))
+            for (w, d) in [(400, 0), (760, 0), (400, 2)] {
+                renderWindow(VaultView(initialDepth: d).environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
+                             appearance: appearance, to: dir.appending(path: "window-\(w)-depth\(d)-\(name).png"))
+            }
             for w in [760, 400] {
                 renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
                              appearance: appearance, to: dir.appending(path: "window-\(w)-\(name).png"))
@@ -372,6 +376,8 @@ enum SelfTest {
                 check(edited?.name == "Selftest Edited" && edited?.password == "p-new" && edited?.username == "u", "edit keeps untouched fields")
                 if let edited { await model.toggleFavorite(edited) }
                 check(model.items.first { $0.id == new.id }?.favorite == true, "toggle favorite")
+                if let starred = model.items.first(where: { $0.id == new.id }) { await model.toggleFavorite(starred) }
+                check(model.items.first { $0.id == new.id }?.favorite == false, "toggle favorite off again")
                 if let item = model.items.first(where: { $0.id == new.id }) { await model.trash(item) }
                 check(model.items.first { $0.id == new.id }?.isDeleted == true, "move to Trash")
                 if let item = model.items.first(where: { $0.id == new.id }) { await model.restore(item) }

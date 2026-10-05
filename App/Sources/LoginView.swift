@@ -62,7 +62,7 @@ private struct LoginForm: View {
 
     private var subtitle: LocalizedStringKey {
         switch step {
-        case .credentials: "Choose where your vault lives."
+        case .credentials: "Sign in to your Bitwarden or Vaultwarden vault."
         case .authenticator: "Enter the 6-digit code from your authenticator app."
         case .emailCode: "Bitwarden emailed a verification code to \(model.email)."
         case .ssoPassword: "Signed in as \(model.email). Your master password decrypts the vault on this Mac."
@@ -78,38 +78,41 @@ private struct LoginForm: View {
             }
 
             if step == .credentials {
-                ServerPicker(selection: $model.serverKind)
+                VStack(alignment: .leading, spacing: 8) {
+                    FieldLabel("Server")
+                    ServerPicker(selection: $model.serverKind)
+                    if model.serverKind == .selfHosted {
+                        TextField("Server URL", text: $model.serverURL, prompt: Text(verbatim: "https://vault.example.com"))
+                            .textFieldStyle(SoftFieldStyle(trailingInset: 22))
+                            .textContentType(.URL)
+                            .focused($focus, equals: .server)
+                            .labelsHidden()
+                            .overlay(alignment: .trailing) { ServerStatusBadge(status: model.serverStatus).padding(.trailing, 12) }
+                            .padding(.top, 4)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                    ServerStatusLine(status: model.serverStatus)
+                    if model.serverKind == .selfHosted { CustomEnvironmentFields() }
+                }
 
                 VStack(alignment: .leading, spacing: 14) {
-                    if model.serverKind == .selfHosted {
-                        VStack(alignment: .leading, spacing: 8) {
-                            LabeledField("Server URL") {
-                                TextField("Server URL", text: $model.serverURL, prompt: Text(verbatim: "https://vault.example.com"))
-                                    .textContentType(.URL)
-                                    .focused($focus, equals: .server)
-                            }
-                            CustomEnvironmentFields()
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
                     LabeledField("Email") {
                         TextField("Email", text: $model.email, prompt: Text(verbatim: "you@example.com"))
                             .textContentType(.username)
                             .focused($focus, equals: .email)
                     }
-                    LabeledField("Master password", accessory: { ForgotPasswordButton(email: model.email) }) {
+                    LabeledField("Master password") {
                         PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
+                    }
+                    HStack {
+                        Toggle("Remember email", isOn: $rememberEmail)
+                            .toggleStyle(.switch).controlSize(.mini).tint(.brand)
+                            .font(.system(size: 12))
+                        Spacer()
+                        ForgotPasswordButton(email: model.email)
                     }
                 }
                 .textFieldStyle(SoftFieldStyle())
-
-                HStack {
-                    ServerStatusLine(status: model.serverStatus)
-                    Spacer()
-                    Toggle("Remember email", isOn: $rememberEmail)
-                        .toggleStyle(.checkbox)
-                        .font(.system(size: 12))
-                }
             } else if step == .ssoPassword {
                 LabeledField("Master password") {
                     PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
@@ -150,11 +153,17 @@ private struct LoginForm: View {
                 .disabled(model.isBusy)
 
                 if step == .credentials && model.serverKind == .selfHosted {
-                    Button("Log in with single sign-on…") { askingSSO = true }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(Color.brand)
-                        .font(.system(size: 12, weight: .medium))
-                        .disabled(model.isBusy)
+                    HStack(spacing: 10) {
+                        Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
+                        Text("or").font(.system(size: 11)).foregroundStyle(.tertiary)
+                        Rectangle().fill(Color.primary.opacity(0.1)).frame(height: 1)
+                    }
+                    .padding(.vertical, 2)
+                    Button { askingSSO = true } label: {
+                        Label("Log in with single sign-on", systemImage: "building.2")
+                    }
+                    .buttonStyle(AppButtonStyle(kind: .secondary, large: true))
+                    .disabled(model.isBusy)
                 }
                 if step != .credentials {
                     Button("Back") { code = ""; password = ""; model.cancelChallenge() }
@@ -171,7 +180,7 @@ private struct LoginForm: View {
             }
             .padding(.top, 4)
         }
-        .frame(width: 360)
+        .frame(width: 380)
         .alert("Single sign-on", isPresented: $askingSSO) {
             TextField("SSO identifier", text: $ssoIdentifier)
             Button("Continue") { Task { await model.loginWithSSO(identifier: ssoIdentifier) } }
@@ -229,6 +238,32 @@ struct PrimaryButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
             .animation(.easeOut(duration: 0.2), value: isEnabled)
+    }
+}
+
+private struct FieldLabel: View {
+    let text: LocalizedStringKey
+    init(_ text: LocalizedStringKey) { self.text = text }
+    var body: some View { Text(text).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary) }
+}
+
+/// Inside the server URL field: checking, reachable or not.
+private struct ServerStatusBadge: View {
+    let status: AppModel.ServerStatus
+
+    var body: some View {
+        Group {
+            switch status {
+            case .checking: ProgressView().controlSize(.mini)
+            case .reachable: Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            case .unreachable: Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+            case .unknown: EmptyView()
+            }
+        }
+        .font(.system(size: 13))
+        .transition(.scale.combined(with: .opacity))
+        .animation(.snappy(duration: 0.2), value: status)
+        .accessibilityHidden(true) // the status line below says it in words
     }
 }
 

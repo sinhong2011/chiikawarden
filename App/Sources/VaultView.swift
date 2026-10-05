@@ -28,6 +28,8 @@ extension Color {
 
 struct VaultView: View {
     var initialSelection: VaultItem.ID?
+    /// Narrow windows: the strip's starting pane (snapshots and previews).
+    var initialDepth = 1
     @Environment(AppModel.self) private var model
     @State private var newFolderName = ""
     @State private var query = ""
@@ -36,10 +38,13 @@ struct VaultView: View {
     /// Window width, to adapt from three columns down to a single phone-width column.
     @State private var width: CGFloat = 1120
     @State private var columns = NavigationSplitViewVisibility.all
-    /// Single-column mode: showing an item's detail instead of the list.
-    @State private var compactDetail = false
+    /// Narrow windows: which pane of the strip is in view (0 sidebar, 1 list or page, 2 detail).
+    @State private var depth = 1
 
-    private var singleColumn: Bool { width < 640 }
+    /// Below this width the sidebar, list and detail become one sliding strip (Reeder-style).
+    private var compact: Bool { width < 900 }
+    private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
+    private var maxDepth: Int { isItemSection ? (model.selectedItem == nil ? 1 : 2) : 1 }
 
     enum Chip: CaseIterable { case all, twoFactor, favorites
         var title: LocalizedStringKey {
@@ -70,14 +75,66 @@ struct VaultView: View {
     }
 
     @State private var initialMeasure = true
+    @State private var appliedInitialDepth = false
 
     private func resized(from old: CGFloat, to new: CGFloat) {
         initialMeasure = false
         width = new
+        if !appliedInitialDepth { appliedInitialDepth = true; depth = initialDepth }
         // Fold the sidebar away as the window narrows; bring it back when it widens again.
         if new < 900, old >= 900 { columns = .detailOnly }
         if new >= 900, old < 900 { columns = .all }
-        if new >= 640 { compactDetail = false }
+    }
+
+    // MARK: Panes
+
+    private var compactPanes: [AnyView] {
+        let sidebar = AnyView(sidebarPane)
+        guard isItemSection else { return [sidebar, AnyView(sectionPane)] }
+        return [sidebar, AnyView(listPane), AnyView(detailPane.environment(\.showsDetailToolbar, depth == 2))]
+    }
+
+    /// The sidebar as a pane on the narrow-window strip: the same list, on the app's panel.
+    private var sidebarPane: some View {
+        Sidebar(section: $section)
+            .scrollContentBackground(.hidden)
+            .background(Color.panel, in: .rect(cornerRadius: 22, style: .continuous))
+            .clipShape(.rect(cornerRadius: 22, style: .continuous))
+    }
+
+    @ViewBuilder private var sectionPane: some View {
+        switch section {
+        case .codes: CodesPane()
+        case .generator: GeneratorPane()
+        case .sends: SendsPane()
+        default:
+            WatchtowerView { item in
+                section = .section(item.isDeleted ? .trash : .all)
+                model.selectedID = item.id
+                if compact { depth = 2 }
+            }
+        }
+    }
+
+    @ViewBuilder private var listPane: some View {
+        if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
+            AccountUnlockPane(account: account)
+        } else {
+            ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
+                model.selectedID = id
+                if compact, id != nil { depth = 2 } // tapping an item slides to it
+            }), query: $query, chip: $chip)
+        }
+    }
+
+    @ViewBuilder private var detailPane: some View {
+        if let item = model.selectedItem {
+            ItemDetail(item: item)
+                .id(item.id)
+                .transition(.opacity.combined(with: .offset(y: 8)))
+        } else {
+            ContentUnavailableView("No Item Selected", systemImage: "key.viewfinder")
+        }
     }
 
     private var content: some View {
@@ -86,57 +143,16 @@ struct VaultView: View {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
-            HStack(spacing: 8) {
-                if section == .codes {
-                    CodesPane()
-                } else if section == .generator {
-                    GeneratorPane()
-                } else if section == .sends {
-                    SendsPane()
-                } else if section == .watchtower {
-                    WatchtowerView { item in
-                        section = .section(item.isDeleted ? .trash : .all)
-                        model.selectedID = item.id
+            Group {
+                if compact {
+                    PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth)
+                } else if isItemSection {
+                    HStack(spacing: 8) {
+                        listPane.frame(width: 300)
+                        detailPane.frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 } else {
-                if !singleColumn || !compactDetail || model.selectedItem == nil {
-                    Group {
-                        if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
-                            AccountUnlockPane(account: account)
-                        } else {
-                            ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
-                                model.selectedID = id
-                                if singleColumn, id != nil { compactDetail = true }
-                            }), query: $query, chip: $chip)
-                        }
-                    }
-                    .frame(width: singleColumn ? nil : 300)
-                    .frame(maxWidth: singleColumn ? .infinity : nil)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
-                }
-                if !singleColumn || (compactDetail && model.selectedItem != nil) {
-                    Group {
-                        if let item = model.selectedItem {
-                            VStack(alignment: .leading, spacing: 0) {
-                                if singleColumn {
-                                    Button { compactDetail = false } label: {
-                                        Label("Back", systemImage: "chevron.left").font(.system(size: 13, weight: .medium))
-                                    }
-                                    .buttonStyle(.appSecondarySmall)
-                                    .keyboardShortcut("[", modifiers: .command)
-                                    .padding(.leading, 8).padding(.bottom, 6)
-                                }
-                                ItemDetail(item: item)
-                                    .id(item.id)
-                                    .transition(.opacity.combined(with: .offset(y: 8)))
-                            }
-                        } else {
-                            ContentUnavailableView("No Item Selected", systemImage: "key.viewfinder")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                }
+                    sectionPane
                 }
             }
             .padding(8)
@@ -146,18 +162,24 @@ struct VaultView: View {
                 // Search and + live in the header, over the item list (Liquid layout).
                 ToolbarItem(placement: .navigation) {
                     HStack(spacing: 8) {
-                        if columns == .detailOnly {
-                            Button { withAnimation(.snappy) { columns = .all } } label: {
-                                Image(systemName: "sidebar.left").font(.system(size: 14, weight: .medium))
+                        if compact {
+                            Button { depth = max(depth - 1, 0) } label: {
+                                Image(systemName: depth == 0 ? "sidebar.left" : "chevron.left").font(.system(size: 14, weight: .medium))
+                                    .contentTransition(.symbolEffect(.replace))
                                     .frame(width: 36, height: 36).contentShape(.circle)
                             }
                             .buttonStyle(.plain)
                             .modifier(HeaderChrome(shape: .circle))
-                            .help(Text("Show Sidebar"))
-                            .accessibilityLabel(Text("Show Sidebar"))
+                            .disabled(depth == 0)
+                            .keyboardShortcut("[", modifiers: .command)
+                            .help(Text("Back (⌘[)"))
+                            .accessibilityLabel(Text("Back"))
                         }
-                        PaletteTrigger().frame(width: width < 560 ? 150 : 228)
-                        NewItemButton()
+                        // On a phone-width detail, the header belongs to the item's actions (search and + are the list's).
+                        if !(compact && width < PaneStrip.pairWidth && depth == 2) {
+                            PaletteTrigger().frame(width: width < 560 ? 150 : 228)
+                            NewItemButton()
+                        }
                     }
                 }
                 .sharedBackgroundVisibility(.hidden)
@@ -173,11 +195,11 @@ struct VaultView: View {
             }
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
-        .animation(.snappy(duration: 0.25), value: compactDetail)
-        .animation(.snappy(duration: 0.25), value: singleColumn)
-        .onChange(of: section) {
-            compactDetail = false
-            if width < 900 { withAnimation(.snappy) { columns = .detailOnly } } // picked a section: fold the sidebar again
+        .onChange(of: section) { if compact { depth = 1 } } // picked a section: slide to it
+        .onChange(of: model.selectedItem == nil) { _, none in if none, depth == 2 { depth = 1 } }
+        // The system sidebar toggle on a narrow window: show the strip's sidebar pane instead.
+        .onChange(of: columns) { _, new in
+            if compact, new != .detailOnly { columns = .detailOnly; depth = 0 }
         }
         // When the selected item leaves the list (trashed, restored, deleted, filtered out), select its neighbour
         // so the list and the detail never disagree.
@@ -749,7 +771,13 @@ struct ItemRow: View {
 
 // MARK: Detail
 
+extension EnvironmentValues {
+    /// False while the detail pane sits off-screen on the narrow-window strip.
+    @Entry var showsDetailToolbar = true
+}
+
 struct ItemDetail: View {
+    @Environment(\.showsDetailToolbar) private var showsToolbar
     @Environment(AppModel.self) private var model
     let item: VaultItem
     @State private var revealToggle = false
@@ -872,10 +900,12 @@ struct ItemDetail: View {
         }
         .animation(.easeOut(duration: 0.15), value: dropping)
         .toolbar {
-            // Item actions sit in the header, top right (Liquid layout).
-            ToolbarSpacer(.flexible)
-            ToolbarItem { actions }
-                .sharedBackgroundVisibility(.hidden)
+            // Item actions sit in the header, top right (Liquid layout) — only while this detail is in view.
+            if showsToolbar {
+                ToolbarSpacer(.flexible)
+                ToolbarItem { actions }
+                    .sharedBackgroundVisibility(.hidden)
+            }
         }
         .confirmationDialog("Delete “\(item.name)” forever?", isPresented: $confirmDelete) {
             Button("Delete Forever", role: .destructive) { Task { await model.deleteForever(item) } }
@@ -935,43 +965,9 @@ struct ItemDetail: View {
     }
 }
 
-/// Light: a plain white card. Dark: the deep neutral card. Same layout in both.
-private struct HeroStyle {
-    let dark: Bool
-    var ink: Color { dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16) }
-    var muted: Color { dark ? .white.opacity(0.72) : Color(red: 0.07, green: 0.09, blue: 0.16).opacity(0.58) }
-    var tile: Color { dark ? .white.opacity(0.06) : Color.black.opacity(0.035) }
-    var tileEdge: Color { dark ? .white.opacity(0.07) : Color.black.opacity(0.04) }
-    var track: Color { dark ? .white.opacity(0.15) : Color.brand.opacity(0.14) }
-    var bar: Color { dark ? .white : .brand }
-    var avatar: Color { dark ? .white.opacity(0.14) : Color.brand.opacity(0.10) }
-    var avatarInk: Color { dark ? .white : .brand }
-    var secondaryButton: Color { dark ? .white.opacity(0.14) : Color.primary.opacity(0.06) }
-}
-
-private struct HeroCard: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.colorScheme) private var scheme
-    let item: VaultItem
-    @Binding var reveal: Bool
-    @State private var tileRow = true
-
-    var body: some View {
-        let style = HeroStyle(dark: scheme == .dark)
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 14) {
-                // Same icon as the list row (website icon, else the letter tile).
-                ItemIcon(item: item, size: 52)
-                    .shadow(color: .black.opacity(style.dark ? 0.3 : 0.08), radius: 6, y: 3)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.name).font(.system(size: 30, weight: .heavy)).tracking(-0.8).lineLimit(1)
-                    Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
-                        .foregroundStyle(style.muted).lineLimit(1)
-                }
-            }
-
-            // Tiles share one height: the row sizes to the tallest, each tile fills it. Stacked when the card is narrow.
-            (tileRow ? AnyLayout(HStackLayout(alignment: .top, spacing: 10)) : AnyLayout(VStackLayout(spacing: 10))) {
+extension HeroCard {
+    /// The password and one-time-code tiles.
+    @ViewBuilder func tiles(_ style: HeroStyle) -> some View {
                 if let password = item.password {
                     Tile(style: style) {
                         model.copy(password, label: String(localized: "Password"))
@@ -1017,6 +1013,49 @@ private struct HeroCard: View {
                         .animation(.snappy, value: code)
                     }
                 }
+                }
+}
+
+/// Light: a plain white card. Dark: the deep neutral card. Same layout in both.
+private struct HeroStyle {
+    let dark: Bool
+    var ink: Color { dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16) }
+    var muted: Color { dark ? .white.opacity(0.72) : Color(red: 0.07, green: 0.09, blue: 0.16).opacity(0.58) }
+    var tile: Color { dark ? .white.opacity(0.06) : Color.black.opacity(0.035) }
+    var tileEdge: Color { dark ? .white.opacity(0.07) : Color.black.opacity(0.04) }
+    var track: Color { dark ? .white.opacity(0.15) : Color.brand.opacity(0.14) }
+    var bar: Color { dark ? .white : .brand }
+    var avatar: Color { dark ? .white.opacity(0.14) : Color.brand.opacity(0.10) }
+    var avatarInk: Color { dark ? .white : .brand }
+    var secondaryButton: Color { dark ? .white.opacity(0.14) : Color.primary.opacity(0.06) }
+}
+
+private struct HeroCard: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    let item: VaultItem
+    @Binding var reveal: Bool
+
+    var body: some View {
+        let style = HeroStyle(dark: scheme == .dark)
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 14) {
+                // Same icon as the list row (website icon, else the letter tile).
+                ItemIcon(item: item, size: 52)
+                    .shadow(color: .black.opacity(style.dark ? 0.3 : 0.08), radius: 6, y: 3)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.name).font(.system(size: 30, weight: .heavy)).tracking(-0.8).lineLimit(1)
+                    Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
+                        .foregroundStyle(style.muted).lineLimit(1)
+                }
+            }
+
+            // Tiles share one height: the row sizes to the tallest, each tile fills it. Stacked when the card is narrow
+            // (decided in the layout pass, so it's always right for the current width).
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 10) { tiles(style) }
+                    .frame(minWidth: 0, idealWidth: 440, maxWidth: .infinity)
+                VStack(spacing: 10) { tiles(style) }
             }
             .fixedSize(horizontal: false, vertical: true)
 
@@ -1024,7 +1063,6 @@ private struct HeroCard: View {
         .foregroundStyle(style.ink)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onGeometryChange(for: Bool.self) { $0.size.width >= 460 } action: { tileRow = $0 }
         .background {
             // Plain surface, no colour wash.
             (style.dark ? Color.hero : Color.panelStrong)

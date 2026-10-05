@@ -1765,6 +1765,34 @@
         }
       }
     },
+    "Back (⌘[)": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戻る（⌘[）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回（⌘[）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回（⌘[）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回（⌘[）"
+          }
+        }
+      }
+    },
     "Bitwarden": {
       "shouldTranslate": false
     },
@@ -2721,6 +2749,7 @@
       }
     },
     "Choose where your vault lives.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7624,7 +7653,9 @@
         }
       }
     },
+    "Log in with single sign-on": {},
     "Log in with single sign-on…": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -12563,6 +12594,7 @@
       }
     },
     "Show Sidebar": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -12730,6 +12762,7 @@
         }
       }
     },
+    "Sign in to your Bitwarden or Vaultwarden vault.": {},
     "Signed in as %@. Your master password decrypts the vault on this Mac.": {
       "localizations": {
         "ja": {
@@ -16329,6 +16362,7 @@
         }
       }
     },
+    "or": {},
     "otpauth://… or base32 key": {
       "localizations": {
         "ja": {

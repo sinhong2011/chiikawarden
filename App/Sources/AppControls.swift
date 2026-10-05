@@ -8,16 +8,19 @@ struct AppButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary, destructive }
     var kind: Kind = .secondary
     var small = false
+    /// Full-width form buttons (same height as the login button).
+    var large = false
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var scheme
 
     func makeBody(configuration: Configuration) -> some View {
         let dark = scheme == .dark
         configuration.label
-            .font(.system(size: small ? 12 : 13, weight: .semibold))
+            .font(.system(size: small ? 12 : large ? 14 : 13, weight: .semibold))
             .lineLimit(1)
             .padding(.horizontal, small ? 12 : 16)
-            .frame(height: small ? 28 : 36)
+            .frame(maxWidth: large ? .infinity : nil)
+            .frame(height: small ? 28 : large ? 40 : 36)
             .foregroundStyle(foreground(dark))
             .background {
                 switch kind {
