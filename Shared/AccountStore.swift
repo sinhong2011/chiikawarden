@@ -62,6 +62,11 @@ enum AccountStore {
         return d
     }
 
+    /// Files must be writable while the screen is locked (background sync). Their contents are already
+    /// encrypted with vault keys, so "until first unlock" protection is the right class; "complete" protection
+    /// makes atomic writes fail while the Mac is locked.
+    private static let writeOptions: Data.WritingOptions = [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+
     private static func dir(_ id: String) -> URL {
         let d = root.appending(path: id, directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
@@ -85,8 +90,7 @@ enum AccountStore {
     static func save(_ account: SavedAccount) {
         var account = account
         if let existing = load(account.id) { account.addedAt = existing.addedAt } // keep its place in the list
-        try? JSONEncoder().encode(account).write(to: dir(account.id).appending(path: "account.json"),
-                                                 options: [.atomic, .completeFileProtection])
+        try? JSONEncoder().encode(account).write(to: dir(account.id).appending(path: "account.json"), options: writeOptions)
     }
 
     static func erase(_ id: String) {
@@ -108,7 +112,7 @@ enum AccountStore {
     /// The sync payload exactly as the server sent it (every secret still encrypted).
     static func loadCache(_ id: String) -> Data? { try? Data(contentsOf: root.appending(path: id).appending(path: "vault.json")) }
     static func saveCache(_ data: Data, _ id: String) {
-        try? data.write(to: dir(id).appending(path: "vault.json"), options: [.atomic, .completeFileProtection])
+        try? data.write(to: dir(id).appending(path: "vault.json"), options: writeOptions)
     }
 
     // MARK: Refresh token (Keychain)
@@ -153,7 +157,7 @@ enum AccountStore {
         let sealed = try AES.GCM.seal(userKey.encryptionKey + userKey.macKey, using: wrapKey(shared)).combined!
         let blob = BiometricBlob(enclaveKey: enclave.dataRepresentation,
                                  ephemeralPublic: ephemeral.publicKey.rawRepresentation, sealed: sealed)
-        try JSONEncoder().encode(blob).write(to: dir(id).appending(path: "biometric.json"), options: [.atomic, .completeFileProtection])
+        try JSONEncoder().encode(blob).write(to: dir(id).appending(path: "biometric.json"), options: writeOptions)
     }
 
     static func disableTouchID(_ id: String) { try? FileManager.default.removeItem(at: biometricURL(id)) }
