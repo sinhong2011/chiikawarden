@@ -4,14 +4,63 @@ import SwiftUI
 
 // MARK: Global hotkey
 
-/// ⌥Space anywhere. Carbon hotkeys work in the sandbox and need no Accessibility permission.
+/// A key + modifiers, stored in Carbon terms (what RegisterEventHotKey wants) with a display string.
+struct Shortcut: Codable, Equatable {
+    var keyCode: UInt32
+    var modifiers: UInt32
+    var key: String
+
+    /// ⌘K by default.
+    static let paletteDefault = Shortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey), key: "K")
+
+    var display: String {
+        var s = ""
+        if modifiers & UInt32(controlKey) != 0 { s += "⌃" }
+        if modifiers & UInt32(optionKey) != 0 { s += "⌥" }
+        if modifiers & UInt32(shiftKey) != 0 { s += "⇧" }
+        if modifiers & UInt32(cmdKey) != 0 { s += "⌘" }
+        return s + key
+    }
+
+    /// From a key-down event; nil unless ⌘, ⌥ or ⌃ is held (a bare letter would make typing impossible).
+    init?(event: NSEvent) {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        var carbon: UInt32 = 0
+        if flags.contains(.command) { carbon |= UInt32(cmdKey) }
+        if flags.contains(.option) { carbon |= UInt32(optionKey) }
+        if flags.contains(.control) { carbon |= UInt32(controlKey) }
+        guard carbon != 0 else { return nil }
+        if flags.contains(.shift) { carbon |= UInt32(shiftKey) }
+        let names: [Int: String] = [kVK_Space: "Space", kVK_Return: "↩", kVK_Tab: "⇥", kVK_Escape: "⎋", kVK_Delete: "⌫",
+                                    kVK_UpArrow: "↑", kVK_DownArrow: "↓", kVK_LeftArrow: "←", kVK_RightArrow: "→"]
+        let key = names[Int(event.keyCode)] ?? (event.charactersIgnoringModifiers ?? "").uppercased()
+        guard !key.isEmpty else { return nil }
+        self.init(keyCode: UInt32(event.keyCode), modifiers: carbon, key: key)
+    }
+
+    init(keyCode: UInt32, modifiers: UInt32, key: String) {
+        self.keyCode = keyCode; self.modifiers = modifiers; self.key = key
+    }
+
+    static var palette: Shortcut {
+        get {
+            UserDefaults.standard.data(forKey: "paletteShortcut").flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
+                ?? .paletteDefault
+        }
+        set { UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: "paletteShortcut") }
+    }
+}
+
+/// A system-wide shortcut. Carbon hotkeys work in the sandbox and need no Accessibility permission.
 @MainActor
 final class GlobalHotKey {
     private var ref: EventHotKeyRef?
     private var handler: EventHandlerRef?
     private let action: () -> Void
+    /// The app's palette hotkey, so Settings can rebind it.
+    static weak var palette: GlobalHotKey?
 
-    init(keyCode: UInt32 = UInt32(kVK_Space), modifiers: UInt32 = UInt32(optionKey), action: @escaping () -> Void) {
+    init(_ shortcut: Shortcut, action: @escaping () -> Void) {
         self.action = action
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let me = Unmanaged.passUnretained(self).toOpaque()
@@ -21,8 +70,22 @@ final class GlobalHotKey {
             MainActor.assumeIsolated { hotKey.action() }
             return noErr
         }, 1, &spec, me, &handler)
-        RegisterEventHotKey(keyCode, modifiers, EventHotKeyID(signature: OSType(0x4357_4b59), id: 1),
-                            GetApplicationEventTarget(), 0, &ref)
+        register(shortcut)
+    }
+
+    /// Stops listening (while Settings records a new shortcut).
+    func pause() {
+        if let ref { UnregisterEventHotKey(ref) }
+        ref = nil
+    }
+
+    /// Swaps the key combination; false when another app already owns it.
+    @discardableResult
+    func register(_ shortcut: Shortcut) -> Bool {
+        if let ref { UnregisterEventHotKey(ref) }
+        ref = nil
+        return RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, EventHotKeyID(signature: OSType(0x4357_4b59), id: 1),
+                                   GetApplicationEventTarget(), 0, &ref) == noErr
     }
 }
 
@@ -49,7 +112,7 @@ final class QuickSearchController {
     func show() {
         let panel = self.panel ?? makePanel()
         self.panel = panel
-        // Over the vault window when it's in front (⌘K), else high on the screen (⌥Space).
+        // Over the vault window when it's in front, else high on the screen.
         if NSApp.isActive, let window = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain && $0 != panel }) {
             let f = window.frame
             panel.setFrameTopLeftPoint(NSPoint(x: f.midX - panel.frame.width / 2, y: f.maxY - 40))

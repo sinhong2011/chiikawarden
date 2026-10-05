@@ -15,7 +15,7 @@ struct PaletteCommand: Identifiable {
     }
 }
 
-/// The command palette (⌘K / ⌘F in the window, ⌥Space anywhere), after the Liquid search design:
+/// The command palette (⌘K / ⌘F in the window, the global shortcut from Settings anywhere), after the Liquid search design:
 /// a big field, the highlighted login opened up as a dark card with its live code and actions,
 /// and a group of commands to run.
 struct CommandPalette: View {

@@ -81,6 +81,15 @@ private struct GeneralSettings: View {
             }
 
             Section {
+                LabeledContent("Command palette") { ShortcutRecorder() }
+            } header: {
+                Text("Shortcuts")
+            } footer: {
+                Text("Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
                 LabeledContent("AutoFill") {
                     HStack(spacing: 10) {
                         if let autoFillOn {
@@ -484,5 +493,62 @@ private struct AboutSettings: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 28)
+    }
+}
+
+/// Click, then press the new key combination (needs ⌘, ⌥ or ⌃). Esc cancels.
+private struct ShortcutRecorder: View {
+    @State private var shortcut = Shortcut.palette
+    @State private var recording = false
+    @State private var monitor: Any?
+    @State private var problem: String?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let problem { Text(verbatim: problem).font(.caption).foregroundStyle(.orange) }
+            Button { recording ? stop() : start() } label: {
+                Text(recording ? String(localized: "Type shortcut…") : shortcut.display)
+                    .font(.system(size: 12, weight: .semibold, design: recording ? .default : .rounded))
+                    .frame(minWidth: 96)
+            }
+            .buttonStyle(.bordered)
+            .tint(recording ? .accentColor : nil)
+            if shortcut != .paletteDefault {
+                Button { apply(.paletteDefault) } label: { Image(systemName: "arrow.uturn.backward") }
+                    .buttonStyle(.borderless)
+                    .help(Text("Reset to ⌘K"))
+                    .accessibilityLabel(Text("Reset to ⌘K"))
+            }
+        }
+        .onDisappear(perform: stop)
+    }
+
+    private func start() {
+        problem = nil
+        recording = true
+        GlobalHotKey.palette?.pause() // or pressing the current shortcut would open the palette
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { stop(); return nil } // Esc
+            if let new = Shortcut(event: event) { apply(new); stop() } else { problem = String(localized: "Include ⌘, ⌥ or ⌃") }
+            return nil
+        }
+    }
+
+    private func stop() {
+        if recording, monitor != nil { GlobalHotKey.palette?.register(shortcut) }
+        recording = false
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+    }
+
+    private func apply(_ new: Shortcut) {
+        if GlobalHotKey.palette?.register(new) == false {
+            problem = String(localized: "Another app uses \(new.display)")
+            GlobalHotKey.palette?.register(shortcut)
+            return
+        }
+        problem = nil
+        shortcut = new
+        Shortcut.palette = new
     }
 }

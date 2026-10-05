@@ -43,7 +43,9 @@ struct ChiikawardenApp: App {
                         let controller = QuickSearchController(model: model)
                         quickSearch = controller
                         model.openPalette = { controller.show() }
-                        hotKey = GlobalHotKey { controller.toggle() }
+                        let key = GlobalHotKey(Shortcut.palette) { controller.toggle() }
+                        hotKey = key
+                        GlobalHotKey.palette = key
                     }
                 }
                 // Soft pastel wash from the Liquid design under every screen.
@@ -113,8 +115,7 @@ struct ChiikawardenApp: App {
                     .disabled(item == nil || item?.isDeleted == true)
             }
             CommandGroup(after: .appSettings) {
-                Button("Command Palette") { quickSearch?.show() }
-                    .keyboardShortcut(.space, modifiers: .option)
+                Button("Command Palette") { quickSearch?.show() } // its shortcut is the global one from Settings
                 Button("Lock Vault") { model.lock() }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)

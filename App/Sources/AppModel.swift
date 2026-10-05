@@ -182,7 +182,7 @@ final class AppModel {
 
     /// Bumped each time Quick Search opens, so the panel resets and focuses.
     var quickSearchNonce = 0
-    /// Opens the command palette (set by the app; the toolbar, ⌘K/⌘F and ⌥Space all use it).
+    /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
     /// Sidebar destination asked for from outside the vault view (palette commands).
     var requestedSection: SidebarSelection?

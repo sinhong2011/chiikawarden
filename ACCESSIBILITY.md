@@ -20,13 +20,13 @@ with the `accessibility` label.
 
 | Action | Keys |
 |---|---|
-| Search the vault | ⌘F |
+| Search or run a command | ⌘K or ⌘F |
 | Move through items | ↑ / ↓ in the item list |
 | New login / secure note / folder | ⌘N / ⇧⌘N / ⌥⌘N |
 | Edit item | ⌘E |
 | Move to Trash | ⌘⌫ |
 | Password generator | ⌘G |
-| Quick Search from anywhere | ⌥Space, then ↑ / ↓, Return to copy, Esc to close |
+| Command palette from anywhere | ⌘K by default (Settings › General › Shortcuts), then ↑ / ↓, ↵ open, ⌘↵ password, ⌥↵ code, Esc to close |
 | AutoFill picker | type to search, ↑ / ↓, Return to fill or sign in |
 | Lock | ⇧⌘L |
 | Sheets and dialogs | Return confirms, Esc cancels |

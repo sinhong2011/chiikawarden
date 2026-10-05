@@ -42,7 +42,7 @@ struct MenuBarContent: View {
                     Image(systemName: "magnifyingglass").font(.system(size: 12, weight: .semibold))
                     Text("Search vault").font(.system(size: 13))
                     Spacer()
-                    Text(verbatim: "⌥Space").font(.system(size: 10, weight: .medium, design: .monospaced))
+                    Text(verbatim: Shortcut.palette.display).font(.system(size: 10, weight: .medium, design: .monospaced))
                 }
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 12).frame(height: 36)

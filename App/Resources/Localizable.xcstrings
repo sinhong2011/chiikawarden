@@ -1092,6 +1092,34 @@
         }
       }
     },
+    "Another app uses %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他 App 正在使用 %@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他 App 用緊 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他 App 正在使用 %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ は別のアプリが使用中です"
+          }
+        }
+      }
+    },
     "Answer the cw command": {
       "localizations": {
         "ja": {
@@ -2438,6 +2466,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "命令列"
+          }
+        }
+      }
+    },
+    "Command palette": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令面板"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指令面板"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令面板"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドパレット"
           }
         }
       }
@@ -4967,10 +5023,10 @@
     },
     "Has a one-time code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "有一次性驗證碼"
+            "value": "ワンタイムコードあり"
           }
         },
         "zh-HK": {
@@ -4985,10 +5041,10 @@
             "value": "有一次性验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワンタイムコードあり"
+            "value": "有一次性驗證碼"
           }
         }
       }
@@ -5269,6 +5325,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "位於垃圾桶。還原後即可再次使用，或將其永久刪除。"
+          }
+        }
+      }
+    },
+    "Include ⌘, ⌥ or ⌃": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請包含 ⌘、⌥ 或 ⌃"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要包含 ⌘、⌥ 或 ⌃"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请包含 ⌘、⌥ 或 ⌃"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘、⌥、⌃ のいずれかを含めてください"
           }
         }
       }
@@ -8835,6 +8919,34 @@
         }
       }
     },
+    "Reset to ⌘K": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重設為 ⌘K"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重設為 ⌘K"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置为 ⌘K"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘K に戻す"
+          }
+        }
+      }
+    },
     "Restore": {
       "localizations": {
         "ja": {
@@ -10121,6 +10233,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "過短或過於簡單的密碼容易被猜中。請產生更長的密碼。"
+          }
+        }
+      }
+    },
+    "Shortcuts": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速鍵"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速鍵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快捷键"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカット"
           }
         }
       }
@@ -11470,6 +11610,34 @@
         }
       }
     },
+    "Type shortcut…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請按下快速鍵…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撳快速鍵…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按下快捷键…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットを入力…"
+          }
+        }
+      }
+    },
     "Unlock": {
       "localizations": {
         "ja": {
@@ -12568,6 +12736,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "歡迎回來"
+          }
+        }
+      }
+    },
+    "Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在所有 App 中都可使用。Chiikawarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺所有 App 都用得。Chiikawarden 運行時，⌘K 呢類常用快速鍵會被佔用，其他 App 用唔到；如果其他地方需要，就揀過另一個。喺保險庫視窗入面，⌘K 同 ⌘F 一定會打開指令面板。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在所有 App 中都可使用。Chiikawarden 运行时，⌘K 这类常用快捷键会被占用，其他 App 无法使用；如需在别处使用，请换一个。在密码库窗口内，⌘K 和 ⌘F 始终会打开命令面板。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのアプリで使えます。Chiikawarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
           }
         }
       }
