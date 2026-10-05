@@ -121,6 +121,26 @@ public actor VaultClient {
         }
     }
 
+    /// Current bearer token (for the notifications hub).
+    public var currentAccessToken: String? { accessToken }
+
+    /// Creates a folder (name must already be encrypted) and returns its id. Used by tests to trigger
+    /// a server-side change notification.
+    public func createFolder(encryptedName: String) async throws(APIError) -> String {
+        struct Folder: Decodable { let id: String }
+        var r = try post(environment.apiURL, "folders", jsonBody: json(["name": encryptedName]))
+        if let accessToken { r.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
+        let folder: Folder = try await send(r)
+        return folder.id
+    }
+
+    public func deleteFolder(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "folders/\(id)")
+        r.httpMethod = "DELETE"
+        if let accessToken { r.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
+        _ = try await sendRaw(r)
+    }
+
     // MARK: Password hint
 
     /// Asks the server to email the master password hint. Vaultwarden without mail configured may

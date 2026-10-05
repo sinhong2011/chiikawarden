@@ -2698,7 +2698,34 @@
         }
       }
     },
-    "Quick Search": {},
+    "Quick Search": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速搜尋"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速搜尋"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速搜索"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クイック検索"
+          }
+        }
+      }
+    },
     "Quit": {
       "localizations": {
         "zh-Hant": {
@@ -3685,7 +3712,34 @@
     "Vaultwarden": {
       "shouldTranslate": false
     },
-    "Verification Codes": {},
+    "Verification Codes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認コード"
+          }
+        }
+      }
+    },
     "Verification code": {
       "localizations": {
         "ja": {

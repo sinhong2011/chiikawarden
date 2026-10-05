@@ -28,6 +28,9 @@ struct ChiikawardenApp: App {
                 .environment(model)
                 .tint(.brand)
                 .preferredColorScheme(appearance.scheme)
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    model.appDidBecomeActive()
+                }
                 .onAppear {
                     model.startAutoLock()
                     if hotKey == nil {

@@ -19,7 +19,7 @@ You can replace the official desktop app for **reading** your vault:
 | 3 | **Organization items** (RSA-wrapped org keys, per-item keys) | Shared/family items were invisible | ✅ |
 | 4 | Every item type renders: login, card, identity, note, SSH key | Half the vault looked empty | ✅ |
 | 5 | **Stay signed in**: unlock with master password offline; Touch ID unlock (Secure Enclave) | Logging in with the network every time is a non-starter | ✅ |
-| 6 | Encrypted offline cache + background sync ✅, live updates (WebSocket) ⬜ | Must work on a plane; must reflect other devices | 🟡 |
+| 6 | Encrypted offline cache, background sync, live updates (SignalR WebSocket, proxy-safe) | Must work on a plane; must reflect other devices | ✅ |
 | 7 | Copy, reveal, live TOTP, open website | Core jobs | ✅ |
 | 8 | Search + filters + sidebar categories | Core jobs | ✅ |
 | 9 | Settings: appearance, auto-lock, lock on sleep, clipboard, custom CA, extra headers | Self-hosters and security defaults | ✅ |

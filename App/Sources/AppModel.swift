@@ -128,10 +128,63 @@ final class AppModel {
 
     /// A client for `environment` with the user's extra headers and trusted CAs applied.
     private func makeClient(_ environment: ServerEnvironment) -> VaultClient {
-        let cas = UserDefaults.standard.array(forKey: Pref.trustedCAs) as? [Data] ?? []
-        let session = cas.isEmpty ? URLSession.shared : ServerTrust(certificates: cas).makeSession()
+        let session = makeSession()
         return VaultClient(environment: environment, deviceIdentifier: deviceIdentifier,
                            extraHeaders: HeaderStore.dictionary, session: session)
+    }
+
+    private func makeSession() -> URLSession {
+        let cas = UserDefaults.standard.array(forKey: Pref.trustedCAs) as? [Data] ?? []
+        return cas.isEmpty ? URLSession.shared : ServerTrust(certificates: cas).makeSession()
+    }
+
+    // MARK: Live sync
+
+    private var live: LiveSync?
+    private var liveDebounce: Task<Void, Never>?
+    private var periodicSync: Timer?
+
+    /// Connects to the notifications hub so changes on other devices appear within a second or two.
+    private func startLiveSync() async {
+        guard live == nil, let client, let token = await client.currentAccessToken else { return }
+        let live = LiveSync(environment: client.environment, accessToken: token, session: makeSession()) { [weak self] in
+            Task { @MainActor in self?.scheduleSync() }
+        }
+        self.live = live
+        do { try await live.start() } catch { self.live = nil }
+        if periodicSync == nil {
+            periodicSync = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.scheduleSync() }
+            }
+        }
+    }
+
+    private func stopLiveSync() {
+        let live = self.live
+        self.live = nil
+        Task { await live?.stop() }
+        periodicSync?.invalidate()
+        periodicSync = nil
+    }
+
+    /// Coalesces bursts of change notifications into one sync.
+    func scheduleSync() {
+        guard isUnlocked else { return }
+        liveDebounce?.cancel()
+        liveDebounce = Task {
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled else { return }
+            do { try await refresh() } catch {
+                // Token likely expired: refresh it once and retry.
+                if let token = try? await client?.refreshAccessToken() { AccountStore.refreshToken = token }
+                try? await refresh()
+            }
+        }
+    }
+
+    /// Re-sync when the app comes to the front if the last sync is stale.
+    func appDidBecomeActive() {
+        if isUnlocked, (lastSynced.map { Date.now.timeIntervalSince($0) > 60 } ?? true) { scheduleSync() }
     }
 
     /// Drop the cached client so new headers / certificates take effect on the next request.
@@ -150,6 +203,7 @@ final class AppModel {
 
     /// Sign out on this Mac: forget the session, cached vault and Touch ID.
     func logOut() {
+        stopLiveSync()
         AccountStore.erase()
         touchIDEnabled = false
         userKey = nil
@@ -272,6 +326,7 @@ final class AppModel {
         AccountStore.saveCache(data)
         try load(cache: data)
         lastSynced = .now
+        await startLiveSync()
     }
 
     // MARK: Unlock
@@ -447,6 +502,7 @@ final class AppModel {
     }
 
     func lock() {
+        stopLiveSync()
         userKey = nil
         items = []
         phase = AccountStore.load() != nil ? .locked : .login

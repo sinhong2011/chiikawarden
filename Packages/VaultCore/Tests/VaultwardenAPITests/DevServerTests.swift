@@ -82,6 +82,30 @@ struct DevServerTests {
         #expect(names.contains("GitHub"))
     }
 
+    @Test(arguments: [18843]) // websockets via Caddy on the latest server
+    func liveSyncNotifiesOnChange(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let userKey = try await client.login(email: "usagi@chiikawarden.test", password: DevServer.password)
+        let token = try #require(await client.currentAccessToken)
+        let ca = try DevServer.env["CHIIKAWARDEN_DEV_CA"].map { try Data(contentsOf: URL(filePath: $0)) }
+        let session = ServerTrust(certificates: ca.map { [$0] } ?? []).makeSession()
+        let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
+        let live = LiveSync(environment: .selfHosted(URL(string: "https://\(DevServer.host!):\(port)")!),
+                            accessToken: token, session: session) { continuation.yield() }
+        try await live.start()
+        let folder = try await client.createFolder(encryptedName: EncString.encrypt(Data("live-test".utf8), with: userKey).description)
+        let notified = await withTaskGroup(of: Bool.self) { group in
+            group.addTask { for await _ in stream { return true }; return false }
+            group.addTask { try? await Task.sleep(for: .seconds(8)); return false }
+            let first = await group.next() ?? false
+            group.cancelAll()
+            return first
+        }
+        try await client.deleteFolder(id: folder)
+        await live.stop()
+        #expect(notified)
+    }
+
     @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)

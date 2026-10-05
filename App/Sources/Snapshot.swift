@@ -2,6 +2,7 @@
 import AppKit
 import ChiikawaCrypto
 import SwiftUI
+import VaultwardenAPI
 
 /// Debug-only: `Chiikawarden --snapshot` renders key screens offscreen in light and dark
 /// to PNGs, so UI can be reviewed without screen-recording permission. Exits when done.
@@ -147,6 +148,20 @@ enum SelfTest {
             check(fresh.isUnlocked && fresh.items.count == count, "offline unlock restores \(fresh.items.count) items from cache")
             try? await Task.sleep(for: .seconds(3))
             check(fresh.lastSynced != nil, "session resumed with refresh token and re-synced")
+
+            // Another device changes the vault → live notification → automatic re-sync.
+            let before = fresh.lastSynced ?? .distantPast
+            if let url = URL(string: server) {
+                let other = VaultClient(environment: .selfHosted(url), deviceIdentifier: UUID().uuidString.lowercased())
+                if let key = try? await other.login(email: email, password: password),
+                   let folder = try? await other.createFolder(encryptedName: EncString.encrypt(Data("selftest".utf8), with: key).description) {
+                    try? await Task.sleep(for: .seconds(4))
+                    check((fresh.lastSynced ?? .distantPast) > before, "live sync picked up a change from another device")
+                    try? await other.deleteFolder(id: folder)
+                } else {
+                    check(false, "second device could not change the vault")
+                }
+            }
 
             fresh.logOut()
             check(AccountStore.load() == nil && AccountStore.refreshToken == nil, "log out erases account and token")
