@@ -15,6 +15,11 @@ extension NSColor {
 extension Color {
     /// The tail's sky blue as a fill (buttons, the vault mark, selection). Pair with `onBrandFill`.
     static let brandFill = Color(red: 0x80 / 255, green: 0xC5 / 255, blue: 0xEF / 255)
+    /// Buttons with white labels: the tail sky deepening downward, so white text stays legible.
+    static let brandButton = LinearGradient(colors: [Color(red: 0x80 / 255, green: 0xC5 / 255, blue: 0xEF / 255),
+                                                     Color(red: 0x3A / 255, green: 0x9B / 255, blue: 0xDD / 255)],
+                                            startPoint: .top, endPoint: .bottom)
+
     /// Navy text on `brandFill` (7.9:1).
     static let onBrandFill = Color(red: 0x0B / 255, green: 0x2A / 255, blue: 0x40 / 255)
 

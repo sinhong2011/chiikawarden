@@ -41,7 +41,8 @@ backgrounds (WCAG 2.2 AA, relative-luminance formula):
 
 | Use | Light | Dark |
 |---|---|---|
-| Navy text on tail-blue buttons | #0B2A40 on #80C5EF: **7.86:1** | same |
+| White labels on tail-blue buttons | white on a #80C5EF → #3A9BDD gradient, semibold with a navy shadow: **2.0–3.1:1** (below AA; chosen for the look, see known gaps) | same |
+| Navy text on tail-blue selection | #0B2A40 on #80C5EF: **7.86:1** | same |
 | Blue text / links / icons | #0F74B3 on #F2F2F7: **4.51:1** (5.04:1 on white) | #80C5EF on #1E1E1E: **8.85:1** |
 | White text on system prominent buttons | on #0F74B3: **5.04:1** | on #80C5EF: below AA (see known gaps) |
 
@@ -52,6 +53,10 @@ All other text uses system semantic colours (`.primary`, `.secondary`), which fo
 The animated dial on the login screen stops when **Reduce Motion** is on.
 
 ## Known gaps
+
+- Primary buttons (Log in, Unlock, Open website) use white labels on the tail sky by design choice; that is
+  2.0–3.1:1. They are always paired with a clear label and a large hit area; with Increase Contrast on they should
+  switch to navy text (follow-up).
 
 - Short UI transitions (list changes, the toast, sheet content) still animate with Reduce Motion on.
 - System `.borderedProminent` buttons (e.g. Save in sheets) draw white text on the accent; in dark mode that is

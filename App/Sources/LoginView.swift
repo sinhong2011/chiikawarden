@@ -214,10 +214,11 @@ struct PrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(Color.onBrandFill)
+            .foregroundStyle(.white)
+            .shadow(color: Color.onBrandFill.opacity(0.35), radius: 1, y: 1) // keeps white legible on the light sky
             .frame(maxWidth: .infinity, minHeight: 40)
-            // The tail's sky blue with navy text (7.9:1) in both appearances.
-            .background(Color.brandFill.opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
+            // The tail's sky blue, deepening downward, with a white label.
+            .background(Color.brandButton.opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.35)))
             .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.25 : 0.55), radius: configuration.isPressed ? 3 : 10, y: 3)
             .scaleEffect(configuration.isPressed ? 0.985 : 1)

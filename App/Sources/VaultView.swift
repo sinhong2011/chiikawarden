@@ -851,9 +851,10 @@ private struct HeroCard: View {
                     Link(destination: url) {
                         Label("Open website", systemImage: "arrow.up.right.square")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(Color.onBrandFill)
+                            .foregroundStyle(.white)
+                            .shadow(color: Color.onBrandFill.opacity(0.35), radius: 1, y: 1)
                             .padding(.horizontal, 18).frame(height: 40)
-                            .background(Color.brandFill, in: .capsule)
+                            .background(Color.brandButton, in: .capsule)
                     }
                     .buttonStyle(.plain)
                 }
