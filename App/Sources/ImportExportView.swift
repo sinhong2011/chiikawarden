@@ -190,7 +190,7 @@ struct ImportSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             SheetHeader(symbol: "square.and.arrow.down", title: "Import",
-                        subtitle: "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.")
+                        subtitle: "From Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords or your browser.")
             switch phase {
             case .choose: chooser
             case .preview: previewBody
@@ -236,7 +236,7 @@ struct ImportSheet: View {
                     VStack(spacing: 8) {
                         Image(systemName: "doc.badge.arrow.up").font(.system(size: 26)).foregroundStyle(.secondary)
                         Text("Choose a file, or drop it here").font(.system(size: 13, weight: .medium))
-                        Text("Bitwarden JSON or CSV · browser CSV exports").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text("JSON, CSV, KeePass XML or 1Password .1pux").font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, minHeight: 140)
                     .background(Color.primary.opacity(dropTargeted ? 0.08 : 0.04), in: .rect(cornerRadius: 16, style: .continuous))
@@ -340,6 +340,13 @@ struct ImportSheet: View {
         case .chromeCSV: "Chrome, Edge, Brave or Arc CSV"
         case .safariCSV: "Safari or Apple Passwords CSV"
         case .firefoxCSV: "Firefox CSV"
+        case .onePassword1pux: "1Password (.1pux)"
+        case .onePasswordCSV: "1Password CSV"
+        case .lastPassCSV: "LastPass CSV"
+        case .keePassXCCSV: "KeePassXC CSV"
+        case .keePassXML: "KeePass 2 XML"
+        case .protonPassCSV: "Proton Pass CSV"
+        case .dashlaneCSV: "Dashlane CSV"
         }
     }
 
@@ -378,7 +385,7 @@ struct ImportSheet: View {
 
     private func choose() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.json, .commaSeparatedText, .plainText]
+        panel.allowedContentTypes = [.json, .commaSeparatedText, .plainText, .xml] + [UTType(filenameExtension: "1pux")].compactMap { $0 }
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url { load(url) }
     }

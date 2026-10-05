@@ -6367,6 +6367,34 @@
         }
       }
     },
+    "From Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords or your browser.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple のパスワード、ブラウザから読み込めます。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以由 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple「密碼」或你嘅瀏覽器匯入。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可从 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple“密码”或你的浏览器导入。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可從 Bitwarden、1Password、LastPass、KeePass、Proton Pass、Dashlane、Apple「密碼」或你的瀏覽器匯入。"
+          }
+        }
+      }
+    },
     "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.": {
       "localizations": {
         "ja": {
@@ -7372,6 +7400,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "JSON"
+          }
+        }
+      }
+    },
+    "JSON, CSV, KeePass XML or 1Password .1pux": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML、1Password の .1pux"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON、CSV、KeePass XML 或 1Password .1pux"
           }
         }
       }

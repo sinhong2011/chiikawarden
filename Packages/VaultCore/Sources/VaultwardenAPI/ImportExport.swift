@@ -183,6 +183,7 @@ public struct ImportPreview: Sendable {
     public enum Format: String, Sendable {
         case bitwardenJSON, bitwardenPasswordProtected, bitwardenAccountEncrypted, bitwardenCSV
         case chromeCSV, safariCSV, firefoxCSV
+        case onePassword1pux, onePasswordCSV, lastPassCSV, keePassXCCSV, keePassXML, protonPassCSV, dashlaneCSV
     }
     public var format: Format
     public var folders: [String]
@@ -212,8 +213,10 @@ public enum VaultImport {
     /// Reads any supported file. `password` is for password-protected exports; `accountKey` decrypts
     /// account-encrypted exports made from the same account.
     public static func preview(_ data: Data, password: String? = nil, accountKey: SymmetricKeyPair? = nil) throws(ImportError) -> ImportPreview {
+        if data.starts(with: [0x50, 0x4B, 0x03, 0x04]) { return try onePux(data) } // a ZIP: 1Password's .1pux
         let text = String(decoding: data, as: UTF8.self).trimmingCharacters(in: CharacterSet(charactersIn: "\u{FEFF}").union(.whitespacesAndNewlines))
         guard !text.isEmpty else { throw .empty }
+        if text.hasPrefix("<") { return try keePassXML(Data(text.utf8)) }
         if text.hasPrefix("{"), let root = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any] {
             return try bitwardenJSON(root, password: password, accountKey: accountKey)
         }
@@ -305,6 +308,12 @@ public enum VaultImport {
         guard let header = rows.first?.map({ $0.trimmingCharacters(in: .whitespaces).lowercased() }), rows.count > 1 else { throw .empty }
         func col(_ name: String) -> Int? { header.firstIndex(of: name) }
         let body = rows.dropFirst().filter { !$0.allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty } }
+
+        // Other password managers first: some of their headers also contain the browsers' columns.
+        if col("login_uri") == nil, let other = otherCSV(header: header, rows: Array(body)) {
+            guard !other.items.isEmpty else { throw .empty }
+            return other
+        }
 
         var folders: [String] = []
         var items: [ImportedItem] = []
