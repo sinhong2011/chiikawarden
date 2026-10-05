@@ -1741,10 +1741,10 @@
     },
     "Check Now": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "立即檢查"
+            "value": "今すぐ確認"
           }
         },
         "zh-HK": {
@@ -1759,10 +1759,10 @@
             "value": "立即检查"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "今すぐ確認"
+            "value": "立即檢查"
           }
         }
       }
@@ -1825,10 +1825,10 @@
     },
     "Check for updates daily": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "每日檢查更新"
+            "value": "毎日アップデートを確認"
           }
         },
         "zh-HK": {
@@ -1843,10 +1843,10 @@
             "value": "每天检查更新"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "毎日アップデートを確認"
+            "value": "每日檢查更新"
           }
         }
       }
@@ -1909,10 +1909,10 @@
     },
     "Chiikawarden %@ is up to date.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden %@ 已是最新版本。"
+            "value": "Chiikawarden %@ は最新です。"
           }
         },
         "zh-HK": {
@@ -1927,10 +1927,10 @@
             "value": "Chiikawarden %@ 已是最新版本。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden %@ は最新です。"
+            "value": "Chiikawarden %@ 已是最新版本。"
           }
         }
       }
@@ -2889,10 +2889,10 @@
     },
     "Couldn't check for updates.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法檢查更新。"
+            "value": "アップデートを確認できませんでした。"
           }
         },
         "zh-HK": {
@@ -2907,10 +2907,10 @@
             "value": "无法检查更新。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アップデートを確認できませんでした。"
+            "value": "無法檢查更新。"
           }
         }
       }
@@ -4007,6 +4007,34 @@
         }
       }
     },
+    "Every login,\nin one quiet orbit.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一組登入，\n都在安靜的軌道上。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一個登入，\n都喺安靜嘅軌道上。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一个登录，\n都在安静的轨道上。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのログインを、\n静かな軌道にひとつに。"
+          }
+        }
+      }
+    },
     "Every time": {
       "localizations": {
         "ja": {
@@ -4036,6 +4064,7 @@
       }
     },
     "Everything you guard,\none keystroke away.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7145,10 +7174,10 @@
     },
     "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "只會向 GitHub 查詢最新版本號，不會自動下載或安裝任何東西。"
+            "value": "GitHub に最新のリリース番号を問い合わせるだけで、自動でダウンロードやインストールはしません。"
           }
         },
         "zh-HK": {
@@ -7163,10 +7192,10 @@
             "value": "只会向 GitHub 查询最新版本号，不会自动下载或安装任何内容。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "GitHub に最新のリリース番号を問い合わせるだけで、自動でダウンロードやインストールはしません。"
+            "value": "只會向 GitHub 查詢最新版本號，不會自動下載或安裝任何東西。"
           }
         }
       }
@@ -7648,6 +7677,7 @@
       }
     },
     "Passkey saved": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -10618,9 +10648,6 @@
         }
       }
     },
-    "Touch ID": {
-      "shouldTranslate": false
-    },
     "Touch ID seals each account's key in the Secure Enclave. Unlock an account once to turn it on; one touch then opens every account that has it.": {
       "localizations": {
         "ja": {
@@ -11162,10 +11189,10 @@
     },
     "Updates": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新"
+            "value": "アップデート"
           }
         },
         "zh-HK": {
@@ -11180,10 +11207,10 @@
             "value": "更新"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "アップデート"
+            "value": "更新"
           }
         }
       }
@@ -11613,10 +11640,10 @@
     },
     "Version %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本 %@"
+            "value": "バージョン %@"
           }
         },
         "zh-HK": {
@@ -11631,20 +11658,20 @@
             "value": "版本 %@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "バージョン %@"
+            "value": "版本 %@"
           }
         }
       }
     },
     "Version %@ is available": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有 %@ 版本"
+            "value": "バージョン %@ が利用可能です"
           }
         },
         "zh-HK": {
@@ -11659,10 +11686,10 @@
             "value": "%@ 版本可用"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "バージョン %@ が利用可能です"
+            "value": "已有 %@ 版本"
           }
         }
       }
