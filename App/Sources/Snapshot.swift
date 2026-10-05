@@ -117,6 +117,18 @@ enum Snapshot {
                 renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
                              appearance: appearance, to: dir.appending(path: "window-\(w)-\(name).png"))
             }
+            // The gate opening over the vault, frozen part-way.
+            let gateModel = AppModel()
+            gateModel.setPreviewAccounts(multi.accounts.prefix(1).map { $0 })
+            gateModel.unlockOpening = true
+            for p in [0.25, 0.55, 0.85] {
+                render(ZStack {
+                    desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
+                    desktop(UnlockView().environment(gateModel).tint(.brand), dark: name == "dark")
+                        .modifier(GateSplit(progress: p))
+                }, size: CGSize(width: 1100, height: 700), appearance: appearance,
+                   to: dir.appending(path: "gate-\(Int(p * 100))-\(name).png"))
+            }
             renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
                          appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
         }

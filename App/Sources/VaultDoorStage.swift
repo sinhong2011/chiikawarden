@@ -19,6 +19,9 @@ struct VaultDoorStage: View {
         var shake = 0.0    // the clunk, -1…1
         var swing = 0.0    // 0 shut … 1 open
         var light = 0.0    // light from inside, 0…1
+
+        /// Where the sequence ends: the gate halves (fresh copies of this view) start here, not shut.
+        static let open = Motion(dial: -216, wheel: 150, bolts: 1, shake: 0, swing: 1, light: 0.55)
     }
 
     var body: some View {
@@ -31,7 +34,7 @@ struct VaultDoorStage: View {
             if let frozen {
                 scene(frozen, size: size, r: r, center: center, dark: dark)
             } else {
-                KeyframeAnimator(initialValue: Motion(), trigger: model.unlockOpening) { m in
+                KeyframeAnimator(initialValue: model.unlockOpening ? Motion.open : Motion(), trigger: model.unlockOpening) { m in
                     scene(m, size: size, r: r, center: center, dark: dark)
                 } keyframes: { _ in Self.sequence }
             }
@@ -65,9 +68,10 @@ struct VaultDoorStage: View {
             CubicKeyframe(1, duration: 0.5)     // …then swings
         }
         KeyframeTrack(\.light) {
+            // A glow from inside, not a white-out: the gate opening hands over to the vault.
             LinearKeyframe(0, duration: 0.98)
             CubicKeyframe(0.35, duration: 0.2)
-            CubicKeyframe(1, duration: 0.34)
+            CubicKeyframe(Motion.open.light, duration: 0.3)
         }
     }
 

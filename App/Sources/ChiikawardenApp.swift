@@ -143,6 +143,13 @@ struct ChiikawardenApp: App {
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The login and lock screens leave like a vault's inner gate: split along the middle, halves retracting up and down.
+    private var gate: AnyTransition {
+        reduceMotion ? .opacity : .asymmetric(insertion: .opacity,
+                                              removal: .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0)))
+    }
 
     var body: some View {
         @Bindable var model = model
@@ -151,24 +158,27 @@ struct RootView: View {
             case .login, .twoFactor, .deviceVerification, .ssoPassword:
                 LoginView()
                     .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 560, idealHeight: 640, maxHeight: .infinity)
-                    .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))
+                    .transition(gate)
+                    .zIndex(1) // the gate opens over the vault
             case .locked:
                 UnlockView()
                     .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 520, idealHeight: 600, maxHeight: .infinity)
-                    // Leaves by opening up: a little larger, blurred, fading.
-                    .transition(.asymmetric(insertion: .opacity,
-                                            removal: .modifier(active: SceneFade(scale: 1.05, blur: 14, opacity: 0),
-                                                               identity: SceneFade(scale: 1, blur: 0, opacity: 1))))
+                    .transition(gate)
+                    .zIndex(1)
             case .vault:
                 VaultView()
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
-                    // Arrives from just behind the lock screen.
-                    .transition(.asymmetric(insertion: .modifier(active: SceneFade(scale: 0.96, blur: 8, opacity: 0),
-                                                                 identity: SceneFade(scale: 1, blur: 0, opacity: 1)),
+                    // Already waiting behind the gate; it settles forward as the halves part.
+                    .transition(.asymmetric(insertion: reduceMotion ? .opacity
+                                                : .modifier(active: SceneFade(scale: 0.97, blur: 3, opacity: 1),
+                                                            identity: SceneFade(scale: 1, blur: 0, opacity: 1)),
                                             removal: .opacity))
+                    .zIndex(0)
             }
         }
-        .animation(.spring(duration: 0.5, bounce: 0.2), value: model.phase.id)
+        // Into the vault: the gate's heavy ease. Elsewhere: a light spring.
+        .animation(model.phase.id == AppModel.Phase.vault.id ? .easeInOut(duration: 0.75) : .spring(duration: 0.5, bounce: 0.2),
+                   value: model.phase.id)
         .onAppear { model.openSettingsAction = { openSettings() } }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
@@ -184,6 +194,48 @@ struct RootView: View {
 extension Color {
     /// Brand blue, shared with the app icon (Assets: AccentColor, adapts to dark mode).
     static let brand = Color("AccentColor")
+}
+
+/// The gate: while opening, the screen is drawn as two halves, the top one sliding up and the bottom one down, each
+/// casting a shadow from its edge. Closed, it's just the screen. Animatable, so the halves move every frame.
+struct GateSplit: ViewModifier, Animatable {
+    var progress: CGFloat
+    nonisolated var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        if progress <= 0.001 {
+            content
+        } else {
+            GeometryReader { geo in
+                let travel = geo.size.height / 2 + 60
+                ZStack {
+                    half(content, top: true, height: geo.size.height)
+                        .offset(y: -progress * travel)
+                    half(content, top: false, height: geo.size.height)
+                        .offset(y: progress * travel)
+                }
+            }
+            .allowsHitTesting(false)
+        }
+    }
+
+    private func half(_ content: Content, top: Bool, height: CGFloat) -> some View {
+        content
+            .mask(alignment: top ? .top : .bottom) { Rectangle().frame(height: height / 2) }
+            .overlay(alignment: .top) {
+                // The gate's edge: a dark seam with a thin highlight inside, so the halves read as heavy plates.
+                VStack(spacing: 0) {
+                    if !top { Rectangle().fill(.black.opacity(0.22)).frame(height: 2) }
+                    Rectangle().fill(.white.opacity(0.4)).frame(height: 1)
+                    if top { Rectangle().fill(.black.opacity(0.22)).frame(height: 2) }
+                }
+                .offset(y: top ? height / 2 - 3 : height / 2)
+            }
+            .shadow(color: .black.opacity(0.35 * Double(min(progress * 3, 1))), radius: 22, y: top ? 14 : -14)
+    }
 }
 
 /// Scale + blur + opacity, for the lock screen ⇄ vault hand-off.
