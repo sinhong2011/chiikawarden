@@ -1,3 +1,4 @@
+import CryptoKit
 import ChiikawaCrypto
 import Foundation
 
@@ -119,6 +120,120 @@ public actor VaultClient {
         } catch {
             throw .http(status: -1, message: error.localizedDescription)
         }
+    }
+
+    // MARK: Single sign-on (OpenID Connect)
+
+    /// The redirect the server accepts for `client_id=desktop`; ASWebAuthenticationSession catches the
+    /// `bitwarden` scheme for this session only, so it never clashes with an installed Bitwarden app.
+    public static let ssoRedirectURI = "bitwarden://sso-callback"
+
+    public struct SSOStart: Sendable {
+        public let authorizeURL: URL
+        public let state: String
+        let verifier: String
+    }
+
+    /// After SSO the vault still needs the master password (Vaultwarden has no trusted-device or
+    /// Key Connector decryption): finish with `unlockSSO`.
+    public struct SSOSession: Sendable {
+        public let email: String
+        public let kdf: KDFConfig
+        public let protectedUserKey: String
+        public let refreshToken: String?
+    }
+
+    /// Step 1: ask the server for an SSO token and build the browser URL (PKCE S256).
+    public func beginSSO(identifier: String) async throws(APIError) -> SSOStart {
+        struct Prevalidated: Decodable { let token: String }
+        var components = URLComponents(url: environment.identityURL.appending(path: "sso/prevalidate"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: "domainHint", value: identifier)]
+        guard let prevalidateURL = components.url else { throw .invalidServerURL }
+        var r = try request(environment.identityURL, "sso/prevalidate")
+        r.url = prevalidateURL
+        let prevalidated: Prevalidated = try await send(r)
+
+        let verifier = Self.randomURLSafe(64)
+        let challenge = Data(SHA256.hash(data: Data(verifier.utf8))).base64URLEncoded
+        let state = Self.randomURLSafe(32)
+        var authorize = URLComponents(url: environment.identityURL.appending(path: "connect/authorize"), resolvingAgainstBaseURL: false)!
+        authorize.queryItems = [
+            .init(name: "client_id", value: Self.clientName), .init(name: "redirect_uri", value: Self.ssoRedirectURI),
+            .init(name: "response_type", value: "code"), .init(name: "scope", value: "api offline_access"),
+            .init(name: "state", value: state), .init(name: "code_challenge", value: challenge),
+            .init(name: "code_challenge_method", value: "S256"), .init(name: "response_mode", value: "query"),
+            .init(name: "domain_hint", value: identifier), .init(name: "ssoToken", value: prevalidated.token),
+        ]
+        guard let url = authorize.url else { throw .invalidServerURL }
+        return SSOStart(authorizeURL: url, state: state, verifier: verifier)
+    }
+
+    /// Step 2: exchange the callback's code for tokens.
+    public func finishSSO(callback: URL, start: SSOStart) async throws(APIError) -> SSOSession {
+        let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        guard items.first(where: { $0.name == "state" })?.value == start.state else {
+            throw .http(status: 400, message: "Single sign-on was interrupted (state mismatch). Try again.")
+        }
+        guard let code = items.first(where: { $0.name == "code" })?.value else {
+            let reason = items.first { $0.name == "error_description" || $0.name == "error" }?.value
+            throw .http(status: 400, message: reason ?? "Single sign-on was cancelled.")
+        }
+        struct Token: Decodable {
+            let access_token: String
+            let refresh_token: String?
+            // PascalCase on the wire; the decoder lower-cases the first letter.
+            let key: String?
+            let kdf: Int?
+            let kdfIterations: Int?
+            let kdfMemory: Int?
+            let kdfParallelism: Int?
+        }
+        let token: Token = try await send(post(environment.identityURL, "connect/token", formBody: [
+            "grant_type": "authorization_code", "code": code, "code_verifier": start.verifier,
+            "redirect_uri": Self.ssoRedirectURI, "client_id": Self.clientName, "scope": "api offline_access",
+            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "chiikawarden",
+        ]))
+        accessToken = token.access_token
+        refreshToken = token.refresh_token
+        guard let email = Self.jwtClaim("email", token.access_token) else {
+            throw .http(status: -1, message: "The server's token has no email address.")
+        }
+        guard let key = token.key else {
+            throw .http(status: 400, message: "This account has no master password yet. Set one in the web vault, then try again.")
+        }
+        let kdf: KDFConfig
+        switch token.kdf {
+        case 1?: kdf = .argon2id(iterations: token.kdfIterations ?? 3, memoryMiB: token.kdfMemory ?? 64, parallelism: token.kdfParallelism ?? 4)
+        default: kdf = .pbkdf2(iterations: token.kdfIterations ?? 600_000)
+        }
+        do { try kdf.validate() } catch { throw .crypto(error) }
+        return SSOSession(email: email, kdf: kdf, protectedUserKey: key, refreshToken: token.refresh_token)
+    }
+
+    /// Step 3: the master password decrypts the user key (offline; nothing is sent).
+    public nonisolated func unlockSSO(_ session: SSOSession, password: String) throws(APIError) -> SymmetricKeyPair {
+        do {
+            let masterKey = try KDF.masterKey(password: password, email: session.email, config: session.kdf)
+            let stretched = try SymmetricKeyPair.stretched(masterKey: masterKey)
+            return try SymmetricKeyPair(combined: EncString(session.protectedUserKey).decrypt(with: stretched))
+        } catch .macMismatch {
+            throw .http(status: 400, message: "Wrong master password.")
+        } catch {
+            throw .crypto(error)
+        }
+    }
+
+    static func randomURLSafe(_ bytes: Int) -> String {
+        var data = Data(count: bytes)
+        _ = data.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, bytes, $0.baseAddress!) }
+        return data.base64URLEncoded
+    }
+
+    static func jwtClaim(_ name: String, _ jwt: String) -> String? {
+        let parts = jwt.split(separator: ".")
+        guard parts.count >= 2, let payload = Data(base64URL: String(parts[1])),
+              let object = try? JSONSerialization.jsonObject(with: payload) as? [String: Any] else { return nil }
+        return object[name] as? String
     }
 
     /// Current bearer token (for the notifications hub).

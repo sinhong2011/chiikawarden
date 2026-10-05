@@ -1,0 +1,20 @@
+# OIDC provider for the SSO-enabled Vaultwarden (dev only). DEV_IP is filled in by dev.sh.
+issuer: http://DEV_IP:18856/dex
+storage:
+  type: memory
+web:
+  http: 0.0.0.0:5556
+oauth2:
+  skipApprovalScreen: true
+enablePasswordDB: true
+staticClients:
+  - id: vaultwarden
+    name: Vaultwarden (dev)
+    secret: chiikawarden-dev-sso-secret
+    redirectURIs:
+      - http://DEV_IP:18881/identity/connect/oidc-signin
+staticPasswords:
+  - email: usagi@chiikawarden.test
+    hash: "$2a$10$eEzPoQZxkuJkbCToXaY7u.sqpHCTWZ7Y1aSlD9KSCHkkFbGSsI8Au"
+    username: usagi
+    userID: 7c9b1f3e-0d5a-4c1b-9a2e-usagi0000001

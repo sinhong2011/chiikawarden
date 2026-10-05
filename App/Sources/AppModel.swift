@@ -18,11 +18,13 @@ final class AppModel {
         case twoFactor(providers: [String])
         /// Official cloud emailed a one-time code for this new device.
         case deviceVerification
+        /// Single sign-on succeeded; the master password still has to decrypt the vault.
+        case ssoPassword
         /// Signed in on this Mac, vault locked: unlock offline with the master password or Touch ID.
         case locked
         case vault
         var id: Int {
-            switch self { case .login: 0; case .twoFactor: 1; case .deviceVerification: 3; case .locked: 4; case .vault: 2 }
+            switch self { case .login: 0; case .twoFactor: 1; case .deviceVerification: 3; case .ssoPassword: 5; case .locked: 4; case .vault: 2 }
         }
     }
 
@@ -383,20 +385,74 @@ final class AppModel {
             let result = try await client.loginDetailed(email: email, password: password,
                                                         twoFactor: isDeviceCode ? nil : code.map { ("0", $0) },
                                                         newDeviceOTP: isDeviceCode ? code : nil)
-            UserDefaults.standard.set(serverKind.rawValue, forKey: "serverKind")
-            UserDefaults.standard.set(serverURL, forKey: "serverURL")
-            UserDefaults.standard.set(email, forKey: "email")
-            let custom: CustomURLs? = if case .custom(let urls) = environment { urls } else { nil }
-            let id = SavedAccount.makeID(serverKind: serverKind.rawValue, serverURL: serverURL, email: email, customURLs: custom)
-            let account = SavedAccount(id: id, email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
-                                       kdf: result.kdf, protectedUserKey: result.protectedUserKey, customURLs: custom)
-            AccountStore.save(account)
-            AccountStore.setRefreshToken(result.refreshToken, id)
-            let session = open(account, key: result.userKey, client: client)
-            self.client = nil
-            try await session.refresh()
-            addingAccount = false
-            phase = .vault
+            try await finishLogin(environment: environment, client: client, kdf: result.kdf, protectedUserKey: result.protectedUserKey,
+                                  userKey: result.userKey, refreshToken: result.refreshToken)
+        } catch {
+            handle(error)
+        }
+    }
+
+    /// Saves the account, opens its session and syncs — shared by password and SSO login.
+    private func finishLogin(environment: ServerEnvironment, client: VaultClient, kdf: KDFConfig, protectedUserKey: String,
+                             userKey: SymmetricKeyPair, refreshToken: String?) async throws {
+        UserDefaults.standard.set(serverKind.rawValue, forKey: "serverKind")
+        UserDefaults.standard.set(serverURL, forKey: "serverURL")
+        UserDefaults.standard.set(email, forKey: "email")
+        let custom: CustomURLs? = if case .custom(let urls) = environment { urls } else { nil }
+        let id = SavedAccount.makeID(serverKind: serverKind.rawValue, serverURL: serverURL, email: email, customURLs: custom)
+        let account = SavedAccount(id: id, email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
+                                   kdf: kdf, protectedUserKey: protectedUserKey, customURLs: custom)
+        AccountStore.save(account)
+        AccountStore.setRefreshToken(refreshToken, id)
+        let session = open(account, key: userKey, client: client)
+        self.client = nil
+        try await session.refresh()
+        addingAccount = false
+        phase = .vault
+    }
+
+    // MARK: Single sign-on
+
+    /// SSO handshake waiting for the master password.
+    @ObservationIgnored private var pendingSSO: (client: VaultClient, session: VaultClient.SSOSession, environment: ServerEnvironment)?
+    /// Shows the identity provider and returns the `bitwarden://sso-callback…` URL. Swapped in the self-test.
+    @ObservationIgnored var ssoAuthenticator: @MainActor (URL) async throws -> URL = WebAuthentication.run
+
+    func loginWithSSO(identifier: String) async {
+        guard let environment = environment() else {
+            errorMessage = serverURLProblem ?? String(localized: "Enter a valid server URL.")
+            return
+        }
+        isBusy = true
+        errorMessage = nil
+        defer { isBusy = false }
+        let client = makeClient(environment)
+        do {
+            let start = try await client.beginSSO(identifier: identifier)
+            let callback = try await ssoAuthenticator(start.authorizeURL)
+            let session = try await client.finishSSO(callback: callback, start: start)
+            UserDefaults.standard.set(identifier, forKey: "ssoIdentifier")
+            email = session.email
+            pendingSSO = (client, session, environment)
+            phase = .ssoPassword
+        } catch WebAuthentication.Cancelled.byUser {
+            // Closed the sign-in window: stay on the login form.
+        } catch {
+            handle(error)
+        }
+    }
+
+    func completeSSO(password: String) async {
+        guard let pending = pendingSSO else { phase = .login; return }
+        isBusy = true
+        errorMessage = nil
+        defer { isBusy = false }
+        do {
+            let key = try await Task.detached { try pending.client.unlockSSO(pending.session, password: password) }.value
+            try await finishLogin(environment: pending.environment, client: pending.client, kdf: pending.session.kdf,
+                                  protectedUserKey: pending.session.protectedUserKey, userKey: key,
+                                  refreshToken: pending.session.refreshToken)
+            pendingSSO = nil
         } catch {
             handle(error)
         }
@@ -752,6 +808,7 @@ final class AppModel {
 
     func cancelChallenge() {
         errorMessage = nil
+        pendingSSO = nil
         phase = .login
     }
 

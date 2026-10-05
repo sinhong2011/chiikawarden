@@ -8,6 +8,8 @@ A disposable Vaultwarden environment for developing and testing Chiikawarden. It
 | `https://devbox.local:18843` | Vaultwarden **latest**, behind Caddy (private CA) |
 | `https://devbox.local:18844` | Vaultwarden **1.30.5**, for older API shapes |
 | `http://devbox.local:18880` | latest, plain HTTP (quick `curl`, app debugging) |
+| `http://<dev ip>:18881` | latest with SSO (OpenID Connect) against dex |
+| `http://<dev ip>:18856/dex` | dex identity provider; user `usagi@chiikawarden.test`, dev password |
 | `http://devbox.local:18826` | Mailpit — every email the servers send |
 | `…:18843/admin` | Admin panel; token is in `~/chiikawarden-dev/.env` on the dev box |
 

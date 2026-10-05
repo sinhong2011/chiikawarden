@@ -31,15 +31,18 @@ private struct LoginForm: View {
     @State private var password = ""
     @State private var code = ""
     @AppStorage("rememberEmail") private var rememberEmail = true
+    @AppStorage("ssoIdentifier") private var ssoIdentifier = ""
+    @State private var askingSSO = false
     @FocusState private var focus: Field?
 
     enum Field { case server, email, password, code }
-    private enum Step: Equatable { case credentials, authenticator, emailCode }
+    private enum Step: Equatable { case credentials, authenticator, emailCode, ssoPassword }
 
     private var step: Step {
         switch model.phase {
         case .twoFactor: .authenticator
         case .deviceVerification: .emailCode
+        case .ssoPassword: .ssoPassword
         default: .credentials
         }
     }
@@ -49,6 +52,7 @@ private struct LoginForm: View {
         case .credentials: "Welcome back"
         case .authenticator: "Two-step verification"
         case .emailCode: "Verify this Mac"
+        case .ssoPassword: "Unlock your vault"
         }
     }
 
@@ -57,6 +61,7 @@ private struct LoginForm: View {
         case .credentials: "Choose where your vault lives."
         case .authenticator: "Enter the 6-digit code from your authenticator app."
         case .emailCode: "Bitwarden emailed a verification code to \(model.email)."
+        case .ssoPassword: "Signed in as \(model.email). Your master password decrypts the vault on this Mac."
         }
     }
 
@@ -109,6 +114,13 @@ private struct LoginForm: View {
                         .toggleStyle(.checkbox)
                         .font(.system(size: 12))
                 }
+            } else if step == .ssoPassword {
+                LabeledField("Master password") {
+                    SecureField("Master password", text: $password, prompt: Text(verbatim: ""))
+                        .textContentType(.password)
+                        .focused($focus, equals: .password)
+                }
+                .textFieldStyle(SoftFieldStyle())
             } else {
                 TextField("Verification code", text: $code, prompt: Text(verbatim: "123 456"))
                     .textFieldStyle(SoftFieldStyle(height: 52))
@@ -129,15 +141,29 @@ private struct LoginForm: View {
                 Button(action: submit) {
                     HStack(spacing: 8) {
                         if model.isBusy { ProgressView().controlSize(.small).tint(.white) }
-                        Text(step == .credentials ? "Log in" : "Verify").font(.system(size: 14, weight: .semibold))
+                        Group {
+                            switch step {
+                            case .credentials: Text("Log in")
+                            case .ssoPassword: Text("Unlock")
+                            default: Text("Verify")
+                            }
+                        }
+                        .font(.system(size: 14, weight: .semibold))
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .keyboardShortcut(.defaultAction)
                 .disabled(model.isBusy)
 
+                if step == .credentials && model.serverKind == .selfHosted {
+                    Button("Log in with single sign-on…") { askingSSO = true }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.brand)
+                        .font(.system(size: 12, weight: .medium))
+                        .disabled(model.isBusy)
+                }
                 if step != .credentials {
-                    Button("Back") { code = ""; model.cancelChallenge() }
+                    Button("Back") { code = ""; password = ""; model.cancelChallenge() }
                         .buttonStyle(.plain)
                         .foregroundStyle(.secondary)
                         .font(.system(size: 12))
@@ -152,6 +178,14 @@ private struct LoginForm: View {
             .padding(.top, 4)
         }
         .frame(width: 360)
+        .alert("Single sign-on", isPresented: $askingSSO) {
+            TextField("SSO identifier", text: $ssoIdentifier)
+            Button("Continue") { Task { await model.loginWithSSO(identifier: ssoIdentifier) } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Your organization's SSO identifier. On Vaultwarden any value works.")
+        }
+        .onChange(of: step) { _, new in if new == .ssoPassword { password = ""; focus = .password } }
         .animation(.snappy(duration: 0.25), value: step)
         .animation(.snappy(duration: 0.25), value: model.serverKind)
         .animation(.easeOut(duration: 0.2), value: model.errorMessage)
@@ -166,7 +200,11 @@ private struct LoginForm: View {
 
     private func submit() {
         Task {
-            await model.login(password: password, code: step == .credentials ? nil : code)
+            if step == .ssoPassword {
+                await model.completeSSO(password: password)
+            } else {
+                await model.login(password: password, code: step == .credentials ? nil : code)
+            }
             if model.isUnlocked {
                 password = ""
                 code = ""

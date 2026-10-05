@@ -135,10 +135,10 @@
     },
     "1 day": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 天"
+            "value": "1 日"
           }
         },
         "zh-HK": {
@@ -153,10 +153,10 @@
             "value": "1 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 日"
+            "value": "1 天"
           }
         }
       }
@@ -247,10 +247,10 @@
     },
     "14 days": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "14 天"
+            "value": "14 日"
           }
         },
         "zh-HK": {
@@ -265,10 +265,10 @@
             "value": "14 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "14 日"
+            "value": "14 天"
           }
         }
       }
@@ -303,10 +303,10 @@
     },
     "2 days": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "2 天"
+            "value": "2 日"
           }
         },
         "zh-HK": {
@@ -321,10 +321,10 @@
             "value": "2 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "2 日"
+            "value": "2 天"
           }
         }
       }
@@ -362,10 +362,10 @@
     },
     "3 days": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "3 天"
+            "value": "3 日"
           }
         },
         "zh-HK": {
@@ -380,20 +380,20 @@
             "value": "3 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "3 日"
+            "value": "3 天"
           }
         }
       }
     },
     "30 days": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 天"
+            "value": "30 日"
           }
         },
         "zh-HK": {
@@ -408,10 +408,10 @@
             "value": "30 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 日"
+            "value": "30 天"
           }
         }
       }
@@ -502,10 +502,10 @@
     },
     "7 days": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "7 天"
+            "value": "7 日"
           }
         },
         "zh-HK": {
@@ -520,10 +520,10 @@
             "value": "7 天"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "7 日"
+            "value": "7 天"
           }
         }
       }
@@ -1234,10 +1234,10 @@
     },
     "Availability": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "可用期間"
+            "value": "公開期間"
           }
         },
         "zh-HK": {
@@ -1252,10 +1252,10 @@
             "value": "可用期限"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "公開期間"
+            "value": "可用期間"
           }
         }
       }
@@ -1657,10 +1657,10 @@
     },
     "Change…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "更換…"
+            "value": "変更…"
           }
         },
         "zh-HK": {
@@ -1675,10 +1675,10 @@
             "value": "更换…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "変更…"
+            "value": "更換…"
           }
         }
       }
@@ -1881,10 +1881,10 @@
     },
     "Choose a file up to 500 MB.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請選擇 500 MB 以內的檔案。"
+            "value": "500 MB 以下のファイルを選んでください。"
           }
         },
         "zh-HK": {
@@ -1899,10 +1899,10 @@
             "value": "请选择 500 MB 以内的文件。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "500 MB 以下のファイルを選んでください。"
+            "value": "請選擇 500 MB 以內的檔案。"
           }
         }
       }
@@ -1937,10 +1937,10 @@
     },
     "Choose…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "選擇…"
+            "value": "選択…"
           }
         },
         "zh-HK": {
@@ -1955,10 +1955,10 @@
             "value": "选择…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "選択…"
+            "value": "選擇…"
           }
         }
       }
@@ -2271,6 +2271,34 @@
         }
       }
     },
+    "Continue": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続ける"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ja": {
@@ -2469,10 +2497,10 @@
     },
     "Copy Link": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝連結"
+            "value": "リンクをコピー"
           }
         },
         "zh-HK": {
@@ -2487,10 +2515,10 @@
             "value": "复制链接"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "リンクをコピー"
+            "value": "拷貝連結"
           }
         }
       }
@@ -2945,10 +2973,10 @@
     },
     "Create & Copy Link": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "建立並拷貝連結"
+            "value": "作成してリンクをコピー"
           }
         },
         "zh-HK": {
@@ -2963,10 +2991,10 @@
             "value": "创建并复制链接"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "作成してリンクをコピー"
+            "value": "建立並拷貝連結"
           }
         }
       }
@@ -3169,10 +3197,10 @@
     },
     "Delete Send": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "刪除 Send"
+            "value": "Send を削除"
           }
         },
         "zh-HK": {
@@ -3187,20 +3215,20 @@
             "value": "删除 Send"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send を削除"
+            "value": "刪除 Send"
           }
         }
       }
     },
     "Delete after": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "刪除時間"
+            "value": "削除までの期間"
           }
         },
         "zh-HK": {
@@ -3215,10 +3243,10 @@
             "value": "删除时间"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "削除までの期間"
+            "value": "刪除時間"
           }
         }
       }
@@ -3337,10 +3365,10 @@
     },
     "Deletes %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@刪除"
+            "value": "%@に削除"
           }
         },
         "zh-HK": {
@@ -3355,20 +3383,20 @@
             "value": "%@删除"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@に削除"
+            "value": "%@刪除"
           }
         }
       }
     },
     "Deletes on": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "刪除日期"
+            "value": "削除日"
           }
         },
         "zh-HK": {
@@ -3383,10 +3411,10 @@
             "value": "删除日期"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "削除日"
+            "value": "刪除日期"
           }
         }
       }
@@ -3477,10 +3505,10 @@
     },
     "Disabled": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已停用"
+            "value": "無効"
           }
         },
         "zh-HK": {
@@ -3495,10 +3523,10 @@
             "value": "已停用"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無効"
+            "value": "已停用"
           }
         }
       }
@@ -3841,10 +3869,10 @@
     },
     "Expire earlier": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "提早到期"
+            "value": "早めに期限切れにする"
           }
         },
         "zh-HK": {
@@ -3859,20 +3887,20 @@
             "value": "提前过期"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "早めに期限切れにする"
+            "value": "提早到期"
           }
         }
       }
     },
     "Expired": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已到期"
+            "value": "期限切れ"
           }
         },
         "zh-HK": {
@@ -3887,10 +3915,10 @@
             "value": "已过期"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "期限切れ"
+            "value": "已到期"
           }
         }
       }
@@ -4065,10 +4093,10 @@
     },
     "File": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "檔案"
+            "value": "ファイル"
           }
         },
         "zh-HK": {
@@ -4083,10 +4111,10 @@
             "value": "文件"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ファイル"
+            "value": "檔案"
           }
         }
       }
@@ -4597,10 +4625,10 @@
     },
     "Hide my email address from recipients": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "對收件人隱藏我的電子郵件地址"
+            "value": "受信者にメールアドレスを表示しない"
           }
         },
         "zh-HK": {
@@ -4615,20 +4643,20 @@
             "value": "对收件人隐藏我的电子邮件地址"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "受信者にメールアドレスを表示しない"
+            "value": "對收件人隱藏我的電子郵件地址"
           }
         }
       }
     },
     "Hide text until the recipient reveals it": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "收件人點擊前隱藏文字"
+            "value": "受信者が表示するまでテキストを隠す"
           }
         },
         "zh-HK": {
@@ -4643,10 +4671,10 @@
             "value": "收件人点击前隐藏文字"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "受信者が表示するまでテキストを隠す"
+            "value": "收件人點擊前隱藏文字"
           }
         }
       }
@@ -5017,10 +5045,10 @@
     },
     "Limit views": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "限制檢視次數"
+            "value": "表示回数を制限"
           }
         },
         "zh-HK": {
@@ -5035,10 +5063,10 @@
             "value": "限制查看次数"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "表示回数を制限"
+            "value": "限制檢視次數"
           }
         }
       }
@@ -5295,6 +5323,34 @@
         }
       }
     },
+    "Log in with single sign-on…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用單一登入…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用單一登入…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用单点登录…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シングルサインオンでログイン…"
+          }
+        }
+      }
+    },
     "Log out": {
       "localizations": {
         "ja": {
@@ -5493,10 +5549,10 @@
     },
     "Maximum views reached": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已達檢視上限"
+            "value": "表示回数の上限に達しました"
           }
         },
         "zh-HK": {
@@ -5511,10 +5567,10 @@
             "value": "已达查看上限"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "表示回数の上限に達しました"
+            "value": "已達檢視上限"
           }
         }
       }
@@ -6053,10 +6109,10 @@
     },
     "New Send": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增 Send"
+            "value": "新規 Send"
           }
         },
         "zh-HK": {
@@ -6071,10 +6127,10 @@
             "value": "新建 Send"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規 Send"
+            "value": "新增 Send"
           }
         }
       }
@@ -6249,10 +6305,10 @@
     },
     "No Send Selected": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未選擇 Send"
+            "value": "Send が選択されていません"
           }
         },
         "zh-HK": {
@@ -6267,20 +6323,20 @@
             "value": "未选择 Send"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send が選択されていません"
+            "value": "未選擇 Send"
           }
         }
       }
     },
     "No Sends": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "沒有 Send"
+            "value": "Send はありません"
           }
         },
         "zh-HK": {
@@ -6295,10 +6351,10 @@
             "value": "没有 Send"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send はありません"
+            "value": "沒有 Send"
           }
         }
       }
@@ -6473,10 +6529,10 @@
     },
     "None": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無"
+            "value": "なし"
           }
         },
         "zh-HK": {
@@ -6491,10 +6547,10 @@
             "value": "无"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "なし"
+            "value": "無"
           }
         }
       }
@@ -6893,10 +6949,10 @@
     },
     "Only you see these": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "只有你看得到"
+            "value": "自分だけに表示されます"
           }
         },
         "zh-HK": {
@@ -6911,10 +6967,10 @@
             "value": "只有你能看到"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "自分だけに表示されます"
+            "value": "只有你看得到"
           }
         }
       }
@@ -7453,10 +7509,10 @@
     },
     "Password (optional)": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "密碼（選填）"
+            "value": "パスワード（任意）"
           }
         },
         "zh-HK": {
@@ -7471,10 +7527,10 @@
             "value": "密码（可选）"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワード（任意）"
+            "value": "密碼（選填）"
           }
         }
       }
@@ -7677,10 +7733,10 @@
     },
     "Private notes": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "私人備註"
+            "value": "非公開メモ"
           }
         },
         "zh-HK": {
@@ -7695,17 +7751,17 @@
             "value": "私人备注"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "非公開メモ"
+            "value": "私人備註"
           }
         }
       }
     },
     "Protection": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "保護"
@@ -7723,7 +7779,7 @@
             "value": "保护"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "保護"
@@ -7957,10 +8013,10 @@
     },
     "Required": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要"
+            "value": "必要"
           }
         },
         "zh-HK": {
@@ -7975,10 +8031,10 @@
             "value": "需要"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "必要"
+            "value": "需要"
           }
         }
       }
@@ -8316,6 +8372,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "SSH 設定"
+          }
+        }
+      }
+    },
+    "SSO identifier": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSO 識別碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSO 識別碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSO 标识符"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSO 識別子"
           }
         }
       }
@@ -8686,7 +8770,7 @@
     },
     "Send": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "Send"
@@ -8704,7 +8788,7 @@
             "value": "Send"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Send"
@@ -8714,10 +8798,10 @@
     },
     "Send created — link copied": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已建立 Send，連結已拷貝"
+            "value": "Send を作成し、リンクをコピーしました"
           }
         },
         "zh-HK": {
@@ -8732,10 +8816,10 @@
             "value": "已创建 Send，链接已复制"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send を作成し、リンクをコピーしました"
+            "value": "已建立 Send，連結已拷貝"
           }
         }
       }
@@ -8967,10 +9051,10 @@
     },
     "Share text or a file with anyone through an encrypted link that expires.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "透過會到期的加密連結，與任何人分享文字或檔案。"
+            "value": "期限付きの暗号化リンクで、テキストやファイルを誰とでも共有できます。"
           }
         },
         "zh-HK": {
@@ -8985,10 +9069,10 @@
             "value": "通过会过期的加密链接，与任何人分享文字或文件。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "期限付きの暗号化リンクで、テキストやファイルを誰とでも共有できます。"
+            "value": "透過會到期的加密連結，與任何人分享文字或檔案。"
           }
         }
       }
@@ -9023,10 +9107,10 @@
     },
     "Share…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "分享…"
+            "value": "共有…"
           }
         },
         "zh-HK": {
@@ -9041,10 +9125,10 @@
             "value": "共享…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "共有…"
+            "value": "分享…"
           }
         }
       }
@@ -9185,6 +9269,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "登入"
+          }
+        }
+      }
+    },
+    "Signed in as %@. Your master password decrypts the vault on this Mac.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已以 %@ 登入。你的主密碼會在這部 Mac 上解密保險庫。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用 %@ 登入。你的主密碼會喺呢部 Mac 上解密保險庫。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已以 %@ 登录。你的主密码会在这台 Mac 上解密密码库。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ としてサインインしました。マスターパスワードでこの Mac 上の保管庫を復号します。"
+          }
+        }
+      }
+    },
+    "Single sign-on": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "單一登入"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "單一登入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单点登录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シングルサインオン"
           }
         }
       }
@@ -9639,10 +9779,10 @@
     },
     "The link holds the key; the server never sees your content.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "金鑰在連結中，伺服器永遠看不到內容。"
+            "value": "鍵はリンクの中にあり、サーバーは内容を見られません。"
           }
         },
         "zh-HK": {
@@ -9657,20 +9797,20 @@
             "value": "密钥在链接中，服务器永远看不到内容。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "鍵はリンクの中にあり、サーバーは内容を見られません。"
+            "value": "金鑰在連結中，伺服器永遠看不到內容。"
           }
         }
       }
     },
     "The link stops working immediately.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "連結會立即失效。"
+            "value": "リンクはすぐに使えなくなります。"
           }
         },
         "zh-HK": {
@@ -9685,10 +9825,10 @@
             "value": "链接会立即失效。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "リンクはすぐに使えなくなります。"
+            "value": "連結會立即失效。"
           }
         }
       }
@@ -10425,6 +10565,34 @@
         }
       }
     },
+    "Unlock your vault": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖你的保險庫"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖你的保險庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解锁你的密码库"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫のロックを解除"
+          }
+        }
+      }
+    },
     "Unlocked": {
       "localizations": {
         "ja": {
@@ -10483,10 +10651,10 @@
     },
     "Up to %lld view(s)": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最多 %lld 次檢視"
+            "value": "最大 %lld 回表示"
           }
         },
         "zh-HK": {
@@ -10501,10 +10669,10 @@
             "value": "最多 %lld 次查看"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大 %lld 回表示"
+            "value": "最多 %lld 次檢視"
           }
         }
       }
@@ -10962,10 +11130,10 @@
     },
     "Views": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "檢視次數"
+            "value": "表示回数"
           }
         },
         "zh-HK": {
@@ -10980,10 +11148,10 @@
             "value": "查看次数"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "表示回数"
+            "value": "檢視次數"
           }
         }
       }
@@ -11380,6 +11548,34 @@
         }
       }
     },
+    "Your organization's SSO identifier. On Vaultwarden any value works.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的組織 SSO 識別碼。在 Vaultwarden 上任何值皆可。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的機構 SSO 識別碼。喺 Vaultwarden 上任何值都得。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的组织 SSO 标识符。在 Vaultwarden 上任意值均可。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "組織の SSO 識別子。Vaultwarden では任意の値で構いません。"
+          }
+        }
+      }
+    },
     "allow “%@” to %@": {
       "localizations": {
         "en": {
@@ -11512,10 +11708,10 @@
     },
     "e.g. Wi-Fi password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "例如：Wi-Fi 密碼"
+            "value": "例：Wi-Fi のパスワード"
           }
         },
         "zh-HK": {
@@ -11530,10 +11726,10 @@
             "value": "例如：Wi-Fi 密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "例：Wi-Fi のパスワード"
+            "value": "例如：Wi-Fi 密碼"
           }
         }
       }

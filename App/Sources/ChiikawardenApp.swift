@@ -125,7 +125,7 @@ struct RootView: View {
     var body: some View {
         ZStack {
             switch model.phase {
-            case .login, .twoFactor, .deviceVerification:
+            case .login, .twoFactor, .deviceVerification, .ssoPassword:
                 LoginView()
                     .frame(minWidth: 520, idealWidth: 920, maxWidth: 1600, minHeight: 600, idealHeight: 640, maxHeight: 1200)
                     .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))

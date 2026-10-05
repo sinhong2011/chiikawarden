@@ -541,6 +541,30 @@ enum SelfTest {
                   "log in through custom API / Identity URLs, saved with the account")
             if let customAccount { model.logOut(customAccount.id) }
 
+            // Single sign-on (dev stack: dex + SSO-enabled Vaultwarden next door on :18881).
+            let ssoServer = server.replacingOccurrences(of: ":18880", with: ":18881")
+            if ssoServer != server,
+               (try? await URLSession.shared.data(from: URL(string: ssoServer + "/identity/sso/prevalidate?domainHint=x")!))
+                .map({ ($0.1 as? HTTPURLResponse)?.statusCode == 200 }) == true {
+                model.beginAddAccount()
+                model.serverKind = .selfHosted
+                model.serverURL = ssoServer
+                model.ssoAuthenticator = { url in try await HeadlessIdP.signIn(url, login: email, password: password) }
+                await model.loginWithSSO(identifier: "chiikawarden")
+                check(model.phase.id == AppModel.Phase.ssoPassword.id && model.email == email,
+                      "SSO: identity provider sign-in, then asks for the master password \(model.errorMessage ?? "")")
+                await model.completeSSO(password: "wrong")
+                check(model.phase.id == AppModel.Phase.ssoPassword.id && model.errorMessage != nil, "SSO: wrong master password refused")
+                await model.completeSSO(password: password)
+                let ssoAccount = model.accounts.first { $0.serverURL == ssoServer }
+                check(ssoAccount != nil && model.session(for: ssoAccount!.id)?.items.isEmpty == false && AccountStore.refreshToken(ssoAccount!.id) != nil,
+                      "SSO: vault unlocked, account and session saved")
+                if let ssoAccount { model.logOut(ssoAccount.id) }
+                model.ssoAuthenticator = WebAuthentication.run
+            } else {
+                print("SKIP SSO (no SSO server at \(ssoServer))")
+            }
+
             model.lock()
             check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")
             check(!FileManager.default.fileExists(atPath: AttachmentFiles.root.path) && model.previewURL == nil,
@@ -585,3 +609,35 @@ enum SelfTest {
     }
 }
 #endif
+
+/// Plays a browser through dex's password form, for the SSO self-test.
+enum HeadlessIdP {
+    final class Browser: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+        var callback: URL?
+        lazy var session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)
+        func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+                        newRequest request: URLRequest) async -> URLRequest? {
+            if request.url?.scheme == "bitwarden" { callback = request.url; return nil }
+            return request
+        }
+    }
+
+    static func signIn(_ url: URL, login: String, password: String) async throws -> URL {
+        let browser = Browser()
+        let (pageData, pageResponse) = try await browser.session.data(from: url)
+        let page = String(decoding: pageData, as: UTF8.self)
+        guard var formURL = pageResponse.url else { throw URLError(.badServerResponse) }
+        if let range = page.range(of: #"action="([^"]*)""#, options: .regularExpression) {
+            let action = String(page[range]).dropFirst(8).dropLast().replacingOccurrences(of: "&amp;", with: "&")
+            formURL = URL(string: action, relativeTo: formURL)?.absoluteURL ?? formURL
+        }
+        var post = URLRequest(url: formURL)
+        post.httpMethod = "POST"
+        post.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let allowed = CharacterSet.alphanumerics.union(.init(charactersIn: "-._~"))
+        post.httpBody = Data("login=\(login.addingPercentEncoding(withAllowedCharacters: allowed)!)&password=\(password.addingPercentEncoding(withAllowedCharacters: allowed)!)".utf8)
+        _ = try? await browser.session.data(for: post)
+        guard let callback = browser.callback else { throw URLError(.userAuthenticationRequired) }
+        return callback
+    }
+}

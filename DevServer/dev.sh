@@ -13,12 +13,14 @@ case "${1:-status}" in
   up)
     ssh -q "$REMOTE" "mkdir -p ~/$DIR"
     rsync -a compose.yml Caddyfile seed.py "$REMOTE:~/$DIR/"
+    sed "s/DEV_IP/$IP/g" dex.yaml | ssh -q "$REMOTE" "mkdir -p ~/$DIR/data && cat > ~/$DIR/data/dex.yaml"
     remote "[ -f .env ] || printf 'DEV_HOST=$HOST\nDEV_IP=$IP\nADMIN_TOKEN=%s\n' \$(openssl rand -hex 24) > .env; docker compose up -d"
     mkdir -p data && sleep 3
     scp -q "$REMOTE:~/$DIR/data/caddy/caddy/pki/authorities/local/root.crt" data/root.crt
     echo "CA saved to DevServer/data/root.crt" ;;
   seed)
-    for p in 18843 18844; do echo "== :$p"; python3 seed.py "https://$HOST:$p" --ca data/root.crt; done ;;
+    for p in 18843 18844; do echo "== :$p"; python3 seed.py "https://$HOST:$p" --ca data/root.crt; done
+    echo "== SSO :18881"; python3 seed.py "http://$IP:18881" ;;
   test)
     cd ../Packages/VaultCore
     CHIIKAWARDEN_DEV_HOST=$HOST CHIIKAWARDEN_DEV_CA="$OLDPWD/data/root.crt" swift test ;;

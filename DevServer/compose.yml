@@ -36,6 +36,31 @@ services:
       DOMAIN: https://${DEV_HOST}:18844
     volumes: [./data/legacy:/data]
 
+  # SSO (OpenID Connect) — Vaultwarden 1.35+ against dex. Plain HTTP on the LAN so the IdP, the
+  # container and the auth browser session all reach the same URLs without the internal CA.
+  vaultwarden-sso:
+    image: vaultwarden/server:${VW_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *vw-env
+      DOMAIN: http://${DEV_IP}:18881
+      SSO_ENABLED: "true"
+      SSO_AUTHORITY: http://${DEV_IP}:18856/dex
+      SSO_CLIENT_ID: vaultwarden
+      SSO_CLIENT_SECRET: chiikawarden-dev-sso-secret
+      SSO_SCOPES: "email profile"
+      SSO_PKCE: "true"
+      SSO_SIGNUPS_MATCH_EMAIL: "true"
+    volumes: [./data/sso:/data]
+    ports: ["18881:80"]
+
+  dex:
+    image: ghcr.io/dexidp/dex:latest
+    restart: unless-stopped
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    volumes: ["./data/dex.yaml:/etc/dex/config.yaml:ro"]
+    ports: ["18856:5556"]
+
   caddy:
     image: caddy:2
     restart: unless-stopped
