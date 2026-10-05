@@ -550,7 +550,12 @@ struct ItemRow: View {
             }
             Spacer(minLength: 4)
             if item.hasTOTP {
-                Text(verbatim: "2FA").font(.system(size: 10, weight: .heavy)).foregroundStyle(Color.brand)
+                Image(systemName: "clock.badge.checkmark")
+                    .font(.system(size: 13, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.brand)
+                    .help(Text("Has a one-time code"))
+                    .accessibilityLabel(Text("Has a one-time code"))
             }
         }
         .padding(9)
@@ -767,12 +772,9 @@ private struct HeroCard: View {
         let style = HeroStyle(dark: scheme == .dark)
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
-                Text(item.name.prefix(1).uppercased())
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                    .foregroundStyle(style.avatarInk)
-                    .frame(width: 52, height: 52)
-                    .background(style.avatar, in: .rect(cornerRadius: 15, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(style.tileEdge))
+                // Same icon as the list row (website icon, else the letter tile).
+                ItemIcon(item: item, size: 52)
+                    .shadow(color: .black.opacity(style.dark ? 0.3 : 0.08), radius: 6, y: 3)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).font(.system(size: 30, weight: .heavy)).tracking(-0.8).lineLimit(1)
                     Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
