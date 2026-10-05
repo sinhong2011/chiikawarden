@@ -44,9 +44,15 @@ enum VaultDecoder {
                 organizationId: cipher.organizationId,
                 collectionIds: cipher.collectionIds ?? []
             )
+            // Raw values for the editor, by API name.
+            func raw(_ pairs: [(String, String?)]) -> [String: String] {
+                Dictionary(pairs.compactMap { k, v in dec(v).map { (k, $0) } }, uniquingKeysWith: { a, _ in a })
+            }
             switch kind {
             case .card:
                 let c = cipher.card
+                item.properties = raw([("cardholderName", c?.cardholderName), ("brand", c?.brand), ("number", c?.number),
+                                       ("expMonth", c?.expMonth), ("expYear", c?.expYear), ("code", c?.code)])
                 let number = dec(c?.number)
                 let month = dec(c?.expMonth), year = dec(c?.expYear)
                 item.username = number.map { "•••• " + $0.suffix(4) } ?? dec(c?.brand)
@@ -58,6 +64,13 @@ enum VaultDecoder {
                 ].compactMap { $0 }
             case .identity:
                 let i = cipher.identity
+                item.properties = raw([
+                    ("title", i?.title), ("firstName", i?.firstName), ("middleName", i?.middleName), ("lastName", i?.lastName),
+                    ("company", i?.company), ("email", i?.email), ("phone", i?.phone), ("username", i?.username),
+                    ("address1", i?.address1), ("address2", i?.address2), ("city", i?.city), ("state", i?.state),
+                    ("postalCode", i?.postalCode), ("country", i?.country), ("ssn", i?.ssn),
+                    ("passportNumber", i?.passportNumber), ("licenseNumber", i?.licenseNumber),
+                ])
                 let name = [dec(i?.title), dec(i?.firstName), dec(i?.middleName), dec(i?.lastName)].compactMap { $0 }.joined(separator: " ")
                 item.username = name.isEmpty ? dec(i?.email) : name
                 item.fields = [
@@ -66,11 +79,16 @@ enum VaultDecoder {
                     dec(i?.phone).map { ItemField(label: String(localized: "Phone"), value: $0) },
                     dec(i?.company).map { ItemField(label: String(localized: "Company"), value: $0) },
                     dec(i?.username).map { ItemField(label: String(localized: "Username"), value: $0) },
-                    [dec(i?.address1), dec(i?.city), dec(i?.country)].compactMap { $0 }.joined(separator: ", ")
+                    [dec(i?.address1), dec(i?.address2), dec(i?.city), dec(i?.state), dec(i?.postalCode), dec(i?.country)]
+                        .compactMap { $0 }.joined(separator: ", ")
                         .nilIfEmpty.map { ItemField(label: String(localized: "Address"), value: $0) },
+                    dec(i?.ssn).map { ItemField(label: String(localized: "National ID / SSN"), value: $0, secret: true) },
+                    dec(i?.passportNumber).map { ItemField(label: String(localized: "Passport number"), value: $0, secret: true) },
+                    dec(i?.licenseNumber).map { ItemField(label: String(localized: "Licence number"), value: $0, secret: true) },
                 ].compactMap { $0 }
             case .sshKey:
                 let k = cipher.sshKey
+                item.properties = raw([("privateKey", k?.privateKey), ("publicKey", k?.publicKey), ("keyFingerprint", k?.keyFingerprint)])
                 item.username = dec(k?.keyFingerprint)
                 item.fields = [
                     dec(k?.publicKey).map { ItemField(label: String(localized: "Public key"), value: $0, monospaced: true) },
@@ -81,6 +99,16 @@ enum VaultDecoder {
                 item.username = item.notes.map { String($0.prefix(60)) }
             case .login:
                 break
+            }
+            item.customFields = (cipher.fields ?? []).map { f in
+                CustomField(name: dec(f.name) ?? "", value: dec(f.value) ?? "", kind: CustomField.Kind(rawValue: f.type) ?? .text)
+            }
+            item.fields += item.customFields.filter { $0.kind != .linked }.map { f in
+                switch f.kind {
+                case .boolean: ItemField(label: f.name, value: f.value == "true" ? String(localized: "Yes") : String(localized: "No"))
+                case .hidden: ItemField(label: f.name, value: f.value, secret: true)
+                default: ItemField(label: f.name, value: f.value)
+                }
             }
             return item
         }

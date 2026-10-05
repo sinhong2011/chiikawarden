@@ -100,6 +100,9 @@ struct VaultView: View {
                     Menu {
                         Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
                         Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                        Button("New Card") { model.editing = EditRequest(mode: .create(.card)) }
+                        Button("New Identity") { model.editing = EditRequest(mode: .create(.identity)) }
+                        Button("New SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
                     } label: { Label("New Item", systemImage: "plus") }
                     .help(Text("New Item (⌘N)"))
                 }
@@ -496,9 +499,7 @@ struct ItemDetail: View {
                         } else {
                             toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                                 .foregroundStyle(item.favorite ? .yellow : .primary)
-                            if item.kind == .login || item.kind == .note {
-                                toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
-                            }
+                            toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
                             toolbarButton("trash", help: "Move to Trash (⌘⌫)") { Task { await model.trash(item) } }
                         }
                     }

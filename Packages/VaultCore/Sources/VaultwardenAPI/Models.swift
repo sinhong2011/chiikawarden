@@ -115,6 +115,7 @@ public struct SyncResponse: Decodable, Sendable {
         public let card: Card?
         public let identity: Identity?
         public let sshKey: SSHKey?
+        public let fields: [Field]?
         public let favorite: Bool?
         public let deletedDate: String?
     }
@@ -146,8 +147,21 @@ public struct SyncResponse: Decodable, Sendable {
         public let phone: String?
         public let username: String?
         public let address1: String?
+        public let address2: String?
         public let city: String?
+        public let state: String?
+        public let postalCode: String?
         public let country: String?
+        public let ssn: String?
+        public let passportNumber: String?
+        public let licenseNumber: String?
+    }
+
+    /// Custom field. `type`: 0 text, 1 hidden, 2 boolean, 3 linked.
+    public struct Field: Decodable, Sendable {
+        public let name: String?
+        public let value: String?
+        public let type: Int
     }
 
     public struct SSHKey: Decodable, Sendable {

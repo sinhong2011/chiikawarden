@@ -156,6 +156,31 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func cardPropertiesAndCustomFields(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let key = try await client.login(email: "hachiware@chiikawarden.test", password: DevServer.password)
+        func dec(_ s: String?) -> String? { s.flatMap { try? EncString($0).decryptString(with: key) } }
+        var edit = CipherEdit(name: "Test card")
+        edit.properties = ["number": "4111111111111111", "cardholderName": "Hachiware", "code": "123"]
+        edit.customFields = [CustomField(name: "PIN", value: "0000", kind: .hidden)]
+        let id = try await client.createCipher(CipherEditor.newCipher(kind: .card, edit: edit, key: key))
+        var data = try await client.syncData()
+        let raw = try #require(CipherEditor.rawCiphers(fromSync: data)[id])
+
+        var change = CipherEdit()
+        change.properties = ["number": "5555444433331111"]
+        change.customFields = [CustomField(name: "PIN", value: "9999", kind: .hidden), CustomField(name: "Bank", value: "Pochi", kind: .text)]
+        try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: change, key: key))
+        data = try await client.syncData()
+        let cipher = try #require(try SyncResponse.decode(data).ciphers.first { $0.id == id })
+        #expect(dec(cipher.card?.number) == "5555444433331111")
+        #expect(dec(cipher.card?.cardholderName) == "Hachiware") // untouched property kept
+        let fields = (cipher.fields ?? []).map { "\(dec($0.name) ?? "")=\(dec($0.value) ?? "")/\($0.type)" }
+        #expect(fields == ["PIN=9999/1", "Bank=Pochi/0"])
+        try await client.deleteCipher(id: id)
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {

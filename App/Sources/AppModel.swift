@@ -468,7 +468,15 @@ final class AppModel {
 
     // MARK: Editing
 
-    enum NewItemKind { case login, secureNote }
+    enum NewItemKind {
+        case login, secureNote, card, identity, sshKey
+        var itemKind: VaultItem.Kind {
+            switch self { case .login: .login; case .secureNote: .note; case .card: .card; case .identity: .identity; case .sshKey: .sshKey }
+        }
+        var editorKind: CipherEditor.Kind {
+            switch self { case .login: .login; case .secureNote: .secureNote; case .card: .card; case .identity: .identity; case .sshKey: .sshKey }
+        }
+    }
 
     /// Where new items go: the filtered account, else the first unlocked one.
     var defaultAccountId: String? { accountFilter ?? sessions.first?.id }
@@ -477,7 +485,7 @@ final class AppModel {
     func createItem(_ kind: NewItemKind, edit: CipherEdit, accountId: String? = nil) async -> Bool {
         guard let session = (accountId ?? defaultAccountId).flatMap(session(for:)) else { return offline() }
         do {
-            let id = try await session.create(kind == .login ? .login : .secureNote, edit: edit)
+            let id = try await session.create(kind.editorKind, edit: edit)
             selectedID = id
             flash(String(localized: "Item created"))
             return true

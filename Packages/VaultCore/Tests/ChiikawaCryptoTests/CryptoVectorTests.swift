@@ -122,3 +122,31 @@ extension Data {
         #expect(even)
     }
 }
+
+@Suite struct SSHKeyTests {
+    /// The generated key must be accepted by OpenSSH itself: ssh-keygen derives the same public key and fingerprint.
+    @Test func ed25519RoundTripsThroughSSHKeygen() throws {
+        let pair = SSHKeyPair.generateEd25519(comment: "test@chiikawarden")
+        let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let keyURL = dir.appending(path: "id_ed25519")
+        try pair.privateKey.write(to: keyURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: keyURL.path)
+
+        func run(_ args: [String]) throws -> String {
+            let p = Process()
+            p.executableURL = URL(filePath: "/usr/bin/ssh-keygen")
+            p.arguments = args
+            let out = Pipe()
+            p.standardOutput = out
+            try p.run()
+            p.waitUntilExit()
+            return String(decoding: out.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+        }
+        let derivedPublic = try run(["-y", "-f", keyURL.path]).trimmingCharacters(in: .whitespacesAndNewlines)
+        #expect(derivedPublic.hasPrefix(pair.publicKey.split(separator: " ").prefix(2).joined(separator: " ")))
+        let fingerprint = try run(["-l", "-E", "sha256", "-f", keyURL.path])
+        #expect(fingerprint.contains(pair.fingerprint))
+    }
+}

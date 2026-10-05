@@ -73,6 +73,18 @@ enum Snapshot {
             render(EditItemSheet(mode: .edit(demoItems[1])).environment(vault).tint(.brand),
                    size: CGSize(width: 520, height: 560), appearance: appearance,
                    to: dir.appending(path: "edit-\(name).png"))
+            var card = demoItems.first { $0.kind == .card }!
+            card.properties = ["cardholderName": "Usagi", "brand": "Visa", "number": "4111111111116411", "expMonth": "8", "expYear": "2029", "code": "123"]
+            card.customFields = [CustomField(name: "PIN", value: "0420", kind: .hidden), CustomField(name: "Virtual", value: "true", kind: .boolean)]
+            render(EditItemSheet(mode: .edit(card)).environment(vault).tint(.brand),
+                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   to: dir.appending(path: "edit-card-\(name).png"))
+            render(EditItemSheet(mode: .create(.identity)).environment(vault).tint(.brand),
+                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   to: dir.appending(path: "edit-identity-\(name).png"))
+            render(EditItemSheet(mode: .create(.sshKey)).environment(vault).tint(.brand),
+                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   to: dir.appending(path: "edit-ssh-\(name).png"))
             render(GeneratorView(onUse: { _ in }).environment(vault).tint(.brand).background(Color.windowBase),
                    size: CGSize(width: 340, height: 420), appearance: appearance,
                    to: dir.appending(path: "generator-\(name).png"))
@@ -250,6 +262,41 @@ enum SelfTest {
                 check(model.items.first { $0.id == new.id }?.isDeleted == false, "restore from Trash")
                 if let item = model.items.first(where: { $0.id == new.id }) { await model.deleteForever(item) }
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
+            }
+
+            // Cards, identities, SSH keys and custom fields.
+            do {
+                var cardEdit = CipherEdit(name: "Selftest card")
+                cardEdit.properties = ["cardholderName": "Usagi", "number": "4111111111111111", "expMonth": "4", "expYear": "2031"]
+                cardEdit.customFields = [CustomField(name: "PIN", value: "0420", kind: .hidden), CustomField(name: "Virtual", value: "true", kind: .boolean)]
+                let ok = await model.createItem(.card, edit: cardEdit)
+                let card = model.items.first { $0.name == "Selftest card" }
+                check(ok && card?.kind == .card && card?.properties["number"] == "4111111111111111"
+                      && card?.customFields.count == 2 && card?.fields.contains { $0.label == "PIN" && $0.secret } == true,
+                      "create card with custom fields")
+                if let card {
+                    var edit = CipherEdit()
+                    edit.properties = ["code": "123"]
+                    edit.customFields = [CustomField(name: "PIN", value: "9999", kind: .hidden)]
+                    _ = await model.updateItem(card.id, edit: edit)
+                    let after = model.items.first { $0.id == card.id }
+                    check(after?.properties["code"] == "123" && after?.properties["cardholderName"] == "Usagi"
+                          && after?.customFields == [CustomField(name: "PIN", value: "9999", kind: .hidden)], "edit card keeps other fields")
+                    await model.deleteForever(after ?? card)
+                }
+                var idEdit = CipherEdit(name: "Selftest identity")
+                idEdit.properties = ["firstName": "Hachiware", "postalCode": "100-0001", "passportNumber": "X1234567"]
+                _ = await model.createItem(.identity, edit: idEdit)
+                let identity = model.items.first { $0.name == "Selftest identity" }
+                check(identity?.properties["passportNumber"] == "X1234567" && identity?.username == "Hachiware", "create identity")
+                if let identity { await model.deleteForever(identity) }
+                let pair = SSHKeyPair.generateEd25519(comment: "selftest")
+                var sshEdit = CipherEdit(name: "Selftest SSH")
+                sshEdit.properties = ["privateKey": pair.privateKey, "publicKey": pair.publicKey, "keyFingerprint": pair.fingerprint]
+                _ = await model.createItem(.sshKey, edit: sshEdit)
+                let ssh = model.items.first { $0.name == "Selftest SSH" }
+                check(ssh?.properties["publicKey"] == pair.publicKey && ssh?.username == pair.fingerprint, "create SSH key")
+                if let ssh { await model.deleteForever(ssh) }
             }
 
             // Second account: merged list, per-account lock and unlock.

@@ -68,6 +68,12 @@ struct ChiikawardenApp: App {
                 Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
+                Menu("New Other Item") {
+                    Button("Card") { model.editing = EditRequest(mode: .create(.card)) }
+                    Button("Identity") { model.editing = EditRequest(mode: .create(.identity)) }
+                    Button("SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
+                }
+                .disabled(!model.isUnlocked)
                 Button("New Folder…") { model.promptingNewFolder = true }
                     .keyboardShortcut("n", modifiers: [.command, .option])
                     .disabled(!model.isUnlocked)
@@ -79,7 +85,7 @@ struct ChiikawardenApp: App {
                 let item = model.selectedItem
                 Button("Edit") { if let item { model.editing = EditRequest(mode: .edit(item)) } }
                     .keyboardShortcut("e", modifiers: .command)
-                    .disabled(item == nil || item?.isDeleted == true || !(item?.kind == .login || item?.kind == .note))
+                    .disabled(item == nil || item?.isDeleted == true)
                 Divider()
                 Button("Copy Username") { if let u = item?.username { model.copy(u, label: String(localized: "Username")) } }
                     .keyboardShortcut("c", modifiers: [.command, .shift])

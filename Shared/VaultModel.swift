@@ -1,5 +1,6 @@
 import ChiikawaCrypto
 import Foundation
+import VaultwardenAPI
 
 // Shared by the app and the AutoFill extension.
 
@@ -33,6 +34,10 @@ struct VaultItem: Identifiable, Hashable {
 
     /// Extra fields for non-login kinds (card, identity, SSH key), in display order.
     var fields: [ItemField] = []
+    /// Raw card / identity / SSH-key properties by API name, for editing.
+    var properties: [String: String] = [:]
+    /// Custom fields (text, hidden, boolean, linked).
+    var customFields: [CustomField] = []
 
     static func == (a: Self, b: Self) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
