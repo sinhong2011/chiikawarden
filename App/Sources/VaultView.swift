@@ -27,8 +27,8 @@ extension Color {
 struct VaultView: View {
     var initialSelection: VaultItem.ID?
     @Environment(AppModel.self) private var model
+    @State private var showGenerator = false
     @State private var query = ""
-    @State private var selection: VaultItem.ID?
     @State private var section: SidebarSelection = .section(.all)
     @State private var chip: Chip = .all
 
@@ -52,15 +52,16 @@ struct VaultView: View {
     }
 
     var body: some View {
+        @Bindable var model = model
         NavigationSplitView {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             HStack(spacing: 8) {
-                ItemColumn(items: filtered, selection: $selection, query: $query, chip: $chip)
+                ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { model.selectedID = $0 }), query: $query, chip: $chip)
                     .frame(width: 300)
                 Group {
-                    if let item = model.items.first(where: { $0.id == selection }) {
+                    if let item = model.selectedItem {
                         ItemDetail(item: item)
                             .id(item.id)
                             .transition(.opacity.combined(with: .offset(y: 8)))
@@ -77,11 +78,22 @@ struct VaultView: View {
                 ToolbarItem(placement: .principal) {
                     SearchField(query: $query)
                 }
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button { showGenerator = true } label: { Label("Password Generator", systemImage: "dice") }
+                        .help(Text("Password Generator (⌘G)"))
+                        .popover(isPresented: $showGenerator) { GeneratorView() }
+                    Menu {
+                        Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
+                        Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                    } label: { Label("New Item", systemImage: "plus") }
+                    .help(Text("New Item (⌘N)"))
+                }
             }
         }
-        .animation(.snappy(duration: 0.25), value: selection)
+        .animation(.snappy(duration: 0.25), value: model.selectedID)
+        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .overlay(alignment: .bottom) { ToastView() }
-        .onAppear { if selection == nil { selection = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id } }
+        .onAppear { if model.selectedID == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id } }
     }
 }
 
@@ -97,39 +109,42 @@ enum SidebarSelection: Hashable {
     func includes(_ item: VaultItem) -> Bool {
         switch self {
         case .section(let s): s.includes(item)
-        case .folder(let id): item.folderId == id
-        case .organization(let id): item.organizationId == id
-        case .collection(let id): item.collectionIds.contains(id)
+        case .folder(let id): !item.isDeleted && item.folderId == id
+        case .organization(let id): !item.isDeleted && item.organizationId == id
+        case .collection(let id): !item.isDeleted && item.collectionIds.contains(id)
         }
     }
 }
 
 enum VaultSection: Hashable, CaseIterable {
-    case all, favorites, logins, passkeys, sshKeys, cards, notes
+    case all, favorites, logins, passkeys, sshKeys, cards, notes, trash
 
     var title: LocalizedStringKey {
         switch self {
         case .all: "All Items"; case .favorites: "Favorites"; case .logins: "Logins"; case .passkeys: "Passkeys"
-        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .notes: "Secure Notes"
+        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .notes: "Secure Notes"; case .trash: "Trash"
         }
     }
 
     var symbol: String {
         switch self {
         case .all: "square.grid.2x2"; case .favorites: "star"; case .logins: "key"; case .passkeys: "person.badge.key"
-        case .sshKeys: "terminal"; case .cards: "creditcard"; case .notes: "note.text"
+        case .sshKeys: "terminal"; case .cards: "creditcard"; case .notes: "note.text"; case .trash: "trash"
         }
     }
 
     func includes(_ item: VaultItem) -> Bool {
+        if self == .trash { return item.isDeleted }
+        if item.isDeleted { return false }
         switch self {
-        case .all: true
-        case .favorites: item.favorite
-        case .logins: item.kind == .login
-        case .passkeys: item.hasPasskey
-        case .sshKeys: item.kind == .sshKey
-        case .cards: item.kind == .card
-        case .notes: item.kind == .note
+        case .trash: return true
+        case .all: return true
+        case .favorites: return item.favorite
+        case .logins: return item.kind == .login
+        case .passkeys: return item.hasPasskey
+        case .sshKeys: return item.kind == .sshKey
+        case .cards: return item.kind == .card
+        case .notes: return item.kind == .note
         }
     }
 }
@@ -330,7 +345,12 @@ struct ItemRow: View {
 struct ItemDetail: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
-    @State private var reveal = false
+    @State private var revealToggle = false
+    @State private var confirmDelete = false
+    /// Revealed while toggled on, or while ⌥ is held.
+    private var reveal: Binding<Bool> {
+        Binding(get: { revealToggle || model.optionHeld }, set: { revealToggle = $0 })
+    }
 
     var body: some View {
         ScrollView {
@@ -338,12 +358,17 @@ struct ItemDetail: View {
                 HStack {
                     Spacer()
                     HStack(spacing: 0) {
-                        toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") {}
-                            .foregroundStyle(item.favorite ? .yellow : .primary)
-                        if item.kind == .login, let username = item.username {
-                            toolbarButton("person.crop.circle", help: "Copy username") {
-                                model.copy(username, label: String(localized: "Username"))
+                        if item.isDeleted {
+                            toolbarButton("arrow.uturn.backward", help: "Restore") { Task { await model.restore(item) } }
+                            toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
+                                .foregroundStyle(.red)
+                        } else {
+                            toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
+                                .foregroundStyle(item.favorite ? .yellow : .primary)
+                            if item.kind == .login || item.kind == .note {
+                                toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
                             }
+                            toolbarButton("trash", help: "Move to Trash (⌘⌫)") { Task { await model.trash(item) } }
                         }
                     }
                     .padding(3)
@@ -351,12 +376,16 @@ struct ItemDetail: View {
                     .overlay(Capsule().strokeBorder(Color.panelEdge))
                 }
 
-                HeroCard(item: item, reveal: $reveal)
+                if item.isDeleted {
+                    Label("In Trash. Restore it to use it again, or delete it forever.", systemImage: "trash")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
+                }
+                HeroCard(item: item, reveal: reveal)
 
                 if !item.fields.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(Array(item.fields.enumerated()), id: \.element.id) { index, field in
-                            FieldLine(field: field, reveal: reveal)
+                            FieldLine(field: field, reveal: reveal.wrappedValue)
                                 .overlay(alignment: .top) { if index > 0 { Divider().opacity(0.6).padding(.leading, 16) } }
                         }
                     }
@@ -408,6 +437,11 @@ struct ItemDetail: View {
             .frame(maxWidth: .infinity)
         }
         .scrollIndicators(.never)
+        .confirmationDialog("Delete “\(item.name)” forever?", isPresented: $confirmDelete) {
+            Button("Delete Forever", role: .destructive) { Task { await model.deleteForever(item) } }
+        } message: {
+            Text("This can't be undone.")
+        }
     }
 
     private var health: (text: LocalizedStringKey, tint: Color) {

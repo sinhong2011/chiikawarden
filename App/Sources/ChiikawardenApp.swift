@@ -61,6 +61,37 @@ struct ChiikawardenApp: App {
         }
         .windowResizability(.contentSize)
         .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
+                    .keyboardShortcut("n", modifiers: .command)
+                    .disabled(!model.isUnlocked)
+                Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                    .keyboardShortcut("n", modifiers: [.command, .shift])
+                    .disabled(!model.isUnlocked)
+            }
+            CommandMenu("Item") {
+                let item = model.selectedItem
+                Button("Edit") { if let item { model.editing = EditRequest(mode: .edit(item)) } }
+                    .keyboardShortcut("e", modifiers: .command)
+                    .disabled(item == nil || item?.isDeleted == true || !(item?.kind == .login || item?.kind == .note))
+                Divider()
+                Button("Copy Username") { if let u = item?.username { model.copy(u, label: String(localized: "Username")) } }
+                    .keyboardShortcut("c", modifiers: [.command, .shift])
+                    .disabled(item?.kind != .login || item?.username == nil)
+                Button("Copy Password") { if let p = item?.password { model.copy(p, label: String(localized: "Password")) } }
+                    .keyboardShortcut("c", modifiers: [.command, .option])
+                    .disabled(item?.password == nil)
+                Button("Copy One-Time Code") { if let t = item?.totp { model.copy(t.code(), label: String(localized: "Code")) } }
+                    .keyboardShortcut("c", modifiers: [.command, .control])
+                    .disabled(item?.totp == nil)
+                Divider()
+                Button("Toggle Favorite") { if let item { Task { await model.toggleFavorite(item) } } }
+                    .keyboardShortcut("d", modifiers: .command)
+                    .disabled(item == nil || item?.isDeleted == true)
+                Button("Move to Trash") { if let item { Task { await model.trash(item) } } }
+                    .keyboardShortcut(.delete, modifiers: .command)
+                    .disabled(item == nil || item?.isDeleted == true)
+            }
             CommandGroup(after: .appSettings) {
                 Button("Quick Search") { quickSearch?.show() }
                     .keyboardShortcut(.space, modifiers: .option)

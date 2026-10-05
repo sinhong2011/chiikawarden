@@ -112,6 +112,50 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func createEditTrashRestoreDelete(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let userKey = try await client.login(email: "hachiware@chiikawarden.test", password: DevServer.password)
+        func find(_ id: String) async throws -> (SyncResponse.Cipher?, Data?) {
+            let data = try await client.syncData()
+            return (try SyncResponse.decode(data).ciphers.first { $0.id == id }, CipherEditor.rawCiphers(fromSync: data)[id])
+        }
+        func name(_ c: SyncResponse.Cipher?) -> String? { c.flatMap { try? EncString($0.name).decryptString(with: userKey) } }
+
+        // Create
+        let id = try await client.createCipher(CipherEditor.newCipher(
+            kind: .login, edit: CipherEdit(name: "Test ✏️", username: "a", password: "old-pass", uri: "https://example.com"), key: userKey))
+        var (cipher, raw) = try await find(id)
+        #expect(name(cipher) == "Test ✏️")
+
+        // Edit: password change goes to history; untouched fields stay
+        let original = try #require(raw)
+        try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: original,
+            edit: CipherEdit(name: "Test edited", password: "new-pass"), key: userKey))
+        (cipher, raw) = try await find(id)
+        #expect(name(cipher) == "Test edited")
+        let pw = cipher?.login?.password.flatMap { try? EncString($0).decryptString(with: userKey) }
+        #expect(pw == "new-pass")
+        let user = cipher?.login?.username.flatMap { try? EncString($0).decryptString(with: userKey) }
+        #expect(user == "a")
+        let rawData = try #require(raw)
+        let rawObject = try #require(CipherEditor.normalize(try JSONSerialization.jsonObject(with: rawData)) as? [String: Any])
+        let history = rawObject["passwordHistory"] as? [[String: Any]] ?? []
+        let firstHistory = (history.first?["password"] as? String).flatMap { try? EncString($0).decryptString(with: userKey) }
+        #expect(firstHistory == "old-pass")
+
+        // Trash → restore → delete forever
+        try await client.trashCipher(id: id)
+        (cipher, _) = try await find(id)
+        #expect(cipher?.deletedDate != nil)
+        try await client.restoreCipher(id: id)
+        (cipher, _) = try await find(id)
+        #expect(cipher?.deletedDate == nil)
+        try await client.deleteCipher(id: id)
+        (cipher, _) = try await find(id)
+        #expect(cipher == nil)
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {

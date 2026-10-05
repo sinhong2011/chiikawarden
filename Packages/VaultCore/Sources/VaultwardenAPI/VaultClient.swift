@@ -141,6 +141,48 @@ public actor VaultClient {
         _ = try await sendRaw(r)
     }
 
+    // MARK: Item writes
+
+    private func authorized(_ r: URLRequest) -> URLRequest {
+        var r = r
+        if let accessToken { r.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
+        return r
+    }
+
+    /// Creates a personal item from `CipherEditor.newCipher`. Returns the new id.
+    public func createCipher(_ body: Data) async throws(APIError) -> String {
+        struct Created: Decodable { let id: String }
+        let created: Created = try await send(authorized(post(environment.apiURL, "ciphers", jsonBody: body)))
+        return created.id
+    }
+
+    /// Replaces an item with a body from `CipherEditor.updatedCipher`.
+    public func updateCipher(id: String, _ body: Data) async throws(APIError) {
+        var r = try post(environment.apiURL, "ciphers/\(id)", jsonBody: body)
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    /// Moves to Trash (restorable).
+    public func trashCipher(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(id)/delete")
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    public func restoreCipher(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(id)/restore")
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    /// Permanently deletes.
+    public func deleteCipher(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(id)")
+        r.httpMethod = "DELETE"
+        _ = try await sendRaw(authorized(r))
+    }
+
     // MARK: Password hint
 
     /// Asks the server to email the master password hint. Vaultwarden without mail configured may

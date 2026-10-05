@@ -49,6 +49,14 @@ enum Snapshot {
                    size: CGSize(width: 300, height: 460), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(EditItemSheet(mode: .edit(demoItems[1])).environment(vault).tint(.brand),
+                   size: CGSize(width: 520, height: 560), appearance: appearance,
+                   to: dir.appending(path: "edit-\(name).png"))
+            render(GeneratorView(onUse: { _ in }).environment(vault).tint(.brand).background(Color.windowBase),
+                   size: CGSize(width: 340, height: 420), appearance: appearance,
+                   to: dir.appending(path: "generator-\(name).png"))
+        }
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -143,6 +151,24 @@ enum SelfTest {
                 check(model.items.contains { SidebarSelection.organization(org.id).includes($0) }
                       && model.items.contains { SidebarSelection.collection(collection.id).includes($0) },
                       "org and collection filters match their items")
+            }
+
+            // Editing lifecycle through the app model.
+            let created = await model.createItem(.login, edit: CipherEdit(name: "Selftest Item", username: "u", password: "p-old", uri: "https://example.org"))
+            let new = model.items.first { $0.name == "Selftest Item" }
+            check(created && new != nil && model.selectedID == new?.id, "create login (selected after save)")
+            if let new {
+                await model.updateItem(new.id, edit: CipherEdit(name: "Selftest Edited", password: "p-new"))
+                let edited = model.items.first { $0.id == new.id }
+                check(edited?.name == "Selftest Edited" && edited?.password == "p-new" && edited?.username == "u", "edit keeps untouched fields")
+                if let edited { await model.toggleFavorite(edited) }
+                check(model.items.first { $0.id == new.id }?.favorite == true, "toggle favorite")
+                if let item = model.items.first(where: { $0.id == new.id }) { await model.trash(item) }
+                check(model.items.first { $0.id == new.id }?.isDeleted == true, "move to Trash")
+                if let item = model.items.first(where: { $0.id == new.id }) { await model.restore(item) }
+                check(model.items.first { $0.id == new.id }?.isDeleted == false, "restore from Trash")
+                if let item = model.items.first(where: { $0.id == new.id }) { await model.deleteForever(item) }
+                check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
             model.lock()

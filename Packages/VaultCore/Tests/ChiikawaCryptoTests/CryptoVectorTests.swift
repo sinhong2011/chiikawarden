@@ -92,3 +92,33 @@ extension Data {
         #expect(TOTP("not base32 !") == nil)
     }
 }
+
+@Suite struct PasswordGeneratorTests {
+    @Test func respectsLengthAndClasses() {
+        var g = PasswordGenerator()
+        g.length = 32
+        for _ in 0..<200 {
+            let p = g.generate()
+            #expect(p.count == 32)
+            let hasAll = p.contains(where: \.isUppercase) && p.contains(where: \.isLowercase) && p.contains(where: \.isNumber)
+            let hasSymbol = p.contains { "!@#$%^&*-_=+?".contains($0) }
+            let hasAmbiguous = p.contains { "0O1lI".contains($0) }
+            #expect(hasAll && hasSymbol && !hasAmbiguous)
+        }
+    }
+
+    @Test func digitsOnlyPIN() {
+        var g = PasswordGenerator()
+        (g.uppercase, g.lowercase, g.symbols, g.length) = (false, false, false, 6)
+        let pin = g.generate()
+        let digitsOnly = pin.allSatisfy(\.isNumber)
+        #expect(digitsOnly)
+    }
+
+    @Test func uniformIsUnbiased() {
+        var counts = [Int](repeating: 0, count: 7)
+        for _ in 0..<70_000 { counts[PasswordGenerator.uniform(upTo: 7)] += 1 }
+        let even = counts.allSatisfy { abs($0 - 10_000) < 600 }
+        #expect(even)
+    }
+}

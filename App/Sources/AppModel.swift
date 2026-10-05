@@ -15,9 +15,12 @@ struct VaultItem: Identifiable, Hashable {
     let password: String?
     let totp: TOTP?
     let notes: String?
+    var totpSecret: String?
+    var uri: String?
     let favorite: Bool
     var hasPasskey = false
     var folderId: String?
+    var isDeleted = false
     var organizationId: String?
     var collectionIds: [String] = []
     /// Filled in after sync: how many other items share this password.
@@ -30,6 +33,12 @@ struct VaultItem: Identifiable, Hashable {
 
     static func == (a: Self, b: Self) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
+}
+
+/// Drives the create/edit sheet.
+struct EditRequest: Identifiable {
+    let id = UUID()
+    let mode: EditItemSheet.Mode
 }
 
 /// A folder, organization or collection shown in the sidebar.
@@ -86,6 +95,18 @@ final class AppModel {
 
     var phase: Phase = .login
     var items: [VaultItem] = []
+    /// Selected item, shared by the list, detail and the Item menu commands.
+    var selectedID: VaultItem.ID?
+    var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
+    /// Non-nil while the create/edit sheet is open.
+    var editing: EditRequest?
+    /// True while ⌥ is held: reveals masked fields.
+    var optionHeld = false
+    var isOnline: Bool { client != nil && lastSynced != nil }
+
+    /// Raw cipher JSON from the last sync, so edits can patch it without losing fields.
+    private var rawCiphers: [String: Data] = [:]
+    private var keyring: Keyring?
     var folders: [Grouping] = []
     /// Organizations, each with its collections as children.
     var organizations: [Grouping] = []
@@ -410,25 +431,31 @@ final class AppModel {
         let sync = try SyncResponse.decode(data)
         let keyring = Keyring(userKey: userKey, profile: sync.profile)
         var hidden = 0
+        rawCiphers = CipherEditor.rawCiphers(fromSync: data)
+        self.keyring = keyring
         items = sync.ciphers.compactMap { cipher in
-            guard cipher.deletedDate == nil else { return nil }
             guard let key = keyring.key(for: cipher) else { hidden += 1; return nil }
             func dec(_ s: String?) -> String? {
                 s.flatMap { try? EncString($0).decryptString(with: key) }.flatMap { $0.isEmpty ? nil : $0 }
             }
             let kind = VaultItem.Kind(rawValue: cipher.type) ?? .login
+            let fullURI = dec(cipher.login?.uris?.first?.uri)
+            let totpSecret = dec(cipher.login?.totp)
             var item = VaultItem(
                 id: cipher.id,
                 kind: kind,
                 name: dec(cipher.name) ?? "—",
                 username: dec(cipher.login?.username),
-                host: dec(cipher.login?.uris?.first?.uri).flatMap { URL(string: $0)?.host() },
+                host: fullURI.flatMap { URL(string: $0)?.host() },
                 password: dec(cipher.login?.password),
-                totp: dec(cipher.login?.totp).flatMap(TOTP.init),
+                totp: totpSecret.flatMap(TOTP.init),
                 notes: dec(cipher.notes),
+                totpSecret: totpSecret,
+                uri: fullURI,
                 favorite: cipher.favorite ?? false,
                 hasPasskey: !(cipher.login?.fido2Credentials ?? []).isEmpty,
                 folderId: cipher.folderId,
+                isDeleted: cipher.deletedDate != nil,
                 organizationId: cipher.organizationId,
                 collectionIds: cipher.collectionIds ?? []
             )
@@ -473,7 +500,7 @@ final class AppModel {
             return item
         }
         .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        let counts = Dictionary(items.compactMap(\.password).map { ($0, 1) }, uniquingKeysWith: +)
+        let counts = Dictionary(items.filter { !$0.isDeleted }.compactMap(\.password).map { ($0, 1) }, uniquingKeysWith: +)
         for i in items.indices {
             if let pw = items[i].password { items[i].reuseCount = (counts[pw] ?? 1) - 1 }
         }
@@ -492,6 +519,91 @@ final class AppModel {
         }
     }
 
+    // MARK: Editing
+
+    enum NewItemKind { case login, secureNote }
+
+    @discardableResult
+    func createItem(_ kind: NewItemKind, edit: CipherEdit) async -> Bool {
+        guard let client, let key = userKey else { return offline() }
+        do {
+            let body = try CipherEditor.newCipher(kind: kind == .login ? .login : .secureNote, edit: edit, key: key)
+            let id = try await client.createCipher(body)
+            try await refresh()
+            selectedID = id
+            flash(String(localized: "Item created"))
+            return true
+        } catch { return failed(error) }
+    }
+
+    @discardableResult
+    func updateItem(_ id: String, edit: CipherEdit) async -> Bool {
+        guard let client, let raw = rawCiphers[id], let cipher = try? SyncResponse.decode(cacheData()).ciphers.first(where: { $0.id == id }),
+              let key = keyring?.key(for: cipher) else { return offline() }
+        do {
+            try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: edit, key: key))
+            try await refresh()
+            return true
+        } catch { return failed(error) }
+    }
+
+    func toggleFavorite(_ item: VaultItem) async {
+        await updateItem(item.id, edit: CipherEdit(favorite: !item.favorite))
+    }
+
+    func trash(_ item: VaultItem) async {
+        guard let client else { _ = offline(); return }
+        do {
+            try await client.trashCipher(id: item.id)
+            try await refresh()
+            flash(String(localized: "Moved to Trash"))
+        } catch { _ = failed(error) }
+    }
+
+    func restore(_ item: VaultItem) async {
+        guard let client else { _ = offline(); return }
+        do {
+            try await client.restoreCipher(id: item.id)
+            try await refresh()
+            flash(String(localized: "Restored"))
+        } catch { _ = failed(error) }
+    }
+
+    func deleteForever(_ item: VaultItem) async {
+        guard let client else { _ = offline(); return }
+        do {
+            try await client.deleteCipher(id: item.id)
+            if selectedID == item.id { selectedID = nil }
+            try await refresh()
+            flash(String(localized: "Deleted permanently"))
+        } catch { _ = failed(error) }
+    }
+
+    private func cacheData() -> Data { AccountStore.loadCache() ?? Data() }
+
+    private func offline() -> Bool {
+        flash(String(localized: "You're offline — changes need a connection to your server."))
+        return false
+    }
+
+    private func failed(_ error: Error) -> Bool {
+        if case .http(let status, let message)? = error as? APIError {
+            flash(message ?? String(localized: "Server error (\(status))."))
+        } else {
+            flash(error.localizedDescription)
+        }
+        return false
+    }
+
+    func flash(_ message: String) {
+        toast = message
+        toastTask?.cancel()
+        toastTask = Task {
+            try? await Task.sleep(for: .seconds(2.2))
+            if !Task.isCancelled { toast = nil }
+        }
+    }
+
     // MARK: Auto-lock
 
     private var lastActivity = Date()
@@ -505,6 +617,12 @@ final class AppModel {
         guard monitors.isEmpty else { return }
         if let m = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .scrollWheel, .mouseMoved], handler: { [weak self] e in
             self?.noteActivity(); return e
+        }) { monitors.append(m) }
+        // Hold ⌥ to reveal masked fields (only ⌥, so ⌥-shortcuts don't flash secrets).
+        if let m = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged, handler: { [weak self] e in
+            let flags = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            self?.optionHeld = flags == .option
+            return e
         }) { monitors.append(m) }
         let ws = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
@@ -531,6 +649,9 @@ final class AppModel {
 
     func lock() {
         stopLiveSync()
+        rawCiphers = [:]
+        keyring = nil
+        selectedID = nil
         userKey = nil
         items = []
         folders = []
