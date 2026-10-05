@@ -17,6 +17,7 @@ struct ChiikawardenApp: App {
         if CommandLine.arguments.contains("--demo") {
             let demo = AppModel()
             demo.items = Snapshot.demoItems
+            demo.previewUnlocked = true
             demo.phase = .vault
             _model = State(initialValue: demo)
         }
@@ -55,7 +56,8 @@ struct ChiikawardenApp: App {
                 .environment(model)
                 .tint(.brand)
         } label: {
-            Image(systemName: model.isUnlocked ? "lock.open" : "lock")
+            Image(nsImage: MenuBarGlyph.image)
+                .opacity(model.isUnlocked ? 1 : 0.55)
         }
         .menuBarExtraStyle(.window)
 

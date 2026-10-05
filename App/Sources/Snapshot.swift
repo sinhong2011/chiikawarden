@@ -59,6 +59,7 @@ enum Snapshot {
         let vault = AppModel()
         vault.phase = .vault
         vault.items = demoItems
+        vault.previewUnlocked = true
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 1180, height: 760), appearance: appearance,
@@ -72,8 +73,8 @@ enum Snapshot {
             render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 760, height: 620), appearance: appearance,
                    to: dir.appending(path: "palette-\(name).png"))
-            render(MenuBarContent().environment(vault).tint(.brand).background(Color.windowBase),
-                   size: CGSize(width: 300, height: 460), appearance: appearance,
+            render(MenuBarContent().environment(vault).tint(.brand).background(.regularMaterial),
+                   size: CGSize(width: 372, height: 640), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {

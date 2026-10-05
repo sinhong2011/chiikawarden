@@ -123,7 +123,9 @@ struct CommandPalette: View {
         .scaleEffect(x: appeared ? 1 : 0.6, y: appeared ? 1 : 0.8, anchor: .top)
         .opacity(appeared ? 1 : 0)
         .padding(40) // room for the shadow inside the panel
-        .frame(maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // The transparent margin is part of the panel: a click there counts as outside.
+        .background(Color.black.opacity(0.001).onTapGesture { close() })
         .onChange(of: model.quickSearchNonce, initial: true) {
             query = ""; index = 0; focused = true
             appeared = false

@@ -38,6 +38,7 @@ final class QuickSearchPanel: NSPanel {
 final class QuickSearchController {
     private var panel: QuickSearchPanel?
     private let model: AppModel
+    private var resignObserver: NSObjectProtocol?
 
     init(model: AppModel) { self.model = model }
 
@@ -75,101 +76,14 @@ final class QuickSearchController {
         panel.hasShadow = false // the palette draws its own soft shadow
         panel.isMovableByWindowBackground = true
         panel.hidesOnDeactivate = true
+        // Clicking anywhere else (another window of ours, the desktop, another app) closes it.
+        resignObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel,
+                                                                queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.close() }
+        }
         panel.contentView = NSHostingView(rootView: CommandPalette(close: { [weak self] in self?.close() })
             .environment(model)
             .tint(.brand))
         return panel
-    }
-}
-
-// MARK: Menu bar
-
-struct MenuBarContent: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(verbatim: "Chiikawarden").font(.system(size: 13, weight: .semibold))
-                Spacer()
-                if model.isUnlocked {
-                    Button { model.lock() } label: { Image(systemName: "lock").accessibilityLabel(Text("Lock")) }
-                        .buttonStyle(.borderless).help(Text("Lock Vault"))
-                }
-            }
-
-            if model.isUnlocked {
-                let codes = model.items.filter(\.hasTOTP)
-                if !codes.isEmpty {
-                    Text("Verification Codes").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-                    TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                        VStack(spacing: 2) {
-                            ForEach(codes.prefix(6)) { item in
-                                if let totp = item.totp {
-                                    MenuRow(item: item, trailing: totp.displayCode(at: ctx.date)) {
-                                        model.copy(totp.code(), label: String(localized: "Code"))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                let favorites = model.items.filter { $0.favorite && $0.password != nil }
-                if !favorites.isEmpty {
-                    Text("Favorites").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-                    VStack(spacing: 2) {
-                        ForEach(favorites.prefix(5)) { item in
-                            MenuRow(item: item, trailing: nil) {
-                                if let pw = item.password { model.copy(pw, label: String(localized: "Password")) }
-                            }
-                        }
-                    }
-                }
-            } else {
-                Text("Vault locked").foregroundStyle(.secondary)
-            }
-
-            Divider()
-            HStack {
-                Button("Open Chiikawarden") {
-                    NSApp.activate()
-                    NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
-                }
-                Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
-            }
-            .buttonStyle(.borderless)
-            .font(.system(size: 12))
-        }
-        .padding(14)
-        .frame(width: 300)
-    }
-}
-
-private struct MenuRow: View {
-    let item: VaultItem
-    let trailing: String?
-    let action: () -> Void
-    @State private var hovered = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                ItemIcon(item: item, size: 22)
-                Text(item.name).font(.system(size: 13)).lineLimit(1)
-                Spacer()
-                if let trailing {
-                    Text(verbatim: trailing).font(.system(size: 13, weight: .medium, design: .monospaced))
-                } else {
-                    Image(systemName: "doc.on.doc").font(.system(size: 11)).foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 8).frame(height: 30)
-            .background(hovered ? Color.primary.opacity(0.07) : .clear, in: .rect(cornerRadius: 7))
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .onHover { hovered = $0 }
     }
 }

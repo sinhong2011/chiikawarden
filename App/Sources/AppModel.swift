@@ -87,7 +87,9 @@ final class AppModel {
             .allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty }
     }
 
-    var isUnlocked: Bool { phase.id == Phase.vault.id && !sessions.isEmpty }
+    var isUnlocked: Bool { phase.id == Phase.vault.id && (!sessions.isEmpty || previewUnlocked) }
+    /// Snapshots and `--demo`: treat demo items as an unlocked vault.
+    var previewUnlocked = false
 
     /// Most recent successful sync across accounts; nil while showing cached data only.
     var lastSynced: Date? { sessions.compactMap(\.lastSynced).max() }
