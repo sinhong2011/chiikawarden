@@ -60,6 +60,24 @@ final class AppModel {
     var promptingNewFolder = false
     /// Non-nil while the create/edit sheet is open.
     var editing: EditRequest?
+    /// The import or export sheet; an import may start with a file (dropped on the window).
+    var transfer: Transfer?
+
+    enum Transfer: Identifiable {
+        case export
+        case importFile(URL?)
+        var id: String {
+            switch self { case .export: "export"; case .importFile(let url): "import-" + (url?.path ?? "") }
+        }
+    }
+
+    func beginExport() { bringToFront(); transfer = .export }
+    func beginImport(_ url: URL? = nil) { bringToFront(); transfer = .importFile(url) }
+
+    /// Checks a master password offline (re-entry before an export).
+    func verifyMasterPassword(_ password: String, accountId: String) -> Bool {
+        AccountStore.unlock(accountId, password: password) != nil
+    }
     /// True while ⌥ is held: reveals masked fields.
     var optionHeld = false
     var isOnline: Bool { sessions.contains { $0.lastSynced != nil } }
@@ -154,7 +172,12 @@ final class AppModel {
 
     #if DEBUG
     /// Snapshot/demo only: pretend these accounts are saved.
-    func setPreviewAccounts(_ accounts: [SavedAccount]) { self.accounts = accounts; unlockTargetID = accounts.first?.id }
+    /// Previews, snapshots and `--demo`: in-memory accounts, no Touch ID (it would prompt for real).
+    func setPreviewAccounts(_ accounts: [SavedAccount]) {
+        self.accounts = accounts
+        unlockTargetID = accounts.first?.id
+        touchIDEnabled = false
+    }
     #endif
     func isUnlocked(_ accountId: String) -> Bool { session(for: accountId) != nil }
     func isTouchIDEnabled(_ accountId: String) -> Bool { AccountStore.isTouchIDEnabled(accountId) }
@@ -185,6 +208,14 @@ final class AppModel {
     var quickSearchNonce = 0
     /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
+    /// SwiftUI's `openSettings`, captured by the main window (it only exists inside a scene).
+    @ObservationIgnored var openSettingsAction: () -> Void = {}
+
+    /// Brings the app forward and opens Settings (from the menu bar, the palette, the account menu).
+    func showSettings() {
+        NSApp.activate()
+        openSettingsAction()
+    }
     /// Sidebar destination asked for from outside the vault view (palette commands).
     var requestedSection: SidebarSelection?
     var showingGenerator = false

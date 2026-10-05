@@ -99,6 +99,7 @@ struct GeneratorView: View {
                 .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
                 .contentTransition(.opacity)
                 .accessibilityLabel(Text(verbatim: value))
+                .accessibilityIdentifier("generatedValue")
             HStack(spacing: 12) {
                 if mode != .username {
                     let bits = mode == .password ? password.entropyBits : passphrase.entropyBits

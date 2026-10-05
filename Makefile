@@ -42,6 +42,10 @@ selftest-cloud: build ## Self-test against Bitwarden cloud with the account in .
 	@test -f .env || { echo "Create .env with BITWARDEN_ACCOUNT=… and BITWARDEN_PASSWORD=… (an empty test account)"; exit 64; }
 	@set -a; . ./.env; set +a; "$(BIN)" --selftest-cloud $(REGION) 2>/dev/null
 
+uitest: ## Click-through UI tests in --demo mode (quit any running Chiikawarden first)
+	@xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -allowProvisioningUpdates \
+		test -only-testing:ChiikawardenUITests 2>&1 | grep -E "\.swift:[0-9]+: error|' (passed|failed)|TEST (SUCCEEDED|FAILED)"
+
 snapshots: build ## Render UI snapshots (light + dark) into build/snapshots
 	@dir=$$("$(BIN)" --snapshot 2>/dev/null | tail -1); mkdir -p build/snapshots; cp "$$dir"/*.png build/snapshots/; \
 		echo "$$(ls build/snapshots | wc -l | tr -d ' ') images in build/snapshots"

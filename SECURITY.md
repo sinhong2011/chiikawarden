@@ -66,6 +66,22 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
 - **Edits** patch the server's own JSON and send `lastKnownRevisionDate`, so fields this app doesn't
   understand survive and concurrent edits are rejected rather than overwritten.
 
+## Import and export
+
+Formats match Bitwarden's official clients, so files move between them.
+
+| Export | What's in it | Protection |
+| --- | --- | --- |
+| Password-protected JSON (recommended) | Personal items, folders, passkeys, SSH keys | AES-256-CBC + HMAC-SHA256 with a key from your file password (PBKDF2-SHA256, 600,000 rounds, random salt). Decryptable by any Bitwarden client with that password. |
+| JSON | The same, in plain text | None. Anyone with the file can read everything. |
+| CSV | Logins and secure notes only | None. |
+
+- Exports cover the personal vault only. Organization items, Trash and attachments are left out, as in Bitwarden's export.
+- Exporting asks for the master password again (checked on the Mac, offline) and warns before any unencrypted format.
+- The file is written straight to the place chosen in the save panel with `0600` permissions, never to a temporary copy.
+- Imports are read only from the file you choose or drop on the window. Every item is encrypted on the Mac with your account key, then sent in one batch (`POST /api/ciphers/import`); nothing leaves unencrypted.
+- `DevServer/verify_export.py` decrypts a password-protected export with an implementation independent of the app.
+
 ## Threat model
 
 **In scope.** These are protected against:

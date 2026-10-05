@@ -271,6 +271,12 @@ public actor VaultClient {
         return created.id
     }
 
+    /// Imports many personal items at once (body from `VaultImport.requestBody`): ciphers, folders,
+    /// and which folder each cipher goes in. All fields are already encrypted.
+    public func importCiphers(_ body: Data) async throws(APIError) {
+        _ = try await sendRaw(authorized(post(environment.apiURL, "ciphers/import", jsonBody: body)))
+    }
+
     /// Replaces an item with a body from `CipherEditor.updatedCipher`.
     public func updateCipher(id: String, _ body: Data) async throws(APIError) {
         var r = try post(environment.apiURL, "ciphers/\(id)", jsonBody: body)

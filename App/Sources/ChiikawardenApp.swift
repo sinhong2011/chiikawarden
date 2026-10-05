@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultwardenAPI
 
 @main
 struct ChiikawardenApp: App {
@@ -17,6 +18,10 @@ struct ChiikawardenApp: App {
         if CommandLine.arguments.contains("--demo") {
             let demo = AppModel()
             demo.items = Snapshot.demoItems
+            // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
+            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@chiikawarden.test", serverKind: "selfHosted",
+                                                  serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
+                                                  protectedUserKey: "")])
             demo.previewUnlocked = true
             demo.phase = .vault
             _model = State(initialValue: demo)
@@ -91,6 +96,12 @@ struct ChiikawardenApp: App {
                 Button("Add Account…") { model.beginAddAccount() }
                     .disabled(!model.isUnlocked)
             }
+            CommandGroup(replacing: .importExport) {
+                Button("Import…") { model.beginImport() }
+                    .disabled(model.sessions.isEmpty)
+                Button("Export Vault…") { model.beginExport() }
+                    .disabled(model.sessions.isEmpty)
+            }
             CommandMenu("Item") {
                 let item = model.selectedItem
                 Button("Edit") { if let item { model.editing = EditRequest(mode: .edit(item)) } }
@@ -126,6 +137,7 @@ struct ChiikawardenApp: App {
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         @Bindable var model = model
@@ -146,6 +158,7 @@ struct RootView: View {
             }
         }
         .animation(.spring(duration: 0.5, bounce: 0.2), value: model.phase.id)
+        .onAppear { model.openSettingsAction = { openSettings() } }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
             get: { model.confirming != nil }, set: { if !$0 { model.confirming = nil } }), presenting: model.confirming) { request in

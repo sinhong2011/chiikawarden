@@ -148,6 +148,36 @@ final class AccountSession {
         return keyring?.key(for: cipher)
     }
 
+    // MARK: Import and export
+
+    /// The personal vault as a file in one of Bitwarden's export formats.
+    /// Uses the synced (still encrypted) payload, so the export matches the server exactly.
+    func export(_ format: VaultExport.Format, filePassword: String? = nil) throws -> (data: Data, skipped: Int) {
+        guard let cache = AccountStore.loadCache(account.id) else { throw WriteError.offline }
+        let vault = try VaultExport.plainVault(syncData: cache, userKey: userKey)
+        switch format {
+        case .json:
+            return (try VaultExport.json(folders: vault.folders, items: vault.items), 0)
+        case .encryptedJSON:
+            let plain = try VaultExport.json(folders: vault.folders, items: vault.items)
+            return (try VaultExport.passwordProtected(plain, password: filePassword ?? ""), 0)
+        case .csv:
+            return VaultExport.csv(folders: vault.folders, items: vault.items)
+        }
+    }
+
+    /// Reads an import file; account-encrypted Bitwarden exports from this account decrypt with its key.
+    func previewImport(_ data: Data, password: String?) throws(ImportError) -> ImportPreview {
+        try VaultImport.preview(data, password: password, accountKey: userKey)
+    }
+
+    /// Encrypts the chosen items here, sends them in one batch, then syncs.
+    func importItems(_ items: [ImportedItem], folders: [String]) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.importCiphers(VaultImport.requestBody(items: items, folders: folders, key: userKey))
+        try await refresh()
+    }
+
     // MARK: Send
 
     /// Creates a Send and returns its share link.

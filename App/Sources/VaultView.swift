@@ -193,6 +193,18 @@ struct VaultView: View {
             if show { section = .generator; model.showingGenerator = false }
         }
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .sheet(item: $model.transfer) { transfer in
+            switch transfer {
+            case .export: ExportSheet()
+            case .importFile(let url): ImportSheet(initialFile: url)
+            }
+        }
+        // Drop an export file (from any supported app) on the window to import it.
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first, ["csv", "json"].contains(url.pathExtension.lowercased()), !model.sessions.isEmpty else { return false }
+            model.beginImport(url)
+            return true
+        }
         .quickLookPreview($model.previewURL)
         .onChange(of: model.previewURL) { old, _ in
             if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
@@ -387,8 +399,11 @@ private struct SidebarAccountCard: View {
                     Button("Copy Server Address", systemImage: "doc.on.doc") { model.copy(host, label: String(localized: "Server")) }
                 }
                 Divider()
+                Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
+                Button("Export Vault…", systemImage: "square.and.arrow.up") { model.beginExport() }
+                Divider()
                 Button("Add Account…", systemImage: "person.badge.plus") { model.beginAddAccount() }
-                Button("Settings…", systemImage: "gearshape") { NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) }
+                Button("Settings…", systemImage: "gearshape") { model.showSettings() }
                 Divider()
                 Button("Lock Vault", systemImage: "lock") { model.lock() }
                 Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
@@ -412,6 +427,9 @@ private struct SidebarAccountCard: View {
                     Spacer(minLength: 0)
                 }
                 .contentShape(.rect)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Account"))
+                .accessibilityValue(Text(verbatim: email))
             }
             .menuStyle(.button)
             .buttonStyle(.plain)
@@ -886,7 +904,8 @@ struct ItemDetail: View {
                     toolbarButton("arrow.up.right.square", help: "Open website") { NSWorkspace.shared.open(url) }
                 }
                 if item.password != nil || item.fields.contains(where: \.secret) {
-                    toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)") {
+                    toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)",
+                                  spoken: reveal.wrappedValue ? "Hide" : "Reveal") {
                         withAnimation(.snappy) { reveal.wrappedValue.toggle() }
                     }
                 }
@@ -895,8 +914,8 @@ struct ItemDetail: View {
                 }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
-                toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
-                toolbarButton("trash", help: "Move to Trash (⌘⌫)") { model.confirmTrash(item) }
+                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit") { model.editing = EditRequest(mode: .edit(item)) }
+                toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash") { model.confirmTrash(item) }
             }
         }
         .padding(.horizontal, 3)
@@ -904,17 +923,19 @@ struct ItemDetail: View {
         .modifier(HeaderChrome(shape: .capsule))
     }
 
-    private func toolbarButton(_ symbol: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+    /// `spoken`: the VoiceOver label when the tooltip carries a shortcut hint, e.g. "Edit" for "Edit (⌘E)".
+    private func toolbarButton(_ symbol: String, help: LocalizedStringKey, spoken: LocalizedStringKey? = nil,
+                               action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 13, weight: .medium)).frame(width: 30, height: 26).contentShape(.rect)
         }
         .buttonStyle(HeaderIconStyle())
         .help(Text(help))
-        .accessibilityLabel(Text(help))
+        .accessibilityLabel(Text(spoken ?? help))
     }
 }
 
-/// Light: a white card with a faint brand wash. Dark: the deep navy card. Same layout in both.
+/// Light: a plain white card. Dark: the deep neutral card. Same layout in both.
 private struct HeroStyle {
     let dark: Bool
     var ink: Color { dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16) }
@@ -1005,12 +1026,8 @@ private struct HeroCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .onGeometryChange(for: Bool.self) { $0.size.width >= 460 } action: { tileRow = $0 }
         .background {
-            ZStack {
-                if style.dark { Color.hero } else { Color.panelStrong }
-                // A faint wash of the tail sky in the corner; quiet in dark mode so the card stays neutral.
-                RadialGradient(colors: [Color.brandFill.opacity(style.dark ? 0.14 : 0.18), .clear],
-                               center: UnitPoint(x: 0.95, y: -0.1), startRadius: 0, endRadius: 320)
-            }
+            // Plain surface, no colour wash.
+            (style.dark ? Color.hero : Color.panelStrong)
             .clipShape(.rect(cornerRadius: 24, style: .continuous))
         }
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -1126,6 +1143,7 @@ struct Monogram: View {
             .foregroundStyle(dark ? Color.brandFill : Color.onBrandFill)
             .frame(width: size, height: size)
             .background(Color.brandFill.opacity(dark ? 0.16 : 0.28), in: .rect(cornerRadius: size * 0.29, style: .continuous))
+            .accessibilityHidden(true) // decorative: the name is read next to it
     }
 }
 

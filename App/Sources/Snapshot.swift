@@ -107,6 +107,10 @@ enum Snapshot {
                 vault.rememberGenerated("k#9vR!2mWq$7zLp", kind: "password")
                 vault.rememberGenerated("usagi+k3x9q2ma@proton.me", kind: "username")
             }
+            render(desktop(ExportSheet().environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 500, height: 600), appearance: appearance, to: dir.appending(path: "export-\(name).png"))
+            render(desktop(ImportSheet().environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 520, height: 420), appearance: appearance, to: dir.appending(path: "import-\(name).png"))
             for (label, size) in [("", CGSize(width: 1120, height: 760)), ("-narrow", CGSize(width: 680, height: 900))] {
                 render(desktop(GeometryReader { geo in
                     ScrollView { GeneratorView().padding(28).frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top) }
@@ -605,6 +609,36 @@ enum SelfTest {
                 let note = model.items.first { $0.name == "Second-account note" }
                 check(created2 && note?.accountId == id2, "new item goes to the chosen account")
                 if let note { await model.deleteForever(note) }
+
+                // Import / export: account 1's vault, password-protected, imported into account 2; compare; clean up.
+                if let s1 = model.session(for: firstID), let s2 = model.session(for: id2) {
+                    do {
+                        let mine = model.items.filter { $0.accountId == firstID && !$0.isDeleted && $0.organizationId == nil }
+                        let file = try s1.export(.encryptedJSON, filePassword: "selftest-file").data
+                        check(!String(decoding: file, as: UTF8.self).contains(mine.first?.name ?? "\u{0}"), "protected export hides the vault")
+                        let preview = try s2.previewImport(file, password: "selftest-file")
+                        let beforeItems = Set(model.items.filter { $0.accountId == id2 }.map(\.id))
+                        let beforeFolders = Set(s2.folders.map(\.id))
+                        try await s2.importItems(preview.items, folders: preview.folders)
+                        let imported = model.items.filter { $0.accountId == id2 && !beforeItems.contains($0.id) }
+                        func identical(_ a: VaultItem, _ b: VaultItem) -> Bool {
+                            guard a.name == b.name, a.kind == b.kind, a.username == b.username, a.password == b.password else { return false }
+                            guard a.notes == b.notes, a.totp?.code() == b.totp?.code() else { return false }
+                            return a.customFields == b.customFields && a.properties == b.properties
+                        }
+                        let same = imported.count == mine.count && imported.allSatisfy { copy in mine.contains { identical($0, copy) } }
+                        check(same, "export → import round trip: \(imported.count) of \(mine.count) items identical")
+                        for item in imported { await model.deleteForever(item) }
+                        for folder in s2.folders where !beforeFolders.contains(folder.id) { try? await s2.deleteFolder(folder.id) }
+
+                        let csv = try VaultImport.preview(try s1.export(.csv).data)
+                        let csvKinds: Set<VaultItem.Kind> = [.login, .note]
+                        let expected = mine.filter { csvKinds.contains($0.kind) }.count
+                        check(csv.items.count == expected, "CSV export holds every login and note (\(csv.items.count))")
+                    } catch {
+                        check(false, "export → import round trip: \(error)")
+                    }
+                }
                 model.lock(id2)
                 check(model.isUnlocked && model.sessions.count == 1 && !model.items.contains { $0.accountId == id2 },
                       "lock one account, keep the other open")

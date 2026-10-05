@@ -206,13 +206,16 @@ struct CommandPalette: View {
                 PaletteCommand(id: "sync", title: String(localized: "Sync Now"), symbol: "arrow.triangle.2.circlepath", keywords: ["refresh"]) {
                     Task { try? await model.refresh() }
                 },
+                PaletteCommand(id: "import", title: String(localized: "Import…"), symbol: "square.and.arrow.down",
+                               keywords: ["csv", "json", "chrome", "safari", "firefox", "bitwarden"]) { model.beginImport() },
+                PaletteCommand(id: "export", title: String(localized: "Export Vault…"), symbol: "square.and.arrow.up",
+                               keywords: ["backup", "csv", "json"]) { model.beginExport() },
                 PaletteCommand(id: "lock", title: String(localized: "Lock Vault"), symbol: "lock", shortcut: "⇧⌘L") { model.lock() },
             ]
         }
         list.append(PaletteCommand(id: "settings", title: String(localized: "Settings…"), symbol: "gearshape", shortcut: "⌘,",
                                    keywords: ["preferences"]) {
-            NSApp.activate()
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            model.showSettings()
         })
         return list
     }

@@ -94,8 +94,7 @@ struct MenuBarContent: View {
             }
             footerButton("macwindow", help: "Open Chiikawarden") { model.bringToFront() }
             footerButton("gearshape", help: "Settings…") {
-                NSApp.activate()
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                model.showSettings()
             }
         }
         .padding(.horizontal, 8).padding(.top, 2).padding(.bottom, 2)
@@ -164,8 +163,6 @@ private struct FeaturedCard: View {
             }
             .padding(14)
             .background(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.92), in: .rect(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.brandFill.opacity(dark ? 0.3 : 0.5), lineWidth: 1))
-            .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0.3 : 0.08), radius: 10, y: 4)
             .padding(.horizontal, 4)
         }
     }

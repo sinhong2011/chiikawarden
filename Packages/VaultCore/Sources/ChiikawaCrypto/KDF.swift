@@ -47,6 +47,21 @@ public enum KDF {
         }
     }
 
+    /// A key from a password and a salt used exactly as given (no email normalisation), stretched for
+    /// encryption — Bitwarden's password-protected export key (`makePinKey(password, salt, kdf)`).
+    public static func passwordKey(password: String, salt: String, config: KDFConfig) throws(CryptoError) -> SymmetricKeyPair {
+        try config.validate()
+        let raw: Data
+        switch config {
+        case .pbkdf2(let iterations):
+            raw = try pbkdf2SHA256(password: Data(password.utf8), salt: Data(salt.utf8), iterations: iterations, length: 32)
+        case .argon2id(let iterations, let memoryMiB, let parallelism):
+            raw = try argon2id(password: Data(password.utf8), salt: Data(SHA256.hash(data: Data(salt.utf8))),
+                               iterations: iterations, memoryKiB: memoryMiB * 1024, parallelism: parallelism)
+        }
+        return try SymmetricKeyPair.stretched(masterKey: raw)
+    }
+
     /// The hash sent to the server as the login secret: PBKDF2(masterKey, password, 1).
     public static func masterPasswordHash(masterKey: Data, password: String) throws(CryptoError) -> String {
         try pbkdf2SHA256(password: masterKey, salt: Data(password.utf8), iterations: 1, length: 32)

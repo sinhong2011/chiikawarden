@@ -77,6 +77,34 @@
       },
       "shouldTranslate": false
     },
+    "%lld SSH keys": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH 鍵 %lld 件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 條 SSH 密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个 SSH 密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 把 SSH 密鑰"
+          }
+        }
+      }
+    },
     "%lld accounts": {
       "localizations": {
         "ja": {
@@ -105,6 +133,34 @@
         }
       }
     },
+    "%lld cards": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カード %lld 件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 張卡"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 张卡片"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 張卡片"
+          }
+        }
+      }
+    },
     "%lld characters": {
       "localizations": {
         "ja": {
@@ -129,6 +185,146 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 個字元"
+          }
+        }
+      }
+    },
+    "%lld entries can't be imported": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件は読み込めません"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 項資料匯入唔到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条数据无法导入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 筆資料無法匯入"
+          }
+        }
+      }
+    },
+    "%lld folders": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個のフォルダ"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個資料夾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个文件夹"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個資料夾"
+          }
+        }
+      }
+    },
+    "%lld identities": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID %lld 件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個身份"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个身份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個身分"
+          }
+        }
+      }
+    },
+    "%lld logins": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン %lld 件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個登入資料"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个登录信息"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 筆登入資料"
+          }
+        }
+      }
+    },
+    "%lld notes": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモ %lld 件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個備忘錄"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条备忘录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 則備忘錄"
           }
         }
       }
@@ -1400,6 +1596,34 @@
         }
       }
     },
+    "Attachments and items in Trash are not exported.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添付ファイルとゴミ箱の項目は書き出されません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附件同垃圾桶入面嘅項目唔會匯出。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附件和废纸篓中的项目不会导出。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附件與垃圾桶中的項目不會匯出。"
+          }
+        }
+      }
+    },
     "AutoFill": {
       "localizations": {
         "ja": {
@@ -1544,6 +1768,34 @@
     "Bitwarden": {
       "shouldTranslate": false
     },
+    "Bitwarden CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden CSV"
+          }
+        }
+      }
+    },
     "Bitwarden EU": {
       "localizations": {
         "ja": {
@@ -1568,6 +1820,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bitwarden 歐盟"
+          }
+        }
+      }
+    },
+    "Bitwarden JSON": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON"
+          }
+        }
+      }
+    },
+    "Bitwarden JSON or CSV · browser CSV exports": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden の JSON・CSV · ブラウザの CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON 或 CSV · 瀏覽器匯出嘅 CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON 或 CSV · 浏览器导出的 CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON 或 CSV · 瀏覽器匯出的 CSV"
+          }
+        }
+      }
+    },
+    "Bitwarden JSON, encrypted with your account": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON（アカウントで暗号化）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，用你嘅帳戶加密"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，使用你的账户加密"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，以你的帳號加密"
+          }
+        }
+      }
+    },
+    "Bitwarden JSON, password-protected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON（パスワード保護）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，密碼保護"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，密码保护"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden JSON，密碼保護"
           }
         }
       }
@@ -1680,6 +2044,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "瀏覽器延伸功能"
+          }
+        }
+      }
+    },
+    "CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV"
           }
         }
       }
@@ -2300,6 +2692,34 @@
         }
       }
     },
+    "Choose a file, or drop it here": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルを選ぶか、ここにドロップ"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "揀檔案，或者拖落嚟呢度"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择文件，或拖放到这里"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇檔案，或拖放到這裡"
+          }
+        }
+      }
+    },
     "Choose where your vault lives.": {
       "localizations": {
         "ja": {
@@ -2380,6 +2800,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chrome、Edge、Brave"
+          }
+        }
+      }
+    },
+    "Chrome, Edge, Brave or Arc CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome・Edge・Brave・Arc の CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome、Edge、Brave 或 Arc CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome、Edge、Brave 或 Arc CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome、Edge、Brave 或 Arc CSV"
           }
         }
       }
@@ -2829,6 +3277,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "公司"
+          }
+        }
+      }
+    },
+    "Confirm file password": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルのパスワードを確認"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認檔案密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认文件密码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認檔案密碼"
+          }
+        }
+      }
+    },
+    "Confirm it's you": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人確認"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認係你本人"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认是你本人"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認是你本人"
           }
         }
       }
@@ -3421,6 +3925,34 @@
         }
       }
     },
+    "Couldn't open that file.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そのファイルを開けませんでした。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打唔開嗰個檔案。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开该文件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法打開該檔案。"
+          }
+        }
+      }
+    },
     "Couldn't reach Have I Been Pwned. Try again later.": {
       "localizations": {
         "ja": {
@@ -3445,6 +3977,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法連線到 Have I Been Pwned，請稍後再試。"
+          }
+        }
+      }
+    },
+    "Couldn't read the vault. Sync, then try again.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫を読み取れませんでした。同期してからもう一度お試しください。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讀唔到密碼庫。請先同步再試。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取密码库。请先同步再试一次。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取密碼庫。請先同步再試一次。"
+          }
+        }
+      }
+    },
+    "Couldn't save the file there.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その場所にファイルを保存できませんでした。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存唔到檔案喺嗰度。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法将文件保存到该位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法將檔案儲存在該位置。"
           }
         }
       }
@@ -4318,6 +4906,34 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
     "Drop files here to attach them, encrypted.": {
       "localizations": {
         "ja": {
@@ -4482,6 +5098,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "電子郵件"
+          }
+        }
+      }
+    },
+    "Encrypted on this Mac before anything is sent.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信前にすべてこの Mac で暗号化されます。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有資料都會喺呢部 Mac 加密咗先傳送。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有数据都会先在这台 Mac 上加密再发送。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有資料都會先在這台 Mac 上加密才傳送。"
+          }
+        }
+      }
+    },
+    "Encrypted with a password you choose. Recommended: Bitwarden and Chiikawarden can import it on any device.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選んだパスワードで暗号化します。おすすめ：Bitwarden と Chiikawarden ならどのデバイスでも読み込めます。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用你揀嘅密碼加密。建議使用：Bitwarden 同 Chiikawarden 喺任何裝置都匯入到。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用你设定的密码加密。推荐：Bitwarden 和 Chiikawarden 在任何设备上都能导入。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以你設定的密碼加密。建議使用：Bitwarden 和 Chiikawarden 在任何裝置上都能匯入。"
+          }
+        }
+      }
+    },
+    "Encrypting and importing…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暗号化して読み込んでいます…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加密緊同匯入緊⋯"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加密并导入…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加密並匯入⋯"
           }
         }
       }
@@ -4739,6 +5439,34 @@
         }
       }
     },
+    "Everything, readable by any app: logins, notes, cards, identities, SSH keys, passkeys and folders.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて、どのアプリでも読めます：ログイン、メモ、カード、ID、SSH 鍵、パスキー、フォルダ。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部內容，任何 App 都讀到：登入資料、備忘錄、卡、身份、SSH 密鑰、通行密鑰同資料夾。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部内容，任何应用都能读取：登录信息、备忘录、卡片、身份、SSH 密钥、通行密钥和文件夹。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部內容，任何 App 都能讀取：登入資料、備忘錄、卡片、身分、SSH 密鑰、通行密鑰和資料夾。"
+          }
+        }
+      }
+    },
     "Expire earlier": {
       "localizations": {
         "ja": {
@@ -4819,6 +5547,146 @@
           "stringUnit": {
             "state": "translated",
             "value": "到期日"
+          }
+        }
+      }
+    },
+    "Export Vault": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫を書き出す"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出密碼庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出密码库"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出密碼庫"
+          }
+        }
+      }
+    },
+    "Export Vault…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫を書き出す…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出密碼庫⋯"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出密码库…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出密碼庫⋯"
+          }
+        }
+      }
+    },
+    "Exported %lld items": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件を書き出しました"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯出 %lld 個項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导出 %lld 个项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯出 %lld 個項目"
+          }
+        }
+      }
+    },
+    "Exported %lld items · %lld not supported by CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件を書き出しました · %lld 件は CSV 非対応"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯出 %lld 個項目 · %lld 個 CSV 唔支援"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导出 %lld 个项目 · %lld 个 CSV 不支持"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯出 %lld 個項目 · %lld 個 CSV 不支援"
+          }
+        }
+      }
+    },
+    "Export…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き出す…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出⋯"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出⋯"
           }
         }
       }
@@ -4991,6 +5859,34 @@
         }
       }
     },
+    "File password": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルのパスワード"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件密码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案密碼"
+          }
+        }
+      }
+    },
     "Fill": {
       "localizations": {
         "ja": {
@@ -5099,6 +5995,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "指紋"
+          }
+        }
+      }
+    },
+    "Firefox CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox の CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox CSV"
           }
         }
       }
@@ -5239,6 +6163,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "忘記密碼？"
+          }
+        }
+      }
+    },
+    "Format": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式"
+          }
+        }
+      }
+    },
+    "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitwarden、Chrome、Edge、Brave、Arc、Safari、Apple のパスワード、Firefox から読み込めます。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以由 Bitwarden、Chrome、Edge、Brave、Arc、Safari、Apple「密碼」或 Firefox 匯入。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可从 Bitwarden、Chrome、Edge、Brave、Arc、Safari、Apple“密码”或 Firefox 导入。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可從 Bitwarden、Chrome、Edge、Brave、Arc、Safari、Apple「密碼」或 Firefox 匯入。"
           }
         }
       }
@@ -5804,6 +6784,118 @@
         }
       }
     },
+    "Import": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込む"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入"
+          }
+        }
+      }
+    },
+    "Import %lld Items": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件を読み込む"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入 %lld 個項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入 %lld 个项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入 %lld 個項目"
+          }
+        }
+      }
+    },
+    "Imported %lld items": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件を読み込みました"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯入 %lld 個項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导入 %lld 个项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已匯入 %lld 個項目"
+          }
+        }
+      }
+    },
+    "Import…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込む…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入⋯"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入⋯"
+          }
+        }
+      }
+    },
     "In Trash. Restore it to use it again, or delete it forever.": {
       "localizations": {
         "ja": {
@@ -6000,6 +7092,34 @@
         }
       }
     },
+    "Item %lld: unknown item type": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目 %lld：不明な種類"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 個項目：唔知咩類型"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 个项目：未知的项目类型"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 個項目：未知的項目類型"
+          }
+        }
+      }
+    },
     "Item created": {
       "localizations": {
         "ja": {
@@ -6052,6 +7172,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "項目"
+          }
+        }
+      }
+    },
+    "JSON": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON"
           }
         }
       }
@@ -6584,6 +7732,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "登入資料"
+          }
+        }
+      }
+    },
+    "Logins and secure notes only, for spreadsheets and other password managers.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログインとセキュアメモのみ。表計算や他のパスワードマネージャ向け。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只包括登入資料同安全備忘錄，適合試算表同其他密碼管理工具。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅包含登录信息和安全备忘录，适用于电子表格和其他密码管理器。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只包含登入資料與安全備忘錄，適用於試算表和其他密碼管理工具。"
           }
         }
       }
@@ -9309,6 +10485,34 @@
         }
       }
     },
+    "Password-protected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスワード保護"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密碼保護"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码保护"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密碼保護"
+          }
+        }
+      }
+    },
     "Passwords, passkeys, codes and SSH keys — native on your Mac.": {
       "localizations": {
         "ja": {
@@ -10096,6 +11300,34 @@
         }
       }
     },
+    "Row %lld: “%@” items can't be imported from CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 行目：「%@」の項目は CSV から読み込めません"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 行：CSV 匯入唔到「%@」類項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 行：无法从 CSV 导入“%@”类项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 列：無法從 CSV 匯入「%@」類項目"
+          }
+        }
+      }
+    },
     "SSH": {
       "extractionState": "stale",
       "localizations": {
@@ -10321,6 +11553,34 @@
         }
       }
     },
+    "Safari or Apple Passwords CSV": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari・Apple のパスワードの CSV"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari 或 Apple「密碼」CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari 或 Apple“密码”CSV"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari 或 Apple「密碼」CSV"
+          }
+        }
+      }
+    },
     "Safari: turn on Chiikawarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run cw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first.": {
       "localizations": {
         "ja": {
@@ -10345,6 +11605,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Safari：在 Safari › 設定 › 延伸功能中開啟 Chiikawarden。Chromium 瀏覽器：以「載入未封裝項目」載入資料夾，再執行 cw install-chrome <延伸功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先詢問你。"
+          }
+        }
+      }
+    },
+    "Same name, username and website as an item you already have.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既存の項目と名前・ユーザ名・Web サイトが同じです。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名稱、用戶名同網站都同現有項目一樣。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称、用户名和网站都与现有项目相同。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名稱、使用者名稱與網站都和現有項目相同。"
           }
         }
       }
@@ -11498,6 +12786,34 @@
         }
       }
     },
+    "Skip %lld likely duplicates": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重複と思われる %lld 件をスキップ"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳過 %lld 個可能重複嘅項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过 %lld 个可能重复的项目"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "略過 %lld 個可能重複的項目"
+          }
+        }
+      }
+    },
     "State / Province": {
       "localizations": {
         "ja": {
@@ -11891,6 +13207,34 @@
         }
       }
     },
+    "That file password isn't right.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルのパスワードが違います。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案密碼唔啱。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件密码不正确。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案密碼不正確。"
+          }
+        }
+      }
+    },
     "That item has no one-time code.": {
       "localizations": {
         "ja": {
@@ -11975,6 +13319,34 @@
         }
       }
     },
+    "That master password isn't right.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マスターパスワードが違います。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主密碼唔啱。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主密码不正确。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主密碼不正確。"
+          }
+        }
+      }
+    },
     "The account and its saved vault are removed from this Mac. Your vault stays on the server.": {
       "localizations": {
         "ja": {
@@ -12027,6 +13399,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "檔案會從你所有裝置上的保險庫中移除。"
+          }
+        }
+      }
+    },
+    "The import didn't go through: %@": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込みに失敗しました：%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入失敗：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入失败：%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入失敗：%@"
           }
         }
       }
@@ -12087,6 +13487,34 @@
         }
       }
     },
+    "The passwords don't match.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスワードが一致しません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兩次輸入嘅密碼唔一樣。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两次输入的密码不一致。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兩次輸入的密碼不一致。"
+          }
+        }
+      }
+    },
     "The server sent unsafe key-derivation settings. Login was stopped.": {
       "localizations": {
         "ja": {
@@ -12139,6 +13567,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "這裡列出的值會被清除，已儲存的項目不受影響。"
+          }
+        }
+      }
+    },
+    "There's nothing to import in this file.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このファイルには読み込めるものがありません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "呢個檔案冇嘢可以匯入。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文件中没有可导入的内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這個檔案中沒有可匯入的內容。"
           }
         }
       }
@@ -12279,6 +13735,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "此動作無法復原。"
+          }
+        }
+      }
+    },
+    "This file is encrypted with another account's key. Import it into that account, or export it again as password-protected.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このファイルは別のアカウントの鍵で暗号化されています。そのアカウントに読み込むか、パスワード保護で書き出し直してください。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "呢個檔案係用另一個帳戶嘅密鑰加密。請匯入去嗰個帳戶，或者用密碼保護格式重新匯出。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文件使用另一个账户的密钥加密。请导入到该账户，或重新以密码保护格式导出。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這個檔案是用另一個帳號的密鑰加密的。請匯入到該帳號，或重新以密碼保護格式匯出。"
+          }
+        }
+      }
+    },
+    "This file is not encrypted. Anyone who gets it can read every password in it. Delete it when you're done.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このファイルは暗号化されません。入手した人は誰でもすべてのパスワードを読めます。使い終わったら削除してください。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "呢個檔案冇加密，任何人攞到都睇得到入面所有密碼。用完記得刪除。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文件未加密，任何拿到它的人都能读取其中所有密码。用完请删除。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這個檔案沒有加密，任何拿到它的人都能讀取其中所有密碼。用完請刪除。"
+          }
+        }
+      }
+    },
+    "This file isn't in a format Chiikawarden can import.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このファイル形式は Chiikawarden で読み込めません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 匯入唔到呢種格式嘅檔案。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 无法导入这种格式的文件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 無法匯入這種格式的檔案。"
           }
         }
       }
@@ -14255,6 +15795,34 @@
         }
       }
     },
+    "Your personal items and folders, in a file any Bitwarden app can import.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人の項目とフォルダを、どの Bitwarden アプリでも読み込めるファイルにします。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你嘅個人項目同資料夾，存成任何 Bitwarden App 都匯入到嘅檔案。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的个人项目和文件夹，存为任何 Bitwarden 应用都能导入的文件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的個人項目與資料夾，存成任何 Bitwarden App 都能匯入的檔案。"
+          }
+        }
+      }
+    },
     "^[%lld issue](inflect: true)": {
       "localizations": {
         "ja": {
@@ -15103,6 +16671,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "「%@」超過 500 MB。"
+          }
+        }
+      }
+    },
+    "“%@” is password-protected": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」はパスワードで保護されています"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」有密碼保護"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”受密码保护"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」受密碼保護"
           }
         }
       }
