@@ -33,6 +33,13 @@ struct VaultView: View {
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
     @State private var chip: Chip = .all
+    /// Window width, to adapt from three columns down to a single phone-width column.
+    @State private var width: CGFloat = 1120
+    @State private var columns = NavigationSplitViewVisibility.all
+    /// Single-column mode: showing an item's detail instead of the list.
+    @State private var compactDetail = false
+
+    private var singleColumn: Bool { width < 640 }
 
     enum Chip: CaseIterable { case all, twoFactor, favorites
         var title: LocalizedStringKey {
@@ -55,7 +62,7 @@ struct VaultView: View {
 
     var body: some View {
         @Bindable var model = model
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
@@ -72,24 +79,44 @@ struct VaultView: View {
                         model.selectedID = item.id
                     }
                 } else {
-                Group {
-                    if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
-                        AccountUnlockPane(account: account)
-                    } else {
-                        ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { model.selectedID = $0 }), query: $query, chip: $chip)
+                if !singleColumn || !compactDetail || model.selectedItem == nil {
+                    Group {
+                        if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
+                            AccountUnlockPane(account: account)
+                        } else {
+                            ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
+                                model.selectedID = id
+                                if singleColumn, id != nil { compactDetail = true }
+                            }), query: $query, chip: $chip)
+                        }
                     }
+                    .frame(width: singleColumn ? nil : 300)
+                    .frame(maxWidth: singleColumn ? .infinity : nil)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
                 }
-                    .frame(width: 300)
-                Group {
-                    if let item = model.selectedItem {
-                        ItemDetail(item: item)
-                            .id(item.id)
-                            .transition(.opacity.combined(with: .offset(y: 8)))
-                    } else {
-                        ContentUnavailableView("No Item Selected", systemImage: "key.viewfinder")
+                if !singleColumn || (compactDetail && model.selectedItem != nil) {
+                    Group {
+                        if let item = model.selectedItem {
+                            VStack(alignment: .leading, spacing: 0) {
+                                if singleColumn {
+                                    Button { compactDetail = false } label: {
+                                        Label("Back", systemImage: "chevron.left").font(.system(size: 13, weight: .medium))
+                                    }
+                                    .buttonStyle(.appSecondarySmall)
+                                    .keyboardShortcut("[", modifiers: .command)
+                                    .padding(.leading, 8).padding(.bottom, 6)
+                                }
+                                ItemDetail(item: item)
+                                    .id(item.id)
+                                    .transition(.opacity.combined(with: .offset(y: 8)))
+                            }
+                        } else {
+                            ContentUnavailableView("No Item Selected", systemImage: "key.viewfinder")
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .padding(8)
@@ -99,7 +126,7 @@ struct VaultView: View {
                 // Search and + live in the header, over the item list (Liquid layout).
                 ToolbarItem(placement: .navigation) {
                     HStack(spacing: 8) {
-                        PaletteTrigger().frame(width: 228)
+                        PaletteTrigger().frame(width: width < 560 ? 150 : 228)
                         NewItemButton()
                     }
                 }
@@ -116,6 +143,17 @@ struct VaultView: View {
             }
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
+        .animation(.snappy(duration: 0.25), value: compactDetail)
+        .animation(.snappy(duration: 0.25), value: singleColumn)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { new in
+            let old = width
+            width = new
+            // Fold the sidebar away as the window narrows; bring it back when it widens again.
+            if new < 900, old >= 900 { columns = .detailOnly }
+            if new >= 900, old < 900 { columns = .all }
+            if new >= 640 { compactDetail = false }
+        }
+        .onChange(of: section) { compactDetail = false }
         // When the selected item leaves the list (trashed, restored, deleted, filtered out), select its neighbour
         // so the list and the detail never disagree.
         .onChange(of: filtered.map(\.id)) { old, new in
@@ -858,6 +896,7 @@ private struct HeroCard: View {
     @Environment(\.colorScheme) private var scheme
     let item: VaultItem
     @Binding var reveal: Bool
+    @State private var tileRow = true
 
     var body: some View {
         let style = HeroStyle(dark: scheme == .dark)
@@ -873,16 +912,16 @@ private struct HeroCard: View {
                 }
             }
 
-            // Tiles share one height: the row sizes to the tallest, each tile fills it.
-            HStack(alignment: .top, spacing: 10) {
+            // Tiles share one height: the row sizes to the tallest, each tile fills it. Stacked when the card is narrow.
+            (tileRow ? AnyLayout(HStackLayout(alignment: .top, spacing: 10)) : AnyLayout(VStackLayout(spacing: 10))) {
                 if let password = item.password {
                     Tile(style: style) {
                         model.copy(password, label: String(localized: "Password"))
                     } content: {
                         let strength = StrengthMeter(password: password).level
                         HStack {
-                            Text("Password · click to copy")
-                            Spacer()
+                            Text("Password · click to copy").lineLimit(1)
+                            Spacer(minLength: 6)
                             Text(strength.1)
                         }
                         .font(.system(size: 12)).foregroundStyle(style.muted)
@@ -927,6 +966,7 @@ private struct HeroCard: View {
         .foregroundStyle(style.ink)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .onGeometryChange(for: Bool.self) { $0.size.width >= 640 } action: { tileRow = $0 }
         .background {
             ZStack {
                 if style.dark { Color.hero } else { Color.panelStrong }
@@ -1197,11 +1237,10 @@ struct HeaderChrome: ViewModifier {
         let edge = dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)
         Group {
             switch shape {
-            case .capsule: content.background(fill, in: .capsule).overlay(Capsule().strokeBorder(edge))
-            case .circle: content.background(fill, in: .circle).overlay(Circle().strokeBorder(edge))
+            case .capsule: content.background(fill, in: .capsule).overlay(Capsule().strokeBorder(edge, lineWidth: 0.5))
+            case .circle: content.background(fill, in: .circle).overlay(Circle().strokeBorder(edge, lineWidth: 0.5))
             }
         }
-        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0 : 0.08), radius: 6, y: 2)
     }
 }
 

@@ -16,8 +16,8 @@ struct BrandStage: View {
             let t = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
             GeometryReader { geo in
                 let size = geo.size
-                let d = min(size.width * 0.84, size.height * 0.62, 440)
-                let center = CGPoint(x: size.width * 0.5, y: size.height * 0.44)
+                let d = min(size.width * 0.84, size.height * 0.56, 440)
+                let center = CGPoint(x: size.width * 0.5, y: size.height * 0.40)
                 ZStack {
                     // Fades out on the right so the stage melts into the window backdrop (no hard seam).
                     palette.background
@@ -51,20 +51,13 @@ struct BrandStage: View {
                         .shadow(color: Color.brandFill.opacity(0.7), radius: d * 0.06, y: d * 0.015)
                         .position(center)
 
-                    HStack(spacing: 9) {
-                        VaultMark(palette: palette).frame(width: 22, height: 22)
-                        Text(verbatim: "Chiikawarden")
-                            .font(.system(size: 15, weight: .semibold))
-                            .tracking(-0.2)
-                            .foregroundStyle(palette.ink)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(Text(verbatim: "Chiikawarden"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.leading, 36)
-                    .padding(.top, 56) // clear of the window buttons
-
                     VStack(alignment: .leading, spacing: 8) {
+                        // The name leads the tagline, so the brand reads as one block at the bottom.
+                        Text(verbatim: "Chiikawarden")
+                            .font(.system(size: 20, weight: .semibold))
+                            .tracking(-0.3)
+                            .foregroundStyle(palette.brand)
+                            .padding(.bottom, 4)
                         Text("Every login,\nin one quiet orbit.")
                             .font(.system(size: 26, weight: .semibold))
                             .tracking(-0.4)

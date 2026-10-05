@@ -23,6 +23,49 @@ struct UnlockView: View {
     }
 }
 
+/// Which vault is being unlocked: avatar, email and server, as a quiet card.
+private struct LockedAccountCard: View {
+    let account: SavedAccount
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Monogram(name: account.email, size: 36)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                Label {
+                    Text(verbatim: account.serverSummary).lineLimit(1).truncationMode(.middle)
+                } icon: {
+                    Image(systemName: account.environment?.isOfficialCloud == true ? "cloud" : "server.rack")
+                }
+                .labelStyle(TightLabel())
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "lock.fill").font(.system(size: 11)).foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .modifier(SoftCard())
+        .accessibilityElement(children: .combine)
+    }
+
+    private struct TightLabel: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack(spacing: 4) { configuration.icon; configuration.title }
+        }
+    }
+}
+
+/// The unlock screen's card surface (account, Touch ID): translucent white, hairline edge, no shadow.
+private struct SoftCard: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    func body(content: Content) -> some View {
+        let dark = scheme == .dark
+        content
+            .background(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.6), in: .rect(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.06)))
+    }
+}
+
 private struct UnlockForm: View {
     @Environment(AppModel.self) private var model
     @State private var password = ""
@@ -32,17 +75,22 @@ private struct UnlockForm: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
-                if model.accounts.count <= 1, let account = model.unlockTarget {
-                    HStack(spacing: 6) {
-                        Monogram(name: account.email, size: 18)
-                        Text(verbatim: account.email).fontWeight(.medium)
-                        Text(verbatim: "·").foregroundStyle(.tertiary)
-                        Text(verbatim: account.serverSummary).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                    .font(.system(size: 13))
+            VStack(alignment: .leading, spacing: 14) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.brand)
+                    .frame(width: 44, height: 44)
+                    .background(Color.brandFill.opacity(0.22), in: .circle)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
+                    Text("Enter your master password to continue.")
+                        .font(.system(size: 13)).foregroundStyle(.secondary)
                 }
+            }
+
+            if model.accounts.count <= 1, let account = model.unlockTarget {
+                LockedAccountCard(account: account)
             }
 
             if model.accounts.count > 1 {
@@ -173,8 +221,7 @@ private struct InlineTouchID: View {
                 .help(Text("Try Touch ID again"))
         }
         .padding(14)
-        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+        .modifier(SoftCard())
         .task(id: attempt) {
             // A fresh context per attempt; the embedded view shows its prompt inline.
             let fresh = LAContext()

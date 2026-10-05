@@ -68,6 +68,12 @@ enum Snapshot {
                    size: CGSize(width: 900, height: 560), appearance: appearance, to: dir.appending(path: "codes-\(name).png"))
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-\(name).png"))
+            for w in [760, 400] {
+                renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
+                             appearance: appearance, to: dir.appending(path: "window-\(w)-\(name).png"))
+            }
+            renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
+                         appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
@@ -164,7 +170,7 @@ enum Snapshot {
     }
 
     /// Paints the window base, which `containerBackground` provides in the real window.
-    private static func desktop(_ view: some View, dark: Bool) -> some View {
+    static func desktop(_ view: some View, dark: Bool) -> some View {
         ZStack {
             WindowBackdrop()
             view

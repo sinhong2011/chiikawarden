@@ -110,6 +110,7 @@ final class AppModel {
         Self.current = self
         sshAgent = SSHAgentService(model: self)
         let tooling = CommandLine.arguments.contains { $0 == "--selftest" || $0 == "--snapshot" }
+            || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" // Xcode canvas
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         cli = CLIBridge(model: self)
         if !tooling { cli.refreshRunning(); updates.schedule() }
