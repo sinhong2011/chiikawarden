@@ -154,7 +154,7 @@ enum Snapshot {
     /// Paints the window base, which `containerBackground` provides in the real window.
     private static func desktop(_ view: some View, dark: Bool) -> some View {
         ZStack {
-            Color.windowBase
+            WindowBackdrop()
             view
         }
     }

@@ -90,7 +90,7 @@ struct VaultView: View {
                 }
             }
             .padding(8)
-            .background(Color.windowBase)
+            .background(WindowBackdrop())
             .toolbar(removing: .title)
             .toolbar {
                 ToolbarItem(placement: .principal) {

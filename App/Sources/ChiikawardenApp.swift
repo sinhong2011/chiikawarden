@@ -44,8 +44,8 @@ struct ChiikawardenApp: App {
                         hotKey = GlobalHotKey { controller.toggle() }
                     }
                 }
-                // Solid soft base from the spec (light lavender-gray / deep graphite); no glass.
-                .containerBackground(Color.windowBase, for: .window)
+                // Soft pastel wash from the Liquid design under every screen.
+                .containerBackground(for: .window) { WindowBackdrop() }
         }
         .windowStyle(.hiddenTitleBar)
 
