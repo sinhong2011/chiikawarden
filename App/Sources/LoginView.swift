@@ -36,6 +36,10 @@ private struct LoginForm: View {
     @FocusState private var focus: Field?
 
     enum Field { case server, email, password, code }
+    private var passwordFocus: Binding<Bool> {
+        Binding(get: { focus == .password }, set: { if $0 { focus = .password } else if focus == .password { focus = nil } })
+    }
+
     private enum Step: Equatable { case credentials, authenticator, emailCode, ssoPassword }
 
     private var step: Step {
@@ -94,9 +98,7 @@ private struct LoginForm: View {
                             .focused($focus, equals: .email)
                     }
                     LabeledField("Master password", accessory: { ForgotPasswordButton(email: model.email) }) {
-                        SecureField("Master password", text: $password, prompt: Text(verbatim: ""))
-                            .textContentType(.password)
-                            .focused($focus, equals: .password)
+                        PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
                     }
                 }
                 .textFieldStyle(SoftFieldStyle())
@@ -110,9 +112,7 @@ private struct LoginForm: View {
                 }
             } else if step == .ssoPassword {
                 LabeledField("Master password") {
-                    SecureField("Master password", text: $password, prompt: Text(verbatim: ""))
-                        .textContentType(.password)
-                        .focused($focus, equals: .password)
+                    PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
                 }
                 .textFieldStyle(SoftFieldStyle())
             } else {
@@ -226,26 +226,6 @@ struct PrimaryButtonStyle: ButtonStyle {
 }
 
 /// Quiet filled field: subtle fill, hairline border, accent ring on focus.
-struct SoftFieldStyle: TextFieldStyle {
-    var height: CGFloat = 38
-    @FocusState private var focused: Bool
-
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .textFieldStyle(.plain)
-            .focused($focused)
-            .padding(.horizontal, 12)
-            .frame(height: height)
-            .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder(focused ? Color.brand : Color(nsColor: .separatorColor), lineWidth: focused ? 1.5 : 1)
-            )
-            .shadow(color: focused ? Color.brand.opacity(0.18) : .clear, radius: 4)
-            .animation(.easeOut(duration: 0.15), value: focused)
-    }
-}
-
 private struct LabeledField<Accessory: View, Content: View>: View {
     let label: LocalizedStringKey
     let accessory: Accessory

@@ -55,11 +55,7 @@ private struct UnlockForm: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Master password").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                SecureField("Master password", text: $password, prompt: Text(verbatim: ""))
-                    .textFieldStyle(SoftFieldStyle())
-                    .textContentType(.password)
-                    .focused($focused)
-                    .labelsHidden()
+                PasswordField(title: "Master password", text: $password, isFocused: $focused.wrappedBinding)
                     .modifier(Shake(trigger: shake))
             }
 

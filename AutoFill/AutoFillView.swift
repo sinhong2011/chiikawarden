@@ -298,12 +298,10 @@ private struct UnlockPane: View {
                 }
                 .controlSize(.large)
             }
-            SecureField("Master password", text: $password)
-                .textFieldStyle(.roundedBorder)
-                .controlSize(.large)
-                .focused($focused)
-                .frame(width: 280)
-                .onSubmit { Task { await state.unlock(password: password) } }
+            PasswordField(title: "Master password", text: $password, isFocused: $focused.wrappedBinding) {
+                Task { await state.unlock(password: password) }
+            }
+            .frame(width: 280)
             if let error = state.error {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }

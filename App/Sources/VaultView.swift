@@ -1013,10 +1013,8 @@ private struct AccountUnlockPane: View {
             if model.isTouchIDEnabled(account.id) {
                 Button { Task { await model.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid") }
             }
-            SecureField("Master password", text: $password)
-                .textFieldStyle(SoftFieldStyle())
-                .frame(width: 240)
-                .onSubmit { submit() }
+            PasswordField(title: "Master password", text: $password, onSubmit: submit)
+                .frame(width: 260)
             if let error = model.errorMessage {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }

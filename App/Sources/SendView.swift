@@ -275,7 +275,10 @@ struct NewSendSheet: View {
                     if limitViews { Stepper("Up to \(maxViews) view(s)", value: $maxViews, in: 1...100) }
                 }
                 Section("Protection") {
-                    SecureField("Password (optional)", text: $password)
+                    LabeledContent("Password (optional)") {
+                        PasswordField(title: "Password (optional)", text: $password, look: .plain, prompt: Text("None"))
+                            .multilineTextAlignment(.trailing)
+                    }
                     Toggle("Hide my email address from recipients", isOn: $hideEmail)
                     TextField("Private notes", text: $notes, prompt: Text("Only you see these"))
                 }

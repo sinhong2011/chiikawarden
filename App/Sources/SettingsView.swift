@@ -407,7 +407,7 @@ private struct ServerSettings: View {
                 ForEach($headers) { $header in
                     HStack {
                         TextField("Name", text: $header.name, prompt: Text(verbatim: "CF-Access-Client-Id"))
-                        SecureField("Value", text: $header.value, prompt: Text("Value"))
+                        PasswordField(title: "Value", text: $header.value, look: .plain, prompt: Text("Value"))
                         Button(role: .destructive) { headers.removeAll { $0.id == header.id } } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                             .buttonStyle(.borderless)
                             .help(Text("Remove"))
