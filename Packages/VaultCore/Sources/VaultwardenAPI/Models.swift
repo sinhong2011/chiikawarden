@@ -35,11 +35,13 @@ public struct TokenResponse: Decodable, Sendable {
 public struct TokenErrorResponse: Decodable, Sendable {
     public let error: String?
     public let errorDescription: String?
+    public let message: String?
     public let twoFactorProviders: [String]?
 
     enum CodingKeys: String, CodingKey {
         case error
         case errorDescription = "error_description"
+        case message
         case twoFactorProviders
     }
 
@@ -47,6 +49,7 @@ public struct TokenErrorResponse: Decodable, Sendable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         error = try c.decodeIfPresent(String.self, forKey: .error)
         errorDescription = try c.decodeIfPresent(String.self, forKey: .errorDescription)
+        message = try c.decodeIfPresent(String.self, forKey: .message)
         // Provider ids arrive as strings or ints depending on server version.
         if let ints = try? c.decodeIfPresent([Int].self, forKey: .twoFactorProviders) {
             twoFactorProviders = ints.map(String.init)
@@ -64,14 +67,30 @@ public struct SyncResponse: Decodable, Sendable {
         public let id: String
         public let email: String
         public let key: String
+        /// PKCS#8 RSA private key, encrypted with the user key.
+        public let privateKey: String?
+        public let organizations: [Organization]?
+    }
+
+    public struct Organization: Decodable, Sendable {
+        public let id: String
+        public let name: String?
+        /// Org symmetric key, RSA-encrypted to the user's public key.
+        public let key: String?
     }
 
     public struct Cipher: Decodable, Sendable, Identifiable {
         public let id: String
         public let type: Int
         public let organizationId: String?
+        /// Optional per-item key, encrypted with the user or org key.
+        public let key: String?
         public let name: String
+        public let notes: String?
         public let login: Login?
+        public let card: Card?
+        public let identity: Identity?
+        public let sshKey: SSHKey?
         public let favorite: Bool?
         public let deletedDate: String?
     }
@@ -81,17 +100,67 @@ public struct SyncResponse: Decodable, Sendable {
         public let password: String?
         public let totp: String?
         public let uris: [URI]?
+        public let fido2Credentials: [Fido2Credential]?
     }
+
+    public struct Card: Decodable, Sendable {
+        public let cardholderName: String?
+        public let brand: String?
+        public let number: String?
+        public let expMonth: String?
+        public let expYear: String?
+        public let code: String?
+    }
+
+    public struct Identity: Decodable, Sendable {
+        public let title: String?
+        public let firstName: String?
+        public let middleName: String?
+        public let lastName: String?
+        public let company: String?
+        public let email: String?
+        public let phone: String?
+        public let username: String?
+        public let address1: String?
+        public let city: String?
+        public let country: String?
+    }
+
+    public struct SSHKey: Decodable, Sendable {
+        public let privateKey: String?
+        public let publicKey: String?
+        public let keyFingerprint: String?
+    }
+
+    /// Only presence matters to the UI for now.
+    public struct Fido2Credential: Decodable, Sendable {}
 
     public struct URI: Decodable, Sendable {
         public let uri: String?
     }
 }
 
+/// `GET /api/config` — public, no auth. Used to show server health before login.
+public struct ServerConfig: Decodable, Sendable, Equatable {
+    public let version: String?
+    public let server: Server?
+
+    public struct Server: Decodable, Sendable, Equatable {
+        public let name: String?
+    }
+
+    /// "Vaultwarden" for self-hosted Vaultwarden, otherwise "Bitwarden".
+    public var productName: String { server?.name ?? "Bitwarden" }
+}
+
 public enum APIError: Error, Sendable, Equatable {
     case invalidServerURL
     case http(status: Int, message: String?)
     case twoFactorRequired(providers: [String])
+    /// Official cloud: a code was emailed; retry login with `newDeviceOTP`.
+    case newDeviceVerificationRequired
+    /// Official cloud asked for a captcha; password login from this client can't continue.
+    case captchaRequired
     case unsupportedKDF(Int)
     case missingUserKey
     case crypto(CryptoError)

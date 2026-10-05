@@ -1,12 +1,12 @@
 # Chiikawarden
 
-A native macOS client for [Vaultwarden](https://github.com/dani-garcia/vaultwarden), written in Swift and SwiftUI.
+A native macOS client for [Vaultwarden](https://github.com/dani-garcia/vaultwarden) and Bitwarden, written in Swift and SwiftUI.
 
 > Early development (M0). Not ready for real vaults yet.
 
 ## Goals
 
-- **Vaultwarden only** — first-class support for self-hosters: custom CAs / mTLS, extra headers (Cloudflare Access), server health at a glance.
+- **Vaultwarden first** — also works with official Bitwarden accounts (bitwarden.com / bitwarden.eu), with first-class support for self-hosters: custom CAs / mTLS, extra headers (Cloudflare Access), server health at a glance.
 - **Deep macOS integration** — system AutoFill for passwords, passkeys and one-time codes, Touch ID unlock, menu bar, global Quick Search, SSH agent, App Intents.
 - **Beautiful** — Liquid Glass on macOS 26, with motion that feels physical.
 - **Localized** — English, 繁體中文, 简体中文, 日本語 from day one (String Catalogs).
@@ -34,7 +34,7 @@ cd Packages/VaultCore && swift test
 | Path | What |
 |---|---|
 | `Packages/VaultCore/Sources/ChiikawaCrypto` | KDF, key stretching, EncString (AES-256-CBC + HMAC-SHA256) |
-| `Packages/VaultCore/Sources/VaultwardenAPI` | Prelogin, login, sync |
+| `Packages/VaultCore/Sources/VaultwardenAPI` | Prelogin, login (2FA, new-device verification), sync; cloud + self-hosted |
 | `App/` | SwiftUI app |
 
 ## License

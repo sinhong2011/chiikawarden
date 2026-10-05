@@ -1,4 +1,6 @@
+import argon2
 import CommonCrypto
+import CryptoKit
 import Foundation
 
 /// Key-derivation settings returned by the server's prelogin endpoint.
@@ -37,9 +39,11 @@ public enum KDF {
         switch config {
         case .pbkdf2(let iterations):
             return try pbkdf2SHA256(password: Data(password.utf8), salt: salt, iterations: iterations, length: 32)
-        case .argon2id:
-            // TODO(M0): wire the reference Argon2 implementation (vendored C target).
-            throw .unsupported("Argon2id is not implemented yet")
+        case .argon2id(let iterations, let memoryMiB, let parallelism):
+            // Bitwarden salts Argon2 with SHA-256(email).
+            let saltHash = Data(SHA256.hash(data: salt))
+            return try argon2id(password: Data(password.utf8), salt: saltHash,
+                                iterations: iterations, memoryKiB: memoryMiB * 1024, parallelism: parallelism)
         }
     }
 
@@ -51,6 +55,21 @@ public enum KDF {
 
     public static func normalizedEmail(_ email: String) -> String {
         email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    static func argon2id(password: Data, salt: Data, iterations: Int, memoryKiB: Int, parallelism: Int) throws(CryptoError) -> Data {
+        var out = Data(count: 32)
+        let rc = out.withUnsafeMutableBytes { o in
+            password.withUnsafeBytes { p in
+                salt.withUnsafeBytes { s in
+                    argon2id_hash_raw(UInt32(iterations), UInt32(memoryKiB), UInt32(parallelism),
+                                      p.baseAddress, password.count, s.baseAddress, salt.count,
+                                      o.baseAddress, 32)
+                }
+            }
+        }
+        guard rc == ARGON2_OK.rawValue else { throw .commonCrypto(rc) }
+        return out
     }
 
     static func pbkdf2SHA256(password: Data, salt: Data, iterations: Int, length: Int) throws(CryptoError) -> Data {

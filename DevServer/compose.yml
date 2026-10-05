@@ -39,6 +39,7 @@ services:
     restart: unless-stopped
     environment:
       DEV_HOST: ${DEV_HOST}
+      DEV_IP: ${DEV_IP:-127.0.0.1}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data/caddy:/data

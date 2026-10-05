@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REMOTE=${CHIIKAWARDEN_DEV_REMOTE:-m1pro}
-HOST=${CHIIKAWARDEN_DEV_HOST:-192.168.1.50}
+HOST=${CHIIKAWARDEN_DEV_HOST:-devbox.local}
+IP=${CHIIKAWARDEN_DEV_IP:-192.168.1.50}
 DIR=chiikawarden-dev
 remote() { ssh -q "$REMOTE" "export PATH=/usr/local/bin:/opt/homebrew/bin:\$PATH; cd ~/$DIR && $*"; }
 
@@ -12,7 +13,7 @@ case "${1:-status}" in
   up)
     ssh -q "$REMOTE" "mkdir -p ~/$DIR"
     rsync -a compose.yml Caddyfile seed.py "$REMOTE:~/$DIR/"
-    remote "[ -f .env ] || printf 'DEV_HOST=$HOST\nADMIN_TOKEN=%s\n' \$(openssl rand -hex 24) > .env; docker compose up -d"
+    remote "[ -f .env ] || printf 'DEV_HOST=$HOST\nDEV_IP=$IP\nADMIN_TOKEN=%s\n' \$(openssl rand -hex 24) > .env; docker compose up -d"
     mkdir -p data && sleep 3
     scp -q "$REMOTE:~/$DIR/data/caddy/caddy/pki/authorities/local/root.crt" data/root.crt
     echo "CA saved to DevServer/data/root.crt" ;;

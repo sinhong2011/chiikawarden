@@ -8,8 +8,12 @@ let package = Package(
         .library(name: "ChiikawaCrypto", targets: ["ChiikawaCrypto"]),
         .library(name: "VaultwardenAPI", targets: ["VaultwardenAPI"]),
     ],
+    dependencies: [
+        // Reference Argon2 (CC0 / Apache-2.0), pinned.
+        .package(url: "https://github.com/P-H-C/phc-winner-argon2", revision: "f57e61e19229e23c4445b85494dbf7c07de721cb"),
+    ],
     targets: [
-        .target(name: "ChiikawaCrypto"),
+        .target(name: "ChiikawaCrypto", dependencies: [.product(name: "argon2", package: "phc-winner-argon2")]),
         .target(name: "VaultwardenAPI", dependencies: ["ChiikawaCrypto"]),
         .testTarget(name: "ChiikawaCryptoTests", dependencies: ["ChiikawaCrypto"]),
         .testTarget(name: "VaultwardenAPITests", dependencies: ["VaultwardenAPI"]),

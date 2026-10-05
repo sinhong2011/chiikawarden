@@ -5,10 +5,10 @@ A disposable Vaultwarden environment for developing and testing Chiikawarden. It
 
 | Endpoint | What |
 |---|---|
-| `https://192.168.1.50:18843` | Vaultwarden **latest**, behind Caddy (private CA) |
-| `https://192.168.1.50:18844` | Vaultwarden **1.30.5**, for older API shapes |
-| `http://192.168.1.50:18880` | latest, plain HTTP (quick `curl`, app debugging) |
-| `http://192.168.1.50:18826` | Mailpit — every email the servers send |
+| `https://devbox.local:18843` | Vaultwarden **latest**, behind Caddy (private CA) |
+| `https://devbox.local:18844` | Vaultwarden **1.30.5**, for older API shapes |
+| `http://devbox.local:18880` | latest, plain HTTP (quick `curl`, app debugging) |
+| `http://devbox.local:18826` | Mailpit — every email the servers send |
 | `…:18843/admin` | Admin panel; token is in `~/chiikawarden-dev/.env` on the dev box |
 
 ```bash
@@ -31,5 +31,7 @@ All use the password `chiikawa-dev-password` (dev only — override with `CHIIKA
 
 `seed.py` does the client-side crypto in Python (`cryptography`, `argon2-cffi`), so it doubles as an
 independent reference implementation for the Swift crypto.
+
+The dev box answers as `devbox.local` (its mDNS name) and also by IP `192.168.1.50`.
 
 Other machines: set `CHIIKAWARDEN_DEV_REMOTE` (ssh host) and `CHIIKAWARDEN_DEV_HOST` (address clients use).

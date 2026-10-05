@@ -14,6 +14,13 @@ import Testing
             == "tM3u7z89mYXDV19ySBwfDaI4vqo34N/6uwOJpzt8STU=")
     }
 
+    @Test func argon2idMasterKey() throws {
+        // Python argon2-cffi: Argon2id(pw, SHA256(email), t=3, m=64MiB, p=4).
+        let mk = try KDF.masterKey(password: password, email: "usagi@example.com",
+                                   config: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4))
+        #expect(mk.hex == "e9ff586b6f91d9a01a3f44615bff852c3858e680b1c817fea514081e4e779787")
+    }
+
     @Test func stretchAndUnwrapUserKey() throws {
         let mk = Data(hex: "3898203f6009bc75069cef1c27d71969bf108de2bec508cdb1ac07560101cfdc")
         let stretched = try SymmetricKeyPair.stretched(masterKey: mk)
@@ -68,5 +75,20 @@ extension Data {
             i = j
         }
         self.init(bytes)
+    }
+}
+
+/// RFC 6238 Appendix B vectors (SHA-1, 8 digits).
+@Suite struct TOTPTests {
+    @Test(arguments: [(59.0, "94287082"), (1111111109.0, "07081804"), (2000000000.0, "69279037")])
+    func rfcVectors(time: Double, expected: String) {
+        let totp = TOTP("otpauth://totp/x?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&digits=8")!
+        #expect(totp.code(at: Date(timeIntervalSince1970: time)) == expected)
+    }
+
+    @Test func rawSecretDefaults() {
+        let totp = TOTP("jbsw y3dp ehpk 3pxp")!
+        #expect(totp.digits == 6 && totp.period == 30)
+        #expect(TOTP("not base32 !") == nil)
     }
 }
