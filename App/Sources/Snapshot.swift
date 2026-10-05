@@ -168,6 +168,9 @@ enum SelfTest {
         guard let i = args.firstIndex(of: "--selftest"), i + 3 < args.count else { return }
         let (server, email, password) = (args[i + 1], args[i + 2], args[i + 3])
         let second = i + 5 < args.count ? (args[i + 4], args[i + 5]) : nil
+        // Isolated storage: the self-test must never see or erase the user's real accounts.
+        AccountStore.namespace = "SelfTestAccounts"
+        AutoFillIdentities.isEnabled = false
         Task {
             var failures = 0
             func check(_ ok: Bool, _ what: String) { print(ok ? "PASS" : "FAIL", what); if !ok { failures += 1 } }

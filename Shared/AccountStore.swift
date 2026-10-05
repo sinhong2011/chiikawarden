@@ -38,11 +38,14 @@ enum AccountStore {
     /// Team-prefixed group: no provisioning needed on macOS.
     static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
 
+    /// Storage namespace. Tests switch to their own so they can never touch real accounts.
+    nonisolated(unsafe) static var namespace = "Accounts"
+
     private static var root: URL {
         let fm = FileManager.default
         let base = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
             ?? fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let d = base.appending(path: "Accounts", directoryHint: .isDirectory)
+        let d = base.appending(path: namespace, directoryHint: .isDirectory)
         try? fm.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }
@@ -57,7 +60,7 @@ enum AccountStore {
 
     /// All saved accounts, oldest first.
     static func accounts() -> [SavedAccount] {
-        migrateSingleAccountLayout()
+        if namespace == "Accounts" { migrateSingleAccountLayout() }
         let ids = (try? FileManager.default.contentsOfDirectory(atPath: root.path)) ?? []
         return ids.compactMap(load).sorted { $0.addedAt < $1.addedAt }
     }
@@ -98,7 +101,9 @@ enum AccountStore {
 
     // MARK: Refresh token (Keychain)
 
-    private static func refreshService(_ id: String) -> String { "io.github.sinhong2011.chiikawarden.refresh.\(id)" }
+    private static func refreshService(_ id: String) -> String {
+        namespace == "Accounts" ? "io.github.sinhong2011.chiikawarden.refresh.\(id)" : "io.github.sinhong2011.chiikawarden.\(namespace).refresh.\(id)"
+    }
     static func refreshToken(_ id: String) -> String? {
         Keychain.read(service: refreshService(id)).flatMap { String(data: $0, encoding: .utf8) }
     }

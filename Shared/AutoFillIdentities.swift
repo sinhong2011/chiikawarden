@@ -4,7 +4,11 @@ import Foundation
 /// Tells macOS which domains/usernames we can fill, so QuickType suggests them. Only identifiers are
 /// shared with the system — never passwords; those come from the extension after unlock.
 enum AutoFillIdentities {
+    /// Off during self-tests so test data never reaches the system's AutoFill store.
+    nonisolated(unsafe) static var isEnabled = true
+
     static func publish(_ items: [VaultItem]) {
+        guard isEnabled else { return }
         let logins = items.filter { !$0.isDeleted && $0.kind == .login }
         var identities: [any ASCredentialIdentity] = logins.compactMap { item in
             guard let host = item.host, item.password != nil else { return nil }
@@ -24,6 +28,7 @@ enum AutoFillIdentities {
     }
 
     static func clear() {
+        guard isEnabled else { return }
         Task { try? await ASCredentialIdentityStore.shared.removeAllCredentialIdentities() }
     }
 }
