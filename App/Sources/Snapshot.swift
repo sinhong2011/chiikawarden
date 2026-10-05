@@ -1,3 +1,4 @@
+import SSHAgent
 import AppIntents
 import AuthenticationServices
 #if DEBUG
@@ -437,6 +438,40 @@ enum SelfTest {
                 model.cli.approveOverride = { _ in false }
                 let refused = await Snapshot.tool(cw, ["get", "Selftest cli"], env: cwEnv)
                 check(refused.status != 0 && refused.output.contains("Not approved"), "cw: refused approval reveals nothing")
+
+                // Browser extension commands over the same socket (as Safari's handler / Chrome's host send them).
+                model.cli.approveOverride = { approvals.append($0); return true }
+                var confirmations: [String] = []
+                var confirmAnswer = true
+                model.cli.confirmOverride = { confirmations.append($0); return confirmAnswer }
+                _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest web", username: "web-user", password: "web-pass-1",
+                                                                    uri: "https://login.chiikawa.test/signin"))
+                func bridge(_ r: CLIRequest) async -> CLIResponse {
+                    let path = cliSocket.path
+                    return await Task.detached { BridgeClient.send(r, socket: path) }.value
+                }
+                let page = "https://login.chiikawa.test/signin?next=/"
+                let matched = await bridge(CLIRequest(command: .match, url: page))
+                let elsewhere = await bridge(CLIRequest(command: .match, url: "https://evil.example/login"))
+                let webID = matched.rows?.first { $0.name == "Selftest web" }?.id ?? ""
+                let filled = await bridge(CLIRequest(command: .fill, query: webID, url: page))
+                let wrongSite = await bridge(CLIRequest(command: .fill, query: webID, url: "https://evil.example/login"))
+                check(matched.rows?.count == 1 && matched.rows?.first?.detail == "web-user" && elsewhere.rows?.isEmpty == true
+                      && filled.username == "web-user" && filled.password == "web-pass-1" && !wrongSite.ok,
+                      "browser: suggestions only for the page's site, fill after approval, never on another site")
+                let same = await bridge(CLIRequest(command: .save, url: page, username: "web-user", password: "web-pass-1"))
+                let updated = await bridge(CLIRequest(command: .save, url: page, username: "web-user", password: "web-pass-2"))
+                let added = await bridge(CLIRequest(command: .save, url: "https://new.chiikawa.test/login", username: "newbie", password: "n-1"))
+                confirmAnswer = false
+                let declined = await bridge(CLIRequest(command: .save, url: "https://other.chiikawa.test/", username: "x", password: "y"))
+                let newItem = model.items.first { $0.host == "new.chiikawa.test" }
+                check(same.value == "unchanged" && updated.value == "updated" && added.value == "saved" && declined.value == "skipped"
+                      && confirmations.count == 3 && model.items.first { $0.id == webID }?.password == "web-pass-2"
+                      && newItem?.username == "newbie" && !model.items.contains { $0.host == "other.chiikawa.test" },
+                      "browser: save new, update changed, skip unchanged, respect Not Now")
+                for item in model.items where item.name == "Selftest web" || item.host == "new.chiikawa.test" { await model.deleteForever(item) }
+                model.cli.confirmOverride = nil
+
                 model.cli.stop()
                 model.cli.approveOverride = nil
 

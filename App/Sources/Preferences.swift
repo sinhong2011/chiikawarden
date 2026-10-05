@@ -13,6 +13,7 @@ enum Pref {
     static let sshApprovalSeconds = "sshApprovalSeconds" // 0 = ask for every signature
     static let cli = "cli"                               // answer the `cw` command
     static let cliApprovalSeconds = "cliApprovalSeconds"
+    static let browser = "browser"                       // answer the Safari/Chrome extension
 
     static func register() {
         UserDefaults.standard.register(defaults: [

@@ -14,6 +14,7 @@ usage: cw <command> [arguments]
   code <item>               print the current one-time code
   generate [--length N]     a new random password (works while locked)
   lock                      lock every account
+  install-chrome <id>       register cw as the native host for the Chrome/Edge/Brave extension
 
 <item> is an item id, an exact name, or a unique part of a name, username or site.
 """
@@ -23,9 +24,64 @@ func fail(_ message: String, code: Int32 = 1) -> Never {
     exit(code)
 }
 
+let socket = ProcessInfo.processInfo.environment["CW_SOCKET"] ?? BridgeClient.defaultSocketPath
+let chromeHost = "io.github.sinhong2011.chiikawarden"
+
+/// Chrome native messaging: Chrome starts us with the extension's origin; messages are
+/// 4-byte little-endian length + JSON on stdin/stdout.
+func nativeMessagingLoop() -> Never {
+    let input = FileHandle.standardInput, output = FileHandle.standardOutput
+    while let header = try? input.read(upToCount: 4), header.count == 4 {
+        let length = Int(header[0]) | Int(header[1]) << 8 | Int(header[2]) << 16 | Int(header[3]) << 24
+        guard length > 0, length < 1_048_576, let body = try? input.read(upToCount: length), body.count == length else { break }
+        let response: CLIResponse
+        if let request = try? JSONDecoder().decode(CLIRequest.self, from: body),
+           [.match, .fill, .save].contains(request.command) {
+            response = BridgeClient.send(request, socket: socket)
+        } else {
+            response = .failure("Unsupported request.")
+        }
+        let data = (try? JSONEncoder().encode(response)) ?? Data("{}".utf8)
+        let n = UInt32(data.count)
+        output.write(Data([UInt8(n & 0xFF), UInt8(n >> 8 & 0xFF), UInt8(n >> 16 & 0xFF), UInt8(n >> 24)]) + data)
+    }
+    exit(0)
+}
+
+/// `cw install-chrome <extension-id>` registers this binary as Chrome's native-messaging host.
+func installChromeHost(_ extensionID: String) -> Never {
+    guard extensionID.range(of: "^[a-p]{32}$", options: .regularExpression) != nil else {
+        fail("that doesn't look like a Chrome extension id (32 letters a–p, see chrome://extensions)", code: 64)
+    }
+    let me = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath().path
+    let manifest: [String: Any] = [
+        "name": chromeHost, "description": "Chiikawarden", "path": me, "type": "stdio",
+        "allowed_origins": ["chrome-extension://\(extensionID)/"],
+    ]
+    let home = FileManager.default.homeDirectoryForCurrentUser
+    var written: [String] = []
+    for browser in ["Google/Chrome", "Google/Chrome Beta", "Chromium", "Microsoft Edge", "BraveSoftware/Brave-Browser", "Arc/User Data"] {
+        let dir = home.appending(path: "Library/Application Support/\(browser)/NativeMessagingHosts")
+        guard FileManager.default.fileExists(atPath: dir.deletingLastPathComponent().path) else { continue }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let file = dir.appending(path: "\(chromeHost).json")
+        if let data = try? JSONSerialization.data(withJSONObject: manifest, options: [.prettyPrinted, .sortedKeys]),
+           (try? data.write(to: file)) != nil { written.append(file.path) }
+    }
+    guard !written.isEmpty else { fail("no Chromium-based browser found") }
+    written.forEach { print("wrote \($0)") }
+    exit(0)
+}
+
+if CommandLine.arguments.dropFirst().first?.hasPrefix("chrome-extension://") == true { nativeMessagingLoop() }
+
 var args = Array(CommandLine.arguments.dropFirst())
 guard let first = args.first else { print(usage); exit(64) }
 if first == "-h" || first == "--help" || first == "help" { print(usage); exit(0) }
+if first == "install-chrome" {
+    guard args.count == 2 else { fail("usage: cw install-chrome <extension-id>", code: 64) }
+    installChromeHost(args[1])
+}
 guard let command = CLIRequest.Command(rawValue: first) else { fail("unknown command “\(first)”\n\n" + usage, code: 64) }
 args.removeFirst()
 
@@ -40,19 +96,7 @@ request.length = option("--length").flatMap(Int.init)
 request.query = args.isEmpty ? nil : args.joined(separator: " ")
 if [.get, .code].contains(command), request.query == nil { fail("\(command.rawValue) needs an item", code: 64) }
 
-let group = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
-let socket = ProcessInfo.processInfo.environment["CW_SOCKET"]
-    ?? FileManager.default.homeDirectoryForCurrentUser
-        .appending(path: "Library/Group Containers/\(group)/\(CLISocket.name)").path
-guard let fd = FramedSocketServer.connect(to: socket) else {
-    fail("Chiikawarden isn't running, or “Command line” is off in Settings › Developer.")
-}
-defer { close(fd) }
-guard let body = try? JSONEncoder().encode(request), FramedSocketServer.writeFrame(fd, body),
-      let reply = FramedSocketServer.readFrame(fd, max: 8 * 1024 * 1024),
-      let response = try? JSONDecoder().decode(CLIResponse.self, from: reply) else {
-    fail("no answer from Chiikawarden")
-}
+let response = BridgeClient.send(request, socket: socket)
 guard response.ok else { fail(response.error ?? "failed") }
 if let rows = response.rows {
     let width = min(rows.map(\.name.count).max() ?? 0, 40)

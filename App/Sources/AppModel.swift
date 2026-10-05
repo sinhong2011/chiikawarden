@@ -109,7 +109,7 @@ final class AppModel {
         let tooling = CommandLine.arguments.contains { $0 == "--selftest" || $0 == "--snapshot" }
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         cli = CLIBridge(model: self)
-        if !tooling, UserDefaults.standard.bool(forKey: Pref.cli) { cli.start() }
+        if !tooling { cli.refreshRunning() }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }

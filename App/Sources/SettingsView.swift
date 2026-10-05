@@ -160,6 +160,7 @@ private struct DeveloperSettings: View {
     @AppStorage(Pref.sshApprovalSeconds) private var approvalSeconds = 0
     @AppStorage(Pref.cli) private var cliEnabled = false
     @AppStorage(Pref.cliApprovalSeconds) private var cliApprovalSeconds = 0
+    @AppStorage(Pref.browser) private var browserEnabled = false
 
     private var installCommand: String { "sudo ln -sf \"\(CLIBridge.toolPath)\" /usr/local/bin/cw" }
 
@@ -202,7 +203,7 @@ private struct DeveloperSettings: View {
 
             Section {
                 Toggle("Answer the cw command", isOn: $cliEnabled)
-                    .onChange(of: cliEnabled) { _, on in on ? model.cli.start() : model.cli.stop() }
+                    .onChange(of: cliEnabled) { model.cli.refreshRunning() }
                 Picker("Ask before revealing", selection: $cliApprovalSeconds) {
                     Text("Every time").tag(0)
                     Text("Once per minute, per app").tag(60)
@@ -223,8 +224,29 @@ private struct DeveloperSettings: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
 
+            Section {
+                Toggle("Allow the browser extension", isOn: $browserEnabled)
+                    .onChange(of: browserEnabled) { model.cli.refreshRunning() }
+                LabeledContent("Safari") {
+                    Button("Open Safari Extensions") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Safari-Extensions-Settings")!)
+                    }
+                }
+                LabeledContent("Chrome, Edge, Brave") {
+                    Button("Show Extension Folder") {
+                        let folder = Bundle.main.bundleURL.appending(path: "Contents/PlugIns/ChiikawardenSafari.appex/Contents/Resources/manifest.json")
+                        NSWorkspace.shared.activateFileViewerSelecting([folder])
+                    }
+                }
+            } header: {
+                Text("Browser extension")
+            } footer: {
+                Text("Safari: turn on Chiikawarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run cw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
             if !agent.recent.isEmpty {
-                Section("Recent requests") {
+                Section("Recent SSH requests") {
                     ForEach(Array(agent.recent.enumerated()), id: \.offset) { _, entry in
                         HStack {
                             Image(systemName: entry.allowed ? "checkmark.circle" : "xmark.circle")

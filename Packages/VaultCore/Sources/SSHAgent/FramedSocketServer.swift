@@ -8,6 +8,9 @@ public final class FramedSocketServer: @unchecked Sendable {
     public struct Peer: Sendable {
         public let pid: pid_t
         public let processName: String
+        /// Full executable path, when the system reveals it.
+        public let path: String?
+        public init(pid: pid_t, processName: String, path: String?) { self.pid = pid; self.processName = processName; self.path = path }
     }
 
     public enum Failure: Error { case pathTooLong, socket(Int32) }
@@ -153,9 +156,7 @@ public final class FramedSocketServer: @unchecked Sendable {
         var len = socklen_t(MemoryLayout<pid_t>.size)
         getsockopt(fd, SOL_LOCAL, LOCAL_PEERPID, &pid, &len)
         var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
-        let name = proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0
-            ? URL(fileURLWithPath: String(cString: buffer)).lastPathComponent
-            : "pid \(pid)"
-        return Peer(pid: pid, processName: name)
+        let path = proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 ? String(cString: buffer) : nil
+        return Peer(pid: pid, processName: path.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "pid \(pid)", path: path)
     }
 }

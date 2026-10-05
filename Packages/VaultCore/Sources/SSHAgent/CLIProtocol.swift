@@ -1,16 +1,27 @@
+import Darwin
 import Foundation
 
 /// JSON messages between the `cw` command and the app (one frame each way per request).
 public struct CLIRequest: Codable, Sendable, Equatable {
-    public enum Command: String, Codable, Sendable { case status, list, get, code, generate, lock }
+    public enum Command: String, Codable, Sendable {
+        case status, list, get, code, generate, lock
+        /// Browser extension: logins for a page (names/usernames only), fill one, offer to save one.
+        case match, fill, save
+    }
     public var command: Command
     public var query: String?
+    /// Browser extension: the page URL, and the credentials typed into it (`save` only).
+    public var url: String?
+    public var username: String?
+    public var password: String?
     /// For `get`: password (default), username, uri, notes, totp, or a custom field name.
     public var field: String?
     public var length: Int?
 
-    public init(command: Command, query: String? = nil, field: String? = nil, length: Int? = nil) {
+    public init(command: Command, query: String? = nil, field: String? = nil, length: Int? = nil,
+                url: String? = nil, username: String? = nil, password: String? = nil) {
         self.command = command; self.query = query; self.field = field; self.length = length
+        self.url = url; self.username = username; self.password = password
     }
 }
 
@@ -24,15 +35,49 @@ public struct CLIResponse: Codable, Sendable, Equatable {
 
     public var ok: Bool
     public var value: String?
+    /// `fill`: what to put in the page.
+    public var username: String?
+    public var password: String?
+    public var totp: String?
     public var rows: [Row]?
     public var error: String?
 
     public static func success(_ value: String) -> CLIResponse { CLIResponse(ok: true, value: value) }
     public static func list(_ rows: [Row]) -> CLIResponse { CLIResponse(ok: true, rows: rows) }
     public static func failure(_ message: String) -> CLIResponse { CLIResponse(ok: false, error: message) }
+    public static func credentials(username: String?, password: String?, totp: String?) -> CLIResponse {
+        CLIResponse(ok: true, username: username, password: password, totp: totp)
+    }
 }
 
 public enum CLISocket {
     /// File name inside the App Group container.
     public static let name = "cli.sock"
+}
+
+/// One request/response to the running app (used by `cw`, the Chrome host and the Safari extension).
+public enum BridgeClient {
+    public static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
+
+    /// `~/Library/Group Containers/<group>/cli.sock`, resolved for sandboxed and unsandboxed callers alike.
+    public static var defaultSocketPath: String {
+        if let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) {
+            return container.appending(path: CLISocket.name).path
+        }
+        return FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "Library/Group Containers/\(appGroup)/\(CLISocket.name)").path
+    }
+
+    public static func send(_ request: CLIRequest, socket: String = defaultSocketPath) -> CLIResponse {
+        guard let fd = FramedSocketServer.connect(to: socket) else {
+            return .failure("Chiikawarden isn't running, or this connection is turned off in Settings › Developer.")
+        }
+        defer { close(fd) }
+        guard let body = try? JSONEncoder().encode(request), FramedSocketServer.writeFrame(fd, body),
+              let reply = FramedSocketServer.readFrame(fd, max: 8 * 1024 * 1024),
+              let response = try? JSONDecoder().decode(CLIResponse.self, from: reply) else {
+            return .failure("No answer from Chiikawarden.")
+        }
+        return response
+    }
 }

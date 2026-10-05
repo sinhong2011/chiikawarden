@@ -1,8 +1,10 @@
+import AppKit
 import ChiikawaCrypto
 import Foundation
 import LocalAuthentication
 import Observation
 import SSHAgent
+import VaultwardenAPI
 
 /// Answers the `cw` command over a socket in the App Group container. Anything that reveals vault
 /// data needs the vault unlocked plus an approval (Touch ID or the Mac password) naming the program.
@@ -23,6 +25,14 @@ final class CLIBridge {
     private weak var model: AppModel?
     /// Self-test hook: skip the Touch ID prompt.
     var approveOverride: ((String) -> Bool)?
+    /// Self-test hook: answer "Save this login?" without showing it.
+    var confirmOverride: ((String) -> Bool)?
+
+    /// Runs while the command line or the browser extension is turned on.
+    func refreshRunning() {
+        let wanted = UserDefaults.standard.bool(forKey: Pref.cli) || UserDefaults.standard.bool(forKey: Pref.browser)
+        if wanted { start() } else { stop() }
+    }
 
     init(model: AppModel) { self.model = model }
 
@@ -57,7 +67,48 @@ final class CLIBridge {
 
     private func handle(_ request: CLIRequest, peer: FramedSocketServer.Peer) async -> CLIResponse {
         guard let model else { return .failure("Chiikawarden is quitting.") }
+        let browserCommand = [.match, .fill, .save].contains(request.command)
+        let enabled = UserDefaults.standard.bool(forKey: browserCommand ? Pref.browser : Pref.cli) || approveOverride != nil
+        guard enabled else {
+            return .failure(browserCommand ? "Turn on the browser extension in Chiikawarden › Settings › Developer."
+                                           : "Turn on “Answer the cw command” in Chiikawarden › Settings › Developer.")
+        }
         switch request.command {
+        case .match:
+            // Names/usernames only, for the page's site, and only for our own extension/host binaries.
+            guard Self.isOwnBinary(peer) else { return .failure("Unknown client.") }
+            guard model.isUnlocked else { return .failure(Self.locked) }
+            guard let host = request.url.flatMap(URL.init(string:))?.host()?.lowercased() else { return .list([]) }
+            return .list(Self.logins(for: host, in: model.items).map {
+                CLIResponse.Row(id: $0.id, name: $0.name, detail: $0.username ?? "")
+            })
+        case .fill:
+            guard model.isUnlocked else { return .failure(Self.locked) }
+            guard let item = model.items.first(where: { $0.id == request.query && !$0.isDeleted }) else {
+                return .failure("That login is no longer in your vault.")
+            }
+            let host = request.url.flatMap(URL.init(string:))?.host() ?? ""
+            // Only fill a login on the site it belongs to.
+            guard Self.logins(for: host.lowercased(), in: [item]).count == 1 else { return .failure("“\(item.name)” isn't for \(host).") }
+            guard await approve(String(localized: "fill “\(item.name)” on \(host)"), peer: peer) else { return .failure(Self.denied) }
+            return .credentials(username: item.username, password: item.password, totp: item.totp?.code())
+        case .save:
+            guard model.isUnlocked else { return .failure(Self.locked) }
+            guard let url = request.url.flatMap(URL.init(string:)), let host = url.host()?.lowercased(),
+                  let password = request.password, !password.isEmpty else { return .failure("Nothing to save.") }
+            let username = request.username ?? ""
+            let existing = Self.logins(for: host, in: model.items)
+                .first { ($0.username ?? "").caseInsensitiveCompare(username) == .orderedSame }
+            if let existing {
+                guard existing.password != password else { return .success("unchanged") }
+                guard confirm(String(localized: "Update the password for “\(existing.name)” (\(username))?")) else { return .success("skipped") }
+                return await model.updateItem(existing.id, edit: CipherEdit(password: password)) ? .success("updated") : .failure("Couldn't save.")
+            }
+            let label = username.isEmpty ? host : "\(username) · \(host)"
+            guard confirm(String(localized: "Save this login to Chiikawarden? \(label)")) else { return .success("skipped") }
+            let name = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+            let edit = CipherEdit(name: name, username: username, password: password, uri: "\(url.scheme ?? "https")://\(host)")
+            return await model.createItem(.login, edit: edit) ? .success("saved") : .failure("Couldn't save.")
         case .status:
             return .success(model.isUnlocked
                 ? "unlocked · \(model.sessions.count) account(s) · \(model.items.filter { !$0.isDeleted }.count) items"
@@ -113,6 +164,33 @@ final class CLIBridge {
         if allowed, window > 0 { approvedUntil[grant] = .now.addingTimeInterval(TimeInterval(window)) }
         if allowed { model?.noteActivity() }
         return allowed
+    }
+
+    /// "Save this login?" — a real dialog, since a page could otherwise fill the vault with junk.
+    private func confirm(_ message: String) -> Bool {
+        if let confirmOverride { return confirmOverride(message) }
+        NSApp.activate()
+        let alert = NSAlert()
+        alert.messageText = message
+        alert.informativeText = String(localized: "Requested by the Chiikawarden browser extension.")
+        alert.addButton(withTitle: String(localized: "Save"))
+        alert.addButton(withTitle: String(localized: "Not Now"))
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    /// Our Safari extension and the bundled `cw` (Chrome's native-messaging host) live inside the app.
+    static func isOwnBinary(_ peer: FramedSocketServer.Peer) -> Bool {
+        guard let path = peer.path else { return false }
+        return URL(fileURLWithPath: path).resolvingSymlinksInPath().path.hasPrefix(Bundle.main.bundleURL.resolvingSymlinksInPath().path + "/")
+    }
+
+    /// Logins for `host`: same host or a subdomain/parent of it.
+    static func logins(for host: String, in items: [VaultItem]) -> [VaultItem] {
+        guard !host.isEmpty else { return [] }
+        return items.filter { item in
+            guard !item.isDeleted, item.kind == .login, item.password != nil, let h = item.host?.lowercased() else { return false }
+            return h == host || host.hasSuffix("." + h) || h.hasSuffix("." + host)
+        }
     }
 
     // MARK: Lookup

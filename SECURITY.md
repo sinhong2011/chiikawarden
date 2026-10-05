@@ -51,6 +51,10 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
   Status, generate and lock work without approval. Listing or reading anything needs the vault unlocked and
   Touch ID or the Mac password, with a prompt that names the calling program. Secrets go to stdout only,
   never into arguments or environment variables.
+- **Browser extension** (off by default; Safari, and Chrome/Edge/Brave through `cw` as the native host)
+  stores nothing and holds no keys. The page URL comes from the browser, not the page. Suggestions are names
+  and usernames for that site only, and only our own bundled binaries may ask for them. Filling needs Touch ID
+  and only fills a login on its own site. Saving or updating a login always asks you in the app first.
 - **Shortcuts / Spotlight actions** only expose item names and usernames. Copying a password or a code works
   only while unlocked, and passwords go through the same concealed, auto-clearing clipboard.
 - **Leaked-password check** (Watchtower) uses the Have I Been Pwned k-anonymity range API with padding.
