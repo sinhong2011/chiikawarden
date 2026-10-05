@@ -1,0 +1,76 @@
+name: Release
+
+# Conventional commits on main → release-please keeps a release PR up to date (version + CHANGELOG).
+# Merging that PR tags vX.Y.Z and creates the GitHub release; the build job then signs, notarizes and uploads
+# the DMG, the zip, the Sparkle appcast (what the in-app updater reads) and the Homebrew cask.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.rp.outputs.release_created }}
+      tag: ${{ steps.rp.outputs.tag_name }}
+      version: ${{ steps.rp.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    runs-on: macos-26
+    environment: release # secrets live here, so only this job can read them
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag }}
+          fetch-depth: 0 # build number = commit count
+
+      - name: Tools
+        run: brew install xcodegen
+
+      - name: Developer ID certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.DEVELOPER_ID_P12 }}
+          p12-password: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+
+      - name: App Store Connect key and Sparkle key
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY_P8 }}
+          SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          umask 077
+          printf '%s' "$ASC_KEY" > "$RUNNER_TEMP/asc.p8"
+          printf '%s' "$SPARKLE_KEY" > "$RUNNER_TEMP/sparkle.key"
+
+      - name: Resolve packages (Sparkle tools)
+        run: |
+          xcodegen generate
+          xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -resolvePackageDependencies
+
+      - name: Build, sign, notarize, publish
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/asc.p8
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          SPARKLE_KEY_FILE: ${{ runner.temp }}/sparkle.key
+        run: scripts/release.sh "$VERSION" --publish
+
+      - name: Clean up keys
+        if: always()
+        run: rm -f "$RUNNER_TEMP/asc.p8" "$RUNNER_TEMP/sparkle.key"

@@ -71,7 +71,6 @@ private struct GeneralSettings: View {
     @State private var autoFillOn: Bool?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
-    @AppStorage(Pref.checkUpdates) private var checkUpdates = false
 
     var body: some View {
         Form {
@@ -99,28 +98,28 @@ private struct GeneralSettings: View {
             }
 
             Section {
-                Toggle("Check for updates daily", isOn: $checkUpdates)
-                    .onChange(of: checkUpdates) { model.updates.schedule() }
+                @Bindable var updates = model.updates
+                Toggle("Check for updates automatically", isOn: $updates.automaticallyChecks)
+                    .disabled(!updates.isConfigured)
+                Toggle("Download and install updates automatically", isOn: $updates.automaticallyDownloads)
+                    .disabled(!updates.isConfigured || !updates.automaticallyChecks)
                 LabeledContent {
-                    HStack(spacing: 8) {
-                        if model.updates.checking { ProgressView().controlSize(.small) }
-                        Button("Check Now") { Task { await model.updates.check() } }
-                    }
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(!updates.canCheck)
                 } label: {
-                    if let release = model.updates.available {
-                        Link("Version \(release.version) is available", destination: release.page)
-                    } else if let error = model.updates.error {
-                        Text(verbatim: error).foregroundStyle(.secondary)
-                    } else if model.updates.lastChecked != nil {
-                        Text("Chiikawarden \(model.updates.current) is up to date.")
-                    } else {
-                        Text("Version \(model.updates.current)")
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Version \(updates.current)")
+                        if !updates.isConfigured {
+                            Text("Updates are off in development builds.").font(.caption).foregroundStyle(.secondary)
+                        } else if let checked = updates.lastChecked {
+                            Text("Last checked \(checked, format: .relative(presentation: .named))").font(.caption).foregroundStyle(.secondary)
+                        }
                     }
                 }
             } header: {
                 Text("Updates")
             } footer: {
-                Text("Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.")
+                Text("Updates come from this project's GitHub releases. Each one is signed; Chiikawarden checks the signature and Apple's notarization before installing, then relaunches.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

@@ -142,6 +142,8 @@ struct VaultView: View {
         return NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+                // Narrow windows navigate with the strip's own back button; one sidebar control is enough.
+                .toolbar(removing: compact ? .sidebarToggle : nil)
         } detail: {
             Group {
                 if compact {
@@ -162,15 +164,14 @@ struct VaultView: View {
                 // Search and + live in the header, over the item list (Liquid layout).
                 ToolbarItem(placement: .navigation) {
                     HStack(spacing: 8) {
-                        if compact {
+                        if compact && depth > 0 {
                             Button { depth = max(depth - 1, 0) } label: {
-                                Image(systemName: depth == 0 ? "sidebar.left" : "chevron.left").font(.system(size: 14, weight: .medium))
+                                Image(systemName: depth == 1 ? "sidebar.left" : "chevron.left").font(.system(size: 14, weight: .medium))
                                     .contentTransition(.symbolEffect(.replace))
                                     .frame(width: 36, height: 36).contentShape(.circle)
                             }
                             .buttonStyle(.plain)
                             .modifier(HeaderChrome(shape: .circle))
-                            .disabled(depth == 0)
                             .keyboardShortcut("[", modifiers: .command)
                             .help(Text("Back (⌘[)"))
                             .accessibilityLabel(Text("Back"))

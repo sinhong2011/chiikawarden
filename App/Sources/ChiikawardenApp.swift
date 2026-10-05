@@ -97,6 +97,10 @@ struct ChiikawardenApp: App {
                 Button("Add Account…") { model.beginAddAccount() }
                     .disabled(!model.isUnlocked)
             }
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { model.updates.checkForUpdates() }
+                    .disabled(!model.updates.canCheck)
+            }
             CommandGroup(replacing: .importExport) {
                 Button("Import…") { model.beginImport() }
                     .disabled(model.sessions.isEmpty)

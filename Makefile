@@ -42,6 +42,14 @@ selftest-cloud: build ## Self-test against Bitwarden cloud with the account in .
 	@test -f .env || { echo "Create .env with BITWARDEN_ACCOUNT=… and BITWARDEN_PASSWORD=… (an empty test account)"; exit 64; }
 	@set -a; . ./.env; set +a; "$(BIN)" --selftest-cloud $(REGION) 2>/dev/null
 
+sparkle-keys: build ## One-time: create the update-signing key (kept in your keychain) and put its public half in project.yml
+	@BIN=build/SourcePackages/artifacts/sparkle/Sparkle/bin; \
+	"$$BIN/generate_keys" >/dev/null; \
+	KEY=$$("$$BIN/generate_keys" -p); \
+	sed -i '' -E "s|^( *SPARKLE_PUBLIC_KEY: )\"[^\"]*\"|\1\"$$KEY\"|" project.yml; \
+	echo "Public key $$KEY written to project.yml — commit it."; \
+	echo "For CI, export the private key and store it as the SPARKLE_PRIVATE_KEY secret (see docs/RELEASING.md)."
+
 uitest: ## Click-through UI tests in --demo mode (quit any running Chiikawarden first)
 	@xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -allowProvisioningUpdates \
 		test -only-testing:ChiikawardenUITests 2>&1 | grep -E "\.swift:[0-9]+: error|' (passed|failed)|TEST (SUCCEEDED|FAILED)"

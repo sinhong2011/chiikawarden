@@ -1,40 +1,76 @@
 # Releasing
 
-Releases are Developer ID–signed, notarized, and published as a DMG and a zip on GitHub, plus a Homebrew cask.
+Releases are automatic once the one-time setup is done:
 
-## One-time setup (maintainer's Mac)
+1. Commits on `main` use [Conventional Commits](https://www.conventionalcommits.org): `feat: …`, `fix: …`,
+   `perf: …`, `security: …` show up in the changelog; `docs:`, `chore:`, `test:` don't. `feat!:` or a
+   `BREAKING CHANGE:` footer marks a breaking change (before 1.0 that bumps the minor version).
+2. [release-please](https://github.com/googleapis/release-please) keeps a **release PR** open with the next version
+   (in `project.yml`) and `CHANGELOG.md`.
+3. Merging the release PR tags `vX.Y.Z` and creates the GitHub release. The `build` job in
+   `.github/workflows/release.yml` then runs `scripts/release.sh X.Y.Z --publish`:
+   - archive a Release build (build number = commit count);
+   - Developer ID export, signature check, notarize and staple the app and the DMG;
+   - sign the zip for Sparkle and write `appcast.xml`;
+   - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`chiikawarden.rb`) to the release.
+4. Installed copies with automatic checks on find the update through
+   `https://github.com/sinhong2011/chiikawarden/releases/latest/download/appcast.xml`. They verify the EdDSA
+   signature and the notarization, install, and relaunch. Everyone else gets it from **Check for Updates…**.
 
-1. **Xcode account.** Xcode › Settings › Accounts › add the Apple ID of team `FX3VR69P5K`. Exporting needs it to
-   create the *Developer ID* provisioning profiles for the App Group, the AutoFill credential provider and the Safari
-   extension. Without it, the export fails with “No Accounts”.
-2. **Notary credentials.** Use an app-specific password; it's stored only in your login keychain:
-   ```bash
-   xcrun notarytool store-credentials chiikawarden-notary --apple-id <you@example.com> --team-id FX3VR69P5K
-   ```
-3. `brew install xcodegen gh`, and `gh auth login` as an account that can push to the repo.
+## One-time setup (maintainer)
 
-## Each release
+These are your credentials, so run each step yourself. Nothing secret goes into the repository.
+
+### 1. Update-signing key (Sparkle)
 
 ```bash
+make sparkle-keys
+```
+
+This creates an EdDSA key pair in your login keychain and writes the **public** key to `project.yml`
+(`SPARKLE_PUBLIC_KEY`). Commit that change. Back up the private key; without it, installed copies can't verify
+any future update:
+
+```bash
+build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys -x sparkle-private-key.txt
+```
+
+### 2. GitHub secrets for the `release` environment
+
+Create an environment named `release` (Settings › Environments) and add the secrets:
+
+| Secret | What |
+| --- | --- |
+| `DEVELOPER_ID_P12` | Your *Developer ID Application* certificate and key, exported as .p12, base64-encoded |
+| `DEVELOPER_ID_P12_PASSWORD` | The .p12 export password |
+| `ASC_KEY_P8` | An App Store Connect API key (Users and Access › Integrations; role *Developer*), the .p8 contents |
+| `ASC_KEY_ID`, `ASC_ISSUER_ID` | That key's ID and the issuer ID |
+| `SPARKLE_PRIVATE_KEY` | The contents of `sparkle-private-key.txt` from step 1 (then delete that file) |
+
+For example:
+
+```bash
+gh secret set DEVELOPER_ID_P12 --env release < <(base64 -i DeveloperID.p12)
+gh secret set SPARKLE_PRIVATE_KEY --env release < sparkle-private-key.txt
+```
+
+The API key lets CI create the Developer ID provisioning profiles (App Group, AutoFill, Safari extension) and
+notarize, without an Apple ID or password.
+
+## Releasing by hand (fallback)
+
+On your Mac, with an Xcode account for team `FX3VR69P5K` and notary credentials in your keychain:
+
+```bash
+xcrun notarytool store-credentials chiikawarden-notary --apple-id <you@example.com> --team-id FX3VR69P5K
 scripts/release.sh 0.3.0 --publish
 ```
 
-The script:
-1. archives a Release build (version 0.3.0, build number = commit count);
-2. exports it with Developer ID and checks the signature;
-3. notarizes and staples the app, then the DMG;
-4. writes `dist/<version>/Chiikawarden-<version>.dmg`, the zip, and `chiikawarden.rb` (the Homebrew cask);
-5. with `--publish`, tags `v<version>` and creates a **draft** GitHub release with the DMG and zip. Review the notes
-   and publish it by hand.
-
-For a local dry run without notarization: `ALLOW_DIRTY=1 scripts/release.sh 0.3.0 --skip-notarize`.
+This uploads to the release `v0.3.0` if release-please made it, and creates the release otherwise. To try a local
+build without notarizing or publishing: `ALLOW_DIRTY=1 scripts/release.sh 0.3.0 --skip-notarize`.
 
 ## Homebrew
 
-Copy `dist/<version>/chiikawarden.rb` to `Casks/chiikawarden.rb` in the `sinhong2011/homebrew-tap` repository. Users then
-run `brew install sinhong2011/tap/chiikawarden`. The cask also links `cw` onto the PATH.
-
-## Updates
-
-Chiikawarden checks GitHub's latest release only if the user turns it on (Settings › General › Check for updates). It
-compares versions and links to the release page; it never downloads or installs anything by itself.
+Copy `chiikawarden.rb` from the release to `Casks/chiikawarden.rb` in `sinhong2011/homebrew-tap`. Users run
+`brew install sinhong2011/tap/chiikawarden`. The cask also links `cw` onto the PATH. Homebrew users can update
+with `brew upgrade` or in the app; both work.

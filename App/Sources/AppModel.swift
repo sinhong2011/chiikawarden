@@ -119,12 +119,16 @@ final class AppModel {
     /// Serves SSH key items to ssh/git while unlocked (Settings › SSH).
     @ObservationIgnored private(set) var sshAgent: SSHAgentService!
     @ObservationIgnored private(set) var cli: CLIBridge!
-    let updates = UpdateChecker()
+    let updates: Updater
 
     /// The app's live model, for App Intents and the CLI bridge.
     nonisolated(unsafe) static weak var current: AppModel?
 
     init() {
+        // No updater while testing, rendering snapshots, previewing or showing the demo vault.
+        let quiet = CommandLine.arguments.contains { ["--selftest", "--snapshot", "--demo"].contains($0) || $0.hasPrefix("--selftest") }
+            || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        updates = Updater(start: !quiet)
         AttachmentFiles.wipe() // leftovers from a crash
         Self.current = self
         sshAgent = SSHAgentService(model: self)
@@ -132,7 +136,7 @@ final class AppModel {
             || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" // Xcode canvas
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         cli = CLIBridge(model: self)
-        if !tooling { cli.refreshRunning(); updates.schedule() }
+        if !tooling { cli.refreshRunning() }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }

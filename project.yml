@@ -7,7 +7,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    MARKETING_VERSION: "0.1.0"
+    MARKETING_VERSION: "0.1.0" # x-release-please-version
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
@@ -18,6 +18,9 @@ settings:
 packages:
   VaultCore:
     path: Packages/VaultCore
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.10.0
 targets:
   Chiikawarden:
     type: application
@@ -36,6 +39,7 @@ targets:
         product: VaultwardenAPI
       - package: VaultCore
         product: SSHAgent
+      - package: Sparkle # signed, verified in-place updates
       - target: ChiikawardenAutoFill
         embed: true
       - target: ChiikawardenSafari
@@ -54,6 +58,10 @@ targets:
         com.apple.security.application-groups: [FX3VR69P5K.io.github.sinhong2011.chiikawarden]
         keychain-access-groups: [$(AppIdentifierPrefix)io.github.sinhong2011.chiikawarden.shared]
         com.apple.developer.authentication-services.autofill-credential-provider: true
+        # Sparkle's installer runs as an XPC service outside the sandbox; the app may talk to it.
+        com.apple.security.temporary-exception.mach-lookup.global-name:
+          - $(PRODUCT_BUNDLE_IDENTIFIER)-spks
+          - $(PRODUCT_BUNDLE_IDENTIFIER)-spki
     info:
       path: App/Info.plist
       properties:
@@ -61,6 +69,14 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, zh-Hant, zh-HK, zh-Hans, ja]
+        # Updates (Sparkle): appcast attached to the latest GitHub release; every update must carry an EdDSA
+        # signature made with the private key matching SUPublicEDKey (set by `make sparkle-keys`).
+        SUFeedURL: https://github.com/sinhong2011/chiikawarden/releases/latest/download/appcast.xml
+        SUPublicEDKey: $(SPARKLE_PUBLIC_KEY)
+        SUEnableInstallerLauncherService: true
+        SUEnableAutomaticChecks: false # opt-in: the user turns automatic checks on in Settings
+        SUScheduledCheckInterval: 86400
+        SUVerifyUpdateBeforeExtraction: true
         # Self-hosted servers on the LAN (IPs, .local) are often plain HTTP or private-CA.
         NSServices:
           - NSMenuItem: {default: "Generate Password with Chiikawarden"}
@@ -76,6 +92,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES # Xcode canvas: see App/Sources/Previews.swift
+        SPARKLE_PUBLIC_KEY: "" # sparkle-public-key (written by `make sparkle-keys`; the private key never enters the repo)
     scheme:
       testTargets: [ChiikawardenUITests]
 
