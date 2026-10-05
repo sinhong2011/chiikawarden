@@ -55,7 +55,7 @@ struct BrandStage: View {
     }
 }
 
-/// Vector vault dial: bezel, minor/major ticks, glass disc and a faceted sapphire.
+/// Vector vault dial: bezel, minor/major ticks, glass disc and the app icon's vault handle.
 struct VaultDial: View {
     var rotation: Angle
     var glow: Double
@@ -92,30 +92,31 @@ struct VaultDial: View {
                 startPoint: CGPoint(x: c.x, y: c.y - r * 0.56), endPoint: CGPoint(x: c.x, y: c.y + r * 0.56)))
             ctx.stroke(disc, with: .color(.white.opacity(0.28)), lineWidth: 1)
 
-            // Sapphire glow
+            // Glow behind the handle
             ctx.fill(circle(r * 0.40), with: .radialGradient(
                 Gradient(colors: [Color(red: 0.42, green: 0.58, blue: 1).opacity(0.55 * glow), .clear]),
                 center: c, startRadius: 0, endRadius: r * 0.40))
 
-            // Faceted sapphire (octagon)
-            let g = r * 0.17
-            func octagon(_ radius: CGFloat) -> [CGPoint] {
-                (0..<8).map { k in
-                    let a = Double(k) * .pi / 4 - .pi / 2
-                    return CGPoint(x: c.x + cos(a) * radius, y: c.y + sin(a) * radius)
-                }
+            // Vault handle (the app icon's wheel): ring, two crossed spokes with knobs, hub. Turns with the ticks.
+            let blue = GraphicsContext.Shading.linearGradient(
+                Gradient(colors: [Color(red: 0.62, green: 0.74, blue: 1), Color(red: 0.29, green: 0.45, blue: 0.95)]),
+                startPoint: CGPoint(x: c.x, y: c.y - r * 0.4), endPoint: CGPoint(x: c.x, y: c.y + r * 0.4))
+            ctx.stroke(circle(r * 0.27), with: blue, lineWidth: r * 0.07)
+            let reach = r * 0.36
+            var spokes = Path()
+            for k in 0..<2 {
+                let a = (Angle.degrees(45 + Double(k) * 90) - rotation * 2).radians
+                spokes.move(to: CGPoint(x: c.x + cos(a) * reach, y: c.y + sin(a) * reach))
+                spokes.addLine(to: CGPoint(x: c.x - cos(a) * reach, y: c.y - sin(a) * reach))
             }
-            let outerPts = octagon(g), innerPts = octagon(g * 0.52)
-            var gem = Path(); gem.addLines(outerPts); gem.closeSubpath()
-            ctx.fill(gem, with: .linearGradient(
-                Gradient(colors: [Color(red: 0.80, green: 0.87, blue: 1), Color(red: 0.29, green: 0.45, blue: 0.95)]),
-                startPoint: CGPoint(x: c.x, y: c.y - g), endPoint: CGPoint(x: c.x, y: c.y + g)))
-            var table = Path(); table.addLines(innerPts); table.closeSubpath()
-            ctx.fill(table, with: .color(.white.opacity(0.18)))
-            ctx.stroke(table, with: .color(.white.opacity(0.45)), lineWidth: 1)
-            var facets = Path()
-            for k in 0..<8 { facets.move(to: outerPts[k]); facets.addLine(to: innerPts[k]) }
-            ctx.stroke(facets, with: .color(.white.opacity(0.35)), lineWidth: 1)
+            ctx.stroke(spokes, with: blue, style: StrokeStyle(lineWidth: r * 0.08, lineCap: .round))
+            for k in 0..<4 {
+                let a = (Angle.degrees(45 + Double(k) * 90) - rotation * 2).radians
+                let knob = CGPoint(x: c.x + cos(a) * reach, y: c.y + sin(a) * reach)
+                ctx.fill(Path(ellipseIn: CGRect(x: knob.x - r * 0.066, y: knob.y - r * 0.066, width: r * 0.132, height: r * 0.132)), with: blue)
+            }
+            ctx.fill(circle(r * 0.17), with: blue)
+            ctx.fill(circle(r * 0.066), with: .color(.white.opacity(0.95)))
         }
     }
 }
