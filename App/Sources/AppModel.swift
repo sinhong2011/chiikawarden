@@ -180,6 +180,24 @@ final class AppModel {
 
     /// Bumped each time Quick Search opens, so the panel resets and focuses.
     var quickSearchNonce = 0
+    /// Opens the command palette (set by the app; the toolbar, ⌘K/⌘F and ⌥Space all use it).
+    @ObservationIgnored var openPalette: () -> Void = {}
+    /// Sidebar destination asked for from outside the vault view (palette commands).
+    var requestedSection: SidebarSelection?
+    var showingGenerator = false
+
+    /// Shows the main window, e.g. after a palette command run from another app.
+    func bringToFront() {
+        NSApp.activate()
+        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+    }
+
+    /// Selects an item in the vault list.
+    func showItem(_ id: String) {
+        bringToFront()
+        requestedSection = .section(.all)
+        selectedID = id
+    }
 
     /// Transient confirmation shown after copying.
     var toast: String?

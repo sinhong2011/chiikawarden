@@ -29,7 +29,6 @@ extension Color {
 struct VaultView: View {
     var initialSelection: VaultItem.ID?
     @Environment(AppModel.self) private var model
-    @State private var showGenerator = false
     @State private var newFolderName = ""
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
@@ -61,7 +60,11 @@ struct VaultView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             HStack(spacing: 8) {
-                if section == .sends {
+                if section == .codes {
+                    CodesPane()
+                } else if section == .generator {
+                    GeneratorPane()
+                } else if section == .sends {
                     SendsPane()
                 } else if section == .watchtower {
                     WatchtowerView { item in
@@ -93,27 +96,32 @@ struct VaultView: View {
             .background(WindowBackdrop())
             .toolbar(removing: .title)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    SearchField(query: $query)
+                // Search and + live in the header, over the item list (Liquid layout).
+                ToolbarItem(placement: .navigation) {
+                    HStack(spacing: 8) {
+                        PaletteTrigger().frame(width: 228)
+                        NewItemButton()
+                    }
                 }
-                .sharedBackgroundVisibility(.hidden) // our own quiet capsule, not a pill inside the toolbar's pill
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Button { showGenerator = true } label: { Label("Password Generator", systemImage: "dice") }
-                        .help(Text("Password Generator (⌘G)"))
-                        .keyboardShortcut("g", modifiers: .command)
-                        .popover(isPresented: $showGenerator) { GeneratorView() }
-                    Menu {
-                        Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
-                        Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
-                        Button("New Card") { model.editing = EditRequest(mode: .create(.card)) }
-                        Button("New Identity") { model.editing = EditRequest(mode: .create(.identity)) }
-                        Button("New SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
-                    } label: { Label("New Item", systemImage: "plus") }
-                    .help(Text("New Item (⌘N)"))
+                .sharedBackgroundVisibility(.hidden)
+            }
+            .background {
+                // Keyboard: ⌘K / ⌘F open the command palette, ⌘G the generator.
+                Group {
+                    Button("") { model.openPalette() }.keyboardShortcut("k", modifiers: .command)
+                    Button("") { model.openPalette() }.keyboardShortcut("f", modifiers: .command)
+                    Button("") { section = .generator }.keyboardShortcut("g", modifiers: .command)
                 }
+                .hidden()
             }
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
+        .onChange(of: model.requestedSection) { _, requested in
+            if let requested { section = requested; model.requestedSection = nil }
+        }
+        .onChange(of: model.showingGenerator) { _, show in
+            if show { section = .generator; model.showingGenerator = false }
+        }
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .quickLookPreview($model.previewURL)
         .onChange(of: model.previewURL) { old, _ in
@@ -142,10 +150,12 @@ enum SidebarSelection: Hashable {
     case account(String)
     case watchtower
     case sends
+    case generator
+    case codes
 
     func includes(_ item: VaultItem) -> Bool {
         switch self {
-        case .watchtower, .sends: false
+        case .watchtower, .sends, .generator, .codes: false
         case .account(let id): !item.isDeleted && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let path): !item.isDeleted && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
@@ -209,6 +219,11 @@ private struct Sidebar: View {
                 Label("Send", systemImage: "paperplane")
                     .badge(model.sends.count)
                     .tag(SidebarSelection.sends)
+                Label("One-Time Codes", systemImage: "clock.badge.checkmark")
+                    .badge(model.items.filter { !$0.isDeleted && $0.totp != nil }.count)
+                    .tag(SidebarSelection.codes)
+                Label("Password Generator", systemImage: "dice")
+                    .tag(SidebarSelection.generator)
             }
             if !model.folders.isEmpty {
                 Section("Folders") {
@@ -362,47 +377,81 @@ private struct FolderRow: View {
 // MARK: Search
 
 /// Centered toolbar search, ⌘F to focus.
-private struct SearchField: View {
-    @Binding var query: String
-    @FocusState private var focused: Bool
+/// Looks like a search field; opens the command palette (⌘K / ⌘F).
+private struct PaletteTrigger: View {
+    @Environment(AppModel.self) private var model
     @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(focused ? Color.brand : .secondary)
-            TextField("Search vault", text: $query, prompt: Text("Search vault").foregroundStyle(.tertiary))
-                .textFieldStyle(.plain)
-                .font(.system(size: 13, weight: .regular))
-                .focused($focused)
-                .onExitCommand { query = ""; focused = false }
-            if !query.isEmpty {
-                Button { query = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary).accessibilityLabel(Text("Clear search"))
-                }
-                .buttonStyle(.plain)
-                .help(Text("Clear"))
-            } else if !focused {
-                Text(verbatim: "⌘F")
+        Button { model.openPalette() } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium))
+                Text("Search").font(.system(size: 13))
+                Spacer()
+                Text(verbatim: "⌘K")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.tertiary)
                     .padding(.horizontal, 5).padding(.vertical, 1.5)
                     .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 4))
             }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .background(Color.panelStrong.opacity(hovering ? 1 : 0.85), in: .capsule)
+            .overlay(Capsule().strokeBorder(Color.panelEdge))
+            .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
+            .contentShape(.capsule)
         }
-        .padding(.horizontal, 10)
-        .frame(width: 320, height: 28)
-        .background(Color.primary.opacity(focused ? 0.03 : hovering ? 0.08 : 0.06), in: .capsule)
-        .overlay(Capsule().strokeBorder(Color.brand.opacity(focused ? 0.55 : 0), lineWidth: 1.5))
-        .contentShape(.capsule)
-        .onTapGesture { focused = true }
+        .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .animation(.easeOut(duration: 0.15), value: focused)
-        .animation(.easeOut(duration: 0.12), value: hovering)
-        .background {
-            Button("") { focused = true }.keyboardShortcut("f", modifiers: .command).hidden()
+        .help(Text("Search or run a command (⌘K)"))
+        .accessibilityLabel(Text("Search or run a command"))
+    }
+}
+
+/// The round + next to search: new items of every kind.
+private struct NewItemButton: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Menu {
+            Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
+            Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
+            Button("New Card") { model.editing = EditRequest(mode: .create(.card)) }
+            Button("New Identity") { model.editing = EditRequest(mode: .create(.identity)) }
+            Button("New SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
+            Divider()
+            Button("New Folder…") { model.promptingNewFolder = true }
+        } label: {
+            Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
+                .frame(width: 32, height: 32)
+                .background(Color.panelStrong, in: .circle)
+                .overlay(Circle().strokeBorder(Color.panelEdge))
+                .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
+                .contentShape(.circle)
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(Text("New Item (⌘N)"))
+        .accessibilityLabel(Text("New Item"))
+    }
+}
+
+/// Sidebar › Password Generator: the generator as a page, not a popover.
+private struct GeneratorPane: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Password Generator").font(.system(size: 22, weight: .bold)).tracking(-0.3)
+            GeneratorView()
+                .padding(20)
+                .frame(maxWidth: 520, alignment: .leading)
+                .background(Color.panelStrong, in: .rect(cornerRadius: 22, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.panelEdge))
+            Spacer()
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 
@@ -439,7 +488,7 @@ private struct ItemColumn: View {
 
             ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 2) {
+                LazyVStack(spacing: 6) {
                     ForEach(items) { item in
                         ItemRow(item: item, isSelected: item.id == selection, highlight: query)
                             .onTapGesture { selection = item.id }
@@ -535,25 +584,6 @@ struct ItemDetail: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack {
-                    Spacer()
-                    HStack(spacing: 0) {
-                        if item.isDeleted {
-                            toolbarButton("arrow.uturn.backward", help: "Restore") { Task { await model.restore(item) } }
-                            toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
-                                .foregroundStyle(.red)
-                        } else {
-                            toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
-                                .foregroundStyle(item.favorite ? .yellow : .primary)
-                            toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
-                            toolbarButton("trash", help: "Move to Trash (⌘⌫)") { Task { await model.trash(item) } }
-                        }
-                    }
-                    .padding(3)
-                    .background(Color.panelStrong, in: .capsule)
-                    .overlay(Capsule().strokeBorder(Color.panelEdge))
-                }
-
                 if item.isDeleted {
                     Label("In Trash. Restore it to use it again, or delete it forever.", systemImage: "trash")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
@@ -639,7 +669,6 @@ struct ItemDetail: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .frame(maxWidth: 680)
             .frame(maxWidth: .infinity)
         }
         .scrollIndicators(.never)
@@ -663,6 +692,12 @@ struct ItemDetail: View {
             }
         }
         .animation(.easeOut(duration: 0.15), value: dropping)
+        .toolbar {
+            // Item actions sit in the header, top right (Liquid layout).
+            ToolbarSpacer(.flexible)
+            ToolbarItem { actions }
+                .sharedBackgroundVisibility(.hidden)
+        }
         .confirmationDialog("Delete “\(item.name)” forever?", isPresented: $confirmDelete) {
             Button("Delete Forever", role: .destructive) { Task { await model.deleteForever(item) } }
         } message: {
@@ -677,6 +712,25 @@ struct ItemDetail: View {
                        pw.contains(where: \.isNumber), pw.contains { !$0.isLetter && !$0.isNumber }].filter { $0 }.count
         if pw.count < 10 || classes < 3 { return ("Weak password", .red) }
         return ("Strong · unique", .green)
+    }
+
+    private var actions: some View {
+        HStack(spacing: 0) {
+            if item.isDeleted {
+                toolbarButton("arrow.uturn.backward", help: "Restore") { Task { await model.restore(item) } }
+                toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
+                    .foregroundStyle(.red)
+            } else {
+                toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
+                    .foregroundStyle(item.favorite ? .yellow : .primary)
+                toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
+                toolbarButton("trash", help: "Move to Trash (⌘⌫)") { Task { await model.trash(item) } }
+            }
+        }
+        .padding(3)
+        .background(Color.panelStrong, in: .capsule)
+        .overlay(Capsule().strokeBorder(Color.panelEdge))
+        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
     }
 
     private func toolbarButton(_ symbol: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {

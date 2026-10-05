@@ -63,13 +63,15 @@ enum Snapshot {
             render(desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 1180, height: 760), appearance: appearance,
                    to: dir.appending(path: "vault-\(name).png"))
+            render(desktop(CodesPane().environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 560), appearance: appearance, to: dir.appending(path: "codes-\(name).png"))
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-\(name).png"))
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            render(QuickSearchView(close: {}).environment(vault).tint(.brand).padding(30),
-                   size: CGSize(width: 700, height: 480), appearance: appearance,
-                   to: dir.appending(path: "quicksearch-\(name).png"))
+            render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 760, height: 620), appearance: appearance,
+                   to: dir.appending(path: "palette-\(name).png"))
             render(MenuBarContent().environment(vault).tint(.brand).background(Color.windowBase),
                    size: CGSize(width: 300, height: 460), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))

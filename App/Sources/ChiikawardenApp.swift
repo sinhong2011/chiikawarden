@@ -41,6 +41,7 @@ struct ChiikawardenApp: App {
                     if hotKey == nil {
                         let controller = QuickSearchController(model: model)
                         quickSearch = controller
+                        model.openPalette = { controller.show() }
                         hotKey = GlobalHotKey { controller.toggle() }
                     }
                 }
@@ -110,7 +111,7 @@ struct ChiikawardenApp: App {
                     .disabled(item == nil || item?.isDeleted == true)
             }
             CommandGroup(after: .appSettings) {
-                Button("Quick Search") { quickSearch?.show() }
+                Button("Command Palette") { quickSearch?.show() }
                     .keyboardShortcut(.space, modifiers: .option)
                 Button("Lock Vault") { model.lock() }
                     .keyboardShortcut("l", modifiers: [.command, .shift])

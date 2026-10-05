@@ -811,6 +811,34 @@
         }
       }
     },
+    "Add a code secret to a login to see it here.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在登入項目加入驗證碼密鑰後，就會顯示在這裡。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺登入項目加入驗證碼密鑰之後，就會顯示喺呢度。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在登录项中添加验证码密钥后，就会显示在这里。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログインにコードのシークレットを追加すると、ここに表示されます。"
+          }
+        }
+      }
+    },
     "Add to ~/.ssh/config": {
       "localizations": {
         "ja": {
@@ -2160,6 +2188,7 @@
       }
     },
     "Clear": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2216,6 +2245,7 @@
       }
     },
     "Clear search": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2272,6 +2302,7 @@
       }
     },
     "Close": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2327,6 +2358,34 @@
         }
       }
     },
+    "Command Palette": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令面板"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指令面板"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令面板"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドパレット"
+          }
+        }
+      }
+    },
     "Command line": {
       "localizations": {
         "ja": {
@@ -2351,6 +2410,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "命令列"
+          }
+        }
+      }
+    },
+    "Commands": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指令"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンド"
           }
         }
       }
@@ -2575,6 +2662,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝項目的密碼，並在 Chiikawarden 設定的時間後從剪貼板清除。"
+          }
+        }
+      }
+    },
+    "Copies the code": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コードをコピーします"
           }
         }
       }
@@ -2804,6 +2919,7 @@
       }
     },
     "Copy code": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2832,6 +2948,7 @@
       }
     },
     "Copy password": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -4009,10 +4126,10 @@
     },
     "Every login,\nin one quiet orbit.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "每一組登入，\n都在安靜的軌道上。"
+            "value": "すべてのログインを、\n静かな軌道にひとつに。"
           }
         },
         "zh-HK": {
@@ -4027,10 +4144,10 @@
             "value": "每一个登录，\n都在安静的轨道上。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "すべてのログインを、\n静かな軌道にひとつに。"
+            "value": "每一組登入，\n都在安靜的軌道上。"
           }
         }
       }
@@ -6668,6 +6785,34 @@
         }
       }
     },
+    "No one-time codes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冇一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタイムコードはありません"
+          }
+        }
+      }
+    },
     "No passkeys for this site": {
       "localizations": {
         "ja": {
@@ -6892,6 +7037,34 @@
         }
       }
     },
+    "Nothing matches “%@”": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合「%@」的結果"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冇符合「%@」嘅結果"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有符合“%@”的结果"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」に一致する項目はありません"
+          }
+        }
+      }
+    },
     "Notifications": {
       "localizations": {
         "ja": {
@@ -7112,6 +7285,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "一次性驗證碼"
+          }
+        }
+      }
+    },
+    "One-Time Codes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワンタイムコード"
           }
         }
       }
@@ -7397,6 +7598,7 @@
       }
     },
     "Open Chiikawarden to unlock": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7874,6 +8076,7 @@
       }
     },
     "Password Generator (⌘G)": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -8154,6 +8357,7 @@
       }
     },
     "Quick Search": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -9019,6 +9223,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "已儲存「%@」"
+          }
+        }
+      }
+    },
+    "Search": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索"
+          }
+        }
+      }
+    },
+    "Search or run a command": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋或執行命令"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋或執行指令"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索或运行命令"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索またはコマンドを実行"
+          }
+        }
+      }
+    },
+    "Search or run a command (⌘K)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋或執行命令（⌘K）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋或執行指令（⌘K）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索或运行命令（⌘K）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索またはコマンドを実行（⌘K）"
           }
         }
       }
@@ -9944,6 +10232,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "符號（!@#…）"
+          }
+        }
+      }
+    },
+    "Sync Now": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即同步"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即刻同步"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即同步"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ同期"
           }
         }
       }
@@ -11523,6 +11839,34 @@
         }
       }
     },
+    "Vault locked: unlock Chiikawarden to search it": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫已鎖定：請先解鎖 Chiikawarden 再搜尋"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫已鎖定：請先解鎖 Chiikawarden 再搜尋"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码库已锁定：请先解锁 Chiikawarden 再搜索"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫はロックされています。検索するには Chiikawarden のロックを解除してください"
+          }
+        }
+      }
+    },
     "Vaultwarden": {
       "shouldTranslate": false
     },
@@ -12759,6 +13103,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "「%@」不是有效的網址。"
+          }
+        }
+      }
+    },
+    "↵ Open": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ 開啟"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ 開啟"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ 打开"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ 開く"
+          }
+        }
+      }
+    },
+    "⇧↵ Website": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧↵ 網站"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧↵ 網站"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧↵ 网站"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧↵ Web サイト"
+          }
+        }
+      }
+    },
+    "⌘↵ Password": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↵ 密碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↵ 密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↵ 密码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↵ パスワード"
+          }
+        }
+      }
+    },
+    "⌥↵ Code": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥↵ 驗證碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥↵ 驗證碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥↵ 验证码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥↵ コード"
           }
         }
       }
