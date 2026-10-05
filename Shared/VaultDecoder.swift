@@ -10,6 +10,7 @@ struct DecodedVault {
     var hiddenCount: Int
     var keyring: Keyring
     var rawCiphers: [String: Data]
+    var sends: [SendItem] = []
 }
 
 enum VaultDecoder {
@@ -139,6 +140,25 @@ enum VaultDecoder {
         let folderNames = Dictionary(folders.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         for i in items.indices { items[i].folderName = items[i].folderId.flatMap { folderNames[$0] } }
         return DecodedVault(items: items, folders: folders, organizations: organizations, hiddenCount: hidden,
-                            keyring: keyring, rawCiphers: CipherEditor.rawCiphers(fromSync: data))
+                            keyring: keyring, rawCiphers: CipherEditor.rawCiphers(fromSync: data),
+                            sends: decodeSends(data, userKey: userKey, accountId: accountId))
+    }
+
+    static func decodeSends(_ data: Data, userKey: SymmetricKeyPair, accountId: String) -> [SendItem] {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        func date(_ s: String?) -> Date? { s.flatMap { iso.date(from: $0) ?? ISO8601DateFormatter().date(from: $0) } }
+        return SyncResponse.sends(data).compactMap { send in
+            guard let accessId = send.accessId, let material = send.key.flatMap({ try? EncString($0).decrypt(with: userKey) }),
+                  let key = try? SendCrypto.key(from: material) else { return nil }
+            func dec(_ s: String?) -> String? { s.flatMap { try? EncString($0).decryptString(with: key) } }
+            return SendItem(id: send.id, accountId: accountId, accessId: accessId, kind: send.type == 1 ? .file : .text,
+                            name: dec(send.name) ?? "—", notes: dec(send.notes), text: dec(send.text?.text),
+                            hideText: send.text?.hidden ?? false, fileName: dec(send.file?.fileName), sizeName: send.file?.sizeName,
+                            keyMaterial: material, accessCount: send.accessCount ?? 0, maxAccessCount: send.maxAccessCount,
+                            hasPassword: send.password != nil, disabled: send.disabled ?? false,
+                            deletionDate: date(send.deletionDate), expirationDate: date(send.expirationDate))
+        }
+        .sorted { ($0.deletionDate ?? .distantFuture) < ($1.deletionDate ?? .distantFuture) }
     }
 }

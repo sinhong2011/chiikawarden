@@ -27,6 +27,7 @@ Problems in Vaultwarden or Bitwarden themselves belong to those projects.
 | Custom request headers (e.g. Cloudflare Access tokens) | Same Keychain group | Same as above. |
 | Website-icon cache key | Same Keychain group | 256-bit random key. Icons are cached AES-GCM encrypted, under HMAC-SHA256 file names, so the cache doesn't reveal which sites you have. |
 | Attachments | On the server; decrypted copies only while previewed | Each file has its own 512-bit key (encrypted with the item key) and is uploaded as an encrypted buffer. Quick Look gets a decrypted copy in a private (0700) folder in the sandbox's temp directory. It is deleted when the preview closes, on lock and at launch. On APFS, deleting a file doesn't scrub the disk blocks, so don't preview files you need forensically erased. |
+| Send contents | On the server, encrypted | Each Send has 16 random bytes of key material. They are stored under your user key and put in the share link's `#fragment`, which browsers never send to the server. HKDF-SHA256 turns them into the key for the name, text and file. An optional password is checked by the server as PBKDF2-SHA256 of the password, salted with the key material. |
 | Passkeys | Inside the login item (`login.fido2Credentials`) | Encrypted with the item's key like any other field, and synced to your server. |
 
 Files live in the App Group container

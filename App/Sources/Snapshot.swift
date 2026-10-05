@@ -91,6 +91,22 @@ enum Snapshot {
                    size: CGSize(width: 340, height: 420), appearance: appearance,
                    to: dir.appending(path: "generator-\(name).png"))
         }
+        vault.sends = [
+            SendItem(id: "s1", accountId: "", accessId: "a1", kind: .text, name: "Wi-Fi for guests", notes: nil,
+                     text: "pochi-net / yaha-1234", hideText: true, fileName: nil, sizeName: nil, keyMaterial: Data(count: 16),
+                     accessCount: 1, maxAccessCount: 3, hasPassword: true, disabled: false,
+                     deletionDate: .now.addingTimeInterval(5 * 86_400), expirationDate: nil),
+            SendItem(id: "s2", accountId: "", accessId: "a2", kind: .file, name: "Lease scan", notes: "for the agent",
+                     text: nil, hideText: false, fileName: "lease-2026.pdf", sizeName: "1.2 MB", keyMaterial: Data(count: 16),
+                     accessCount: 0, maxAccessCount: nil, hasPassword: false, disabled: false,
+                     deletionDate: .now.addingTimeInterval(86_400), expirationDate: nil),
+        ]
+        vault.selectedSendID = "s1"
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(SendsPane().environment(vault).tint(.brand).padding(14), dark: name == "dark"),
+                   size: CGSize(width: 960, height: 640), appearance: appearance,
+                   to: dir.appending(path: "send-\(name).png"))
+        }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let locked = AutoFillState()
             locked.domains = ["github.com"]
@@ -437,6 +453,25 @@ enum SelfTest {
                 check(intentPassword?.count == 24 && found?.count == 1 && intentCode?.count == 6,
                       "App Intents: generate, find item, get code (\(found?.count ?? -1) found)")
                 if let cliItem = model.items.first(where: { $0.name == "Selftest cli" }) { await model.deleteForever(cliItem) }
+
+                // Send: create, open it as a stranger from the copied link, delete.
+                var sendDraft = SendDraft(name: "Selftest send", content: .text("hello from usagi", hidden: false),
+                                          deletionDate: .now.addingTimeInterval(3_600))
+                sendDraft.password = "pw"
+                let sendCreated = await model.createSend(sendDraft, accountId: firstID)
+                let copiedLink = NSPasteboard.general.string(forType: .string) ?? ""
+                let mySend = model.sends.first { $0.name == "Selftest send" }
+                var opened = ""
+                if let mySend, let fragment = copiedLink.split(separator: "/").last, let material = Data(base64URL: String(fragment)),
+                   let key = try? SendCrypto.key(from: material), let hash = try? SendCrypto.passwordHash("pw", keyMaterial: material) {
+                    let stranger = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString)
+                    let response = try? await stranger.accessSend(accessId: mySend.accessId, passwordHash: hash)
+                    opened = response?.text?.text.flatMap { try? EncString($0).decryptString(with: key) } ?? ""
+                }
+                check(sendCreated && mySend?.hasPassword == true && copiedLink.contains("#/send/") && opened == "hello from usagi",
+                      "Send: create, copy link, open as recipient")
+                if let mySend { await model.deleteSend(mySend) }
+                check(!model.sends.contains { $0.name == "Selftest send" }, "Send: delete")
 
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()

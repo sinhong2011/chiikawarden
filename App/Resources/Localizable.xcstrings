@@ -63,6 +63,20 @@
         }
       }
     },
+    "%lld": {
+      "shouldTranslate": false
+    },
+    "%lld / %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld / %2$lld"
+          }
+        }
+      },
+      "shouldTranslate": false
+    },
     "%lld accounts": {
       "localizations": {
         "ja": {
@@ -115,6 +129,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$lld 個登入資料中有 %1$lld 個需要處理。"
+          }
+        }
+      }
+    },
+    "1 day": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 日"
           }
         }
       }
@@ -203,6 +245,34 @@
         }
       }
     },
+    "14 days": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 日"
+          }
+        }
+      }
+    },
     "15 minutes": {
       "localizations": {
         "ja": {
@@ -227,6 +297,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "15 分鐘"
+          }
+        }
+      }
+    },
+    "2 days": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 日"
           }
         }
       }
@@ -261,6 +359,62 @@
     },
     "2FA": {
       "shouldTranslate": false
+    },
+    "3 days": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 日"
+          }
+        }
+      }
+    },
+    "30 days": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 日"
+          }
+        }
+      }
     },
     "30 minutes": {
       "localizations": {
@@ -342,6 +496,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "5 分鐘"
+          }
+        }
+      }
+    },
+    "7 days": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 日"
           }
         }
       }
@@ -856,10 +1038,10 @@
     },
     "Answer the cw command": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "回應 cw 指令"
+            "value": "cw コマンドに応答"
           }
         },
         "zh-HK": {
@@ -874,10 +1056,10 @@
             "value": "响应 cw 命令"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cw コマンドに応答"
+            "value": "回應 cw 指令"
           }
         }
       }
@@ -912,10 +1094,10 @@
     },
     "Ask before revealing": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示前詢問"
+            "value": "表示する前に確認"
           }
         },
         "zh-HK": {
@@ -930,10 +1112,10 @@
             "value": "显示前询问"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "表示する前に確認"
+            "value": "顯示前詢問"
           }
         }
       }
@@ -1046,6 +1228,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "自動填入"
+          }
+        }
+      }
+    },
+    "Availability": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用期間"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用期間"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用期限"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開期間"
           }
         }
       }
@@ -1445,6 +1655,34 @@
         }
       }
     },
+    "Change…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更換…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更換…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変更…"
+          }
+        }
+      }
+    },
     "Check again": {
       "localizations": {
         "ja": {
@@ -1587,10 +1825,10 @@
     },
     "Chiikawarden is locked.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden 已鎖定。"
+            "value": "Chiikawarden をロックしました。"
           }
         },
         "zh-HK": {
@@ -1605,20 +1843,20 @@
             "value": "Chiikawarden 已锁定。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden をロックしました。"
+            "value": "Chiikawarden 已鎖定。"
           }
         }
       }
     },
     "Chiikawarden is locked. Unlock it first.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden 已鎖定，請先解鎖。"
+            "value": "Chiikawarden はロックされています。先にロックを解除してください。"
           }
         },
         "zh-HK": {
@@ -1633,10 +1871,38 @@
             "value": "Chiikawarden 已锁定，请先解锁。"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 已鎖定，請先解鎖。"
+          }
+        }
+      }
+    },
+    "Choose a file up to 500 MB.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇 500 MB 以內的檔案。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇 500 MB 以內的檔案。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择 500 MB 以内的文件。"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden はロックされています。先にロックを解除してください。"
+            "value": "500 MB 以下のファイルを選んでください。"
           }
         }
       }
@@ -1665,6 +1931,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "選擇保險庫所在的位置。"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択…"
           }
         }
       }
@@ -1867,10 +2161,10 @@
     },
     "Command line": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "命令列"
+            "value": "コマンドライン"
           }
         },
         "zh-HK": {
@@ -1885,10 +2179,10 @@
             "value": "命令行"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コマンドライン"
+            "value": "命令列"
           }
         }
       }
@@ -2035,10 +2329,10 @@
     },
     "Copied the password for %@.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "已拷貝 %@ 的密碼。"
+            "value": "%@ のパスワードをコピーしました。"
           }
         },
         "zh-HK": {
@@ -2053,20 +2347,20 @@
             "value": "已复制 %@ 的密码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ のパスワードをコピーしました。"
+            "value": "已拷貝 %@ 的密碼。"
           }
         }
       }
     },
     "Copies an item's password. It's cleared from the clipboard after the delay set in Chiikawarden.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝項目的密碼，並在 Chiikawarden 設定的時間後從剪貼板清除。"
+            "value": "項目のパスワードをコピーします。Chiikawarden で設定した時間が経つとクリップボードから消去されます。"
           }
         },
         "zh-HK": {
@@ -2081,10 +2375,10 @@
             "value": "复制项目的密码，并在 Chiikawarden 设定的时间后从剪贴板清除。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "項目のパスワードをコピーします。Chiikawarden で設定した時間が経つとクリップボードから消去されます。"
+            "value": "拷貝項目的密碼，並在 Chiikawarden 設定的時間後從剪貼板清除。"
           }
         }
       }
@@ -2147,10 +2441,10 @@
     },
     "Copy Command": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝指令"
+            "value": "コマンドをコピー"
           }
         },
         "zh-HK": {
@@ -2165,10 +2459,38 @@
             "value": "复制命令"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝指令"
+          }
+        }
+      }
+    },
+    "Copy Link": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝連結"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製連結"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制链接"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "コマンドをコピー"
+            "value": "リンクをコピー"
           }
         }
       }
@@ -2343,10 +2665,10 @@
     },
     "Copy the password of ${item}": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝 ${item} 的密碼"
+            "value": "${item} のパスワードをコピー"
           }
         },
         "zh-HK": {
@@ -2361,10 +2683,10 @@
             "value": "复制 ${item} 的密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "${item} のパスワードをコピー"
+            "value": "拷貝 ${item} 的密碼"
           }
         }
       }
@@ -2511,10 +2833,10 @@
     },
     "Couldn't start the command-line bridge: %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法啟動命令列橋接：%@"
+            "value": "コマンドライン連携を開始できませんでした：%@"
           }
         },
         "zh-HK": {
@@ -2529,10 +2851,10 @@
             "value": "无法启动命令行桥接：%@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コマンドライン連携を開始できませんでした：%@"
+            "value": "無法啟動命令列橋接：%@"
           }
         }
       }
@@ -2621,6 +2943,34 @@
         }
       }
     },
+    "Create & Copy Link": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立並拷貝連結"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立並複製連結"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建并复制链接"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作成してリンクをコピー"
+          }
+        }
+      }
+    },
     "Created %@": {
       "localizations": {
         "ja": {
@@ -2651,10 +3001,10 @@
     },
     "Creates a random password with your generator settings. Works while locked.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "依產生器設定建立隨機密碼，鎖定時也可使用。"
+            "value": "ジェネレータの設定でランダムなパスワードを作成します。ロック中でも使えます。"
           }
         },
         "zh-HK": {
@@ -2669,10 +3019,10 @@
             "value": "按生成器设置创建随机密码，锁定时也可使用。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ジェネレータの設定でランダムなパスワードを作成します。ロック中でも使えます。"
+            "value": "依產生器設定建立隨機密碼，鎖定時也可使用。"
           }
         }
       }
@@ -2817,6 +3167,62 @@
         }
       }
     },
+    "Delete Send": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除 Send"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除 Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除 Send"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send を削除"
+          }
+        }
+      }
+    },
+    "Delete after": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除時間"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除時間"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除时间"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除までの期間"
+          }
+        }
+      }
+    },
     "Delete “%@” forever?": {
       "localizations": {
         "ja": {
@@ -2929,6 +3335,62 @@
         }
       }
     },
+    "Deletes %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@刪除"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@刪除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@删除"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@に削除"
+          }
+        }
+      }
+    },
+    "Deletes on": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除日期"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除日期"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除日期"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除日"
+          }
+        }
+      }
+    },
     "Deny": {
       "localizations": {
         "ja": {
@@ -2959,10 +3421,10 @@
     },
     "Developer": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "開發者"
+            "value": "デベロッパ"
           }
         },
         "zh-HK": {
@@ -2977,10 +3439,10 @@
             "value": "开发者"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "デベロッパ"
+            "value": "開發者"
           }
         }
       }
@@ -3009,6 +3471,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "數字（0–9）"
+          }
+        }
+      }
+    },
+    "Disabled": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効"
           }
         }
       }
@@ -3349,6 +3839,62 @@
         }
       }
     },
+    "Expire earlier": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提早到期"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提早到期"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提前过期"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "早めに期限切れにする"
+          }
+        }
+      }
+    },
+    "Expired": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到期"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到期"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期限切れ"
+          }
+        }
+      }
+    },
     "Expires": {
       "localizations": {
         "ja": {
@@ -3513,6 +4059,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "我的最愛"
+          }
+        }
+      }
+    },
+    "File": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル"
           }
         }
       }
@@ -3827,10 +4401,10 @@
     },
     "Generate Password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "產生密碼"
+            "value": "パスワードを生成"
           }
         },
         "zh-HK": {
@@ -3845,10 +4419,10 @@
             "value": "生成密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードを生成"
+            "value": "產生密碼"
           }
         }
       }
@@ -3883,10 +4457,10 @@
     },
     "Get One-Time Code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "取得一次性驗證碼"
+            "value": "ワンタイムコードを取得"
           }
         },
         "zh-HK": {
@@ -3901,20 +4475,20 @@
             "value": "获取一次性验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワンタイムコードを取得"
+            "value": "取得一次性驗證碼"
           }
         }
       }
     },
     "Get the one-time code for ${item}": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "取得 ${item} 的一次性驗證碼"
+            "value": "${item} のワンタイムコードを取得"
           }
         },
         "zh-HK": {
@@ -3929,10 +4503,10 @@
             "value": "获取 ${item} 的一次性验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "${item} のワンタイムコードを取得"
+            "value": "取得 ${item} 的一次性驗證碼"
           }
         }
       }
@@ -4017,6 +4591,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱藏"
+          }
+        }
+      }
+    },
+    "Hide my email address from recipients": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對收件人隱藏我的電子郵件地址"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對收件人隱藏我的電郵地址"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对收件人隐藏我的电子邮件地址"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受信者にメールアドレスを表示しない"
+          }
+        }
+      }
+    },
+    "Hide text until the recipient reveals it": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收件人點擊前隱藏文字"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收件人撳之前隱藏文字"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收件人点击前隐藏文字"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受信者が表示するまでテキストを隠す"
           }
         }
       }
@@ -4163,10 +4793,10 @@
     },
     "Install cw": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "安裝 cw"
+            "value": "cw をインストール"
           }
         },
         "zh-HK": {
@@ -4181,10 +4811,10 @@
             "value": "安装 cw"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cw をインストール"
+            "value": "安裝 cw"
           }
         }
       }
@@ -4385,6 +5015,34 @@
         }
       }
     },
+    "Limit views": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限制檢視次數"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限制檢視次數"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限制查看次数"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示回数を制限"
+          }
+        }
+      }
+    },
     "Lock": {
       "localizations": {
         "ja": {
@@ -4527,10 +5185,10 @@
     },
     "Locks every account in Chiikawarden.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "鎖定 Chiikawarden 中的所有帳號。"
+            "value": "Chiikawarden のすべてのアカウントをロックします。"
           }
         },
         "zh-HK": {
@@ -4545,10 +5203,10 @@
             "value": "锁定 Chiikawarden 中的所有账户。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden のすべてのアカウントをロックします。"
+            "value": "鎖定 Chiikawarden 中的所有帳號。"
           }
         }
       }
@@ -4829,6 +5487,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "主密碼提示"
+          }
+        }
+      }
+    },
+    "Maximum views reached": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達檢視上限"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達檢視上限"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达查看上限"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示回数の上限に達しました"
           }
         }
       }
@@ -5365,6 +6051,34 @@
         }
       }
     },
+    "New Send": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增 Send"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增 Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建 Send"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規 Send"
+          }
+        }
+      }
+    },
     "New login": {
       "localizations": {
         "ja": {
@@ -5533,6 +6247,62 @@
         }
       }
     },
+    "No Send Selected": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未選擇 Send"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未揀選 Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择 Send"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send が選択されていません"
+          }
+        }
+      }
+    },
+    "No Sends": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有 Send"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冇 Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有 Send"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send はありません"
+          }
+        }
+      }
+    },
     "No accounts yet.": {
       "localizations": {
         "ja": {
@@ -5697,6 +6467,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "沒有弱、重複或不安全的密碼。檢查一下是否外洩會更安心。"
+          }
+        }
+      }
+    },
+    "None": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "なし"
           }
         }
       }
@@ -5983,10 +6781,10 @@
     },
     "One-Time Code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "一次性驗證碼"
+            "value": "ワンタイムコード"
           }
         },
         "zh-HK": {
@@ -6001,10 +6799,10 @@
             "value": "一次性验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワンタイムコード"
+            "value": "一次性驗證碼"
           }
         }
       }
@@ -6089,6 +6887,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "僅在各項服務位於不同網址時使用。留空則使用伺服器網址。"
+          }
+        }
+      }
+    },
+    "Only you see these": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有你看得到"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有你睇到"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有你能看到"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自分だけに表示されます"
           }
         }
       }
@@ -6625,6 +7451,34 @@
         }
       }
     },
+    "Password (optional)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密碼（選填）"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密碼（選填）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码（可选）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスワード（任意）"
+          }
+        }
+      }
+    },
     "Password Generator": {
       "localizations": {
         "ja": {
@@ -6817,6 +7671,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "私密金鑰"
+          }
+        }
+      }
+    },
+    "Private notes": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人備註"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人備註"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人备注"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非公開メモ"
+          }
+        }
+      }
+    },
+    "Protection": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保护"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護"
           }
         }
       }
@@ -7045,6 +7955,34 @@
         }
       }
     },
+    "Required": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必要"
+          }
+        }
+      }
+    },
     "Restore": {
       "localizations": {
         "ja": {
@@ -7103,10 +8041,10 @@
     },
     "Returns an item's current one-time code and copies it.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "回傳項目目前的一次性驗證碼並拷貝。"
+            "value": "項目の現在のワンタイムコードを返し、コピーします。"
           }
         },
         "zh-HK": {
@@ -7121,10 +8059,10 @@
             "value": "返回项目当前的一次性验证码并复制。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "項目の現在のワンタイムコードを返し、コピーします。"
+            "value": "回傳項目目前的一次性驗證碼並拷貝。"
           }
         }
       }
@@ -7300,10 +8238,10 @@
     },
     "SSH agent": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH 代理程式"
+            "value": "SSH エージェント"
           }
         },
         "zh-HK": {
@@ -7318,10 +8256,10 @@
             "value": "SSH 代理"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH エージェント"
+            "value": "SSH 代理程式"
           }
         }
       }
@@ -7356,10 +8294,10 @@
     },
     "SSH setup": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH 設定"
+            "value": "SSH の設定"
           }
         },
         "zh-HK": {
@@ -7374,10 +8312,10 @@
             "value": "SSH 设置"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH の設定"
+            "value": "SSH 設定"
           }
         }
       }
@@ -7746,6 +8684,62 @@
         }
       }
     },
+    "Send": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        }
+      }
+    },
+    "Send created — link copied": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已建立 Send，連結已拷貝"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已建立 Send，連結已複製"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建 Send，链接已复制"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send を作成し、リンクをコピーしました"
+          }
+        }
+      }
+    },
     "Send hint": {
       "localizations": {
         "ja": {
@@ -7971,6 +8965,34 @@
         }
       }
     },
+    "Share text or a file with anyone through an encrypted link that expires.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "透過會到期的加密連結，與任何人分享文字或檔案。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "透過會到期的加密連結，同任何人分享文字或檔案。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过会过期的加密链接，与任何人分享文字或文件。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期限付きの暗号化リンクで、テキストやファイルを誰とでも共有できます。"
+          }
+        }
+      }
+    },
     "Shared with ^[%lld other item](inflect: true)": {
       "localizations": {
         "ja": {
@@ -7995,6 +9017,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "與其他 %lld 個項目共用"
+          }
+        }
+      }
+    },
+    "Share…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共有…"
           }
         }
       }
@@ -8477,10 +9527,10 @@
     },
     "That item has no one-time code.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "該項目沒有一次性驗證碼。"
+            "value": "その項目にはワンタイムコードがありません。"
           }
         },
         "zh-HK": {
@@ -8495,20 +9545,20 @@
             "value": "该项目没有一次性验证码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "その項目にはワンタイムコードがありません。"
+            "value": "該項目沒有一次性驗證碼。"
           }
         }
       }
     },
     "That item has no password.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "該項目沒有密碼。"
+            "value": "その項目にはパスワードがありません。"
           }
         },
         "zh-HK": {
@@ -8523,20 +9573,20 @@
             "value": "该项目没有密码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "その項目にはパスワードがありません。"
+            "value": "該項目沒有密碼。"
           }
         }
       }
     },
     "That item is no longer in your vault.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "該項目已不在你的保險庫中。"
+            "value": "その項目はもう保管庫にありません。"
           }
         },
         "zh-HK": {
@@ -8551,10 +9601,10 @@
             "value": "该项目已不在你的密码库中。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "その項目はもう保管庫にありません。"
+            "value": "該項目已不在你的保險庫中。"
           }
         }
       }
@@ -8583,6 +9633,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "檔案會從你所有裝置上的保險庫中移除。"
+          }
+        }
+      }
+    },
+    "The link holds the key; the server never sees your content.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金鑰在連結中，伺服器永遠看不到內容。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密鑰喺連結入面，伺服器永遠睇唔到內容。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥在链接中，服务器永远看不到内容。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鍵はリンクの中にあり、サーバーは内容を見られません。"
+          }
+        }
+      }
+    },
+    "The link stops working immediately.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連結會立即失效。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連結會即刻失效。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接会立即失效。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクはすぐに使えなくなります。"
           }
         }
       }
@@ -9375,6 +10481,34 @@
         }
       }
     },
+    "Up to %lld view(s)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 %lld 次檢視"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 %lld 次檢視"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 %lld 次查看"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大 %lld 回表示"
+          }
+        }
+      }
+    },
     "Uppercase (A–Z)": {
       "localizations": {
         "ja": {
@@ -9629,10 +10763,10 @@
     },
     "Vault Item": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "保險庫項目"
+            "value": "保管庫の項目"
           }
         },
         "zh-HK": {
@@ -9647,10 +10781,10 @@
             "value": "密码库项目"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保管庫の項目"
+            "value": "保險庫項目"
           }
         }
       }
@@ -9822,6 +10956,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "非常強"
+          }
+        }
+      }
+    },
+    "Views": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢視次數"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢視次數"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看次数"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示回数"
           }
         }
       }
@@ -10226,10 +11388,10 @@
             "value": "allow “%1$@” to %2$@"
           }
         },
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "允許「%1$@」%2$@"
+            "value": "「%1$@」に%2$@ことを許可"
           }
         },
         "zh-HK": {
@@ -10244,10 +11406,10 @@
             "value": "允许“%1$@”%2$@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%1$@」に%2$@ことを許可"
+            "value": "允許「%1$@」%2$@"
           }
         }
       }
@@ -10294,10 +11456,10 @@
     },
     "cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+            "value": "cw get github · cw code github · cw list · cw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
           }
         },
         "zh-HK": {
@@ -10312,10 +11474,10 @@
             "value": "cw get github · cw code github · cw list · cw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cw get github · cw code github · cw list · cw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
+            "value": "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
           }
         }
       }
@@ -10344,6 +11506,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如 GitHub"
+          }
+        }
+      }
+    },
+    "e.g. Wi-Fi password": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：Wi-Fi 密碼"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：Wi-Fi 密碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：Wi-Fi 密码"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例：Wi-Fi のパスワード"
           }
         }
       }
@@ -10406,10 +11596,10 @@
     },
     "list your vault items": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "列出你的保險庫項目"
+            "value": "保管庫の項目を一覧表示する"
           }
         },
         "zh-HK": {
@@ -10424,10 +11614,10 @@
             "value": "列出你的密码库项目"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保管庫の項目を一覧表示する"
+            "value": "列出你的保險庫項目"
           }
         }
       }
@@ -10468,10 +11658,10 @@
             "value": "read %1$@ of “%2$@”"
           }
         },
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "讀取「%2$@」的%1$@"
+            "value": "「%2$@」の%1$@を読み取る"
           }
         },
         "zh-HK": {
@@ -10486,10 +11676,10 @@
             "value": "读取“%2$@”的%1$@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%2$@」の%1$@を読み取る"
+            "value": "讀取「%2$@」的%1$@"
           }
         }
       }
@@ -10580,10 +11770,10 @@
     },
     "the one-time code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "一次性驗證碼"
+            "value": "ワンタイムコード"
           }
         },
         "zh-HK": {
@@ -10598,10 +11788,10 @@
             "value": "一次性验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワンタイムコード"
+            "value": "一次性驗證碼"
           }
         }
       }

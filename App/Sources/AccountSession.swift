@@ -10,6 +10,7 @@ final class AccountSession {
     private(set) var items: [VaultItem] = []
     private(set) var folders: [Grouping] = []
     private(set) var organizations: [Grouping] = []
+    private(set) var sends: [SendItem] = []
     private(set) var hiddenCount = 0
     private(set) var lastSynced: Date?
     private(set) var isSyncing = false
@@ -87,6 +88,7 @@ final class AccountSession {
         items = vault.items
         folders = vault.folders
         organizations = vault.organizations
+        sends = vault.sends
         hiddenCount = vault.hiddenCount
         keyring = vault.keyring
         rawCiphers = vault.rawCiphers
@@ -144,6 +146,23 @@ final class AccountSession {
         guard let cipher = try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).ciphers.first(where: { $0.id == id })
         else { return nil }
         return keyring?.key(for: cipher)
+    }
+
+    // MARK: Send
+
+    /// Creates a Send and returns its share link.
+    func createSend(_ draft: SendDraft) async throws -> URL? {
+        guard let client else { throw WriteError.offline }
+        let sealed = try draft.seal(userKey: userKey)
+        let created = try await client.createSend(sealed)
+        try await refresh()
+        return created.accessId.flatMap { environment?.sendLink(accessId: $0, keyMaterial: sealed.keyMaterial) }
+    }
+
+    func deleteSend(_ id: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.deleteSend(id: id)
+        try await refresh()
     }
 
     // MARK: Attachments

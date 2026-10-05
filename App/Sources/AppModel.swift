@@ -62,6 +62,9 @@ final class AppModel {
     var optionHeld = false
     var isOnline: Bool { sessions.contains { $0.lastSynced != nil } }
     var folders: [Grouping] = []
+    var sends: [SendItem] = []
+    var selectedSendID: SendItem.ID?
+    var composingSend = false
     /// Organizations, each with its collections as children.
     var organizations: [Grouping] = []
     var skippedOrgItems = 0
@@ -156,6 +159,8 @@ final class AppModel {
         items = sessions.flatMap(\.items).sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         folders = sessions.flatMap(\.folders)
         organizations = sessions.flatMap(\.organizations)
+        sends = sessions.flatMap(\.sends)
+        if let id = selectedSendID, !sends.contains(where: { $0.id == id }) { selectedSendID = nil }
         skippedOrgItems = sessions.reduce(0) { $0 + $1.hiddenCount }
         if !multi { accountFilter = nil }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
@@ -539,6 +544,33 @@ final class AppModel {
         if moved > 0 { flash(String(localized: "Moved \(moved) item(s)")) }
     }
 
+    // MARK: Send
+
+    func sendLink(_ send: SendItem) -> URL? {
+        session(for: send.accountId)?.environment?.sendLink(accessId: send.accessId, keyMaterial: send.keyMaterial)
+    }
+
+    /// Creates a Send, copies its link and selects it.
+    @discardableResult
+    func createSend(_ draft: SendDraft, accountId: String?) async -> Bool {
+        guard let session = accountId.flatMap({ session(for: $0) }) ?? sessions.first else { return offline() }
+        do {
+            let link = try await session.createSend(draft)
+            if let link { copyPlain(link.absoluteString) }
+            selectedSendID = sends.first { $0.name == draft.name && link?.absoluteString.contains($0.accessId) == true }?.id
+            flash(String(localized: "Send created — link copied"))
+            return true
+        } catch { return failed(error) }
+    }
+
+    func deleteSend(_ send: SendItem) async {
+        guard let session = session(for: send.accountId) else { _ = offline(); return }
+        do {
+            try await session.deleteSend(send.id)
+            flash(String(localized: "Deleted “\(send.name)”"))
+        } catch { _ = failed(error) }
+    }
+
     // MARK: Attachments
 
     /// Decrypted copy being previewed with Quick Look; deleted when the preview closes or on lock.
@@ -709,6 +741,8 @@ final class AppModel {
         selectedID = nil
         accountFilter = nil
         items = []
+        sends = []
+        selectedSendID = nil
         folders = []
         organizations = []
         refreshAccounts()

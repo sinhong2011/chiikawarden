@@ -233,6 +233,55 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func sendRoundTrip(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let key = try await client.login(email: "hachiware@chiikawarden.test", password: DevServer.password)
+        let recipient = try DevServer.client(port: port) // no login: opens Sends like a stranger
+
+        // Text Send with a password.
+        var draft = SendDraft(name: "Wi-Fi", content: .text("pochi-net / yaha-1234", hidden: true),
+                              deletionDate: .now.addingTimeInterval(86_400))
+        draft.password = "open sesame"
+        draft.maxAccessCount = 3
+        let sealed = try draft.seal(userKey: key)
+        let created = try await client.createSend(sealed)
+        let accessId = try #require(created.accessId)
+        let link = try #require(ServerEnvironment.selfHosted(URL(string: "https://vault.example")!)
+            .sendLink(accessId: accessId, keyMaterial: sealed.keyMaterial))
+        #expect(link.absoluteString.hasPrefix("https://vault.example/#/send/\(accessId)/"))
+
+        // The recipient only has the link: key material comes from its fragment.
+        let material = try #require(Data(base64URL: String(link.absoluteString.split(separator: "/").last!)))
+        let sendKey = try SendCrypto.key(from: material)
+        await #expect(throws: APIError.self) { _ = try await recipient.accessSend(accessId: accessId) }
+        let opened = try await recipient.accessSend(accessId: accessId,
+                                                    passwordHash: SendCrypto.passwordHash("open sesame", keyMaterial: material))
+        #expect(try EncString(opened.name ?? "").decryptString(with: sendKey) == "Wi-Fi")
+        #expect(try EncString(opened.text?.text ?? "").decryptString(with: sendKey) == "pochi-net / yaha-1234")
+        #expect(opened.text?.hidden == true)
+
+        // The owner sees it in sync with the key material under the user key.
+        let synced = try #require(SyncResponse.sends(try await client.syncData()).first { $0.id == created.id })
+        #expect(try EncString(synced.key ?? "").decrypt(with: key) == sealed.keyMaterial)
+        #expect(synced.accessCount == 1 && synced.maxAccessCount == 3 && synced.password != nil)
+
+        // File Send.
+        let contents = Data("ssh config backup\n".utf8) + Data(repeating: 0x5A, count: 50_000)
+        let fileSealed = try SendDraft(name: "config", content: .file(name: "config.txt", contents: contents),
+                                       deletionDate: .now.addingTimeInterval(3_600)).seal(userKey: key)
+        let fileSend = try await client.createSend(fileSealed)
+        let fileOpened = try await recipient.accessSend(accessId: try #require(fileSend.accessId))
+        let fileKey = try SendCrypto.key(from: fileSealed.keyMaterial)
+        #expect(try EncString(fileOpened.file?.fileName ?? "").decryptString(with: fileKey) == "config.txt")
+        let encrypted = try await recipient.accessSendFile(sendId: fileOpened.id, fileId: try #require(fileOpened.file?.id))
+        #expect(try EncArrayBuffer.decrypt(encrypted, with: fileKey) == contents)
+
+        try await client.deleteSend(id: created.id)
+        try await client.deleteSend(id: fileSend.id)
+        #expect(SyncResponse.sends(try await client.syncData()).allSatisfy { $0.id != created.id && $0.id != fileSend.id })
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {

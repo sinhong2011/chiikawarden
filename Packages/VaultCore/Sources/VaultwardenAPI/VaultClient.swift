@@ -194,20 +194,23 @@ public actor VaultClient {
            let url = fresh.url {
             location = url
         }
-        guard let location, let url = URL(string: location, relativeTo: environment.apiURL.appendingSlash) else {
-            throw .http(status: 404, message: "Attachment not found")
-        }
+        guard let location else { throw .http(status: 404, message: "Attachment not found") }
+        return try await fetchLink(location)
+    }
+
+    /// Downloads a server-issued file link (attachment, Send file). Our own server's access headers go only
+    /// to our own host. Vaultwarden builds links from its DOMAIN setting, which can differ from the address
+    /// we reach it by (LAN IP, VPN name), so a failing self-hosted link is retried on the server we use.
+    func fetchLink(_ location: String) async throws(APIError) -> Data {
+        guard let url = URL(string: location, relativeTo: environment.apiURL.appendingSlash) else { throw .invalidServerURL }
         func fetch(_ url: URL) async throws(APIError) -> Data {
             var r = URLRequest(url: url.absoluteURL)
-            // Our own server may sit behind an access proxy; never leak those headers to blob storage.
             if url.host() == environment.apiURL.host() { for (k, v) in extraHeaders { r.setValue(v, forHTTPHeaderField: k) } }
             return try await sendRaw(r)
         }
         do {
             return try await fetch(url)
         } catch {
-            // Vaultwarden builds the link from its DOMAIN setting, which can differ from the address we
-            // reach it by (LAN IP, VPN name). Retry the same path on the server we're talking to.
             guard !environment.isOfficialCloud, url.host() != environment.apiURL.host(),
                   var parts = URLComponents(url: environment.apiURL.deletingLastPathComponent(), resolvingAgainstBaseURL: true)
             else { throw error }
@@ -276,6 +279,57 @@ public actor VaultClient {
         body += Data("Content-Type: application/octet-stream\r\n\r\n".utf8) + data + Data("\r\n--\(boundary)--\r\n".utf8)
         r.httpBody = body
         return r
+    }
+
+    // MARK: Send
+
+    /// Creates a Send from `SendDraft.seal`. File Sends upload their encrypted contents too.
+    public func createSend(_ sealed: SendDraft.Sealed) async throws(APIError) -> SendResponse {
+        guard let file = sealed.encryptedFile else {
+            return try await send(authorized(post(environment.apiURL, "sends", jsonBody: sealed.body)))
+        }
+        struct Slot: Decodable { let url: String?; let fileUploadType: Int?; let sendResponse: SendResponse }
+        let slot: Slot = try await send(authorized(post(environment.apiURL, "sends/file/v2", jsonBody: sealed.body)))
+        guard let fileId = slot.sendResponse.file?.id else { throw .http(status: -1, message: "Missing file id") }
+        if slot.fileUploadType == 1, let url = slot.url.flatMap(URL.init(string:)) {
+            var r = URLRequest(url: url)
+            r.httpMethod = "PUT"
+            r.setValue("BlockBlob", forHTTPHeaderField: "x-ms-blob-type")
+            r.setValue("2020-04-08", forHTTPHeaderField: "x-ms-version")
+            r.httpBody = file
+            _ = try await sendRaw(r)
+        } else {
+            let fileName = (slot.sendResponse.file?.fileName) ?? "file"
+            let r = try multipart(environment.apiURL, "sends/\(slot.sendResponse.id)/file/\(fileId)", fileName: fileName, key: nil, data: file)
+            _ = try await sendRaw(authorized(r))
+        }
+        return slot.sendResponse
+    }
+
+    public func deleteSend(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "sends/\(id)")
+        r.httpMethod = "DELETE"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    /// Opens a Send the way a recipient does (no account). `passwordHash` from `SendCrypto.passwordHash`.
+    public func accessSend(accessId: String, passwordHash: String? = nil) async throws(APIError) -> SendResponse {
+        let body: Data
+        do { body = try JSONSerialization.data(withJSONObject: passwordHash.map { ["password": $0] } ?? [:]) } catch {
+            throw .http(status: -1, message: "encode")
+        }
+        return try await send(post(environment.apiURL, "sends/access/\(accessId)", jsonBody: body))
+    }
+
+    /// Downloads a file Send's encrypted contents as a recipient.
+    public func accessSendFile(sendId: String, fileId: String, passwordHash: String? = nil) async throws(APIError) -> Data {
+        struct Located: Decodable { let url: String }
+        let body: Data
+        do { body = try JSONSerialization.data(withJSONObject: passwordHash.map { ["password": $0] } ?? [:]) } catch {
+            throw .http(status: -1, message: "encode")
+        }
+        let located: Located = try await send(post(environment.apiURL, "sends/\(sendId)/access/file/\(fileId)", jsonBody: body))
+        return try await fetchLink(located.url)
     }
 
     // MARK: Password hint

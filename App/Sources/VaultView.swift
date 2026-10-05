@@ -61,7 +61,9 @@ struct VaultView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             HStack(spacing: 8) {
-                if section == .watchtower {
+                if section == .sends {
+                    SendsPane()
+                } else if section == .watchtower {
                     WatchtowerView { item in
                         section = .section(item.isDeleted ? .trash : .all)
                         model.selectedID = item.id
@@ -138,10 +140,11 @@ enum SidebarSelection: Hashable {
     case collection(String)
     case account(String)
     case watchtower
+    case sends
 
     func includes(_ item: VaultItem) -> Bool {
         switch self {
-        case .watchtower: false
+        case .watchtower, .sends: false
         case .account(let id): !item.isDeleted && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let path): !item.isDeleted && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
@@ -202,6 +205,9 @@ private struct Sidebar: View {
                 Label("Watchtower", systemImage: "checkmark.shield")
                     .badge(model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
+                Label("Send", systemImage: "paperplane")
+                    .badge(model.sends.count)
+                    .tag(SidebarSelection.sends)
             }
             if !model.folders.isEmpty {
                 Section("Folders") {
@@ -824,7 +830,7 @@ private struct FieldLine: View {
     }
 }
 
-private struct DetailRow<Value: View>: View {
+struct DetailRow<Value: View>: View {
     let symbol: String
     let title: LocalizedStringKey
     @ViewBuilder let value: Value

@@ -88,3 +88,29 @@ extension TOTP: @retroactive Hashable {
 extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
 }
+
+/// A decrypted Send owned by one of the accounts.
+struct SendItem: Identifiable, Hashable, Sendable {
+    enum Kind: Sendable { case text, file }
+    var id: String
+    var accountId: String
+    var accessId: String
+    var kind: Kind
+    var name: String
+    var notes: String?
+    var text: String?
+    var hideText: Bool
+    var fileName: String?
+    var sizeName: String?
+    /// Goes in the link's fragment; derives the Send key.
+    var keyMaterial: Data
+    var accessCount: Int
+    var maxAccessCount: Int?
+    var hasPassword: Bool
+    var disabled: Bool
+    var deletionDate: Date?
+    var expirationDate: Date?
+
+    var isExpired: Bool { expirationDate.map { $0 < .now } ?? false }
+    var isUsedUp: Bool { maxAccessCount.map { accessCount >= $0 } ?? false }
+}
