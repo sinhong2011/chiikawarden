@@ -132,11 +132,11 @@ struct RootView: View {
             switch model.phase {
             case .login, .twoFactor, .deviceVerification, .ssoPassword:
                 LoginView()
-                    .frame(minWidth: 520, idealWidth: 920, maxWidth: 1600, minHeight: 600, idealHeight: 640, maxHeight: 1200)
+                    .frame(minWidth: 520, idealWidth: 920, maxWidth: .infinity, minHeight: 600, idealHeight: 640, maxHeight: .infinity)
                     .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))
             case .locked:
                 UnlockView()
-                    .frame(minWidth: 520, idealWidth: 920, maxWidth: 1600, minHeight: 560, idealHeight: 600, maxHeight: 1200)
+                    .frame(minWidth: 520, idealWidth: 920, maxWidth: .infinity, minHeight: 560, idealHeight: 600, maxHeight: .infinity)
                     .transition(.opacity)
             case .vault:
                 VaultView()
