@@ -68,6 +68,9 @@ enum Snapshot {
                    size: CGSize(width: 900, height: 560), appearance: appearance, to: dir.appending(path: "codes-\(name).png"))
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-\(name).png"))
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 430, height: 760),
+                         resizeFrom: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "window-resized-\(name).png"))
             for w in [760, 400] {
                 renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
                              appearance: appearance, to: dir.appending(path: "window-\(w)-\(name).png"))
@@ -226,17 +229,22 @@ enum Snapshot {
     ]
 
     /// A real window with SwiftUI's toolbar bridged in, so toolbar items render as in the app.
-    private static func renderWindow(_ view: some View, size: CGSize, appearance: NSAppearance.Name, to url: URL) {
-        let controller = NSHostingController(rootView: view.frame(width: size.width, height: size.height))
+    /// `resizeFrom`: open at that size first, then shrink to `size` — like dragging the window edge.
+    private static func renderWindow(_ view: some View, size: CGSize, resizeFrom: CGSize? = nil, appearance: NSAppearance.Name, to url: URL) {
+        let controller = NSHostingController(rootView: view.frame(minWidth: 380, maxWidth: .infinity, minHeight: 520, maxHeight: .infinity))
         controller.sceneBridgingOptions = [.toolbars, .title]
         let window = NSWindow(contentViewController: controller)
         window.styleMask = [.titled, .fullSizeContentView, .closable, .miniaturizable, .resizable]
         window.titleVisibility = .hidden
         window.appearance = NSAppearance(named: appearance)
-        window.setContentSize(size)
+        window.setContentSize(resizeFrom ?? size)
         window.orderFrontRegardless()
         window.makeKey()
         RunLoop.main.run(until: .now + 1.5)
+        if resizeFrom != nil {
+            window.setContentSize(size)
+            RunLoop.main.run(until: .now + 1.5)
+        }
         guard let frame = window.contentView?.superview,
               let rep = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) else { return }
         frame.cacheDisplay(in: frame.bounds, to: rep)

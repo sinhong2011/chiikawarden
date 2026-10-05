@@ -61,8 +61,28 @@ struct VaultView: View {
     }
 
     var body: some View {
+        // Measure the space the window offers (not the content, which may refuse to shrink) and lay out for it.
+        GeometryReader { geo in
+            content
+                .frame(width: geo.size.width, height: geo.size.height)
+                .onChange(of: geo.size.width, initial: true) { old, new in resized(from: initialMeasure ? 1120 : old, to: new) }
+        }
+    }
+
+    @State private var initialMeasure = true
+
+    private func resized(from old: CGFloat, to new: CGFloat) {
+        initialMeasure = false
+        width = new
+        // Fold the sidebar away as the window narrows; bring it back when it widens again.
+        if new < 900, old >= 900 { columns = .detailOnly }
+        if new >= 900, old < 900 { columns = .all }
+        if new >= 640 { compactDetail = false }
+    }
+
+    private var content: some View {
         @Bindable var model = model
-        NavigationSplitView(columnVisibility: $columns) {
+        return NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
@@ -126,6 +146,16 @@ struct VaultView: View {
                 // Search and + live in the header, over the item list (Liquid layout).
                 ToolbarItem(placement: .navigation) {
                     HStack(spacing: 8) {
+                        if columns == .detailOnly {
+                            Button { withAnimation(.snappy) { columns = .all } } label: {
+                                Image(systemName: "sidebar.left").font(.system(size: 14, weight: .medium))
+                                    .frame(width: 36, height: 36).contentShape(.circle)
+                            }
+                            .buttonStyle(.plain)
+                            .modifier(HeaderChrome(shape: .circle))
+                            .help(Text("Show Sidebar"))
+                            .accessibilityLabel(Text("Show Sidebar"))
+                        }
                         PaletteTrigger().frame(width: width < 560 ? 150 : 228)
                         NewItemButton()
                     }
@@ -145,15 +175,10 @@ struct VaultView: View {
         .animation(.snappy(duration: 0.25), value: model.selectedID)
         .animation(.snappy(duration: 0.25), value: compactDetail)
         .animation(.snappy(duration: 0.25), value: singleColumn)
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { new in
-            let old = width
-            width = new
-            // Fold the sidebar away as the window narrows; bring it back when it widens again.
-            if new < 900, old >= 900 { columns = .detailOnly }
-            if new >= 900, old < 900 { columns = .all }
-            if new >= 640 { compactDetail = false }
+        .onChange(of: section) {
+            compactDetail = false
+            if width < 900 { withAnimation(.snappy) { columns = .detailOnly } } // picked a section: fold the sidebar again
         }
-        .onChange(of: section) { compactDetail = false }
         // When the selected item leaves the list (trashed, restored, deleted, filtered out), select its neighbour
         // so the list and the detail never disagree.
         .onChange(of: filtered.map(\.id)) { old, new in
@@ -291,8 +316,11 @@ private struct Sidebar: View {
                         .help(Text(verbatim: account.serverSummary))
                         .tag(SidebarSelection.account(account.id))
                         .contextMenu {
-                            if unlocked { Button("Lock") { model.lock(account.id) } }
-                            Button("Log Out…", role: .destructive) { model.confirmLogOut(account.id) }
+                            Group {
+                                if unlocked { Button("Lock", systemImage: "lock") { model.lock(account.id) } }
+                                Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) { model.confirmLogOut(account.id) }
+                            }
+                            .labelStyle(.titleAndIcon)
                         }
                     }
                     Button { model.beginAddAccount() } label: { Label("Add Account…", systemImage: "plus") }
@@ -346,7 +374,11 @@ private struct SidebarAccountCard: View {
         let dark = scheme == .dark
         HStack(spacing: 10) {
             Menu {
-                Section { Text(verbatim: email); if !host.isEmpty { Text(verbatim: host) } }
+                Group {
+                Section {
+                    Label { Text(verbatim: email) } icon: { Image(systemName: "person.crop.circle") }
+                    if !host.isEmpty { Label { Text(verbatim: host) } icon: { Image(systemName: "server.rack") } }
+                }
                 Button("Sync Now", systemImage: "arrow.triangle.2.circlepath") { sync() }
                 if let webVault {
                     Button("Open Web Vault", systemImage: "safari") { NSWorkspace.shared.open(webVault) }
@@ -362,6 +394,8 @@ private struct SidebarAccountCard: View {
                 Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
                     model.confirmLogOut(model.sessions.count == 1 ? model.sessions[0].account.id : nil)
                 }
+                }
+                .labelStyle(.titleAndIcon) // macOS menus drop icons unless asked
             } label: {
                 HStack(spacing: 10) {
                     Monogram(name: email, size: 30)
@@ -537,13 +571,16 @@ private struct NewItemButton: View {
 
     var body: some View {
         Menu {
-            Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
-            Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
-            Button("New Card") { model.editing = EditRequest(mode: .create(.card)) }
-            Button("New Identity") { model.editing = EditRequest(mode: .create(.identity)) }
-            Button("New SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
-            Divider()
-            Button("New Folder…") { model.promptingNewFolder = true }
+            Group {
+                Button("New Login", systemImage: "key") { model.editing = EditRequest(mode: .create(.login)) }
+                Button("New Secure Note", systemImage: "note.text") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                Button("New Card", systemImage: "creditcard") { model.editing = EditRequest(mode: .create(.card)) }
+                Button("New Identity", systemImage: "person.text.rectangle") { model.editing = EditRequest(mode: .create(.identity)) }
+                Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
+                Divider()
+                Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }
+            }
+            .labelStyle(.titleAndIcon)
         } label: {
             Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
                 .frame(width: 32, height: 32)
@@ -966,7 +1003,7 @@ private struct HeroCard: View {
         .foregroundStyle(style.ink)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onGeometryChange(for: Bool.self) { $0.size.width >= 640 } action: { tileRow = $0 }
+        .onGeometryChange(for: Bool.self) { $0.size.width >= 460 } action: { tileRow = $0 }
         .background {
             ZStack {
                 if style.dark { Color.hero } else { Color.panelStrong }
