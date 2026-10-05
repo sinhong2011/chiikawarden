@@ -2581,6 +2581,7 @@
       }
     },
     "Check for updates daily": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -2665,6 +2666,7 @@
       }
     },
     "Chiikawarden %@ is up to date.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -4011,6 +4013,7 @@
       }
     },
     "Couldn't check for updates.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -5491,6 +5494,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入伺服器位址"
+          }
+        }
+      }
+    },
+    "Every login,\nbehind one door.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのログインを、\nひとつの扉の奥に。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一個登入資料，\n都喺同一道門後面。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一组登录信息，\n都在同一道门后。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一組登入資料，\n都在同一道門後。"
           }
         }
       }
@@ -9785,6 +9816,7 @@
       }
     },
     "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -12056,6 +12088,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "已儲存「%@」"
+          }
+        }
+      }
+    },
+    "Sealed tight.\nOpens only for you.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "しっかり施錠。\nあなたにだけ開く。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封得密實，\n只為你打開。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严密封锁，\n只为你开启。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "嚴密封鎖，\n只為你開啟。"
           }
         }
       }
@@ -15493,6 +15553,7 @@
       }
     },
     "Version %@ is available": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -16104,6 +16165,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的個人項目與資料夾，存成任何 Bitwarden App 都能匯入的檔案。"
+          }
+        }
+      }
+    },
+    "Your vault is encrypted on this Mac until you unlock it.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを解除するまで、保管庫はこの Mac 上で暗号化されています。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喺你解鎖之前，密碼庫都係加密咗存喺呢部 Mac。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你解锁之前，密码库都以加密形式存放在这台 Mac 上。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你解鎖之前，密碼庫都以加密形式存放在這台 Mac 上。"
           }
         }
       }

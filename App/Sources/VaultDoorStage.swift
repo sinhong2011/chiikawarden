@@ -6,6 +6,8 @@ import SwiftUI
 struct VaultDoorStage: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
+    enum Caption { case lock, login }
+    var caption: Caption = .lock
     /// Snapshots: draw one moment of the sequence instead of animating.
     var frozen: Motion?
 
@@ -131,11 +133,20 @@ struct VaultDoorStage: View {
                 .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
                 .foregroundStyle(StagePalette(dark: dark).brand)
                 .padding(.bottom, 4)
-            Text("Sealed tight.\nOpens only for you.")
-                .font(.system(size: 26, weight: .semibold)).tracking(-0.4)
-                .foregroundStyle(ink)
-            Text("Your vault is encrypted on this Mac until you unlock it.")
-                .font(.system(size: 13)).foregroundStyle(ink.opacity(0.62))
+            switch caption {
+            case .lock:
+                Text("Sealed tight.\nOpens only for you.")
+                    .font(.system(size: 26, weight: .semibold)).tracking(-0.4)
+                    .foregroundStyle(ink)
+                Text("Your vault is encrypted on this Mac until you unlock it.")
+                    .font(.system(size: 13)).foregroundStyle(ink.opacity(0.62))
+            case .login:
+                Text("Every login,\nbehind one door.")
+                    .font(.system(size: 26, weight: .semibold)).tracking(-0.4)
+                    .foregroundStyle(ink)
+                Text("Passwords, passkeys, codes and SSH keys — native on your Mac.")
+                    .font(.system(size: 13)).foregroundStyle(ink.opacity(0.62))
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(36)
@@ -143,6 +154,27 @@ struct VaultDoorStage: View {
 }
 
 // MARK: - Parts
+
+/// Stage colours: airy sky in light mode, deep navy in dark mode.
+struct StagePalette {
+    let dark: Bool
+    var brand: Color { dark ? Color.brandFill : Color(red: 0.06, green: 0.45, blue: 0.70) }
+    var ink: Color { dark ? .white : Color(red: 0.05, green: 0.16, blue: 0.27) }
+    var orbit: Color { dark ? .white.opacity(0.10) : Color.brandFill.opacity(0.45) }
+    var token: Color { dark ? Color(red: 0.12, green: 0.16, blue: 0.31) : .white }
+    var tokenEdge: Color { dark ? .white.opacity(0.10) : Color.brandFill.opacity(0.5) }
+
+    var background: some View {
+        ZStack {
+            LinearGradient(colors: dark ? [Color(red: 0.05, green: 0.11, blue: 0.17), Color(red: 0.02, green: 0.05, blue: 0.09)]
+                                        : [Color(red: 0.95, green: 0.98, blue: 1), Color(red: 0.80, green: 0.89, blue: 0.96)],
+                           startPoint: .top, endPoint: .bottom)
+            RadialGradient(colors: [brand.opacity(dark ? 0.22 : 0.12), .clear],
+                           center: UnitPoint(x: 0.5, y: 0.44), startRadius: 0, endRadius: 320)
+        }
+    }
+}
+
 
 private struct Steel {
     let dark: Bool

@@ -504,7 +504,7 @@ final class AppModel {
         self.client = nil
         try await session.refresh()
         addingAccount = false
-        phase = .vault
+        enterVault()
     }
 
     // MARK: Single sign-on
@@ -609,9 +609,15 @@ final class AppModel {
             Task { await session.resume() }
         }
         noteActivity()
-        // From the lock screen: the lock opens first, then the vault comes in. Instant for tooling and Reduce Motion.
+        enterVault()
+    }
+
+    /// From the lock or login screen: the vault door opens first, then the vault comes in.
+    /// Instant for tooling, Reduce Motion, and when already in the vault.
+    private func enterVault() {
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
-        guard phase.id == Phase.locked.id, !tooling, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+        let fromDoor = phase.id == Phase.locked.id || phase.id == Phase.login.id
+        guard fromDoor, !tooling, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
             phase = .vault
             return
         }
