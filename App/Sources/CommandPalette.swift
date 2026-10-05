@@ -201,6 +201,7 @@ struct CommandPalette: View {
 }
 
 /// The highlighted login, opened up: name, live code with its countdown, and what ↵ / ⌘↵ / ⌥↵ / ⇧↵ do.
+/// A raised light panel like the rest of the app (no dark slab).
 private struct SelectedItemCard: View {
     let item: VaultItem
     let dark: Bool
@@ -211,13 +212,14 @@ private struct SelectedItemCard: View {
                 ItemIcon(item: item, size: 40)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.name).font(.system(size: 15, weight: .bold)).lineLimit(1)
-                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.white.opacity(0.72)).lineLimit(1)
+                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
                 if let totp = item.totp {
                     TimelineView(.periodic(from: .now, by: 1)) { ctx in
                         Text(verbatim: totp.displayCode(at: ctx.date))
-                            .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 19, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.brand)
                             .contentTransition(.numericText())
                     }
                 }
@@ -225,36 +227,35 @@ private struct SelectedItemCard: View {
             if let totp = item.totp {
                 TimelineView(.animation(minimumInterval: 1 / 30)) { ctx in
                     let period = Double(totp.period)
-                    let remaining = 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                    GeometryReader { g in
-                        Capsule().fill(.white.opacity(0.15))
-                            .overlay(alignment: .leading) {
-                                Capsule().fill(Color.brandFill).frame(width: g.size.width * remaining)
-                            }
-                    }
-                    .frame(height: 4)
+                    LevelBar(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period)
                 }
             }
             HStack(spacing: 6) {
-                chip("↵ Open", prominent: true)
-                if item.password != nil { chip("⌘↵ Password", prominent: false) }
-                if item.totp != nil { chip("⌥↵ Code", prominent: false) }
-                if item.host != nil { chip("⇧↵ Website", prominent: false) }
+                hint("↵", "Open", primary: true)
+                if item.password != nil { hint("⌘↵", "Password") }
+                if item.totp != nil { hint("⌥↵", "Code") }
+                if item.host != nil { hint("⇧↵", "Website") }
             }
         }
-        .foregroundStyle(.white)
         .padding(14)
-        .background(dark ? Color(red: 0.07, green: 0.20, blue: 0.31) : Color(red: 0.08, green: 0.09, blue: 0.11),
-                    in: .rect(cornerRadius: 22, style: .continuous))
-        .shadow(color: Color(red: 0.08, green: 0.1, blue: 0.24).opacity(0.5), radius: 20, y: 12)
+        .background(dark ? Color.white.opacity(0.10) : Color.white, in: .rect(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.brandFill.opacity(dark ? 0.35 : 0.55), lineWidth: 1.5))
+        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0.35 : 0.12), radius: 14, y: 6)
     }
 
-    private func chip(_ text: LocalizedStringKey, prominent: Bool) -> some View {
-        Text(text)
-            .font(.system(size: 12, weight: prominent ? .bold : .semibold))
-            .foregroundStyle(prominent ? Color(red: 0.08, green: 0.09, blue: 0.11) : .white)
-            .padding(.horizontal, 12).frame(height: 28)
-            .background(prominent ? Color.white : Color.white.opacity(0.14), in: .capsule)
+    /// Keycap + label; the default action is the small primary button.
+    private func hint(_ keys: String, _ label: LocalizedStringKey, primary: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            Text(verbatim: keys).font(.system(size: 11, weight: .semibold, design: .rounded))
+                .padding(.horizontal, 5).padding(.vertical, 1)
+                .background((primary ? Color.white : Color.primary).opacity(primary ? 0.25 : 0.07), in: .rect(cornerRadius: 4))
+            Text(label).font(.system(size: 12, weight: .semibold))
+        }
+        .foregroundStyle(primary ? Color.white : .primary)
+        .padding(.horizontal, 10).frame(height: 28)
+        .background {
+            if primary { Capsule().fill(Color.brandButton) } else { Capsule().fill(Color.primary.opacity(dark ? 0.10 : 0.05)) }
+        }
     }
 }
 

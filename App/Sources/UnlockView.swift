@@ -77,7 +77,7 @@ private struct UnlockForm: View {
 
                 HStack(spacing: 4) {
                     Text("Not you?").foregroundStyle(.secondary)
-                    Button("Log out") { model.logOut(model.unlockTarget?.id) }.buttonStyle(.link)
+                    Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }.buttonStyle(.link)
                 }
                 .font(.system(size: 12))
             }

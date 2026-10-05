@@ -110,7 +110,7 @@ struct ChiikawardenApp: App {
                 Button("Toggle Favorite") { if let item { Task { await model.toggleFavorite(item) } } }
                     .keyboardShortcut("d", modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
-                Button("Move to Trash") { if let item { Task { await model.trash(item) } } }
+                Button("Move to Trash…") { if let item { model.confirmTrash(item) } }
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }
@@ -128,6 +128,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
+        @Bindable var model = model
         ZStack {
             switch model.phase {
             case .login, .twoFactor, .deviceVerification, .ssoPassword:
@@ -145,6 +146,14 @@ struct RootView: View {
             }
         }
         .animation(.spring(duration: 0.5, bounce: 0.2), value: model.phase.id)
+        // Every destructive action asks here first.
+        .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
+            get: { model.confirming != nil }, set: { if !$0 { model.confirming = nil } }), presenting: model.confirming) { request in
+            Button(request.action, role: .destructive) { Task { await request.run() } }
+            Button("Cancel", role: .cancel) {}
+        } message: { request in
+            Text(request.message)
+        }
     }
 }
 

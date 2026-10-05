@@ -188,6 +188,34 @@ final class AppModel {
     var requestedSection: SidebarSelection?
     var showingGenerator = false
 
+    /// A destructive action waiting for “Are you sure?” (one dialog for the whole app).
+    struct ConfirmRequest: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+        let action: String
+        let run: @MainActor () async -> Void
+    }
+    var confirming: ConfirmRequest?
+
+    func confirm(_ title: String, message: String, action: String, run: @escaping @MainActor () async -> Void) {
+        confirming = ConfirmRequest(title: title, message: message, action: action, run: run)
+    }
+
+    /// Asks, then moves the item to Trash.
+    func confirmTrash(_ item: VaultItem) {
+        confirm(String(localized: "Move “\(item.name)” to Trash?"), message: String(localized: "You can restore it from Trash later."),
+                action: String(localized: "Move to Trash")) { [weak self] in await self?.trash(item) }
+    }
+
+    /// Asks, then logs the account out (removing it from this Mac).
+    func confirmLogOut(_ accountId: String?) {
+        let email = accountId.flatMap { id in accounts.first { $0.id == id }?.email } ?? ""
+        confirm(String(localized: "Log out of \(email)?"),
+                message: String(localized: "The account and its saved vault are removed from this Mac. Your vault stays on the server."),
+                action: String(localized: "Log Out")) { [weak self] in self?.logOut(accountId) }
+    }
+
     /// Generated values the user copied or used, newest first. Memory only; cleared on lock.
     struct GeneratedEntry: Identifiable { let id = UUID(); let value: String; let kind: String; let date: Date }
     var generatorHistory: [GeneratedEntry] = []

@@ -208,21 +208,30 @@ private struct LoginForm: View {
     }
 }
 
-/// Full-width brand button with a gentle press.
+/// Full-width brand button: tail-sky gradient with a white label when ready, a quiet neutral fill when not.
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var scheme
 
     func makeBody(configuration: Configuration) -> some View {
+        let dark = scheme == .dark
         configuration.label
-            .foregroundStyle(.white)
-            .shadow(color: Color.onBrandFill.opacity(0.35), radius: 1, y: 1) // keeps white legible on the light sky
+            .foregroundStyle(isEnabled ? Color.white : Color.secondary)
+            .shadow(color: isEnabled ? Color.onBrandFill.opacity(0.3) : .clear, radius: 0.8, y: 0.8)
             .frame(maxWidth: .infinity, minHeight: 40)
-            // The tail's sky blue, deepening downward, with a white label.
-            .background(Color.brandButton.opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.35)))
-            .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.25 : 0.55), radius: configuration.isPressed ? 3 : 10, y: 3)
+            .background {
+                if isEnabled {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.brandButton)
+                        .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.2 : 0.45),
+                                radius: configuration.isPressed ? 3 : 10, y: 3)
+                } else {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))
+                }
+            }
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.2), value: isEnabled)
     }
 }
 

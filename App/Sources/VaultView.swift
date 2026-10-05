@@ -116,6 +116,13 @@ struct VaultView: View {
             }
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
+        // When the selected item leaves the list (trashed, restored, deleted, filtered out), select its neighbour
+        // so the list and the detail never disagree.
+        .onChange(of: filtered.map(\.id)) { old, new in
+            guard let selected = model.selectedID, !new.contains(selected) else { return }
+            let at = old.firstIndex(of: selected) ?? 0
+            model.selectedID = new.isEmpty ? nil : new[min(at, new.count - 1)]
+        }
         .onChange(of: model.requestedSection) { _, requested in
             if let requested { section = requested; model.requestedSection = nil }
         }
@@ -247,7 +254,7 @@ private struct Sidebar: View {
                         .tag(SidebarSelection.account(account.id))
                         .contextMenu {
                             if unlocked { Button("Lock") { model.lock(account.id) } }
-                            Button("Log Out…", role: .destructive) { model.logOut(account.id) }
+                            Button("Log Out…", role: .destructive) { model.confirmLogOut(account.id) }
                         }
                     }
                     Button { model.beginAddAccount() } label: { Label("Add Account…", systemImage: "plus") }
@@ -396,9 +403,7 @@ private struct PaletteTrigger: View {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 12)
             .frame(height: 32)
-            .background(Color.panelStrong.opacity(hovering ? 1 : 0.85), in: .capsule)
-            .overlay(Capsule().strokeBorder(Color.panelEdge))
-            .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
+            .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
             .contentShape(.capsule)
         }
         .buttonStyle(.plain)
@@ -424,9 +429,7 @@ private struct NewItemButton: View {
         } label: {
             Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
                 .frame(width: 32, height: 32)
-                .background(Color.panelStrong, in: .circle)
-                .overlay(Circle().strokeBorder(Color.panelEdge))
-                .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
+                .modifier(HeaderChrome(shape: .circle))
                 .contentShape(.circle)
         }
         .menuStyle(.button)
@@ -733,23 +736,25 @@ struct ItemDetail: View {
                         withAnimation(.snappy) { reveal.wrappedValue.toggle() }
                     }
                 }
+                if item.host != nil || item.password != nil {
+                    Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
+                }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
                 toolbarButton("pencil", help: "Edit (⌘E)") { model.editing = EditRequest(mode: .edit(item)) }
-                toolbarButton("trash", help: "Move to Trash (⌘⌫)") { Task { await model.trash(item) } }
+                toolbarButton("trash", help: "Move to Trash (⌘⌫)") { model.confirmTrash(item) }
             }
         }
-        .padding(3)
-        .background(Color.panelStrong, in: .capsule)
-        .overlay(Capsule().strokeBorder(Color.panelEdge))
-        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(0.10), radius: 8, y: 3)
+        .padding(.horizontal, 3)
+        .frame(height: 32)
+        .modifier(HeaderChrome(shape: .capsule))
     }
 
     private func toolbarButton(_ symbol: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 13)).frame(width: 34, height: 30).contentShape(.rect)
+            Image(systemName: symbol).font(.system(size: 13, weight: .medium)).frame(width: 30, height: 26).contentShape(.rect)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HeaderIconStyle())
         .help(Text(help))
         .accessibilityLabel(Text(help))
     }
@@ -760,8 +765,8 @@ private struct HeroStyle {
     let dark: Bool
     var ink: Color { dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16) }
     var muted: Color { dark ? .white.opacity(0.72) : Color(red: 0.07, green: 0.09, blue: 0.16).opacity(0.58) }
-    var tile: Color { dark ? .white.opacity(0.12) : Color.brand.opacity(0.06) }
-    var tileEdge: Color { dark ? .white.opacity(0.18) : Color.brand.opacity(0.14) }
+    var tile: Color { dark ? .white.opacity(0.06) : Color.black.opacity(0.035) }
+    var tileEdge: Color { dark ? .white.opacity(0.07) : Color.black.opacity(0.04) }
     var track: Color { dark ? .white.opacity(0.15) : Color.brand.opacity(0.14) }
     var bar: Color { dark ? .white : .brand }
     var avatar: Color { dark ? .white.opacity(0.14) : Color.brand.opacity(0.10) }
@@ -809,14 +814,7 @@ private struct HeroCard: View {
                             .frame(height: 24, alignment: .leading)
                             .contentTransition(.opacity)
                         // Same place and size as the code's countdown bar, so the tiles line up.
-                        GeometryReader { g in
-                            Capsule().fill(style.track)
-                                .overlay(alignment: .leading) {
-                                    Capsule().fill(strength.0 <= 1 ? Color.red : strength.0 == 2 ? Color.orange : Color.green)
-                                        .frame(width: g.size.width * Double(strength.0) / 4)
-                                }
-                        }
-                        .frame(height: 4)
+                        LevelBar(level: strength.0, color: strength.0 <= 1 ? .red : strength.0 == 2 ? .orange : .green)
                     }
                 }
                 if let totp = item.totp {
@@ -838,14 +836,7 @@ private struct HeroCard: View {
                                 .font(.system(size: 20, weight: .semibold, design: .monospaced))
                                 .frame(height: 24, alignment: .leading)
                                 .contentTransition(.numericText())
-                            GeometryReader { g in
-                                Capsule().fill(style.track)
-                                    .overlay(alignment: .leading) {
-                                        Capsule().fill(left <= 5 ? Color.orange : style.bar)
-                                            .frame(width: g.size.width * remaining)
-                                    }
-                            }
-                            .frame(height: 4)
+                            LevelBar(fraction: remaining, color: left <= 5 ? .orange : .brand)
                         }
                         .animation(.snappy, value: code)
                     }
@@ -1114,6 +1105,46 @@ private struct AttachmentsSection: View {
             }
         } message: {
             Text("The file is removed from your vault on every device.")
+        }
+    }
+}
+
+/// One look for every header control: the same fill, hairline edge and soft shadow.
+struct HeaderChrome: ViewModifier {
+    enum Shape { case capsule, circle }
+    let shape: Shape
+    var hovering = false
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let dark = scheme == .dark
+        let fill = dark ? Color.white.opacity(hovering ? 0.14 : 0.10) : Color.white.opacity(hovering ? 1 : 0.88)
+        let edge = dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)
+        Group {
+            switch shape {
+            case .capsule: content.background(fill, in: .capsule).overlay(Capsule().strokeBorder(edge))
+            case .circle: content.background(fill, in: .circle).overlay(Circle().strokeBorder(edge))
+            }
+        }
+        .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0 : 0.08), radius: 6, y: 2)
+    }
+}
+
+/// Icon buttons inside the header pill: a soft highlight on hover and press.
+struct HeaderIconStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HoverHighlight(pressed: configuration.isPressed) { configuration.label }
+    }
+
+    private struct HoverHighlight<Label: View>: View {
+        let pressed: Bool
+        @ViewBuilder let label: Label
+        @State private var hovering = false
+        var body: some View {
+            label
+                .background(Color.primary.opacity(pressed ? 0.12 : hovering ? 0.07 : 0), in: .capsule)
+                .onHover { hovering = $0 }
+                .animation(.easeOut(duration: 0.12), value: hovering)
         }
     }
 }

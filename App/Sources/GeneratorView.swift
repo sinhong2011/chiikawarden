@@ -37,13 +37,8 @@ struct GeneratorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: compact ? 12 : 18) {
             if modes.count > 1 {
-                Picker("Type", selection: Binding(get: { mode }, set: { storedMode = $0.rawValue })) {
-                    ForEach(modes) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .controlSize(.large)
-                .frame(maxWidth: .infinity)
+                AppSegmented(options: modes.map { ($0, $0.title) },
+                             selection: Binding(get: { mode }, set: { storedMode = $0.rawValue }))
             }
 
             output
@@ -62,7 +57,7 @@ struct GeneratorView: View {
                 HStack {
                     Spacer()
                     Button(mode == .username ? "Use Username" : "Use Password") { remember(); onUse(value) }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.appPrimary)
                         .disabled(value.isEmpty)
                 }
             }
@@ -123,60 +118,75 @@ struct GeneratorView: View {
     // MARK: Options
 
     @ViewBuilder private var passwordOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             NumberRow(label: "Length", value: $password.length, range: PasswordGenerator.lengthRange,
                       hint: "Value must be between 5 and 128.", slider: true)
-            Divider().opacity(0.5)
-            Text("Include").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-            HStack(spacing: 18) {
-                Toggle(isOn: $password.uppercase) { Text(verbatim: "A-Z") }
-                Toggle(isOn: $password.lowercase) { Text(verbatim: "a-z") }
-                Toggle(isOn: $password.digits) { Text(verbatim: "0-9") }
-                Toggle(isOn: $password.symbols) { Text(verbatim: "!@#$%^&*") }
+            Divider().opacity(0.4)
+            VStack(alignment: .leading, spacing: 8) {
+                OptionLabel("Include")
+                HStack(spacing: 8) {
+                    ToggleChip(title: "A-Z", isOn: $password.uppercase)
+                    ToggleChip(title: "a-z", isOn: $password.lowercase)
+                    ToggleChip(title: "0-9", isOn: $password.digits)
+                    ToggleChip(title: "!@#$%^&*", isOn: $password.symbols)
+                }
             }
-            .toggleStyle(.checkbox)
-            HStack(spacing: 16) {
-                NumberRow(label: "Minimum numbers", value: $password.minNumbers, range: 0...9).disabled(!password.digits)
-                NumberRow(label: "Minimum special", value: $password.minSpecial, range: 0...9).disabled(!password.symbols)
+            HStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    OptionLabel("Minimum numbers")
+                    NumberStepper(value: $password.minNumbers, range: 0...9)
+                }
+                .disabled(!password.digits).opacity(password.digits ? 1 : 0.5)
+                VStack(alignment: .leading, spacing: 8) {
+                    OptionLabel("Minimum special")
+                    NumberStepper(value: $password.minSpecial, range: 0...9)
+                }
+                .disabled(!password.symbols).opacity(password.symbols ? 1 : 0.5)
+                Spacer()
             }
-            Toggle("Avoid ambiguous characters", isOn: $password.avoidAmbiguous).toggleStyle(.checkbox)
+            Divider().opacity(0.4)
+            SwitchRow("Avoid ambiguous characters", isOn: $password.avoidAmbiguous)
         }
     }
 
     @ViewBuilder private var passphraseOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             NumberRow(label: "Number of words", value: $passphrase.words, range: PassphraseGenerator.wordRange,
                       hint: "Value must be between 3 and 20. Use 6 words or more to generate a strong passphrase.", slider: true)
-            Divider().opacity(0.5)
-            LabeledContent("Word separator") {
-                TextField("Word separator", text: $passphrase.separator)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                    .labelsHidden()
+            Divider().opacity(0.4)
+            HStack {
+                OptionLabel("Word separator")
+                Spacer()
+                TextField("", text: $passphrase.separator)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                    .multilineTextAlignment(.center)
+                    .frame(width: 56, height: 32)
+                    .background(Color.primary.opacity(0.05), in: .capsule)
+                    .overlay(Capsule().strokeBorder(Color.primary.opacity(0.10)))
                     .onChange(of: passphrase.separator) { _, new in if new.count > 3 { passphrase.separator = String(new.prefix(3)) } }
+                    .accessibilityLabel(Text("Word separator"))
             }
-            Toggle("Capitalize", isOn: $passphrase.capitalize).toggleStyle(.checkbox)
-            Toggle("Include number", isOn: $passphrase.includeNumber).toggleStyle(.checkbox)
+            SwitchRow("Capitalize", isOn: $passphrase.capitalize)
+            SwitchRow("Include number", isOn: $passphrase.includeNumber)
         }
     }
 
     @ViewBuilder private var usernameOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Picker("Type", selection: $username.kind) {
-                Text("Random word").tag(UsernameGenerator.Kind.randomWord)
-                Text("Plus-addressed email").tag(UsernameGenerator.Kind.plusAddressed)
-                Text("Catch-all email").tag(UsernameGenerator.Kind.catchAll)
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            AppSegmented(options: [(UsernameGenerator.Kind.randomWord, "Random word"),
+                                   (.plusAddressed, "Plus-addressed email"), (.catchAll, "Catch-all email")],
+                         selection: $username.kind)
             switch username.kind {
             case .randomWord:
-                Toggle("Capitalize", isOn: $username.capitalize).toggleStyle(.checkbox)
-                Toggle("Include number", isOn: $username.includeNumber).toggleStyle(.checkbox)
+                SwitchRow("Capitalize", isOn: $username.capitalize)
+                SwitchRow("Include number", isOn: $username.includeNumber)
             case .plusAddressed:
-                TextField("Email", text: $username.email, prompt: Text(verbatim: "you@example.com")).textFieldStyle(.roundedBorder)
+                TextField("Email", text: $username.email, prompt: Text(verbatim: "you@example.com")).textFieldStyle(SoftFieldStyle())
                 Text("Adds a random tag, e.g. you+k3x9q2ma@example.com, so you can tell who shared your address.")
                     .font(.caption).foregroundStyle(.secondary)
             case .catchAll:
-                TextField("Domain", text: $username.domain, prompt: Text(verbatim: "example.com")).textFieldStyle(.roundedBorder)
+                TextField("Domain", text: $username.domain, prompt: Text(verbatim: "example.com")).textFieldStyle(SoftFieldStyle())
                 Text("A random address at a domain that accepts any mailbox.").font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -246,7 +256,7 @@ struct ColoredSecret: View {
     }
 }
 
-/// A labelled number with a field (and optionally a slider), clamped to its range.
+/// A labelled number: brand slider plus the shared − / + stepper, clamped to its range.
 private struct NumberRow: View {
     let label: LocalizedStringKey
     @Binding var value: Int
@@ -255,24 +265,38 @@ private struct NumberRow: View {
     var slider = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
+            OptionLabel(label)
+            HStack(spacing: 14) {
                 if slider {
                     Slider(value: Binding(get: { Double(value) }, set: { value = Int($0.rounded()) }),
                            in: Double(range.lowerBound)...Double(range.upperBound), step: 1)
                         .labelsHidden()
+                        .tint(.brand)
                 }
-                TextField(label, value: Binding(get: { value }, set: { value = min(max($0, range.lowerBound), range.upperBound) }),
-                          format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 64)
-                    .multilineTextAlignment(.trailing)
-                    .labelsHidden()
-                Stepper("", value: $value, in: range).labelsHidden()
+                NumberStepper(value: $value, range: range)
             }
             if let hint { Text(hint).font(.caption).foregroundStyle(.secondary) }
         }
+    }
+}
+
+private struct OptionLabel: View {
+    let text: LocalizedStringKey
+    init(_ text: LocalizedStringKey) { self.text = text }
+    var body: some View { Text(text).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary) }
+}
+
+/// A label with a small switch on the right.
+private struct SwitchRow: View {
+    let title: LocalizedStringKey
+    @Binding var isOn: Bool
+    init(_ title: LocalizedStringKey, isOn: Binding<Bool>) { self.title = title; _isOn = isOn }
+    var body: some View {
+        Toggle(isOn: $isOn) { Text(title).font(.system(size: 13)) }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .tint(.brand)
     }
 }
 
@@ -332,7 +356,11 @@ private struct HistorySection: View {
                     }
                     HStack {
                         Spacer()
-                        Button("Clear History", role: .destructive) { model.generatorHistory.removeAll() }
+                        Button("Clear History", role: .destructive) {
+                            model.confirm(String(localized: "Clear generator history?"),
+                                          message: String(localized: "The values listed here are forgotten. Items you saved are not affected."),
+                                          action: String(localized: "Clear History")) { model.generatorHistory.removeAll() }
+                        }
                             .buttonStyle(.borderless).font(.caption)
                     }
                     .padding(.horizontal, 18).padding(.vertical, 10)

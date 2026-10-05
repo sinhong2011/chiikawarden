@@ -116,68 +116,58 @@ private enum Pill {
     static func fill(_ scheme: ColorScheme) -> Color { scheme == .dark ? .white.opacity(0.10) : .white.opacity(0.85) }
 }
 
-/// The dark card: one login with its live code and quick copy buttons.
+/// The featured login: a raised light panel with its live code and quick copy buttons.
 private struct FeaturedCard: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
     let item: VaultItem
 
     var body: some View {
+        let dark = scheme == .dark
         TimelineView(.animation(minimumInterval: 1 / 30)) { context in
             VStack(alignment: .leading, spacing: 12) {
-                Label(item.host ?? String(localized: "Favorite"), systemImage: item.host == nil ? "star" : "globe")
-                    .font(.system(size: 11, weight: .bold)).tracking(0.6).textCase(.uppercase)
-                    .foregroundStyle(.white.opacity(0.75))
                 HStack(spacing: 12) {
                     ItemIcon(item: item, size: 38)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(item.name).font(.system(size: 15, weight: .bold)).lineLimit(1)
-                        Text(verbatim: item.username ?? "").font(.system(size: 12)).foregroundStyle(.white.opacity(0.75)).lineLimit(1)
+                        Text(item.name).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                        Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
+                            .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer()
                     if let totp = item.totp {
-                        let period = Double(totp.period)
-                        let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                        ZStack {
-                            Circle().stroke(.white.opacity(0.18), lineWidth: 3)
-                            Circle().trim(from: 1 - remaining, to: 1)
-                                .stroke(Color.brandFill, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                                .rotationEffect(.degrees(-90))
-                        }
-                        .frame(width: 26, height: 26)
                         Text(verbatim: totp.displayCode(at: context.date))
-                            .font(.system(size: 19, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.brand)
                             .contentTransition(.numericText())
                     }
                 }
+                if let totp = item.totp {
+                    let period = Double(totp.period)
+                    LevelBar(fraction: 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
+                             color: totp.secondsRemaining(at: context.date) <= 5 ? .orange : .brand)
+                }
                 HStack(spacing: 6) {
                     if let password = item.password {
-                        cardButton("Password", prominent: true) { model.copy(password, label: String(localized: "Password")) }
+                        Button("Password") { model.copy(password, label: String(localized: "Password")) }
+                            .buttonStyle(AppButtonStyle(kind: .primary, small: true))
                     }
                     if let totp = item.totp {
-                        cardButton("Code", prominent: item.password == nil) { model.copy(totp.code(), label: String(localized: "Code")) }
+                        Button("Code") { model.copy(totp.code(), label: String(localized: "Code")) }
+                            .buttonStyle(AppButtonStyle(kind: item.password == nil ? .primary : .secondary, small: true))
                     }
                     if let host = item.host, let url = URL(string: "https://\(host)") {
-                        cardButton("Open", prominent: false) { NSWorkspace.shared.open(url) }
+                        Button("Open") { NSWorkspace.shared.open(url) }
+                            .buttonStyle(.appSecondarySmall)
                     }
+                    Spacer()
                 }
             }
-            .foregroundStyle(.white)
             .padding(14)
-            .background(Color(red: 0.06, green: 0.17, blue: 0.27), in: .rect(cornerRadius: 18, style: .continuous))
-            .shadow(color: Color(red: 0.05, green: 0.15, blue: 0.25).opacity(0.5), radius: 14, y: 8)
+            .background(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.92), in: .rect(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.brandFill.opacity(dark ? 0.3 : 0.5), lineWidth: 1))
+            .shadow(color: Color(red: 0.12, green: 0.16, blue: 0.35).opacity(dark ? 0.3 : 0.08), radius: 10, y: 4)
+            .padding(.horizontal, 4)
         }
-    }
-
-    private func cardButton(_ title: LocalizedStringKey, prominent: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 12, weight: prominent ? .bold : .semibold))
-                .foregroundStyle(prominent ? Color(red: 0.06, green: 0.17, blue: 0.27) : .white)
-                .frame(maxWidth: .infinity).frame(height: 32)
-                .background(prominent ? Color.white : Color.white.opacity(0.14), in: .capsule)
-                .contentShape(.capsule)
-        }
-        .buttonStyle(.plain)
     }
 }
 

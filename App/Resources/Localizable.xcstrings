@@ -558,10 +558,10 @@
     },
     "A random address at a domain that accepts any mailbox.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "在可接收任何信箱的網域產生隨機地址。"
+            "value": "任意のメールボックスを受け付けるドメインでランダムなアドレスを作ります。"
           }
         },
         "zh-HK": {
@@ -576,10 +576,10 @@
             "value": "在可接收任意邮箱的域名生成随机地址。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "任意のメールボックスを受け付けるドメインでランダムなアドレスを作ります。"
+            "value": "在可接收任何信箱的網域產生隨機地址。"
           }
         }
       }
@@ -1009,10 +1009,10 @@
     },
     "Adds a random tag, e.g. you+k3x9q2ma@example.com, so you can tell who shared your address.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入隨機標籤，例如 you+k3x9q2ma@example.com，讓你知道是誰洩露了你的地址。"
+            "value": "you+k3x9q2ma@example.com のようなランダムなタグを付け、誰がアドレスを共有したか分かるようにします。"
           }
         },
         "zh-HK": {
@@ -1027,10 +1027,10 @@
             "value": "添加随机标签，例如 you+k3x9q2ma@example.com，让你知道是谁泄露了你的地址。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "you+k3x9q2ma@example.com のようなランダムなタグを付け、誰がアドレスを共有したか分かるようにします。"
+            "value": "加入隨機標籤，例如 you+k3x9q2ma@example.com，讓你知道是誰洩露了你的地址。"
           }
         }
       }
@@ -1402,10 +1402,10 @@
     },
     "Avoid ambiguous characters": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "避免易混淆字元"
+            "value": "紛らわしい文字を避ける"
           }
         },
         "zh-HK": {
@@ -1420,10 +1420,10 @@
             "value": "避免易混淆字符"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "紛らわしい文字を避ける"
+            "value": "避免易混淆字元"
           }
         }
       }
@@ -1686,10 +1686,10 @@
     },
     "Capitalize": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "首字大寫"
+            "value": "先頭を大文字に"
           }
         },
         "zh-HK": {
@@ -1704,10 +1704,10 @@
             "value": "首字母大写"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "先頭を大文字に"
+            "value": "首字大寫"
           }
         }
       }
@@ -1826,10 +1826,10 @@
     },
     "Catch-all email": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "萬用收件地址"
+            "value": "キャッチオールメール"
           }
         },
         "zh-HK": {
@@ -1844,10 +1844,10 @@
             "value": "全收邮箱"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "キャッチオールメール"
+            "value": "萬用收件地址"
           }
         }
       }
@@ -2387,10 +2387,10 @@
     },
     "Clear History": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "清除記錄"
+            "value": "履歴を消去"
           }
         },
         "zh-HK": {
@@ -2405,10 +2405,10 @@
             "value": "清除记录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "履歴を消去"
+            "value": "清除記錄"
           }
         }
       }
@@ -2437,6 +2437,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝內容清除時間"
+          }
+        }
+      }
+    },
+    "Clear generator history?": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要清除產生記錄嗎？"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要清除產生記錄嗎？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要清除生成记录吗？"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成履歴を消去しますか？"
           }
         }
       }
@@ -3733,6 +3761,34 @@
         }
       }
     },
+    "Decrease": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "減少"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "減少"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "減らす"
+          }
+        }
+      }
+    },
     "Delete": {
       "localizations": {
         "ja": {
@@ -4156,10 +4212,10 @@
     },
     "Domain": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "網域"
+            "value": "ドメイン"
           }
         },
         "zh-HK": {
@@ -4174,10 +4230,10 @@
             "value": "域名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ドメイン"
+            "value": "網域"
           }
         }
       }
@@ -4408,10 +4464,10 @@
     },
     "Enter your catch-all domain below.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請在下方輸入萬用收件網域。"
+            "value": "下にキャッチオールのドメインを入力してください。"
           }
         },
         "zh-HK": {
@@ -4426,20 +4482,20 @@
             "value": "请在下方输入全收域名。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "下にキャッチオールのドメインを入力してください。"
+            "value": "請在下方輸入萬用收件網域。"
           }
         }
       }
     },
     "Enter your email address below.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請在下方輸入你的電子郵件地址。"
+            "value": "下にメールアドレスを入力してください。"
           }
         },
         "zh-HK": {
@@ -4454,10 +4510,10 @@
             "value": "请在下方输入你的电子邮件地址。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "下にメールアドレスを入力してください。"
+            "value": "請在下方輸入你的電子郵件地址。"
           }
         }
       }
@@ -5193,10 +5249,10 @@
     },
     "Generator": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "產生器"
+            "value": "ジェネレータ"
           }
         },
         "zh-HK": {
@@ -5211,20 +5267,20 @@
             "value": "生成器"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ジェネレータ"
+            "value": "產生器"
           }
         }
       }
     },
     "Generator history": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "產生記錄"
+            "value": "生成履歴"
           }
         },
         "zh-HK": {
@@ -5239,10 +5295,10 @@
             "value": "生成记录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成履歴"
+            "value": "產生記錄"
           }
         }
       }
@@ -5641,10 +5697,10 @@
     },
     "Include": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "包含"
+            "value": "含める文字"
           }
         },
         "zh-HK": {
@@ -5659,20 +5715,20 @@
             "value": "包含"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "含める文字"
+            "value": "包含"
           }
         }
       }
     },
     "Include number": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "包含數字"
+            "value": "数字を含める"
           }
         },
         "zh-HK": {
@@ -5687,10 +5743,10 @@
             "value": "包含数字"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "数字を含める"
+            "value": "包含數字"
           }
         }
       }
@@ -5719,6 +5775,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "請包含 ⌘、⌥ 或 ⌃"
+          }
+        }
+      }
+    },
+    "Increase": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增加"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增加"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增加"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "増やす"
           }
         }
       }
@@ -6510,10 +6594,10 @@
     },
     "Minimum numbers": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最少數字"
+            "value": "数字の最小数"
           }
         },
         "zh-HK": {
@@ -6528,20 +6612,20 @@
             "value": "最少数字"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "数字の最小数"
+            "value": "最少數字"
           }
         }
       }
     },
     "Minimum special": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最少符號"
+            "value": "記号の最小数"
           }
         },
         "zh-HK": {
@@ -6556,10 +6640,10 @@
             "value": "最少符号"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "記号の最小数"
+            "value": "最少符號"
           }
         }
       }
@@ -6644,6 +6728,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "移到垃圾桶（⌘⌫）"
+          }
+        }
+      }
+    },
+    "Move to Trash…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到垃圾桶…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移去垃圾桶…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到废纸篓…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゴミ箱に入れる…"
+          }
+        }
+      }
+    },
+    "Move “%@” to Trash?": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要將「%@」移到垃圾桶嗎？"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要將「%@」移去垃圾桶嗎？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要将“%@”移到废纸篓吗？"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」をゴミ箱に入れますか？"
           }
         }
       }
@@ -7714,10 +7854,10 @@
     },
     "Number of words": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "字數"
+            "value": "単語数"
           }
         },
         "zh-HK": {
@@ -7732,10 +7872,10 @@
             "value": "单词数"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "単語数"
+            "value": "字數"
           }
         }
       }
@@ -8499,10 +8639,10 @@
     },
     "Options": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "選項"
+            "value": "オプション"
           }
         },
         "zh-HK": {
@@ -8517,10 +8657,10 @@
             "value": "选项"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "オプション"
+            "value": "選項"
           }
         }
       }
@@ -8724,10 +8864,10 @@
     },
     "Passphrase": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "密語"
+            "value": "パスフレーズ"
           }
         },
         "zh-HK": {
@@ -8742,10 +8882,10 @@
             "value": "密码短语"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスフレーズ"
+            "value": "密語"
           }
         }
       }
@@ -8978,10 +9118,10 @@
     },
     "Plus-addressed email": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "加號別名電子郵件"
+            "value": "プラスアドレス"
           }
         },
         "zh-HK": {
@@ -8996,10 +9136,10 @@
             "value": "加号别名邮箱"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "プラスアドレス"
+            "value": "加號別名電子郵件"
           }
         }
       }
@@ -9232,10 +9372,10 @@
     },
     "Random word": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "隨機單字"
+            "value": "ランダムな単語"
           }
         },
         "zh-HK": {
@@ -9250,10 +9390,10 @@
             "value": "随机单词"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ランダムな単語"
+            "value": "隨機單字"
           }
         }
       }
@@ -9681,10 +9821,10 @@
     },
     "Reveal (hold ⌥)": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示（按住 ⌥）"
+            "value": "表示（⌥ を押したまま）"
           }
         },
         "zh-HK": {
@@ -9699,10 +9839,10 @@
             "value": "显示（按住 ⌥）"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "表示（⌥ を押したまま）"
+            "value": "顯示（按住 ⌥）"
           }
         }
       }
@@ -11530,6 +11670,34 @@
         }
       }
     },
+    "The account and its saved vault are removed from this Mac. Your vault stays on the server.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號及其儲存的保險庫會從這部 Mac 移除，伺服器上的保險庫不受影響。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳戶同佢儲存嘅保險庫會從呢部 Mac 移除，伺服器上嘅保險庫唔受影響。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户及其保存的密码库会从这台 Mac 移除，服务器上的密码库不受影响。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントと保存された保管庫はこの Mac から削除されます。サーバ上の保管庫はそのままです。"
+          }
+        }
+      }
+    },
     "The file is removed from your vault on every device.": {
       "localizations": {
         "ja": {
@@ -11638,6 +11806,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "伺服器傳回不安全的金鑰衍生設定，已停止登入。"
+          }
+        }
+      }
+    },
+    "The values listed here are forgotten. Items you saved are not affected.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這裡列出的值會被清除，已儲存的項目不受影響。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "呢度列出嘅值會被清除，已儲存嘅項目唔受影響。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里列出的值会被清除，已保存的项目不受影响。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ここに表示されている値は消去されます。保存済みの項目には影響しません。"
           }
         }
       }
@@ -12688,10 +12884,10 @@
     },
     "Use Username": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用使用者名稱"
+            "value": "ユーザ名を使用"
           }
         },
         "zh-HK": {
@@ -12706,10 +12902,10 @@
             "value": "使用用户名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ユーザ名を使用"
+            "value": "使用使用者名稱"
           }
         }
       }
@@ -12828,10 +13024,10 @@
     },
     "Value must be between 3 and 20. Use 6 words or more to generate a strong passphrase.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "數值須介於 3 到 20。使用 6 個字以上可產生強密語。"
+            "value": "3〜20 の値にしてください。強いパスフレーズには 6 語以上を使います。"
           }
         },
         "zh-HK": {
@@ -12846,20 +13042,20 @@
             "value": "数值须介于 3 到 20。使用 6 个或更多单词可生成强密码短语。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "3〜20 の値にしてください。強いパスフレーズには 6 語以上を使います。"
+            "value": "數值須介於 3 到 20。使用 6 個字以上可產生強密語。"
           }
         }
       }
     },
     "Value must be between 5 and 128.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "數值須介於 5 到 128。"
+            "value": "5〜128 の値にしてください。"
           }
         },
         "zh-HK": {
@@ -12874,20 +13070,20 @@
             "value": "数值须介于 5 到 128。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "5〜128 の値にしてください。"
+            "value": "數值須介於 5 到 128。"
           }
         }
       }
     },
     "Values you copy or use appear here until the vault locks.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "你拷貝或使用的值會顯示在這裡，直到保險庫鎖定。"
+            "value": "コピーまたは使用した値は、保管庫がロックされるまでここに表示されます。"
           }
         },
         "zh-HK": {
@@ -12902,10 +13098,10 @@
             "value": "你复制或使用的值会显示在这里，直到密码库锁定。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コピーまたは使用した値は、保管庫がロックされるまでここに表示されます。"
+            "value": "你拷貝或使用的值會顯示在這裡，直到保險庫鎖定。"
           }
         }
       }
@@ -13448,10 +13644,10 @@
     },
     "Word separator": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "分隔符號"
+            "value": "単語の区切り"
           }
         },
         "zh-HK": {
@@ -13466,10 +13662,10 @@
             "value": "分隔符"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "単語の区切り"
+            "value": "分隔符號"
           }
         }
       }
@@ -13638,6 +13834,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "是／否"
+          }
+        }
+      }
+    },
+    "You can restore it from Trash later.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之後可以從垃圾桶復原。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之後可以喺垃圾桶還原。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之后可以从废纸篓恢复。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あとでゴミ箱から戻せます。"
           }
         }
       }
@@ -14439,6 +14663,7 @@
       }
     },
     "↵ Open": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -14467,6 +14692,7 @@
       }
     },
     "⇧↵ Website": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -14495,6 +14721,7 @@
       }
     },
     "⌘↵ Password": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -14523,6 +14750,7 @@
       }
     },
     "⌥↵ Code": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {

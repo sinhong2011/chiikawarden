@@ -141,6 +141,7 @@ struct WatchtowerView: View {
                             Text(model.breachCounts == nil ? "Check for breaches" : "Check again")
                         }
                     }
+                    .buttonStyle(.appPrimarySmall)
                     .disabled(model.isCheckingBreaches || report.logins.isEmpty)
                     if let checked = model.breachesCheckedAt {
                         Text("Checked \(checked, format: .relative(presentation: .named))").font(.caption).foregroundStyle(.secondary)
@@ -189,7 +190,7 @@ private struct IssueCard: View {
                     }
                     Spacer()
                     Button("Change Password") { model.editing = EditRequest(mode: .edit(item)) }
-                        .controlSize(.small)
+                        .buttonStyle(.appSecondarySmall)
                     Button { onOpen(item) } label: { Image(systemName: "arrow.right.circle").accessibilityLabel(Text("Open item")) }
                         .buttonStyle(.borderless)
                         .help(Text("Show item"))
