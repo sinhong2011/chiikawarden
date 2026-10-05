@@ -8,16 +8,28 @@ struct OTPCode: View {
     var urgent = false
 
     var body: some View {
-        let half = code.count / 2
+        let split = code.count / 2
         HStack(spacing: size * 0.3) {
-            Text(verbatim: String(code.prefix(half))).contentTransition(.numericText())
+            half(String(code.prefix(split)))
             BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .brand)
-            Text(verbatim: String(code.suffix(code.count - half))).contentTransition(.numericText())
+                .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
+            half(String(code.suffix(code.count - split)))
         }
         .font(.system(size: size, weight: .semibold, design: .monospaced))
         .animation(.snappy, value: code)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: code))
+    }
+}
+
+extension OTPCode {
+    /// Each half keeps the width of its digit count, so the dot never shifts while digits roll over.
+    fileprivate func half(_ digits: String) -> some View {
+        Text(verbatim: String(repeating: "0", count: digits.count))
+            .hidden()
+            .overlay(alignment: .leading) {
+                Text(verbatim: digits).contentTransition(.numericText()).fixedSize()
+            }
     }
 }
 

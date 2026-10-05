@@ -1009,6 +1009,34 @@
         }
       }
     },
+    "Acknowledgements": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "謝辞"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鳴謝"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "致谢"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "致謝"
+          }
+        }
+      }
+    },
     "Add Account…": {
       "localizations": {
         "ja": {
@@ -6428,6 +6456,34 @@
         }
       }
     },
+    "Free software under the GNU General Public License v3.0. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GNU 一般公衆利用許諾書 第 3 版のもとで公開されている自由ソフトウェアです。Bitwarden, Inc. および Vaultwarden プロジェクトとは関係ありません。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共授權條款第 3 版發佈嘅自由軟件。同 Bitwarden, Inc. 及 Vaultwarden 項目無關。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共许可证第 3 版发布的自由软件。与 Bitwarden, Inc. 及 Vaultwarden 项目无关。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 GNU 通用公共授權條款第 3 版發佈的自由軟體。與 Bitwarden, Inc. 及 Vaultwarden 專案無關。"
+          }
+        }
+      }
+    },
     "From Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords or your browser.": {
       "localizations": {
         "ja": {
@@ -7689,6 +7745,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "駕照號碼"
+          }
+        }
+      }
+    },
+    "License": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンス"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授權條款"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可证"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授權條款"
           }
         }
       }
@@ -13277,6 +13361,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "略過 %lld 個可能重複的項目"
+          }
+        }
+      }
+    },
+    "Source Code": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソースコード"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始碼"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "源代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始碼"
           }
         }
       }
