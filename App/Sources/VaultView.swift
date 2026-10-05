@@ -29,7 +29,7 @@ struct VaultView: View {
     @Environment(AppModel.self) private var model
     @State private var query = ""
     @State private var selection: VaultItem.ID?
-    @State private var section: VaultSection = .all
+    @State private var section: SidebarSelection = .section(.all)
     @State private var chip: Chip = .all
 
     enum Chip: CaseIterable { case all, twoFactor, favorites
@@ -87,6 +87,23 @@ struct VaultView: View {
 
 // MARK: Sidebar
 
+/// What the sidebar has selected: a built-in category, a folder, an organization or a collection.
+enum SidebarSelection: Hashable {
+    case section(VaultSection)
+    case folder(String)
+    case organization(String)
+    case collection(String)
+
+    func includes(_ item: VaultItem) -> Bool {
+        switch self {
+        case .section(let s): s.includes(item)
+        case .folder(let id): item.folderId == id
+        case .organization(let id): item.organizationId == id
+        case .collection(let id): item.collectionIds.contains(id)
+        }
+    }
+}
+
 enum VaultSection: Hashable, CaseIterable {
     case all, favorites, logins, passkeys, sshKeys, cards, notes
 
@@ -120,15 +137,38 @@ enum VaultSection: Hashable, CaseIterable {
 /// Native macOS sidebar (system source-list style, adapts to the OS look).
 private struct Sidebar: View {
     @Environment(AppModel.self) private var model
-    @Binding var section: VaultSection
+    @Binding var section: SidebarSelection
+
+    private func count(_ selection: SidebarSelection) -> Int { model.items.filter(selection.includes).count }
 
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
             Section("Vault") {
                 ForEach(VaultSection.allCases, id: \.self) { s in
                     Label(s.title, systemImage: s.symbol)
-                        .badge(model.items.filter(s.includes).count)
-                        .tag(s)
+                        .badge(count(.section(s)))
+                        .tag(SidebarSelection.section(s))
+                }
+            }
+            if !model.folders.isEmpty {
+                Section("Folders") {
+                    ForEach(model.folders) { folder in
+                        Label(folder.name, systemImage: "folder")
+                            .badge(count(.folder(folder.id)))
+                            .tag(SidebarSelection.folder(folder.id))
+                    }
+                }
+            }
+            ForEach(model.organizations) { org in
+                Section(org.name) {
+                    Label("All Items", systemImage: "building.2")
+                        .badge(count(.organization(org.id)))
+                        .tag(SidebarSelection.organization(org.id))
+                    ForEach(org.children) { collection in
+                        Label(collection.name, systemImage: "rectangle.stack")
+                            .badge(count(.collection(collection.id)))
+                            .tag(SidebarSelection.collection(collection.id))
+                    }
                 }
             }
         }
@@ -325,6 +365,16 @@ struct ItemDetail: View {
                 }
 
                 VStack(spacing: 0) {
+                    if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
+                        DetailRow(symbol: "building.2", title: "Organization") {
+                            let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
+                            Text(verbatim: ([org.name] + names).joined(separator: " › ")).foregroundStyle(.secondary)
+                        }
+                    } else if let folderId = item.folderId, let folder = model.folders.first(where: { $0.id == folderId }) {
+                        DetailRow(symbol: "folder", title: "Folder") {
+                            Text(verbatim: folder.name).foregroundStyle(.secondary)
+                        }
+                    }
                     if item.hasPasskey {
                         DetailRow(symbol: "person.badge.key", title: "Passkey") {
                             Text("Touch ID · Safari, Chrome").foregroundStyle(.secondary)
@@ -346,7 +396,7 @@ struct ItemDetail: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(.horizontal, 16).padding(.vertical, 14)
-                        .overlay(alignment: .top) { Divider().opacity(item.hasPasskey || item.password != nil ? 0.6 : 0) }
+                        .overlay(alignment: .top) { Divider().opacity(0.6) }
                     }
                 }
                 .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))

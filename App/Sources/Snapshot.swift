@@ -136,6 +136,14 @@ enum SelfTest {
             check(AccountStore.load() != nil && AccountStore.loadCache() != nil && AccountStore.refreshToken != nil,
                   "account, encrypted cache and refresh token persisted")
             let count = model.items.count
+            let org = model.organizations.first
+            let collection = org?.children.first
+            check(org != nil && collection != nil, "organization “\(org?.name ?? "-")” with collection “\(collection?.name ?? "-")”")
+            if let org, let collection {
+                check(model.items.contains { SidebarSelection.organization(org.id).includes($0) }
+                      && model.items.contains { SidebarSelection.collection(collection.id).includes($0) },
+                      "org and collection filters match their items")
+            }
 
             model.lock()
             check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")

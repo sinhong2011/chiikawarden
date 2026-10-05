@@ -62,6 +62,21 @@ public struct TokenErrorResponse: Decodable, Sendable {
 public struct SyncResponse: Decodable, Sendable {
     public let profile: Profile
     public let ciphers: [Cipher]
+    public let folders: [Folder]?
+    public let collections: [Collection]?
+
+    public struct Folder: Decodable, Sendable {
+        public let id: String
+        /// Encrypted with the user key.
+        public let name: String
+    }
+
+    public struct Collection: Decodable, Sendable {
+        public let id: String
+        public let organizationId: String
+        /// Encrypted with the organization key.
+        public let name: String
+    }
 
     /// Decodes a raw (possibly cached) sync payload.
     public static func decode(_ data: Data) throws(APIError) -> SyncResponse {
@@ -92,6 +107,8 @@ public struct SyncResponse: Decodable, Sendable {
         public let organizationId: String?
         /// Optional per-item key, encrypted with the user or org key.
         public let key: String?
+        public let folderId: String?
+        public let collectionIds: [String]?
         public let name: String
         public let notes: String?
         public let login: Login?

@@ -17,6 +17,9 @@ struct VaultItem: Identifiable, Hashable {
     let notes: String?
     let favorite: Bool
     var hasPasskey = false
+    var folderId: String?
+    var organizationId: String?
+    var collectionIds: [String] = []
     /// Filled in after sync: how many other items share this password.
     var reuseCount = 0
 
@@ -27,6 +30,13 @@ struct VaultItem: Identifiable, Hashable {
 
     static func == (a: Self, b: Self) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
+}
+
+/// A folder, organization or collection shown in the sidebar.
+struct Grouping: Identifiable, Hashable {
+    let id: String
+    let name: String
+    var children: [Grouping] = []
 }
 
 struct ItemField: Hashable, Identifiable {
@@ -76,6 +86,9 @@ final class AppModel {
 
     var phase: Phase = .login
     var items: [VaultItem] = []
+    var folders: [Grouping] = []
+    /// Organizations, each with its collections as children.
+    var organizations: [Grouping] = []
     var skippedOrgItems = 0
     var isBusy = false
     var errorMessage: String?
@@ -414,7 +427,10 @@ final class AppModel {
                 totp: dec(cipher.login?.totp).flatMap(TOTP.init),
                 notes: dec(cipher.notes),
                 favorite: cipher.favorite ?? false,
-                hasPasskey: !(cipher.login?.fido2Credentials ?? []).isEmpty
+                hasPasskey: !(cipher.login?.fido2Credentials ?? []).isEmpty,
+                folderId: cipher.folderId,
+                organizationId: cipher.organizationId,
+                collectionIds: cipher.collectionIds ?? []
             )
             switch kind {
             case .card:
@@ -462,6 +478,18 @@ final class AppModel {
             if let pw = items[i].password { items[i].reuseCount = (counts[pw] ?? 1) - 1 }
         }
         skippedOrgItems = hidden
+        folders = (sync.folders ?? []).compactMap { f in
+            (try? EncString(f.name).decryptString(with: userKey)).map { Grouping(id: f.id, name: $0) }
+        }
+        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        organizations = (sync.profile.organizations ?? []).compactMap { org in
+            guard let orgKey = keyring.orgKeys[org.id] else { return nil }
+            let collections = (sync.collections ?? []).filter { $0.organizationId == org.id }.compactMap { c in
+                (try? EncString(c.name).decryptString(with: orgKey)).map { Grouping(id: c.id, name: $0) }
+            }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            return Grouping(id: org.id, name: org.name ?? String(localized: "Organization"), children: collections)
+        }
     }
 
     // MARK: Auto-lock
@@ -505,6 +533,8 @@ final class AppModel {
         stopLiveSync()
         userKey = nil
         items = []
+        folders = []
+        organizations = []
         phase = AccountStore.load() != nil ? .locked : .login
     }
 

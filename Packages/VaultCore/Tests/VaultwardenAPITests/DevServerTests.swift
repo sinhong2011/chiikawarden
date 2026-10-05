@@ -63,6 +63,11 @@ struct DevServerTests {
             keyring.key(for: cipher).flatMap { try? EncString(cipher.name).decryptString(with: $0) }
         }
         #expect(orgNames.contains("Family Netflix"))
+        let collections = (sync.collections ?? []).compactMap { c in
+            keyring.orgKeys[c.organizationId].flatMap { try? EncString(c.name).decryptString(with: $0) }
+        }
+        #expect(collections.contains("Shared"))
+        #expect(sync.ciphers.contains { !($0.collectionIds ?? []).isEmpty })
     }
 
     @Test(arguments: DevServer.ports)

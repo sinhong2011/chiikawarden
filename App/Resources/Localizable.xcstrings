@@ -992,10 +992,10 @@
     },
     "Close": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "關閉"
+            "value": "閉じる"
           }
         },
         "zh-HK": {
@@ -1010,10 +1010,10 @@
             "value": "关闭"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "閉じる"
+            "value": "關閉"
           }
         }
       }
@@ -1132,10 +1132,10 @@
     },
     "Copy code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝驗證碼"
+            "value": "コードをコピー"
           }
         },
         "zh-HK": {
@@ -1150,20 +1150,20 @@
             "value": "拷贝验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コードをコピー"
+            "value": "拷貝驗證碼"
           }
         }
       }
     },
     "Copy password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "拷貝密碼"
+            "value": "パスワードをコピー"
           }
         },
         "zh-HK": {
@@ -1178,10 +1178,10 @@
             "value": "拷贝密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードをコピー"
+            "value": "拷貝密碼"
           }
         }
       }
@@ -1574,6 +1574,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "指紋"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料夾"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料夾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件夹"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フォルダ"
+          }
+        }
+      }
+    },
+    "Folders": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料夾"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資料夾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件夹"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フォルダ"
           }
         }
       }
@@ -2140,10 +2196,10 @@
     },
     "No results": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "沒有結果"
+            "value": "結果なし"
           }
         },
         "zh-HK": {
@@ -2158,10 +2214,10 @@
             "value": "没有结果"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "結果なし"
+            "value": "沒有結果"
           }
         }
       }
@@ -2280,10 +2336,10 @@
     },
     "Open Chiikawarden": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開 Chiikawarden"
+            "value": "Chiikawarden を開く"
           }
         },
         "zh-HK": {
@@ -2298,20 +2354,20 @@
             "value": "打开 Chiikawarden"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden を開く"
+            "value": "打開 Chiikawarden"
           }
         }
       }
     },
     "Open Chiikawarden to unlock": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開 Chiikawarden 以解鎖"
+            "value": "Chiikawarden を開いてロックを解除"
           }
         },
         "zh-HK": {
@@ -2326,10 +2382,10 @@
             "value": "打开 Chiikawarden 以解锁"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden を開いてロックを解除"
+            "value": "打開 Chiikawarden 以解鎖"
           }
         }
       }
@@ -2442,6 +2498,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "或在下方輸入主密碼。"
+          }
+        }
+      }
+    },
+    "Organization": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "組織"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機構"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组织"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "組織"
           }
         }
       }
@@ -2700,10 +2784,10 @@
     },
     "Quick Search": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "快速搜尋"
+            "value": "クイック検索"
           }
         },
         "zh-HK": {
@@ -2718,20 +2802,20 @@
             "value": "快速搜索"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "クイック検索"
+            "value": "快速搜尋"
           }
         }
       }
     },
     "Quit": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "結束"
+            "value": "終了"
           }
         },
         "zh-HK": {
@@ -2746,10 +2830,10 @@
             "value": "退出"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "終了"
+            "value": "結束"
           }
         }
       }
@@ -3714,10 +3798,10 @@
     },
     "Verification Codes": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "驗證碼"
+            "value": "確認コード"
           }
         },
         "zh-HK": {
@@ -3732,10 +3816,10 @@
             "value": "验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "確認コード"
+            "value": "驗證碼"
           }
         }
       }
@@ -4081,9 +4165,6 @@
           }
         }
       }
-    },
-    "Chiikawarden": {
-      "shouldTranslate": false
     }
   },
   "version": "1.0"
