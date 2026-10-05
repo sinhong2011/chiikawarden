@@ -22,7 +22,7 @@ struct BrandStage: View {
                         .position(center)
 
                     Chip(dark: dark) { CodeChip(date: context.date, dark: dark) }
-                        .position(x: size.width * 0.70, y: center.y - door * 0.62 + 4 * sin(t * 0.9))
+                        .position(x: size.width * 0.78, y: center.y - door * 0.40 + 4 * sin(t * 0.9))
                     Chip(dark: dark) {
                         Label("Touch ID", systemImage: "touchid")
                     }
@@ -31,6 +31,11 @@ struct BrandStage: View {
                         Label("Passkey saved", systemImage: "person.badge.key.fill")
                     }
                     .position(x: size.width * 0.79, y: center.y + door * 0.60 + 4 * sin(t * 0.8 + 2))
+
+                    StageWordmark(dark: dark)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(.leading, 36)
+                        .padding(.top, 56) // clear of the window buttons
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Everything you guard,\none keystroke away.")
@@ -85,6 +90,8 @@ private struct StageBackground: View {
 struct VaultDoor: View {
     var handle: Angle
     var dark: Bool
+    /// Bolts and groove; off for tiny sizes where they turn to noise.
+    var detailed = true
 
     var body: some View {
         Canvas { ctx, size in
@@ -103,8 +110,8 @@ struct VaultDoor: View {
             ctx.fill(circle(r), with: .linearGradient(Gradient(colors: [doorTop, doorBottom]),
                                                       startPoint: CGPoint(x: c.x, y: c.y - r), endPoint: CGPoint(x: c.x, y: c.y + r)))
             ctx.stroke(circle(r * 0.985), with: .color(.black.opacity(dark ? 0.3 : 0.10)), lineWidth: r * 0.03)
-            ctx.stroke(circle(r * 0.76), with: .color(detail.opacity(0.16)), lineWidth: r * 0.028)
-            for i in 0..<12 {
+            if detailed { ctx.stroke(circle(r * 0.76), with: .color(detail.opacity(0.16)), lineWidth: r * 0.028) }
+            for i in 0..<(detailed ? 12 : 0) {
                 let a = Double(i) / 12 * 2 * .pi - .pi / 2
                 ctx.fill(dot(CGPoint(x: c.x + cos(a) * r * 0.875, y: c.y + sin(a) * r * 0.875), r * 0.032),
                          with: .color(detail.opacity(0.26)))
@@ -177,48 +184,21 @@ private struct CodeChip: View {
     }
 }
 
-/// Wordmark for the login and unlock forms: the vault handle as a crisp vector glyph plus the name.
-/// Drawn rather than taken from the app icon, so it is sharp at any size and always matches the brand.
-struct BrandMark: View {
+/// Top-left of the stage: a miniature of the big door (white disc, blue handle) and the name in white.
+private struct StageWordmark: View {
+    var dark: Bool
+
     var body: some View {
-        HStack(spacing: 9) {
-            HandleGlyph()
-                .frame(width: 22, height: 22)
+        HStack(spacing: 10) {
+            VaultDoor(handle: .zero, dark: dark, detailed: false)
+                .frame(width: 26, height: 26)
+                .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
             Text(verbatim: "Chiikawarden")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .tracking(-0.2)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: "Chiikawarden"))
-    }
-}
-
-/// The icon's handle on its own: ring, crossed spokes with knobs, hub with a punched centre.
-struct HandleGlyph: View {
-    var body: some View {
-        Canvas { ctx, size in
-            let s = min(size.width, size.height)
-            let c = CGPoint(x: size.width / 2, y: size.height / 2)
-            func disc(_ p: CGPoint, _ r: CGFloat) -> Path { Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)) }
-            let blue = GraphicsContext.Shading.color(.brand)
-            ctx.stroke(disc(c, s * 0.27), with: blue, lineWidth: s * 0.10)
-            let reach = s * 0.38
-            var spokes = Path()
-            for a in [45.0, 135.0] {
-                let r = Angle.degrees(a).radians
-                spokes.move(to: CGPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach))
-                spokes.addLine(to: CGPoint(x: c.x - cos(r) * reach, y: c.y - sin(r) * reach))
-            }
-            ctx.stroke(spokes, with: blue, style: StrokeStyle(lineWidth: s * 0.11, lineCap: .round))
-            for a in [45.0, 135.0, 225.0, 315.0] {
-                let r = Angle.degrees(a).radians
-                ctx.fill(disc(CGPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach), s * 0.10), with: blue)
-            }
-            ctx.fill(disc(c, s * 0.17), with: blue)
-            ctx.blendMode = .clear
-            ctx.fill(disc(c, s * 0.065), with: .color(.black))
-        }
-        .accessibilityHidden(true)
     }
 }

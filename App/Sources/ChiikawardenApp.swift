@@ -12,6 +12,7 @@ struct ChiikawardenApp: App {
         #if DEBUG
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
+        CloudSelfTest.runIfRequested()
         // `--demo`: open straight into the vault with demo items, for UI review.
         if CommandLine.arguments.contains("--demo") {
             let demo = AppModel()

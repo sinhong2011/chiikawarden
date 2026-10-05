@@ -31,7 +31,6 @@ private struct UnlockForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            BrandMark()
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)

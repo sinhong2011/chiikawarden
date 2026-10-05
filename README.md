@@ -56,3 +56,16 @@ sudo ln -sf /Applications/Chiikawarden.app/Contents/MacOS/cw /usr/local/bin/cw
 Reading from the vault asks for Touch ID in the app.
 
 Maintainers: see [docs/RELEASING.md](docs/RELEASING.md) for signing, notarization and the Homebrew cask.
+
+## Development
+
+```bash
+make            # list commands
+make run        # build and open the app
+make test       # VaultCore unit tests
+make selftest   # in-app self-test against the dev server (DevServer/, settings in local.mk)
+make snapshots  # light/dark UI renders into build/snapshots
+```
+
+`make selftest-cloud` runs the self-test against Bitwarden cloud with an **empty test account** from `.env`
+(`BITWARDEN_ACCOUNT`, `BITWARDEN_PASSWORD`; git ignores the file). It asks in the terminal for any emailed device code.

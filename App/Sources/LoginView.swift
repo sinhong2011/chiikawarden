@@ -69,8 +69,6 @@ private struct LoginForm: View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .leading, spacing: 6) {
-                BrandMark()
-                    .padding(.bottom, 14)
                 Text(title).font(.system(size: 26, weight: .bold)).tracking(-0.3)
                 Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
             }
