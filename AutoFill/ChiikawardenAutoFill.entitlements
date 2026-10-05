@@ -10,5 +10,11 @@
 	<array>
 		<string>FX3VR69P5K.io.github.sinhong2011.chiikawarden</string>
 	</array>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)io.github.sinhong2011.chiikawarden.shared</string>
+	</array>
 </dict>
 </plist>

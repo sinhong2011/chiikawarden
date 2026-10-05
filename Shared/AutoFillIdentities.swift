@@ -1,4 +1,5 @@
 import AuthenticationServices
+import ChiikawaCrypto
 import Foundation
 
 /// Tells macOS which domains/usernames we can fill, so QuickType suggests them. Only identifiers are
@@ -19,6 +20,13 @@ enum AutoFillIdentities {
             guard let host = item.host, item.totp != nil else { return nil }
             return ASOneTimeCodeCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: host, type: .domain),
                                                    label: item.name, recordIdentifier: item.id)
+        }
+        identities += logins.flatMap { item in
+            item.passkeys.compactMap { pk -> ASPasskeyCredentialIdentity? in
+                guard let id = pk.rawId else { return nil }
+                return ASPasskeyCredentialIdentity(relyingPartyIdentifier: pk.rpId, userName: pk.userName ?? item.username ?? "",
+                                                   credentialID: id, userHandle: pk.rawUserHandle ?? Data(), recordIdentifier: item.id)
+            }
         }
         Task {
             let store = ASCredentialIdentityStore.shared

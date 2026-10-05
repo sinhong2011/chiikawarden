@@ -74,6 +74,8 @@ final class AccountSession {
             try? await Task.sleep(for: .milliseconds(800))
             guard !Task.isCancelled else { return }
             do { try await refresh() } catch {
+                // The AutoFill extension may have rotated the refresh token meanwhile; use the stored one.
+                if let stored = AccountStore.refreshToken(account.id) { await client?.restore(refreshToken: stored) }
                 if let token = try? await client?.refreshAccessToken() { AccountStore.setRefreshToken(token, account.id) }
                 try? await refresh()
             }

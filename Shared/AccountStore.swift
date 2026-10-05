@@ -221,24 +221,56 @@ enum AccountStore {
     }
 }
 
-/// Minimal generic-password Keychain helper.
+/// Minimal generic-password Keychain helper. Items live in the data-protection keychain under the App
+/// Group, so the AutoFill extension can use them too; items from the older per-app (file) keychain are
+/// moved over on first read.
 enum Keychain {
-    static func read(service: String) -> Data? {
-        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-                                kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
+    /// Keychain Sharing group of the app and its AutoFill extension.
+    static let accessGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden.shared"
+
+    private static func base(_ service: String, shared: Bool) -> [String: Any] {
+        var q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service]
+        if shared {
+            q[kSecUseDataProtectionKeychain as String] = true
+            q[kSecAttrAccessGroup as String] = accessGroup
+        }
+        return q
+    }
+
+    private static func copy(_ service: String, shared: Bool) -> Data? {
+        var q = base(service, shared: shared)
+        q[kSecReturnData as String] = true
+        q[kSecMatchLimit as String] = kSecMatchLimitOne
         var out: CFTypeRef?
         return SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess ? out as? Data : nil
     }
 
-    static func write(_ data: Data, service: String) {
-        delete(service: service)
-        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-                                kSecValueData as String: data,
-                                kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
-        SecItemAdd(q as CFDictionary, nil)
+    @discardableResult
+    private static func add(_ data: Data, _ service: String, shared: Bool) -> Bool {
+        var q = base(service, shared: shared)
+        q[kSecValueData as String] = data
+        // Same as the vault files: readable while the screen is locked (background sync), never off this Mac.
+        q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        return SecItemAdd(q as CFDictionary, nil) == errSecSuccess
     }
 
+    static func read(service: String) -> Data? {
+        if let data = copy(service, shared: true) { return data }
+        guard let legacy = copy(service, shared: false) else { return nil }
+        if add(legacy, service, shared: true) { SecItemDelete(base(service, shared: false) as CFDictionary) }
+        return legacy
+    }
+
+    static func write(_ data: Data, service: String) {
+        delete(service: service)
+        if !add(data, service, shared: true) { add(data, service, shared: false) }
+    }
+
+    /// True when the item lives in the shared (App Group) keychain.
+    static func isShared(service: String) -> Bool { copy(service, shared: true) != nil }
+
     static func delete(service: String) {
-        SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service] as CFDictionary)
+        SecItemDelete(base(service, shared: true) as CFDictionary)
+        SecItemDelete(base(service, shared: false) as CFDictionary)
     }
 }

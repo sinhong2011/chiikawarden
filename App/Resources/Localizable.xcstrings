@@ -544,10 +544,10 @@
     },
     "Add Field": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增欄位"
+            "value": "フィールドを追加"
           }
         },
         "zh-HK": {
@@ -562,10 +562,10 @@
             "value": "添加字段"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "フィールドを追加"
+            "value": "新增欄位"
           }
         }
       }
@@ -656,10 +656,10 @@
     },
     "Address 1": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "地址 1"
+            "value": "住所 1"
           }
         },
         "zh-HK": {
@@ -674,20 +674,20 @@
             "value": "地址 1"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "住所 1"
+            "value": "地址 1"
           }
         }
       }
     },
     "Address 2": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "地址 2"
+            "value": "住所 2"
           }
         },
         "zh-HK": {
@@ -702,10 +702,10 @@
             "value": "地址 2"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "住所 2"
+            "value": "地址 2"
           }
         }
       }
@@ -967,10 +967,10 @@
     },
     "Brand": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "發卡機構"
+            "value": "ブランド"
           }
         },
         "zh-HK": {
@@ -985,10 +985,10 @@
             "value": "发卡机构"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ブランド"
+            "value": "發卡機構"
           }
         }
       }
@@ -1051,10 +1051,10 @@
     },
     "Card": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "卡片"
+            "value": "カード"
           }
         },
         "zh-HK": {
@@ -1069,10 +1069,10 @@
             "value": "卡片"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "カード"
+            "value": "卡片"
           }
         }
       }
@@ -1387,10 +1387,10 @@
     },
     "City": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "城市"
+            "value": "市区町村"
           }
         },
         "zh-HK": {
@@ -1405,10 +1405,10 @@
             "value": "城市"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "市区町村"
+            "value": "城市"
           }
         }
       }
@@ -1583,10 +1583,10 @@
     },
     "Contact": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "聯絡資訊"
+            "value": "連絡先"
           }
         },
         "zh-HK": {
@@ -1601,10 +1601,10 @@
             "value": "联系方式"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "連絡先"
+            "value": "聯絡資訊"
           }
         }
       }
@@ -1833,6 +1833,34 @@
         }
       }
     },
+    "Couldn't save the passkey: %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存通行密鑰：%@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存通行密鑰：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存通行密钥：%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスキーを保存できませんでした：%@"
+          }
+        }
+      }
+    },
     "Couldn't send the hint. Check the server and try again.": {
       "localizations": {
         "ja": {
@@ -1891,10 +1919,10 @@
     },
     "Country": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "國家／地區"
+            "value": "国/地域"
           }
         },
         "zh-HK": {
@@ -1909,10 +1937,10 @@
             "value": "国家/地区"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "国/地域"
+            "value": "國家／地區"
           }
         }
       }
@@ -1941,6 +1969,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "建立"
+          }
+        }
+      }
+    },
+    "Created %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立於 %@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立於 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建于 %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ に作成"
           }
         }
       }
@@ -1975,10 +2031,10 @@
     },
     "Custom fields": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "自訂欄位"
+            "value": "カスタムフィールド"
           }
         },
         "zh-HK": {
@@ -1993,10 +2049,10 @@
             "value": "自定义字段"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "カスタムフィールド"
+            "value": "自訂欄位"
           }
         }
       }
@@ -2143,10 +2199,10 @@
     },
     "Documents": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "證件"
+            "value": "身分証明書"
           }
         },
         "zh-HK": {
@@ -2161,10 +2217,10 @@
             "value": "证件"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "身分証明書"
+            "value": "證件"
           }
         }
       }
@@ -2675,10 +2731,10 @@
     },
     "First name": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "名字"
+            "value": "名"
           }
         },
         "zh-HK": {
@@ -2693,10 +2749,10 @@
             "value": "名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "名"
+            "value": "名字"
           }
         }
       }
@@ -2843,10 +2899,10 @@
     },
     "Generate Ed25519 Key": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "產生 Ed25519 金鑰"
+            "value": "Ed25519 鍵を生成"
           }
         },
         "zh-HK": {
@@ -2861,10 +2917,10 @@
             "value": "生成 Ed25519 密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ed25519 鍵を生成"
+            "value": "產生 Ed25519 金鑰"
           }
         }
       }
@@ -2899,10 +2955,10 @@
     },
     "Hidden": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "隱藏"
+            "value": "非表示"
           }
         },
         "zh-HK": {
@@ -2917,10 +2973,10 @@
             "value": "隐藏"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "非表示"
+            "value": "隱藏"
           }
         }
       }
@@ -3179,10 +3235,10 @@
     },
     "Last name": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "姓氏"
+            "value": "姓"
           }
         },
         "zh-HK": {
@@ -3197,10 +3253,10 @@
             "value": "姓"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "姓"
+            "value": "姓氏"
           }
         }
       }
@@ -3235,10 +3291,10 @@
     },
     "Licence number": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "駕照號碼"
+            "value": "運転免許証番号"
           }
         },
         "zh-HK": {
@@ -3253,10 +3309,10 @@
             "value": "驾照号码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "運転免許証番号"
+            "value": "駕照號碼"
           }
         }
       }
@@ -3711,10 +3767,10 @@
     },
     "Middle name": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "中間名"
+            "value": "ミドルネーム"
           }
         },
         "zh-HK": {
@@ -3729,17 +3785,17 @@
             "value": "中间名"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ミドルネーム"
+            "value": "中間名"
           }
         }
       }
     },
     "Month": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "月"
@@ -3757,7 +3813,7 @@
             "value": "月"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "月"
@@ -3907,10 +3963,10 @@
     },
     "National ID / SSN": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "身分證字號"
+            "value": "マイナンバー / SSN"
           }
         },
         "zh-HK": {
@@ -3925,10 +3981,10 @@
             "value": "身份证号码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "マイナンバー / SSN"
+            "value": "身分證字號"
           }
         }
       }
@@ -3963,10 +4019,10 @@
     },
     "New Card": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增卡片"
+            "value": "新規カード"
           }
         },
         "zh-HK": {
@@ -3981,10 +4037,10 @@
             "value": "新建卡片"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規カード"
+            "value": "新增卡片"
           }
         }
       }
@@ -4047,10 +4103,10 @@
     },
     "New Identity": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增身分"
+            "value": "新規 ID"
           }
         },
         "zh-HK": {
@@ -4065,10 +4121,10 @@
             "value": "新建身份"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規 ID"
+            "value": "新增身分"
           }
         }
       }
@@ -4159,10 +4215,10 @@
     },
     "New Other Item": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增其他項目"
+            "value": "その他の新規項目"
           }
         },
         "zh-HK": {
@@ -4177,20 +4233,20 @@
             "value": "新建其他项目"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "その他の新規項目"
+            "value": "新增其他項目"
           }
         }
       }
     },
     "New SSH Key": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新增 SSH 金鑰"
+            "value": "新規 SSH 鍵"
           }
         },
         "zh-HK": {
@@ -4205,10 +4261,10 @@
             "value": "新建 SSH 密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規 SSH 鍵"
+            "value": "新增 SSH 金鑰"
           }
         }
       }
@@ -4241,12 +4297,40 @@
         }
       }
     },
-    "No": {
+    "New login": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "否"
+            "value": "新增登入項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增登入項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建登录项"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規ログイン"
+          }
+        }
+      }
+    },
+    "No": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いいえ"
           }
         },
         "zh-HK": {
@@ -4261,10 +4345,10 @@
             "value": "否"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "いいえ"
+            "value": "否"
           }
         }
       }
@@ -4461,6 +4545,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "此網站沒有登入資料"
+          }
+        }
+      }
+    },
+    "No passkeys for this site": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此網站沒有通行密鑰"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此網站沒有通行密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此网站没有通行密钥"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサイトのパスキーはありません"
           }
         }
       }
@@ -4885,6 +4997,34 @@
         }
       }
     },
+    "Open Chiikawarden and sign in to this account again.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請開啟 Chiikawarden 並重新登入此帳號。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請開啟 Chiikawarden 並重新登入此帳戶。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请打开 Chiikawarden 并重新登录此账户。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden を開いて、このアカウントに再度サインインしてください。"
+          }
+        }
+      }
+    },
     "Open Chiikawarden once to download your vault.": {
       "localizations": {
         "ja": {
@@ -4909,6 +5049,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "請先打開 Chiikawarden 一次以下載保險庫。"
+          }
+        }
+      }
+    },
+    "Open Chiikawarden once to refresh your vault.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請開啟 Chiikawarden 一次以更新保險庫。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請開啟 Chiikawarden 一次以更新保險庫。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请打开 Chiikawarden 一次以刷新密码库。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保管庫を更新するために Chiikawarden を一度開いてください。"
           }
         }
       }
@@ -5165,12 +5333,40 @@
         }
       }
     },
-    "Passport number": {
+    "Passkeys you save with Chiikawarden appear here.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "護照號碼"
+            "value": "你用 Chiikawarden 儲存的通行密鑰會顯示在這裡。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你用 Chiikawarden 儲存的通行密鑰會顯示喺呢度。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你用 Chiikawarden 保存的通行密钥会显示在这里。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden で保存したパスキーがここに表示されます。"
+          }
+        }
+      }
+    },
+    "Passport number": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスポート番号"
           }
         },
         "zh-HK": {
@@ -5185,10 +5381,10 @@
             "value": "护照号码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスポート番号"
+            "value": "護照號碼"
           }
         }
       }
@@ -5363,10 +5559,10 @@
     },
     "Postal code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "郵遞區號"
+            "value": "郵便番号"
           }
         },
         "zh-HK": {
@@ -5381,10 +5577,10 @@
             "value": "邮政编码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "郵便番号"
+            "value": "郵遞區號"
           }
         }
       }
@@ -5727,10 +5923,10 @@
     },
     "SSH Key": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH 金鑰"
+            "value": "SSH 鍵"
           }
         },
         "zh-HK": {
@@ -5745,10 +5941,10 @@
             "value": "SSH 密钥"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "SSH 鍵"
+            "value": "SSH 金鑰"
           }
         }
       }
@@ -5805,6 +6001,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存"
+          }
+        }
+      }
+    },
+    "Save Passkey": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存通行密钥"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスキーを保存"
+          }
+        }
+      }
+    },
+    "Save a passkey": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存通行密钥"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスキーを保存"
+          }
+        }
+      }
+    },
+    "Save to": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存至"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存至"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存到"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存先"
           }
         }
       }
@@ -6259,10 +6539,10 @@
     },
     "Show hidden values": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示隱藏的值"
+            "value": "非表示の値を表示"
           }
         },
         "zh-HK": {
@@ -6277,10 +6557,10 @@
             "value": "显示隐藏的值"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "非表示の値を表示"
+            "value": "顯示隱藏的值"
           }
         }
       }
@@ -6341,12 +6621,40 @@
         }
       }
     },
-    "State / Province": {
+    "Sign In": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "州／省"
+            "value": "登入"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サインイン"
+          }
+        }
+      }
+    },
+    "State / Province": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "都道府県"
           }
         },
         "zh-HK": {
@@ -6361,10 +6669,38 @@
             "value": "州/省"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "州／省"
+          }
+        }
+      }
+    },
+    "Stored with a key type Chiikawarden can't use": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此金鑰類型 Chiikawarden 無法使用"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此密鑰類型 Chiikawarden 無法使用"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden 无法使用此密钥类型"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "都道府県"
+            "value": "Chiikawarden では使用できない鍵の種類です"
           }
         }
       }
@@ -6567,10 +6903,10 @@
     },
     "Text": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "文字"
+            "value": "テキスト"
           }
         },
         "zh-HK": {
@@ -6585,10 +6921,10 @@
             "value": "文本"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "テキスト"
+            "value": "文字"
           }
         }
       }
@@ -6817,6 +7153,34 @@
         }
       }
     },
+    "This passkey can't be used here.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法在此使用這個通行密鑰。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法喺度使用呢個通行密鑰。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在此使用此通行密钥。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このパスキーはここでは使用できません。"
+          }
+        }
+      }
+    },
     "This removes the account and its saved vault from this Mac. Your data stays on the server.": {
       "localizations": {
         "ja": {
@@ -6845,12 +7209,68 @@
         }
       }
     },
-    "Title": {
+    "This replaces the passkey already saved on that login.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "稱謂"
+            "value": "這會取代該登入項目上已儲存的通行密鑰。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會取代該登入項目上已儲存的通行密鑰。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会替换该登录项上已保存的通行密钥。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そのログインに保存済みのパスキーが置き換えられます。"
+          }
+        }
+      }
+    },
+    "This site needs a key type Chiikawarden can't create.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此網站需要 Chiikawarden 無法建立的金鑰類型。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此網站需要 Chiikawarden 無法建立的密鑰類型。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此网站需要 Chiikawarden 无法创建的密钥类型。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサイトには Chiikawarden で作成できない鍵の種類が必要です。"
+          }
+        }
+      }
+    },
+    "Title": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "敬称"
           }
         },
         "zh-HK": {
@@ -6865,10 +7285,10 @@
             "value": "称谓"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "敬称"
+            "value": "稱謂"
           }
         }
       }
@@ -6961,6 +7381,7 @@
       }
     },
     "Touch ID · Safari, Chrome": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7130,10 +7551,10 @@
     },
     "Type": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "類型"
+            "value": "種類"
           }
         },
         "zh-HK": {
@@ -7148,10 +7569,10 @@
             "value": "类型"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "種類"
+            "value": "類型"
           }
         }
       }
@@ -7208,6 +7629,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "解鎖以填入"
+          }
+        }
+      }
+    },
+    "Unlock to save passkey": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖以儲存通行密鑰"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖以儲存通行密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解锁以保存通行密钥"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを解除してパスキーを保存"
+          }
+        }
+      }
+    },
+    "Unlock to sign in": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖以登入"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖以登入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解锁以登录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを解除してサインイン"
           }
         }
       }
@@ -7945,7 +8422,7 @@
     },
     "Year": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "年"
@@ -7963,7 +8440,7 @@
             "value": "年"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "年"
@@ -7973,10 +8450,10 @@
     },
     "Yes": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "是"
+            "value": "はい"
           }
         },
         "zh-HK": {
@@ -7991,20 +8468,20 @@
             "value": "是"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "はい"
+            "value": "是"
           }
         }
       }
     },
     "Yes / No": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "是／否"
+            "value": "はい / いいえ"
           }
         },
         "zh-HK": {
@@ -8019,10 +8496,10 @@
             "value": "是/否"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "はい / いいえ"
+            "value": "是／否"
           }
         }
       }
@@ -8201,6 +8678,34 @@
         }
       }
     },
+    "save a passkey": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存通行密鑰"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存通行密钥"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスキーを保存"
+          }
+        }
+      }
+    },
     "score": {
       "localizations": {
         "ja": {
@@ -8225,6 +8730,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "分數"
+          }
+        }
+      }
+    },
+    "sign in with a passkey": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用通行密鑰登入"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用通行密鑰登入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用通行密钥登录"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスキーでサインイン"
           }
         }
       }

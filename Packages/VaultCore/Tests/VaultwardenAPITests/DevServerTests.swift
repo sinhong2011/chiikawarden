@@ -181,6 +181,39 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func passkeyRoundTrip(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let key = try await client.login(email: "hachiware@chiikawarden.test", password: DevServer.password)
+        let hash = Data(repeating: 7, count: 32)
+        let reg = try Passkey.register(rpId: "webauthn.io", rpName: "WebAuthn.io", userName: "hachiware",
+                                       userHandle: Data("hw-1".utf8), clientDataHash: hash)
+        var edit = CipherEdit(name: "Passkey test", username: "hachiware", uri: "https://webauthn.io")
+        edit.passkey = reg.credential
+        let id = try await client.createCipher(CipherEditor.newCipher(kind: .login, edit: edit, key: key))
+
+        var data = try await client.syncData()
+        var cipher = try #require(try SyncResponse.decode(data).ciphers.first { $0.id == id })
+        let stored = try #require(cipher.login?.fido2Credentials?.first?.decrypted(with: key))
+        #expect(stored.credentialId == reg.credential.credentialId && stored.keyValue == reg.credential.keyValue)
+        #expect(stored.rpId == "webauthn.io" && stored.userHandle == reg.credential.userHandle && stored.discoverable)
+        #expect(abs(stored.creationDate.timeIntervalSince(reg.credential.creationDate)) < 1)
+        let assertion = try Passkey.assert(stored, clientDataHash: hash)
+        #expect(assertion.credentialID == reg.credentialID)
+
+        // Counter update touches nothing else.
+        var bump = CipherEdit()
+        bump.passkeyCounter = (stored.credentialId, 5)
+        let raw = try #require(CipherEditor.rawCiphers(fromSync: data)[id])
+        try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: bump, key: key))
+        data = try await client.syncData()
+        cipher = try #require(try SyncResponse.decode(data).ciphers.first { $0.id == id })
+        let after = try #require(cipher.login?.fido2Credentials?.first?.decrypted(with: key))
+        #expect(after.counter == 5 && after.keyValue == stored.keyValue)
+        #expect((try? EncString(cipher.login?.username ?? "").decryptString(with: key)) == "hachiware")
+        try await client.deleteCipher(id: id)
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {

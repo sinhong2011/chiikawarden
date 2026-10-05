@@ -13,6 +13,15 @@ final class CredentialProviderViewController: ASCredentialProviderViewController
         state.completeCode = { [weak self] code in
             self?.extensionContext.completeOneTimeCodeRequest(using: ASOneTimeCodeCredential(code: code))
         }
+        state.completeAssertion = { [weak self] credential in
+            self?.extensionContext.completeAssertionRequest(using: credential)
+        }
+        state.completeRegistration = { [weak self] credential in
+            self?.extensionContext.completeRegistrationRequest(using: credential)
+        }
+        state.fail = { [weak self] code in
+            self?.extensionContext.cancelRequest(withError: NSError(domain: ASExtensionErrorDomain, code: code.rawValue))
+        }
         state.cancel = { [weak self] in
             self?.extensionContext.cancelRequest(withError: NSError(domain: ASExtensionErrorDomain,
                                                                     code: ASExtensionError.userCanceled.rawValue))
@@ -29,6 +38,13 @@ final class CredentialProviderViewController: ASCredentialProviderViewController
 
     // A QuickType suggestion was picked: show unlock, then fill that exact item.
     override func prepareInterfaceToProvideCredential(for credentialRequest: any ASCredentialRequest) {
+        if let request = credentialRequest as? ASPasskeyCredentialRequest,
+           let identity = request.credentialIdentity as? ASPasskeyCredentialIdentity {
+            state.begin(passkey: .init(rpId: identity.relyingPartyIdentifier, clientDataHash: request.clientDataHash,
+                                       credentialIDs: [identity.credentialID]),
+                        registering: false, preselect: identity.recordIdentifier)
+            return
+        }
         let mode: AutoFillState.Mode = credentialRequest.type == .oneTimeCode ? .oneTimeCode : .password
         state.begin(mode: mode, services: [credentialRequest.credentialIdentity.serviceIdentifier],
                     preselect: credentialRequest.credentialIdentity.recordIdentifier)
@@ -38,6 +54,28 @@ final class CredentialProviderViewController: ASCredentialProviderViewController
     override func provideCredentialWithoutUserInteraction(for credentialRequest: any ASCredentialRequest) {
         extensionContext.cancelRequest(withError: NSError(domain: ASExtensionErrorDomain,
                                                           code: ASExtensionError.userInteractionRequired.rawValue))
+    }
+
+    // A site asked for a passkey and the user chose Chiikawarden.
+    override func prepareCredentialList(for serviceIdentifiers: [ASCredentialServiceIdentifier],
+                                        requestParameters: ASPasskeyCredentialRequestParameters) {
+        state.begin(passkey: .init(rpId: requestParameters.relyingPartyIdentifier, clientDataHash: requestParameters.clientDataHash,
+                                   credentialIDs: requestParameters.allowedCredentials),
+                    registering: false)
+    }
+
+    // A site is creating a passkey and the user chose to save it in Chiikawarden.
+    override func prepareInterface(forPasskeyRegistration registrationRequest: any ASCredentialRequest) {
+        guard let request = registrationRequest as? ASPasskeyCredentialRequest,
+              let identity = request.credentialIdentity as? ASPasskeyCredentialIdentity else {
+            state.fail(.failed)
+            return
+        }
+        state.begin(passkey: .init(rpId: identity.relyingPartyIdentifier, clientDataHash: request.clientDataHash,
+                                   credentialIDs: request.excludedCredentials?.map(\.credentialID) ?? [],
+                                   userName: identity.userName, userHandle: identity.userHandle,
+                                   algorithms: request.supportedAlgorithms.map(\.rawValue)),
+                    registering: true)
     }
 
     override func prepareOneTimeCodeCredentialList(for serviceIdentifiers: [ASCredentialServiceIdentifier]) {

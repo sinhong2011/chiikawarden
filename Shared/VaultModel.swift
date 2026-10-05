@@ -38,6 +38,8 @@ struct VaultItem: Identifiable, Hashable {
     var properties: [String: String] = [:]
     /// Custom fields (text, hidden, boolean, linked).
     var customFields: [CustomField] = []
+    /// Decrypted passkeys (ES256) on this login.
+    var passkeys: [PasskeyCredential] = []
 
     static func == (a: Self, b: Self) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }

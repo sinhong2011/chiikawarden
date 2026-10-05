@@ -28,6 +28,11 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -35,6 +40,8 @@
 			<key>ASCredentialProviderExtensionCapabilities</key>
 			<dict>
 				<key>ProvidesOneTimeCodes</key>
+				<true/>
+				<key>ProvidesPasskeys</key>
 				<true/>
 				<key>ProvidesPasswords</key>
 				<true/>

@@ -170,8 +170,22 @@ public struct SyncResponse: Decodable, Sendable {
         public let keyFingerprint: String?
     }
 
-    /// Only presence matters to the UI for now.
-    public struct Fido2Credential: Decodable, Sendable {}
+    /// A stored passkey; every field but `creationDate` is an EncString.
+    public struct Fido2Credential: Decodable, Sendable {
+        public let credentialId: String?
+        public let keyType: String?
+        public let keyAlgorithm: String?
+        public let keyCurve: String?
+        public let keyValue: String?
+        public let rpId: String?
+        public let rpName: String?
+        public let userHandle: String?
+        public let userName: String?
+        public let userDisplayName: String?
+        public let counter: String?
+        public let discoverable: String?
+        public let creationDate: String?
+    }
 
     public struct URI: Decodable, Sendable {
         public let uri: String?
@@ -202,4 +216,20 @@ public enum APIError: Error, Sendable, Equatable {
     case unsupportedKDF(Int)
     case missingUserKey
     case crypto(CryptoError)
+}
+
+public extension SyncResponse.Fido2Credential {
+    /// Decrypts a stored passkey. Nil when it isn't one we can sign with (ES256 / P-256).
+    func decrypted(with key: SymmetricKeyPair) -> PasskeyCredential? {
+        func dec(_ s: String?) -> String? { s.flatMap { try? EncString($0).decryptString(with: key) }.flatMap { $0.isEmpty ? nil : $0 } }
+        guard let id = dec(credentialId), let value = dec(keyValue), let rp = dec(rpId),
+              (dec(keyAlgorithm) ?? "ECDSA") == "ECDSA", (dec(keyCurve) ?? "P-256") == "P-256" else { return nil }
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let created = creationDate.flatMap { iso.date(from: $0) ?? ISO8601DateFormatter().date(from: $0) } ?? .distantPast
+        return PasskeyCredential(credentialId: id, keyValue: value, rpId: rp, rpName: dec(rpName), userHandle: dec(userHandle),
+                                 userName: dec(userName), userDisplayName: dec(userDisplayName),
+                                 counter: dec(counter).flatMap(Int.init) ?? 0, discoverable: dec(discoverable) != "false",
+                                 creationDate: created)
+    }
 }

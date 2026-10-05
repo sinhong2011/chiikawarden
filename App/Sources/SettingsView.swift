@@ -232,7 +232,7 @@ enum AccountColor {
 private struct ServerSettings: View {
     @Environment(AppModel.self) private var model
     @State private var headers: [CustomHeader] = HeaderStore.load()
-    @State private var cas: [Data] = UserDefaults.standard.array(forKey: Pref.trustedCAs) as? [Data] ?? []
+    @State private var cas: [Data] = Connection.trustedCAs
     @State private var importing = false
     @State private var importError: String?
 
@@ -309,7 +309,7 @@ private struct ServerSettings: View {
     }
 
     private func saveCAs() {
-        UserDefaults.standard.set(cas, forKey: Pref.trustedCAs)
+        Connection.trustedCAs = cas
         model.resetClient()
     }
 

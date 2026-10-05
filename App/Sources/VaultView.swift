@@ -538,7 +538,18 @@ struct ItemDetail: View {
                     }
                     if item.hasPasskey {
                         DetailRow(symbol: "person.badge.key", title: "Passkey") {
-                            Text("Touch ID · Safari, Chrome").foregroundStyle(.secondary)
+                            if let pk = item.passkeys.first {
+                                VStack(alignment: .trailing, spacing: 1) {
+                                    Text(verbatim: [pk.userName, pk.rpId].compactMap { $0 }.joined(separator: " · "))
+                                    if pk.creationDate > .distantPast {
+                                        Text("Created \(pk.creationDate.formatted(date: .abbreviated, time: .omitted))")
+                                            .font(.system(size: 11)).foregroundStyle(.tertiary)
+                                    }
+                                }
+                                .foregroundStyle(.secondary)
+                            } else {
+                                Text("Stored with a key type Chiikawarden can't use").foregroundStyle(.secondary)
+                            }
                         }
                     }
                     if item.password != nil {

@@ -167,24 +167,8 @@ final class AppModel {
     /// Login-in-progress client (kept between the password and 2FA steps).
     private var client: VaultClient?
 
-    private var deviceIdentifier: String {
-        if let id = UserDefaults.standard.string(forKey: "deviceIdentifier") { return id }
-        let id = UUID().uuidString.lowercased()
-        UserDefaults.standard.set(id, forKey: "deviceIdentifier")
-        return id
-    }
-
-    /// A client for `environment` with the user's extra headers and trusted CAs applied.
-    private func makeClient(_ environment: ServerEnvironment) -> VaultClient {
-        let session = makeSession()
-        return VaultClient(environment: environment, deviceIdentifier: deviceIdentifier,
-                           extraHeaders: HeaderStore.dictionary, session: session)
-    }
-
-    private func makeSession() -> URLSession {
-        let cas = UserDefaults.standard.array(forKey: Pref.trustedCAs) as? [Data] ?? []
-        return cas.isEmpty ? URLSession.shared : ServerTrust(certificates: cas).makeSession()
-    }
+    private func makeClient(_ environment: ServerEnvironment) -> VaultClient { Connection.makeClient(environment) }
+    private func makeSession() -> URLSession { Connection.makeSession() }
 
     func scheduleSync() {
         guard isUnlocked else { return }

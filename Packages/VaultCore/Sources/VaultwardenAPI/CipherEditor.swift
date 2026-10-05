@@ -3,6 +3,13 @@ import Foundation
 
 /// What the user can change on an item. `nil` means "leave as is"; an empty string clears the field.
 public struct CipherEdit: Sendable, Equatable {
+    public static func == (a: Self, b: Self) -> Bool {
+        a.name == b.name && a.notes == b.notes && a.username == b.username && a.password == b.password && a.totp == b.totp
+            && a.uri == b.uri && a.favorite == b.favorite && a.folderId == b.folderId && a.properties == b.properties
+            && a.customFields == b.customFields && a.passkey == b.passkey
+            && a.passkeyCounter?.credentialId == b.passkeyCounter?.credentialId && a.passkeyCounter?.counter == b.passkeyCounter?.counter
+    }
+
     public var name: String?
     public var notes: String?
     public var username: String?
@@ -17,6 +24,10 @@ public struct CipherEdit: Sendable, Equatable {
     public var properties: [String: String] = [:]
     /// Replaces text/hidden/boolean custom fields; linked fields (type 3) are kept as they are.
     public var customFields: [CustomField]?
+    /// Replaces the login's passkey (Bitwarden keeps one per login).
+    public var passkey: PasskeyCredential?
+    /// Updates only the signature counter of the passkey with this credential id.
+    public var passkeyCounter: (credentialId: String, counter: Int)?
 
     public init(name: String? = nil, notes: String? = nil, username: String? = nil, password: String? = nil,
                 totp: String? = nil, uri: String? = nil, favorite: Bool? = nil, folderId: String?? = nil) {
@@ -125,6 +136,24 @@ public enum CipherEditor {
                 uris[0].removeValue(forKey: "uriChecksum") // stale after the change
             }
             login["uris"] = uris
+        }
+        if let passkey = edit.passkey {
+            let iso = ISO8601DateFormatter()
+            iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            login["fido2Credentials"] = [[
+                "credentialId": try enc(passkey.credentialId), "keyType": try enc("public-key"),
+                "keyAlgorithm": try enc("ECDSA"), "keyCurve": try enc("P-256"), "keyValue": try enc(passkey.keyValue),
+                "rpId": try enc(passkey.rpId), "rpName": try passkey.rpName.map(enc) ?? NSNull(),
+                "userHandle": try passkey.userHandle.map(enc) ?? NSNull(),
+                "userName": try passkey.userName.map(enc) ?? NSNull(),
+                "userDisplayName": try passkey.userDisplayName.map(enc) ?? NSNull(),
+                "counter": try enc(String(passkey.counter)), "discoverable": try enc(passkey.discoverable ? "true" : "false"),
+                "creationDate": iso.string(from: passkey.creationDate),
+            ] as [String: Any]]
+        }
+        if let (id, counter) = edit.passkeyCounter, var creds = login["fido2Credentials"] as? [[String: Any]] {
+            for i in creds.indices where dec(creds[i]["credentialId"]) == id { creds[i]["counter"] = try enc(String(counter)) }
+            login["fido2Credentials"] = creds
         }
         dict["login"] = login
     }

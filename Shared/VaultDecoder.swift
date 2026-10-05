@@ -98,7 +98,7 @@ enum VaultDecoder {
             case .note:
                 item.username = item.notes.map { String($0.prefix(60)) }
             case .login:
-                break
+                item.passkeys = (cipher.login?.fido2Credentials ?? []).compactMap { $0.decrypted(with: key) }
             }
             item.customFields = (cipher.fields ?? []).map { f in
                 CustomField(name: dec(f.name) ?? "", value: dec(f.value) ?? "", kind: CustomField.Kind(rawValue: f.type) ?? .text)

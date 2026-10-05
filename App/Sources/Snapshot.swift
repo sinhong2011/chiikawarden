@@ -1,3 +1,4 @@
+import AuthenticationServices
 #if DEBUG
 import AppKit
 import ChiikawaCrypto
@@ -104,6 +105,13 @@ enum Snapshot {
             open.hasAccount = true
             render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 500),
                    appearance: appearance, to: dir.appending(path: "autofill-list-\(name).png"))
+            let register = AutoFillState()
+            register.begin(passkey: .init(rpId: "github.com", clientDataHash: Data(), userName: "usagi"), registering: true)
+            register.items = demoItems.filter { $0.kind == .login }
+            register.unlocked = true
+            register.hasAccount = true
+            render(AutoFillView(state: register).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+                   appearance: appearance, to: dir.appending(path: "autofill-passkey-\(name).png"))
         }
         vault.breachCounts = ["4": 1203]
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -136,7 +144,9 @@ enum Snapshot {
                   password: "cf-9xQ!m2Lp#Vt7", totp: TOTP("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"), notes: nil, favorite: false),
         VaultItem(id: "2", name: "GitHub", username: "usagi", host: "github.com", password: "m7Kq#vR2!tLp9wZe$Hu",
                   totp: TOTP("JBSWY3DPEHPK3PXP"), notes: "Recovery codes are in the “GitHub recovery” note.", favorite: true,
-                  hasPasskey: true),
+                  hasPasskey: true,
+                  passkeys: [PasskeyCredential(credentialId: "demo", keyValue: "", rpId: "github.com", userName: "usagi",
+                                               creationDate: Date(timeIntervalSince1970: 1_780_000_000))]),
         VaultItem(id: "3", name: "Proton Mail", username: "usagi@proton.me", host: "account.proton.me",
                   password: "pm-4Rt$w8Nq!zK", totp: nil, notes: nil, favorite: false, hasPasskey: true),
         VaultItem(id: "4", name: "Synology NAS", username: "admin", host: "nas.home.arpa", password: "reused-password",
@@ -204,6 +214,8 @@ enum SelfTest {
             check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items)")
             check(AccountStore.load(firstID) != nil && AccountStore.loadCache(firstID) != nil && AccountStore.refreshToken(firstID) != nil,
                   "account, encrypted cache and refresh token persisted")
+            check(Keychain.isShared(service: "io.github.sinhong2011.chiikawarden.SelfTestAccounts.refresh.\(firstID)"),
+                  "refresh token in the App Group keychain (AutoFill can save passkeys)")
             let count = model.items.count
             let org = model.organizations.first
             let collection = org?.children.first
@@ -297,6 +309,43 @@ enum SelfTest {
                 let ssh = model.items.first { $0.name == "Selftest SSH" }
                 check(ssh?.properties["publicKey"] == pair.publicKey && ssh?.username == pair.fingerprint, "create SSH key")
                 if let ssh { await model.deleteForever(ssh) }
+
+                // Passkey stored on a login: decoded, signable, published, preserved by edits.
+                let hash = Data(repeating: 9, count: 32)
+                let reg = try? Passkey.register(rpId: "webauthn.io", userName: "usagi", userHandle: Data("u-1".utf8), clientDataHash: hash)
+                var pkEdit = CipherEdit(name: "Selftest passkey", username: "usagi", uri: "https://webauthn.io")
+                pkEdit.passkey = reg?.credential
+                _ = await model.createItem(.login, edit: pkEdit)
+                var login = model.items.first { $0.name == "Selftest passkey" }
+                let signed = login?.passkeys.first.flatMap { try? Passkey.assert($0, clientDataHash: hash) }
+                check(login?.hasPasskey == true && signed?.credentialID == reg?.credentialID, "passkey saved, synced and signs")
+                if let id = login?.id { _ = await model.updateItem(id, edit: CipherEdit(password: "changed")) }
+                login = model.items.first { $0.name == "Selftest passkey" }
+                check(login?.passkeys.first?.keyValue == reg?.credential.keyValue, "editing a login keeps its passkey")
+                if let login { await model.deleteForever(login) }
+
+                // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
+                let ext = AutoFillState()
+                var registered: ASPasskeyRegistrationCredential?
+                var asserted: ASPasskeyAssertionCredential?
+                ext.completeRegistration = { registered = $0 }
+                ext.completeAssertion = { asserted = $0 }
+                ext.begin(passkey: .init(rpId: "passkeys.example", clientDataHash: hash, userName: "usagi",
+                                         userHandle: Data("u-2".utf8), algorithms: [-7]), registering: true)
+                ext.selectedAccountID = firstID
+                await ext.unlock(password: password)
+                await ext.register(accountId: firstID, itemId: nil)
+                check(registered != nil && ext.error == nil, "AutoFill: unlock and save a new passkey to the server \(ext.error ?? "")")
+                let signIn = AutoFillState()
+                signIn.completeAssertion = { asserted = $0 }
+                signIn.begin(passkey: .init(rpId: "passkeys.example", clientDataHash: hash), registering: false)
+                signIn.selectedAccountID = firstID
+                await signIn.unlock(password: password)
+                if let c = signIn.passkeyCandidates.first { await signIn.signIn(c.item, c.passkey) }
+                check(asserted != nil && asserted?.credentialID == registered?.credentialID
+                      && asserted?.userHandle == Data("u-2".utf8), "AutoFill: sign in with that passkey from the cached vault")
+                try? await model.refresh()
+                if let made = model.items.first(where: { $0.passkeys.first?.rpId == "passkeys.example" }) { await model.deleteForever(made) }
             }
 
             // Second account: merged list, per-account lock and unlock.
