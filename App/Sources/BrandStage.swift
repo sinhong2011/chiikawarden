@@ -176,3 +176,49 @@ private struct CodeChip: View {
         }
     }
 }
+
+/// Wordmark for the login and unlock forms: the vault handle as a crisp vector glyph plus the name.
+/// Drawn rather than taken from the app icon, so it is sharp at any size and always matches the brand.
+struct BrandMark: View {
+    var body: some View {
+        HStack(spacing: 9) {
+            HandleGlyph()
+                .frame(width: 22, height: 22)
+            Text(verbatim: "Chiikawarden")
+                .font(.system(size: 15, weight: .semibold))
+                .tracking(-0.2)
+                .foregroundStyle(.primary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: "Chiikawarden"))
+    }
+}
+
+/// The icon's handle on its own: ring, crossed spokes with knobs, hub with a punched centre.
+struct HandleGlyph: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let s = min(size.width, size.height)
+            let c = CGPoint(x: size.width / 2, y: size.height / 2)
+            func disc(_ p: CGPoint, _ r: CGFloat) -> Path { Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)) }
+            let blue = GraphicsContext.Shading.color(.brand)
+            ctx.stroke(disc(c, s * 0.27), with: blue, lineWidth: s * 0.10)
+            let reach = s * 0.38
+            var spokes = Path()
+            for a in [45.0, 135.0] {
+                let r = Angle.degrees(a).radians
+                spokes.move(to: CGPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach))
+                spokes.addLine(to: CGPoint(x: c.x - cos(r) * reach, y: c.y - sin(r) * reach))
+            }
+            ctx.stroke(spokes, with: blue, style: StrokeStyle(lineWidth: s * 0.11, lineCap: .round))
+            for a in [45.0, 135.0, 225.0, 315.0] {
+                let r = Angle.degrees(a).radians
+                ctx.fill(disc(CGPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach), s * 0.10), with: blue)
+            }
+            ctx.fill(disc(c, s * 0.17), with: blue)
+            ctx.blendMode = .clear
+            ctx.fill(disc(c, s * 0.065), with: .color(.black))
+        }
+        .accessibilityHidden(true)
+    }
+}

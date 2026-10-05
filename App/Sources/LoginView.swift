@@ -69,12 +69,8 @@ private struct LoginForm: View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Image(nsImage: NSApplication.shared.applicationIconImage)
-                        .resizable().frame(width: 22, height: 22)
-                    Text(verbatim: "Chiikawarden").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
-                }
-                .padding(.bottom, 10)
+                BrandMark()
+                    .padding(.bottom, 14)
                 Text(title).font(.system(size: 26, weight: .bold)).tracking(-0.3)
                 Text(subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
             }

@@ -31,10 +31,7 @@ private struct UnlockForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            HStack(spacing: 8) {
-                Image(nsImage: NSApplication.shared.applicationIconImage).resizable().frame(width: 22, height: 22)
-                Text(verbatim: "Chiikawarden").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
-            }
+            BrandMark()
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
