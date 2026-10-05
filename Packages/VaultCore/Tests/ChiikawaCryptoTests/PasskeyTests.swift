@@ -82,3 +82,18 @@ import Testing
         }
     }
 }
+
+@Suite struct EncArrayBufferTests {
+    @Test func roundTripAndTamper() throws {
+        let key = try SymmetricKeyPair(combined: Data((0..<64).map { UInt8($0) }))
+        let file = Data((0..<10_000).map { UInt8($0 % 251) })
+        var sealed = try EncArrayBuffer.encrypt(file, with: key)
+        #expect(sealed[0] == 2 && sealed.count > file.count + 49)
+        #expect(try EncArrayBuffer.decrypt(sealed, with: key) == file)
+        // Works on a non-zero-based slice too.
+        #expect(try EncArrayBuffer.decrypt((Data([9]) + sealed).dropFirst(), with: key) == file)
+        sealed[sealed.count - 1] ^= 1
+        #expect(throws: CryptoError.macMismatch) { try EncArrayBuffer.decrypt(sealed, with: key) }
+        #expect(throws: CryptoError.self) { try EncArrayBuffer.decrypt(Data([2, 0, 0]), with: key) }
+    }
+}

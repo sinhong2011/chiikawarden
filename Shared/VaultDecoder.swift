@@ -100,6 +100,13 @@ enum VaultDecoder {
             case .login:
                 item.passkeys = (cipher.login?.fido2Credentials ?? []).compactMap { $0.decrypted(with: key) }
             }
+            item.attachments = (cipher.attachments ?? []).compactMap { a in
+                guard let fileKey = try? a.fileKey(itemKey: key) else { return nil }
+                let size = a.size.flatMap(Int.init) ?? 0
+                return VaultItem.Attachment(id: a.id, fileName: dec(a.fileName) ?? "attachment", size: size,
+                                            sizeName: a.sizeName ?? ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file),
+                                            url: a.url, fileKey: fileKey)
+            }
             item.customFields = (cipher.fields ?? []).map { f in
                 CustomField(name: dec(f.name) ?? "", value: dec(f.value) ?? "", kind: CustomField.Kind(rawValue: f.type) ?? .text)
             }

@@ -91,6 +91,7 @@ final class AppModel {
     var touchIDEnabled = false
 
     init() {
+        AttachmentFiles.wipe() // leftovers from a crash
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }
@@ -518,6 +519,67 @@ final class AppModel {
         if moved > 0 { flash(String(localized: "Moved \(moved) item(s)")) }
     }
 
+    // MARK: Attachments
+
+    /// Decrypted copy being previewed with Quick Look; deleted when the preview closes or on lock.
+    var previewURL: URL?
+    var attachmentBusy: Set<String> = []
+    /// Bitwarden's per-file limit; also keeps the whole file comfortably in memory.
+    static let attachmentLimit = 500 * 1_024 * 1_024
+
+    func previewAttachment(_ attachment: VaultItem.Attachment, of item: VaultItem) async {
+        guard let data = await attachmentContents(attachment, of: item) else { return }
+        do { previewURL = try AttachmentFiles.write(data, named: attachment.fileName) } catch { _ = failed(error) }
+    }
+
+    func saveAttachment(_ attachment: VaultItem.Attachment, of item: VaultItem) async {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = attachment.fileName
+        guard panel.runModal() == .OK, let url = panel.url,
+              let data = await attachmentContents(attachment, of: item) else { return }
+        do {
+            try data.write(to: url, options: .atomic)
+            flash(String(localized: "Saved “\(attachment.fileName)”"))
+        } catch { _ = failed(error) }
+    }
+
+    private func attachmentContents(_ attachment: VaultItem.Attachment, of item: VaultItem) async -> Data? {
+        guard let session = session(for: item) else { _ = offline(); return nil }
+        attachmentBusy.insert(attachment.id)
+        defer { attachmentBusy.remove(attachment.id) }
+        noteActivity()
+        do { return try await session.attachmentContents(item.id, attachment) } catch { _ = failed(error); return nil }
+    }
+
+    @discardableResult
+    func addAttachments(_ urls: [URL], to item: VaultItem) async -> Bool {
+        guard let session = session(for: item) else { return offline() }
+        attachmentBusy.insert(item.id)
+        defer { attachmentBusy.remove(item.id) }
+        for url in urls {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+                guard size <= Self.attachmentLimit else {
+                    flash(String(localized: "“\(url.lastPathComponent)” is larger than 500 MB."))
+                    continue
+                }
+                try await session.addAttachment(item.id, name: url.lastPathComponent, contents: Data(contentsOf: url))
+                flash(String(localized: "Attached “\(url.lastPathComponent)”"))
+            } catch { return failed(error) }
+        }
+        return true
+    }
+
+    func deleteAttachment(_ attachment: VaultItem.Attachment, of item: VaultItem) async {
+        guard let session = session(for: item) else { _ = offline(); return }
+        do {
+            try await session.deleteAttachment(item.id, attachment.id)
+            flash(String(localized: "Deleted “\(attachment.fileName)”"))
+        } catch { _ = failed(error) }
+    }
+
     func toggleFavorite(_ item: VaultItem) async {
         await updateItem(item.id, edit: CipherEdit(favorite: !item.favorite))
     }
@@ -616,6 +678,8 @@ final class AppModel {
 
     /// Locks every account.
     func lock() {
+        previewURL = nil
+        AttachmentFiles.wipe()
         breachCounts = nil
         breachesCheckedAt = nil
         sessions.forEach { $0.close() }

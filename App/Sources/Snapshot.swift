@@ -146,7 +146,11 @@ enum Snapshot {
                   totp: TOTP("JBSWY3DPEHPK3PXP"), notes: "Recovery codes are in the “GitHub recovery” note.", favorite: true,
                   hasPasskey: true,
                   passkeys: [PasskeyCredential(credentialId: "demo", keyValue: "", rpId: "github.com", userName: "usagi",
-                                               creationDate: Date(timeIntervalSince1970: 1_780_000_000))]),
+                                               creationDate: Date(timeIntervalSince1970: 1_780_000_000))],
+                  attachments: [VaultItem.Attachment(id: "a1", fileName: "github-recovery-codes.txt", size: 912, sizeName: "912 bytes",
+                                                     fileKey: try! SymmetricKeyPair(combined: Data(count: 64))),
+                                VaultItem.Attachment(id: "a2", fileName: "2fa-backup.pdf", size: 48_000, sizeName: "48 KB",
+                                                     fileKey: try! SymmetricKeyPair(combined: Data(count: 64)))]),
         VaultItem(id: "3", name: "Proton Mail", username: "usagi@proton.me", host: "account.proton.me",
                   password: "pm-4Rt$w8Nq!zK", totp: nil, notes: nil, favorite: false, hasPasskey: true),
         VaultItem(id: "4", name: "Synology NAS", username: "admin", host: "nas.home.arpa", password: "reused-password",
@@ -324,6 +328,28 @@ enum SelfTest {
                 check(login?.passkeys.first?.keyValue == reg?.credential.keyValue, "editing a login keeps its passkey")
                 if let login { await model.deleteForever(login) }
 
+                // Attachments: add from a file, preview a decrypted copy, delete.
+                _ = await model.createItem(.secureNote, edit: CipherEdit(name: "Selftest files", notes: "x"))
+                if let note = model.items.first(where: { $0.name == "Selftest files" }) {
+                    let source = FileManager.default.temporaryDirectory.appending(path: "selftest 附件.txt")
+                    let contents = Data("chiikawa attachment ✓\n".utf8) + Data(repeating: 7, count: 200_000)
+                    try? contents.write(to: source)
+                    let added = await model.addAttachments([source], to: note)
+                    try? FileManager.default.removeItem(at: source)
+                    let withFile = model.items.first { $0.id == note.id }
+                    let file = withFile?.attachments.first
+                    check(added && file?.fileName == "selftest 附件.txt" && (file?.size ?? 0) >= contents.count, "attach a file")
+                    if let withFile, let file {
+                        await model.previewAttachment(file, of: withFile)
+                        let previewed = model.previewURL.flatMap { try? Data(contentsOf: $0) }
+                        check(previewed == contents && model.previewURL?.lastPathComponent == file.fileName,
+                              "download and decrypt for Quick Look")
+                        await model.deleteAttachment(file, of: withFile)
+                        check(model.items.first { $0.id == note.id }?.attachments.isEmpty == true, "delete attachment")
+                    }
+                    if let n = model.items.first(where: { $0.id == note.id }) { await model.deleteForever(n) }
+                }
+
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()
                 var registered: ASPasskeyRegistrationCredential?
@@ -394,6 +420,8 @@ enum SelfTest {
 
             model.lock()
             check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")
+            check(!FileManager.default.fileExists(atPath: AttachmentFiles.root.path) && model.previewURL == nil,
+                  "lock wipes decrypted attachment copies")
 
             let fresh = AppModel() // simulates relaunch
             check(fresh.phase.id == AppModel.Phase.locked.id && fresh.accounts.count == (second == nil ? 1 : 2),

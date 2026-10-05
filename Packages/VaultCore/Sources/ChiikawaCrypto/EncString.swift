@@ -96,3 +96,21 @@ public struct EncString: Sendable, Equatable, CustomStringConvertible {
         return out.prefix(moved)
     }
 }
+
+/// Binary form of a type-2 EncString used for attachment and Send file contents:
+/// `[type: 1 byte][iv: 16][mac: 32][ciphertext]`.
+public enum EncArrayBuffer {
+    public static func encrypt(_ plaintext: Data, with key: SymmetricKeyPair) throws(CryptoError) -> Data {
+        let e = try EncString.encrypt(plaintext, with: key)
+        return Data([UInt8(EncString.aesCbc256HmacSha256)]) + e.iv + e.mac + e.ciphertext
+    }
+
+    public static func decrypt(_ buffer: Data, with key: SymmetricKeyPair) throws(CryptoError) -> Data {
+        let b = Data(buffer) // rebase indices to 0
+        guard b.count > 49, Int(b[0]) == EncString.aesCbc256HmacSha256 else { throw .malformedEncString }
+        let iv = b[1..<17], mac = b[17..<49], ct = b[49...]
+        let expected = EncString.hmac(key: key.macKey, iv: Data(iv), ciphertext: Data(ct))
+        guard EncString.constantTimeEqual(expected, Data(mac)) else { throw .macMismatch }
+        return try EncString.aesCBC(CCOperation(kCCDecrypt), key: key.encryptionKey, iv: Data(iv), input: Data(ct))
+    }
+}

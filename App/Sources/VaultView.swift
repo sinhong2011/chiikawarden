@@ -1,6 +1,8 @@
 import AppKit
 import ChiikawaCrypto
+import QuickLook
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Implements the "Vault window (static spec)" artboard: floating glass sidebar, rounded item list,
 // dark hero card with password/code tiles, grouped detail rows.
@@ -110,6 +112,10 @@ struct VaultView: View {
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .quickLookPreview($model.previewURL)
+        .onChange(of: model.previewURL) { old, _ in
+            if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
+        }
         .alert("New Folder", isPresented: $model.promptingNewFolder) {
             TextField("Name", text: $newFolderName, prompt: Text("e.g. Work/Servers"))
             Button("Create") { let name = newFolderName; newFolderName = ""; Task { await model.createFolder(name: name) } }
@@ -499,6 +505,7 @@ struct ItemDetail: View {
     let item: VaultItem
     @State private var revealToggle = false
     @State private var confirmDelete = false
+    @State private var dropping = false
     /// Revealed while toggled on, or while ⌥ is held.
     private var reveal: Binding<Bool> {
         Binding(get: { revealToggle || model.optionHeld }, set: { revealToggle = $0 })
@@ -591,6 +598,10 @@ struct ItemDetail: View {
                 }
                 .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
+
+                if !item.attachments.isEmpty || !item.isDeleted {
+                    AttachmentsSection(item: item)
+                }
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
@@ -598,6 +609,26 @@ struct ItemDetail: View {
             .frame(maxWidth: .infinity)
         }
         .scrollIndicators(.never)
+        .dropDestination(for: URL.self) { urls, _ in
+            guard !item.isDeleted, !urls.isEmpty else { return false }
+            Task { await model.addAttachments(urls, to: item) }
+            return true
+        } isTargeted: { dropping = $0 }
+        .overlay {
+            if dropping {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Color.brand, style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
+                    .background(Color.brand.opacity(0.06), in: .rect(cornerRadius: 18, style: .continuous))
+                    .overlay {
+                        Label("Drop to attach", systemImage: "paperclip")
+                            .font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.brand)
+                    }
+                    .padding(10)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.15), value: dropping)
         .confirmationDialog("Delete “\(item.name)” forever?", isPresented: $confirmDelete) {
             Button("Delete Forever", role: .destructive) { Task { await model.deleteForever(item) } }
         } message: {
@@ -896,5 +927,81 @@ enum Highlight {
             start = range.upperBound
         }
         return out
+    }
+}
+
+/// Files on an item: Quick Look, Save As, delete; add with the button or by dropping files on the item.
+private struct AttachmentsSection: View {
+    @Environment(AppModel.self) private var model
+    let item: VaultItem
+    @State private var pendingDelete: VaultItem.Attachment?
+    @State private var choosing = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Attachments").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                    .textCase(.uppercase).tracking(0.6)
+                Spacer()
+                if model.attachmentBusy.contains(item.id) { ProgressView().controlSize(.small) }
+                if !item.isDeleted {
+                    Button { choosing = true } label: { Label("Add Files…", systemImage: "plus") }
+                        .buttonStyle(.borderless).font(.system(size: 12, weight: .medium))
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            if item.attachments.isEmpty {
+                Text("Drop files here to attach them, encrypted.")
+                    .font(.system(size: 12)).foregroundStyle(.tertiary)
+                    .padding(.horizontal, 16).padding(.bottom, 14)
+            }
+            ForEach(item.attachments) { file in
+                HStack(spacing: 10) {
+                    Image(nsImage: NSWorkspace.shared.icon(for: UTType(filenameExtension: (file.fileName as NSString).pathExtension) ?? .data))
+                        .resizable().frame(width: 26, height: 26)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(verbatim: file.fileName).font(.system(size: 13, weight: .medium)).lineLimit(1).truncationMode(.middle)
+                        Text(verbatim: file.sizeName).font(.system(size: 11)).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if model.attachmentBusy.contains(file.id) {
+                        ProgressView().controlSize(.small)
+                    }
+                    Button { Task { await model.previewAttachment(file, of: item) } } label: {
+                        Image(systemName: "eye").accessibilityLabel(Text("Quick Look"))
+                    }
+                    .help(Text("Quick Look"))
+                    Button { Task { await model.saveAttachment(file, of: item) } } label: {
+                        Image(systemName: "square.and.arrow.down").accessibilityLabel(Text("Save As…"))
+                    }
+                    .help(Text("Save As…"))
+                    if !item.isDeleted {
+                        Button { pendingDelete = file } label: {
+                            Image(systemName: "trash").accessibilityLabel(Text("Delete"))
+                        }
+                        .help(Text("Delete"))
+                    }
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16).padding(.vertical, 9)
+                .overlay(alignment: .top) { Divider().opacity(0.6) }
+                .contentShape(.rect)
+                .onTapGesture(count: 2) { Task { await model.previewAttachment(file, of: item) } }
+            }
+        }
+        .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
+        .fileImporter(isPresented: $choosing, allowedContentTypes: [.item], allowsMultipleSelection: true) { result in
+            if case .success(let urls) = result { Task { await model.addAttachments(urls, to: item) } }
+        }
+        .confirmationDialog("Delete “\(pendingDelete?.fileName ?? "")”?", isPresented: Binding(
+            get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } })) {
+            Button("Delete", role: .destructive) {
+                if let file = pendingDelete { Task { await model.deleteAttachment(file, of: item) } }
+            }
+        } message: {
+            Text("The file is removed from your vault on every device.")
+        }
     }
 }

@@ -134,10 +134,36 @@ final class AccountSession {
     }
 
     func update(_ id: String, edit: CipherEdit) async throws {
-        guard let client, let raw = rawCiphers[id],
-              let cipher = try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).ciphers.first(where: { $0.id == id }),
-              let key = keyring?.key(for: cipher) else { throw WriteError.offline }
+        guard let client, let raw = rawCiphers[id], let key = itemKey(id) else { throw WriteError.offline }
         try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: edit, key: key))
+        try await refresh()
+    }
+
+    /// The key that encrypts this item's fields (its own key, the org key, or the user key).
+    private func itemKey(_ id: String) -> SymmetricKeyPair? {
+        guard let cipher = try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).ciphers.first(where: { $0.id == id })
+        else { return nil }
+        return keyring?.key(for: cipher)
+    }
+
+    // MARK: Attachments
+
+    func attachmentContents(_ itemId: String, _ attachment: VaultItem.Attachment) async throws -> Data {
+        guard let client else { throw WriteError.offline }
+        let encrypted = try await client.downloadAttachment(cipherId: itemId, attachmentId: attachment.id, syncedURL: attachment.url)
+        return try EncArrayBuffer.decrypt(encrypted, with: attachment.fileKey)
+    }
+
+    func addAttachment(_ itemId: String, name: String, contents: Data) async throws {
+        guard let client, let key = itemKey(itemId) else { throw WriteError.offline }
+        let sealed = try SealedAttachment(name: name, contents: contents, itemKey: key)
+        try await client.uploadAttachment(cipherId: itemId, fileName: sealed.fileName, key: sealed.key, encrypted: sealed.encrypted)
+        try await refresh()
+    }
+
+    func deleteAttachment(_ itemId: String, _ attachmentId: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.deleteAttachment(cipherId: itemId, attachmentId: attachmentId)
         try await refresh()
     }
 

@@ -183,6 +183,101 @@ public actor VaultClient {
         _ = try await sendRaw(authorized(r))
     }
 
+    // MARK: Attachments
+
+    /// Downloads an attachment's encrypted bytes. Asks the server for a fresh URL (cloud URLs are
+    /// short-lived signed links), falling back to the one from sync on servers without that endpoint.
+    public func downloadAttachment(cipherId: String, attachmentId: String, syncedURL: String?) async throws(APIError) -> Data {
+        struct Located: Decodable { let url: String? }
+        var location = syncedURL
+        if let fresh: Located = try? await send(authorized(request(environment.apiURL, "ciphers/\(cipherId)/attachment/\(attachmentId)"))),
+           let url = fresh.url {
+            location = url
+        }
+        guard let location, let url = URL(string: location, relativeTo: environment.apiURL.appendingSlash) else {
+            throw .http(status: 404, message: "Attachment not found")
+        }
+        func fetch(_ url: URL) async throws(APIError) -> Data {
+            var r = URLRequest(url: url.absoluteURL)
+            // Our own server may sit behind an access proxy; never leak those headers to blob storage.
+            if url.host() == environment.apiURL.host() { for (k, v) in extraHeaders { r.setValue(v, forHTTPHeaderField: k) } }
+            return try await sendRaw(r)
+        }
+        do {
+            return try await fetch(url)
+        } catch {
+            // Vaultwarden builds the link from its DOMAIN setting, which can differ from the address we
+            // reach it by (LAN IP, VPN name). Retry the same path on the server we're talking to.
+            guard !environment.isOfficialCloud, url.host() != environment.apiURL.host(),
+                  var parts = URLComponents(url: environment.apiURL.deletingLastPathComponent(), resolvingAgainstBaseURL: true)
+            else { throw error }
+            let base = parts.path.hasSuffix("/") ? String(parts.path.dropLast()) : parts.path
+            let linkPath = url.path()
+            parts.percentEncodedPath = linkPath.hasPrefix(base) ? linkPath : base + linkPath
+            parts.percentEncodedQuery = url.query(percentEncoded: true)
+            guard let local = parts.url else { throw error }
+            return try await fetch(local)
+        }
+    }
+
+    /// Uploads an already-encrypted file. `fileName` and `key` are EncStrings under the item key.
+    /// Returns the new attachment id.
+    @discardableResult
+    public func uploadAttachment(cipherId: String, fileName: String, key: String, encrypted: Data) async throws(APIError) -> String {
+        struct Slot: Decodable { let attachmentId: String; let url: String?; let fileUploadType: Int? }
+        let body: Data
+        do {
+            body = try JSONSerialization.data(withJSONObject: [
+                "key": key, "fileName": fileName, "fileSize": encrypted.count, "adminRequest": false,
+            ])
+        } catch { throw .http(status: -1, message: "encode") }
+        let slot: Slot
+        do {
+            slot = try await send(authorized(post(environment.apiURL, "ciphers/\(cipherId)/attachment/v2", jsonBody: body)))
+        } catch .http(let status, _) where status == 404 || status == 405 {
+            // Servers without v2: one multipart POST with the key alongside.
+            struct Legacy: Decodable { let attachments: [SyncResponse.Attachment]? }
+            let r = try multipart(environment.apiURL, "ciphers/\(cipherId)/attachment", fileName: fileName, key: key, data: encrypted)
+            let cipher: Legacy = try await send(authorized(r))
+            return cipher.attachments?.last?.id ?? ""
+        }
+        if slot.fileUploadType == 1, let url = slot.url.flatMap(URL.init(string:)) {
+            // Azure blob storage (Bitwarden cloud).
+            var r = URLRequest(url: url)
+            r.httpMethod = "PUT"
+            r.setValue("BlockBlob", forHTTPHeaderField: "x-ms-blob-type")
+            r.setValue("2020-04-08", forHTTPHeaderField: "x-ms-version")
+            r.httpBody = encrypted
+            _ = try await sendRaw(r)
+        } else {
+            let r = try multipart(environment.apiURL, "ciphers/\(cipherId)/attachment/\(slot.attachmentId)",
+                                  fileName: fileName, key: nil, data: encrypted)
+            _ = try await sendRaw(authorized(r))
+        }
+        return slot.attachmentId
+    }
+
+    public func deleteAttachment(cipherId: String, attachmentId: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(cipherId)/attachment/\(attachmentId)")
+        r.httpMethod = "DELETE"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    private func multipart(_ base: URL, _ path: String, fileName: String, key: String?, data: Data) throws(APIError) -> URLRequest {
+        var r = try request(base, path)
+        r.httpMethod = "POST"
+        let boundary = "chiikawarden-\(UUID().uuidString)"
+        r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var body = Data()
+        if let key {
+            body += Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"key\"\r\n\r\n\(key)\r\n".utf8)
+        }
+        body += Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"data\"; filename=\"\(fileName)\"\r\n".utf8)
+        body += Data("Content-Type: application/octet-stream\r\n\r\n".utf8) + data + Data("\r\n--\(boundary)--\r\n".utf8)
+        r.httpBody = body
+        return r
+    }
+
     // MARK: Password hint
 
     /// Asks the server to email the master password hint. Vaultwarden without mail configured may

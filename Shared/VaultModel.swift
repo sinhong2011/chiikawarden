@@ -40,6 +40,20 @@ struct VaultItem: Identifiable, Hashable {
     var customFields: [CustomField] = []
     /// Decrypted passkeys (ES256) on this login.
     var passkeys: [PasskeyCredential] = []
+    var attachments: [Attachment] = []
+
+    /// File metadata; contents are fetched and decrypted on demand.
+    struct Attachment: Identifiable, Hashable, Sendable {
+        var id: String
+        var fileName: String
+        var size: Int
+        var sizeName: String
+        var url: String?
+        /// Decrypts the file contents.
+        var fileKey: SymmetricKeyPair
+        static func == (a: Self, b: Self) -> Bool { a.id == b.id && a.fileName == b.fileName && a.size == b.size }
+        func hash(into h: inout Hasher) { h.combine(id) }
+    }
 
     static func == (a: Self, b: Self) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }

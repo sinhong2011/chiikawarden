@@ -116,6 +116,7 @@ public struct SyncResponse: Decodable, Sendable {
         public let identity: Identity?
         public let sshKey: SSHKey?
         public let fields: [Field]?
+        public let attachments: [Attachment]?
         public let favorite: Bool?
         public let deletedDate: String?
     }
@@ -155,6 +156,38 @@ public struct SyncResponse: Decodable, Sendable {
         public let ssn: String?
         public let passportNumber: String?
         public let licenseNumber: String?
+    }
+
+    /// File metadata. `fileName` and `key` are EncStrings under the item key; `key` (absent on very old
+    /// attachments) is the attachment's own key, which encrypts the file contents.
+    public struct Attachment: Decodable, Sendable {
+        public let id: String
+        public let url: String?
+        public let fileName: String?
+        public let key: String?
+        public let size: String?
+        public let sizeName: String?
+
+        public init(from decoder: any Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id = try c.decode(String.self, forKey: .id)
+            url = try c.decodeIfPresent(String.self, forKey: .url)
+            fileName = try c.decodeIfPresent(String.self, forKey: .fileName)
+            key = try c.decodeIfPresent(String.self, forKey: .key)
+            // Size arrives as a string or a number depending on server version.
+            if let n = try? c.decodeIfPresent(Int.self, forKey: .size) { size = String(n) } else {
+                size = try c.decodeIfPresent(String.self, forKey: .size)
+            }
+            sizeName = try c.decodeIfPresent(String.self, forKey: .sizeName)
+        }
+
+        enum CodingKeys: String, CodingKey { case id, url, fileName, key, size, sizeName }
+
+        /// The key that decrypts the file: its own key, or the item key for legacy attachments.
+        public func fileKey(itemKey: SymmetricKeyPair) throws -> SymmetricKeyPair {
+            guard let key else { return itemKey }
+            return try SymmetricKeyPair(combined: EncString(key).decrypt(with: itemKey))
+        }
     }
 
     /// Custom field. `type`: 0 text, 1 hidden, 2 boolean, 3 linked.
@@ -231,5 +264,22 @@ public extension SyncResponse.Fido2Credential {
                                  userName: dec(userName), userDisplayName: dec(userDisplayName),
                                  counter: dec(counter).flatMap(Int.init) ?? 0, discoverable: dec(discoverable) != "false",
                                  creationDate: created)
+    }
+}
+
+/// A file ready to upload: fresh 512-bit attachment key, everything encrypted.
+public struct SealedAttachment: Sendable {
+    public let fileName: String   // EncString under the item key
+    public let key: String        // attachment key, EncString under the item key
+    public let encrypted: Data    // EncArrayBuffer under the attachment key
+
+    public init(name: String, contents: Data, itemKey: SymmetricKeyPair) throws {
+        var raw = Data(count: 64)
+        let rc = raw.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, 64, $0.baseAddress!) }
+        guard rc == errSecSuccess else { throw CryptoError.commonCrypto(rc) }
+        let attachmentKey = try SymmetricKeyPair(combined: raw)
+        fileName = try EncString.encrypt(Data(name.utf8), with: itemKey).description
+        key = try EncString.encrypt(raw, with: itemKey).description
+        encrypted = try EncArrayBuffer.encrypt(contents, with: attachmentKey)
     }
 }

@@ -214,6 +214,25 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func attachmentRoundTrip(port: Int) async throws {
+        let client = try DevServer.client(port: port)
+        let key = try await client.login(email: "hachiware@chiikawarden.test", password: DevServer.password)
+        let id = try await client.createCipher(CipherEditor.newCipher(kind: .secureNote, edit: CipherEdit(name: "Attachment test"), key: key))
+        let contents = Data("recovery codes: 1234-5678\n".utf8) + Data(repeating: 0xAB, count: 70_000)
+        let sealed = try SealedAttachment(name: "recovery 碼.txt", contents: contents, itemKey: key)
+        let attachmentId = try await client.uploadAttachment(cipherId: id, fileName: sealed.fileName, key: sealed.key,
+                                                             encrypted: sealed.encrypted)
+        let cipher = try #require(try await client.sync().ciphers.first { $0.id == id })
+        let meta = try #require(cipher.attachments?.first { $0.id == attachmentId })
+        #expect(try EncString(meta.fileName ?? "").decryptString(with: key) == "recovery 碼.txt")
+        let downloaded = try await client.downloadAttachment(cipherId: id, attachmentId: attachmentId, syncedURL: meta.url)
+        #expect(try EncArrayBuffer.decrypt(downloaded, with: meta.fileKey(itemKey: key)) == contents)
+        try await client.deleteAttachment(cipherId: id, attachmentId: attachmentId)
+        #expect(try await client.sync().ciphers.first { $0.id == id }?.attachments?.isEmpty ?? true)
+        try await client.deleteCipher(id: id)
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {
