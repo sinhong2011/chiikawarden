@@ -1,32 +1,36 @@
 import SwiftUI
 
-/// The login screen's brand moment: a slowly turning vault dial with live "glass" chips
-/// floating around it. Always dark, in both appearances, like a stage.
+/// The login screen's brand moment, built from the app icon: a big vault door whose handle turns a
+/// quarter now and then, on brand blue, with live chips around it. Follows light/dark like the icon.
 struct BrandStage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { context in
+        TimelineView(.animation(minimumInterval: 1 / 60, paused: reduceMotion)) { context in
             let t = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
+            let dark = scheme == .dark
             GeometryReader { geo in
                 let size = geo.size
-                let dial = min(size.width * 0.86, 380)
+                let door = min(size.width * 0.66, size.height * 0.48, 340)
+                let center = CGPoint(x: size.width * 0.5, y: size.height * 0.40)
                 ZStack {
-                    background
-                    VaultDial(rotation: .degrees(t * 3), glow: 0.75 + 0.25 * sin(t * 1.4))
-                        .frame(width: dial, height: dial)
-                        .position(x: size.width * 0.5, y: size.height * 0.40)
+                    StageBackground(dark: dark, center: center, door: door)
+                    VaultDoor(handle: Self.handleAngle(t), dark: dark)
+                        .frame(width: door, height: door)
+                        .shadow(color: .black.opacity(dark ? 0.45 : 0.22), radius: 30, y: 18)
+                        .position(center)
 
-                    Chip { CodeChip(date: context.date) }
-                        .position(x: size.width * 0.70, y: size.height * 0.13 + 5 * sin(t * 0.9))
-                    Chip {
+                    Chip(dark: dark) { CodeChip(date: context.date, dark: dark) }
+                        .position(x: size.width * 0.70, y: center.y - door * 0.62 + 4 * sin(t * 0.9))
+                    Chip(dark: dark) {
                         Label("Touch ID", systemImage: "touchid")
                     }
-                    .position(x: size.width * 0.20, y: size.height * 0.50 + 6 * sin(t * 0.7 + 1))
-                    Chip {
+                    .position(x: size.width * 0.17, y: center.y + door * 0.30 + 5 * sin(t * 0.7 + 1))
+                    Chip(dark: dark) {
                         Label("Passkey saved", systemImage: "person.badge.key.fill")
                     }
-                    .position(x: size.width * 0.76, y: size.height * 0.64 + 5 * sin(t * 0.8 + 2))
+                    .position(x: size.width * 0.79, y: center.y + door * 0.60 + 4 * sin(t * 0.8 + 2))
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Everything you guard,\none keystroke away.")
@@ -35,30 +39,52 @@ struct BrandStage: View {
                             .foregroundStyle(.white)
                         Text("Passwords, passkeys, codes and SSH keys — native on your Mac.")
                             .font(.system(size: 13))
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(.white.opacity(0.72))
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                     .padding(36)
                 }
             }
         }
-        .environment(\.colorScheme, .dark)
     }
 
-    private var background: some View {
+    /// Rests, then turns a quarter with a small overshoot every 6 s — the door being opened, over and over.
+    static func handleAngle(_ t: TimeInterval) -> Angle {
+        let period = 6.0, turn = 1.1
+        let cycle = (t / period).rounded(.down), phase = t - cycle * period
+        let x = min(phase / turn, 1)
+        let eased = 1 + 2.2 * pow(x - 1, 3) + 1.2 * pow(x - 1, 2)
+        return .degrees((cycle + eased) * 90)
+    }
+}
+
+/// Brand blue (or the icon's night navy) with faint concentric rings around the door.
+private struct StageBackground: View {
+    let dark: Bool
+    let center: CGPoint
+    let door: CGFloat
+
+    var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.06, green: 0.08, blue: 0.20), Color(red: 0.02, green: 0.03, blue: 0.08)],
+            LinearGradient(colors: dark ? [Color(red: 0.10, green: 0.16, blue: 0.40), Color(red: 0.02, green: 0.04, blue: 0.13)]
+                                        : [Color(red: 0.30, green: 0.48, blue: 1.0), Color(red: 0.11, green: 0.23, blue: 0.71)],
                            startPoint: .top, endPoint: .bottom)
-            RadialGradient(colors: [Color(red: 0.24, green: 0.38, blue: 0.95).opacity(0.35), .clear],
-                           center: UnitPoint(x: 0.5, y: 0.40), startRadius: 10, endRadius: 300)
+            RadialGradient(colors: [.white.opacity(dark ? 0.08 : 0.20), .clear], center: .top, startRadius: 0, endRadius: 520)
+            Canvas { ctx, _ in
+                for k in 1...7 {
+                    let r = door * (0.5 + 0.17 * CGFloat(k))
+                    let ring = Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
+                    ctx.stroke(ring, with: .color(.white.opacity(0.085 - 0.009 * Double(k))), lineWidth: 1)
+                }
+            }
         }
     }
 }
 
-/// Vector vault dial: bezel, minor/major ticks, glass disc and the app icon's vault handle.
-struct VaultDial: View {
-    var rotation: Angle
-    var glow: Double
+/// The app icon's door: bolted rim, groove, and a ring handle with crossed spokes.
+struct VaultDoor: View {
+    var handle: Angle
+    var dark: Bool
 
     var body: some View {
         Canvas { ctx, size in
@@ -67,73 +93,62 @@ struct VaultDial: View {
             func circle(_ radius: CGFloat) -> Path {
                 Path(ellipseIn: CGRect(x: c.x - radius, y: c.y - radius, width: radius * 2, height: radius * 2))
             }
+            func dot(_ p: CGPoint, _ radius: CGFloat) -> Path {
+                Path(ellipseIn: CGRect(x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2))
+            }
+            let doorTop = dark ? Color(red: 0.23, green: 0.27, blue: 0.44) : .white
+            let doorBottom = dark ? Color(red: 0.12, green: 0.15, blue: 0.28) : Color(red: 0.85, green: 0.89, blue: 0.98)
+            let detail = dark ? Color(red: 0.56, green: 0.69, blue: 1) : Color(red: 0.14, green: 0.28, blue: 0.82)
 
-            // Bezel
-            ctx.stroke(circle(r * 0.86), with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.55), .white.opacity(0.08), .white.opacity(0.25)]),
-                startPoint: CGPoint(x: c.x, y: c.y - r), endPoint: CGPoint(x: c.x, y: c.y + r)), lineWidth: 2)
-
-            // Ticks, rotating slowly
-            for i in 0..<60 {
-                let major = i % 5 == 0
-                let a = Angle.degrees(Double(i) * 6) + rotation
-                let outer = r * 0.80, inner = r * (major ? 0.72 : 0.76)
-                var p = Path()
-                p.move(to: CGPoint(x: c.x + cos(a.radians) * inner, y: c.y + sin(a.radians) * inner))
-                p.addLine(to: CGPoint(x: c.x + cos(a.radians) * outer, y: c.y + sin(a.radians) * outer))
-                ctx.stroke(p, with: .color(.white.opacity(major ? 0.7 : 0.22)),
-                           style: StrokeStyle(lineWidth: major ? 2.4 : 1.2, lineCap: .round))
+            ctx.fill(circle(r), with: .linearGradient(Gradient(colors: [doorTop, doorBottom]),
+                                                      startPoint: CGPoint(x: c.x, y: c.y - r), endPoint: CGPoint(x: c.x, y: c.y + r)))
+            ctx.stroke(circle(r * 0.985), with: .color(.black.opacity(dark ? 0.3 : 0.10)), lineWidth: r * 0.03)
+            ctx.stroke(circle(r * 0.76), with: .color(detail.opacity(0.16)), lineWidth: r * 0.028)
+            for i in 0..<12 {
+                let a = Double(i) / 12 * 2 * .pi - .pi / 2
+                ctx.fill(dot(CGPoint(x: c.x + cos(a) * r * 0.875, y: c.y + sin(a) * r * 0.875), r * 0.032),
+                         with: .color(detail.opacity(0.26)))
             }
 
-            // Glass disc
-            let disc = circle(r * 0.56)
-            ctx.fill(disc, with: .linearGradient(
-                Gradient(colors: [.white.opacity(0.16), .white.opacity(0.03)]),
-                startPoint: CGPoint(x: c.x, y: c.y - r * 0.56), endPoint: CGPoint(x: c.x, y: c.y + r * 0.56)))
-            ctx.stroke(disc, with: .color(.white.opacity(0.28)), lineWidth: 1)
-
-            // Glow behind the handle
-            ctx.fill(circle(r * 0.40), with: .radialGradient(
-                Gradient(colors: [Color(red: 0.42, green: 0.58, blue: 1).opacity(0.55 * glow), .clear]),
-                center: c, startRadius: 0, endRadius: r * 0.40))
-
-            // Vault handle (the app icon's wheel): ring, two crossed spokes with knobs, hub. Turns with the ticks.
+            // Handle
             let blue = GraphicsContext.Shading.linearGradient(
-                Gradient(colors: [Color(red: 0.62, green: 0.74, blue: 1), Color(red: 0.29, green: 0.45, blue: 0.95)]),
-                startPoint: CGPoint(x: c.x, y: c.y - r * 0.4), endPoint: CGPoint(x: c.x, y: c.y + r * 0.4))
-            ctx.stroke(circle(r * 0.27), with: blue, lineWidth: r * 0.07)
-            let reach = r * 0.36
+                Gradient(colors: dark ? [Color(red: 0.53, green: 0.67, blue: 1), Color(red: 0.29, green: 0.45, blue: 0.94)]
+                                      : [Color(red: 0.36, green: 0.53, blue: 1), Color(red: 0.12, green: 0.25, blue: 0.75)]),
+                startPoint: CGPoint(x: c.x, y: c.y - r * 0.6), endPoint: CGPoint(x: c.x, y: c.y + r * 0.6))
+            ctx.stroke(circle(r * 0.436), with: blue, lineWidth: r * 0.11)
+            let reach = r * 0.57
             var spokes = Path()
             for k in 0..<2 {
-                let a = (Angle.degrees(45 + Double(k) * 90) - rotation * 2).radians
+                let a = (Angle.degrees(45 + Double(k) * 90) + handle).radians
                 spokes.move(to: CGPoint(x: c.x + cos(a) * reach, y: c.y + sin(a) * reach))
                 spokes.addLine(to: CGPoint(x: c.x - cos(a) * reach, y: c.y - sin(a) * reach))
             }
-            ctx.stroke(spokes, with: blue, style: StrokeStyle(lineWidth: r * 0.08, lineCap: .round))
+            ctx.stroke(spokes, with: blue, style: StrokeStyle(lineWidth: r * 0.128, lineCap: .round))
             for k in 0..<4 {
-                let a = (Angle.degrees(45 + Double(k) * 90) - rotation * 2).radians
-                let knob = CGPoint(x: c.x + cos(a) * reach, y: c.y + sin(a) * reach)
-                ctx.fill(Path(ellipseIn: CGRect(x: knob.x - r * 0.066, y: knob.y - r * 0.066, width: r * 0.132, height: r * 0.132)), with: blue)
+                let a = (Angle.degrees(45 + Double(k) * 90) + handle).radians
+                ctx.fill(dot(CGPoint(x: c.x + cos(a) * reach, y: c.y + sin(a) * reach), r * 0.105), with: blue)
             }
-            ctx.fill(circle(r * 0.17), with: blue)
-            ctx.fill(circle(r * 0.066), with: .color(.white.opacity(0.95)))
+            ctx.fill(circle(r * 0.267), with: blue)
+            ctx.fill(circle(r * 0.105), with: .color(dark ? Color(red: 0.12, green: 0.15, blue: 0.28) : .white))
         }
+        .accessibilityHidden(true)
     }
 }
 
-/// Small glass capsule floating over the stage.
+/// Solid capsule floating over the stage: white on blue in light, navy in dark.
 private struct Chip<Content: View>: View {
+    var dark: Bool
     @ViewBuilder let content: Content
 
     var body: some View {
         content
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(dark ? .white : Color(red: 0.07, green: 0.13, blue: 0.36))
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color(red: 0.11, green: 0.14, blue: 0.30).opacity(0.92), in: .capsule)
-            .overlay(Capsule().strokeBorder(.white.opacity(0.14)))
-            .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
+            .background(dark ? Color(red: 0.13, green: 0.17, blue: 0.33) : .white, in: .capsule)
+            .overlay(Capsule().strokeBorder(.white.opacity(dark ? 0.12 : 0)))
+            .shadow(color: .black.opacity(dark ? 0.35 : 0.16), radius: 12, y: 6)
             .fixedSize()
     }
 }
@@ -141,20 +156,22 @@ private struct Chip<Content: View>: View {
 /// A demo one-time code that really counts down: the ring drains smoothly, clockwise from 12 o'clock.
 private struct CodeChip: View {
     let date: Date
+    var dark: Bool
 
     var body: some View {
         let period = 30.0
         let remaining = 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
+        let accent = dark ? Color(red: 0.55, green: 0.69, blue: 1) : Color(red: 0.23, green: 0.39, blue: 0.91)
         HStack(spacing: 8) {
             ZStack {
-                Circle().stroke(.white.opacity(0.18), lineWidth: 2)
+                Circle().stroke(accent.opacity(0.22), lineWidth: 2)
                 // Trimming from the start makes the leading edge sweep clockwise as time runs out.
                 Circle().trim(from: 1 - remaining, to: 1)
-                    .stroke(Color(red: 0.55, green: 0.69, blue: 1), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .stroke(accent, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                     .rotationEffect(.degrees(-90))
             }
             .frame(width: 14, height: 14)
-            Text(verbatim: "GitHub").foregroundStyle(.white.opacity(0.7))
+            Text(verbatim: "GitHub").opacity(0.7)
             Text(verbatim: "284 913").font(.system(size: 12, weight: .semibold, design: .monospaced))
         }
     }
