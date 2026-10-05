@@ -96,6 +96,7 @@ struct VaultView: View {
                 ToolbarItem(placement: .principal) {
                     SearchField(query: $query)
                 }
+                .sharedBackgroundVisibility(.hidden) // our own quiet capsule, not a pill inside the toolbar's pill
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button { showGenerator = true } label: { Label("Password Generator", systemImage: "dice") }
                         .help(Text("Password Generator (⌘G)"))
@@ -364,27 +365,41 @@ private struct FolderRow: View {
 private struct SearchField: View {
     @Binding var query: String
     @FocusState private var focused: Bool
+    @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Search vault", text: $query)
+        HStack(spacing: 7) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(focused ? Color.brand : .secondary)
+            TextField("Search vault", text: $query, prompt: Text("Search vault").foregroundStyle(.tertiary))
                 .textFieldStyle(.plain)
+                .font(.system(size: 13, weight: .regular))
                 .focused($focused)
                 .onExitCommand { query = ""; focused = false }
             if !query.isEmpty {
-                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary).accessibilityLabel(Text("Clear search")) }
-                    .buttonStyle(.plain)
-                    .help(Text("Clear"))
-            } else {
-                Text(verbatim: "⌘F").font(.system(size: 11, weight: .medium)).foregroundStyle(.tertiary)
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary).accessibilityLabel(Text("Clear search"))
+                }
+                .buttonStyle(.plain)
+                .help(Text("Clear"))
+            } else if !focused {
+                Text(verbatim: "⌘F")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 5).padding(.vertical, 1.5)
+                    .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 4))
             }
         }
-        .padding(.horizontal, 12)
-        .frame(width: 380, height: 30)
-        .background(Color.panelStrong, in: .capsule)
-        .overlay(Capsule().strokeBorder(focused ? Color.brand.opacity(0.6) : Color.panelEdge, lineWidth: focused ? 1.5 : 1))
+        .padding(.horizontal, 10)
+        .frame(width: 320, height: 28)
+        .background(Color.primary.opacity(focused ? 0.03 : hovering ? 0.08 : 0.06), in: .capsule)
+        .overlay(Capsule().strokeBorder(Color.brand.opacity(focused ? 0.55 : 0), lineWidth: 1.5))
+        .contentShape(.capsule)
+        .onTapGesture { focused = true }
+        .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.15), value: focused)
+        .animation(.easeOut(duration: 0.12), value: hovering)
         .background {
             Button("") { focused = true }.keyboardShortcut("f", modifiers: .command).hidden()
         }

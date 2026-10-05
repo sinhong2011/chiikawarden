@@ -63,6 +63,8 @@ enum Snapshot {
             render(desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 1180, height: 760), appearance: appearance,
                    to: dir.appending(path: "vault-\(name).png"))
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "window-\(name).png"))
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(QuickSearchView(close: {}).environment(vault).tint(.brand).padding(30),
@@ -204,6 +206,25 @@ enum Snapshot {
         VaultItem(id: "5", name: "Tailscale", username: "usagi", host: "login.tailscale.com", password: "ts-Lw8!r2Kq$7m",
                   totp: TOTP("JBSWY3DPEHPK3PXQ"), notes: nil, favorite: true),
     ]
+
+    /// A real window with SwiftUI's toolbar bridged in, so toolbar items render as in the app.
+    private static func renderWindow(_ view: some View, size: CGSize, appearance: NSAppearance.Name, to url: URL) {
+        let controller = NSHostingController(rootView: view.frame(width: size.width, height: size.height))
+        controller.sceneBridgingOptions = [.toolbars, .title]
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .fullSizeContentView, .closable, .miniaturizable, .resizable]
+        window.titleVisibility = .hidden
+        window.appearance = NSAppearance(named: appearance)
+        window.setContentSize(size)
+        window.orderFrontRegardless()
+        window.makeKey()
+        RunLoop.main.run(until: .now + 1.5)
+        guard let frame = window.contentView?.superview,
+              let rep = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) else { return }
+        frame.cacheDisplay(in: frame.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        window.orderOut(nil)
+    }
 
     private static func render(_ view: some View, size: CGSize, appearance: NSAppearance.Name, to url: URL) {
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size),
