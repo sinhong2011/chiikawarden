@@ -74,7 +74,8 @@ struct ChiikawardenApp: App {
                 .tint(.brand)
                 .preferredColorScheme(appearance.scheme)
         }
-        .windowResizability(.contentSize)
+        .defaultSize(width: 760, height: 640)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
@@ -150,11 +151,17 @@ struct RootView: View {
             case .locked:
                 UnlockView()
                     .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 520, idealHeight: 600, maxHeight: .infinity)
-                    .transition(.opacity)
+                    // Leaves by opening up: a little larger, blurred, fading.
+                    .transition(.asymmetric(insertion: .opacity,
+                                            removal: .modifier(active: SceneFade(scale: 1.05, blur: 14, opacity: 0),
+                                                               identity: SceneFade(scale: 1, blur: 0, opacity: 1))))
             case .vault:
                 VaultView()
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
-                    .transition(.opacity)
+                    // Arrives from just behind the lock screen.
+                    .transition(.asymmetric(insertion: .modifier(active: SceneFade(scale: 0.96, blur: 8, opacity: 0),
+                                                                 identity: SceneFade(scale: 1, blur: 0, opacity: 1)),
+                                            removal: .opacity))
             }
         }
         .animation(.spring(duration: 0.5, bounce: 0.2), value: model.phase.id)
@@ -173,6 +180,16 @@ struct RootView: View {
 extension Color {
     /// Brand blue, shared with the app icon (Assets: AccentColor, adapts to dark mode).
     static let brand = Color("AccentColor")
+}
+
+/// Scale + blur + opacity, for the lock screen ⇄ vault hand-off.
+private struct SceneFade: ViewModifier {
+    let scale: CGFloat
+    let blur: CGFloat
+    let opacity: Double
+    func body(content: Content) -> some View {
+        content.scaleEffect(scale).blur(radius: blur).opacity(opacity)
+    }
 }
 
 /// Wrapper so @AppStorage can drive preferredColorScheme.

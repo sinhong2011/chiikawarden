@@ -3,6 +3,7 @@ import ChiikawaCrypto
 import LocalAuthentication
 import Foundation
 import Observation
+import SwiftUI
 import VaultwardenAPI
 
 /// Drives the create/edit sheet.
@@ -603,9 +604,24 @@ final class AppModel {
             let session = open(account, key: key)
             Task { await session.resume() }
         }
-        phase = .vault
         noteActivity()
+        // From the lock screen: the lock opens first, then the vault comes in. Instant for tooling and Reduce Motion.
+        let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
+        guard phase.id == Phase.locked.id, !tooling, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            phase = .vault
+            return
+        }
+        withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
+        Task {
+            try? await Task.sleep(for: .milliseconds(620))
+            phase = .vault
+            try? await Task.sleep(for: .milliseconds(400))
+            unlockOpening = false
+        }
     }
+
+    /// True for the moment between a successful unlock and the vault appearing (the lock-opening animation).
+    var unlockOpening = false
 
     func setTouchID(_ enabled: Bool, for accountId: String) {
         guard let session = session(for: accountId) else { return }

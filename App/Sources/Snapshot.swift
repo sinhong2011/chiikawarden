@@ -43,6 +43,16 @@ enum Snapshot {
                    to: dir.appending(path: "unlock-\(name).png"))
         }
 
+        // The unlock animation's open moment, and Settings at its default size.
+        let opening = AppModel()
+        opening.setPreviewAccounts([SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted",
+                                                 serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000), protectedUserKey: "")])
+        opening.unlockOpening = true
+        render(desktop(UnlockView().environment(opening).tint(.brand), dark: false),
+               size: CGSize(width: 900, height: 600), appearance: .aqua, to: dir.appending(path: "unlock-opening-light.png"))
+        renderWindow(SettingsView().environment(model).tint(.brand), size: CGSize(width: 760, height: 640),
+                     appearance: .aqua, to: dir.appending(path: "settings-light.png"))
+
         let multi = AppModel()
         multi.setPreviewAccounts([
             SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",

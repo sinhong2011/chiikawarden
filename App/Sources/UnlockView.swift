@@ -76,14 +76,19 @@ private struct UnlockForm: View {
         VStack(alignment: .leading, spacing: 22) {
 
             VStack(alignment: .leading, spacing: 14) {
-                Image(systemName: "lock.fill")
+                let opening = model.unlockOpening
+                Image(systemName: opening ? "lock.open.fill" : "lock.fill")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color.brand)
+                    .foregroundStyle(opening ? Color.white : Color.brand)
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.bounce, value: opening)
                     .frame(width: 44, height: 44)
-                    .background(Color.brandFill.opacity(0.22), in: .circle)
+                    .background(opening ? Color.brandButton : Color.brandFill.opacity(0.22), in: .circle)
+                    .scaleEffect(opening ? 1.12 : 1)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
+                    Text(opening ? "Unlocked" : "Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
+                        .contentTransition(.opacity)
                     Text("Enter your master password to continue.")
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                 }
@@ -116,7 +121,12 @@ private struct UnlockForm: View {
                 Button(action: submit) {
                     HStack(spacing: 8) {
                         if model.isBusy { ProgressView().controlSize(.small).tint(.white) }
-                        Text("Unlock").font(.system(size: 14, weight: .semibold))
+                        if model.unlockOpening {
+                            Label("Unlocked", systemImage: "checkmark").font(.system(size: 14, weight: .semibold))
+                                .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        } else {
+                            Text("Unlock").font(.system(size: 14, weight: .semibold))
+                        }
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())

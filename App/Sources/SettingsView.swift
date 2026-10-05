@@ -14,7 +14,8 @@ struct SettingsView: View {
             Tab("Server", systemImage: "server.rack") { ServerSettings() }
             Tab("About", systemImage: "info.circle") { AboutSettings() }
         }
-        .frame(width: 560)
+        // Opens roomy and resizes freely; forms scroll when the window is shorter than their content.
+        .frame(minWidth: 560, idealWidth: 760, maxWidth: .infinity, minHeight: 440, idealHeight: 640, maxHeight: .infinity)
         .scenePadding()
     }
 }

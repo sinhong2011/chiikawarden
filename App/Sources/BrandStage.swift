@@ -3,6 +3,7 @@ import SwiftUI
 /// The login and unlock screens' brand moment: everything the vault keeps, circling slowly around the
 /// vault mark. Light and airy in light mode, deep navy in dark mode.
 struct BrandStage: View {
+    @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
 
@@ -12,6 +13,8 @@ struct BrandStage: View {
 
     var body: some View {
         let palette = StagePalette(dark: scheme == .dark)
+        // Unlocking: the door's handle turns, the orbits open outward and the travellers fly off.
+        let opening = model.unlockOpening
         TimelineView(.animation(minimumInterval: 1 / 60, paused: reduceMotion)) { context in
             let t = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
             GeometryReader { geo in
@@ -30,24 +33,29 @@ struct BrandStage: View {
                         Circle()
                             .strokeBorder(palette.orbit, lineWidth: 1)
                             .frame(width: d * f * 2, height: d * f * 2)
+                            .scaleEffect(opening ? 1 + f * 0.8 : 1)
+                            .opacity(opening ? 0 : 1)
                             .position(center)
                     }
 
                     // Travellers: outer clockwise, inner counter-clockwise, glyphs stay upright.
                     ForEach(Array(Self.outer.enumerated()), id: \.offset) { i, symbol in
                         Traveller(symbol: symbol, size: d * 0.115, palette: palette)
-                            .position(Self.point(center, radius: d * 0.5,
+                            .position(Self.point(center, radius: d * (opening ? 0.95 : 0.5),
                                                  angle: Double(i) / Double(Self.outer.count) * 360 - 90 + t * 4))
+                            .opacity(opening ? 0 : 1)
                     }
                     ForEach(Array(Self.inner.enumerated()), id: \.offset) { i, symbol in
                         Traveller(symbol: symbol, size: d * 0.092, palette: palette)
-                            .position(Self.point(center, radius: d * 0.33,
+                            .position(Self.point(center, radius: d * (opening ? 0.75 : 0.33),
                                                  angle: Double(i) / Double(Self.inner.count) * 360 + 30 - t * 6))
+                            .opacity(opening ? 0 : 1)
                     }
 
                     VaultMark(palette: palette)
                         .frame(width: d * 0.24, height: d * 0.24)
-                        .scaleEffect(1 + 0.015 * sin(t * 1.3))
+                        .rotationEffect(.degrees(opening ? 135 : 0)) // the handle turns: spokes go from × to +, and on
+                        .scaleEffect((opening ? 1.18 : 1) + 0.015 * sin(t * 1.3))
                         .shadow(color: Color.brandFill.opacity(0.7), radius: d * 0.06, y: d * 0.015)
                         .position(center)
 
