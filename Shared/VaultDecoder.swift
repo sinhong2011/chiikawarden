@@ -101,6 +101,8 @@ enum VaultDecoder {
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
             return Grouping(id: org.id, name: org.name ?? String(localized: "Organization"), children: collections)
         }
+        let folderNames = Dictionary(folders.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
+        for i in items.indices { items[i].folderName = items[i].folderId.flatMap { folderNames[$0] } }
         return DecodedVault(items: items, folders: folders, organizations: organizations, hiddenCount: hidden,
                             keyring: keyring, rawCiphers: CipherEditor.rawCiphers(fromSync: data))
     }

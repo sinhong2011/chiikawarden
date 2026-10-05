@@ -54,6 +54,8 @@ final class AppModel {
     /// Selected item, shared by the list, detail and the Item menu commands.
     var selectedID: VaultItem.ID?
     var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
+    /// True while the New Folder prompt is showing.
+    var promptingNewFolder = false
     /// Non-nil while the create/edit sheet is open.
     var editing: EditRequest?
     /// True while ⌥ is held: reveals masked fields.
@@ -493,6 +495,35 @@ final class AppModel {
             try await session.update(id, edit: edit)
             return true
         } catch { return failed(error) }
+    }
+
+    /// Creates a folder ("Parent/Child" nests) in the filtered or first account.
+    @discardableResult
+    func createFolder(name: String, accountId: String? = nil) async -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, let session = (accountId ?? defaultAccountId).flatMap(session(for:)) else { return nil }
+        do {
+            let id = try await session.createFolder(name: trimmed)
+            flash(String(localized: "Folder created"))
+            return id
+        } catch { _ = failed(error); return nil }
+    }
+
+    func deleteFolder(_ id: String) async {
+        guard let session = sessions.first(where: { $0.folders.contains { $0.id == id } }) else { return }
+        do { try await session.deleteFolder(id) } catch { _ = failed(error) }
+    }
+
+    /// Moves items into a folder. A folder belongs to one account, so only that account's items move.
+    func move(itemIDs: [String], toFolderIn folderIds: [String]) async {
+        var moved = 0
+        for id in itemIDs {
+            guard let item = items.first(where: { $0.id == id }), let session = session(for: item),
+                  let folderId = folderIds.first(where: { fid in session.folders.contains { $0.id == fid } }),
+                  item.folderId != folderId else { continue }
+            do { try await session.update(id, edit: CipherEdit(folderId: .some(folderId))); moved += 1 } catch { _ = failed(error); return }
+        }
+        if moved > 0 { flash(String(localized: "Moved \(moved) item(s)")) }
     }
 
     func toggleFavorite(_ item: VaultItem) async {

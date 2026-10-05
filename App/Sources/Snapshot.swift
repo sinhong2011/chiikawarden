@@ -212,6 +212,28 @@ enum SelfTest {
             let breached = Set(WatchtowerReport(items: model.items, breaches: model.breachCounts).issues[.breached, default: []].map(\.name))
             check(breached.contains("Weak example") && !breached.contains("GitHub"), "breach check (k-anonymity) flags 123456 only among known")
 
+            // Folders: nested names, moving items, parent selection includes children, highlighting.
+            let parentID = await model.createFolder(name: "Selftest")
+            let childID = await model.createFolder(name: "Selftest/Nested")
+            _ = await model.createItem(.login, edit: CipherEdit(name: "Folder Test Item", username: "f", password: "x"))
+            if let item = model.items.first(where: { $0.name == "Folder Test Item" }), let childID {
+                await model.move(itemIDs: [item.id], toFolderIn: [childID])
+                let movedItem = model.items.first { $0.id == item.id }
+                let tree = FolderNode.tree(model.folders)
+                let parentNode = tree.first { $0.path == "Selftest" }
+                check(movedItem?.folderId == childID && parentNode?.children.first?.path == "Selftest/Nested",
+                      "move item into nested folder; tree nests Selftest › Nested")
+                check(movedItem.map { SidebarSelection.folder("Selftest").includes($0) && SidebarSelection.folder("Selftest/Nested").includes($0) } == true,
+                      "selecting the parent folder includes items in subfolders")
+                let marked = Highlight.marked("Folder Test Item", "test")
+                check(marked.runs.contains { $0.backgroundColor != nil }, "search match highlighting")
+                if let movedItem { await model.deleteForever(movedItem) }
+            } else {
+                check(false, "folder setup")
+            }
+            if let childID { await model.deleteFolder(childID) }
+            if let parentID { await model.deleteFolder(parentID) }
+
             // Editing lifecycle through the app model.
             let created = await model.createItem(.login, edit: CipherEdit(name: "Selftest Item", username: "u", password: "p-old", uri: "https://example.org"))
             let new = model.items.first { $0.name == "Selftest Item" }

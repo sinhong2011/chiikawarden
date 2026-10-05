@@ -1693,6 +1693,34 @@
         }
       }
     },
+    "Create": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作成"
+          }
+        }
+      }
+    },
     "Custom environment": {
       "localizations": {
         "ja": {
@@ -2389,6 +2417,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "資料夾"
+          }
+        }
+      }
+    },
+    "Folder created": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已建立資料夾"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已建立資料夾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建文件夹"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フォルダを作成しました"
           }
         }
       }
@@ -3289,6 +3345,34 @@
         }
       }
     },
+    "Moved %lld item(s)": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移動 %lld 個項目"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移動 %lld 個項目"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移动 %lld 个项目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件の項目を移動しました"
+          }
+        }
+      }
+    },
     "Moved to Trash": {
       "localizations": {
         "ja": {
@@ -3369,6 +3453,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "永不"
+          }
+        }
+      }
+    },
+    "New Folder": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增資料夾"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增資料夾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建文件夹"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規フォルダ"
+          }
+        }
+      }
+    },
+    "New Folder…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增資料夾…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增資料夾…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建文件夹…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規フォルダ…"
           }
         }
       }
@@ -5954,10 +6094,10 @@
     },
     "Touch ID to unlock": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用 Touch ID 解鎖"
+            "value": "Touch ID でロック解除"
           }
         },
         "zh-HK": {
@@ -5972,10 +6112,10 @@
             "value": "使用触控 ID 解锁"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Touch ID でロック解除"
+            "value": "使用 Touch ID 解鎖"
           }
         }
       }
@@ -6066,10 +6206,10 @@
     },
     "Try Touch ID again": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "再試一次 Touch ID"
+            "value": "Touch ID をもう一度試す"
           }
         },
         "zh-HK": {
@@ -6084,10 +6224,10 @@
             "value": "再试一次触控 ID"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Touch ID をもう一度試す"
+            "value": "再試一次 Touch ID"
           }
         }
       }
@@ -6312,6 +6452,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "大寫（A–Z）"
+          }
+        }
+      }
+    },
+    "Use / to nest, e.g. Work/Servers.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 / 建立子資料夾，例如 工作/伺服器。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 / 建立子資料夾，例如 工作/伺服器。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 / 创建子文件夹，例如 工作/服务器。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ で入れ子にできます（例：仕事/サーバー）。"
           }
         }
       }
@@ -6993,6 +7161,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如 GitHub"
+          }
+        }
+      }
+    },
+    "e.g. Work/Servers": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 工作/伺服器"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 工作/伺服器"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 工作/服务器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例：仕事/サーバー"
           }
         }
       }

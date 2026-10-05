@@ -21,6 +21,8 @@ struct VaultItem: Identifiable, Hashable {
     let favorite: Bool
     var hasPasskey = false
     var folderId: String?
+    /// Decrypted folder name, e.g. "Work/Servers" (nested by "/").
+    var folderName: String?
     var isDeleted = false
     var organizationId: String?
     var collectionIds: [String] = []

@@ -28,6 +28,7 @@ struct VaultView: View {
     var initialSelection: VaultItem.ID?
     @Environment(AppModel.self) private var model
     @State private var showGenerator = false
+    @State private var newFolderName = ""
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
     @State private var chip: Chip = .all
@@ -106,6 +107,13 @@ struct VaultView: View {
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .alert("New Folder", isPresented: $model.promptingNewFolder) {
+            TextField("Name", text: $newFolderName, prompt: Text("e.g. Work/Servers"))
+            Button("Create") { let name = newFolderName; newFolderName = ""; Task { await model.createFolder(name: name) } }
+            Button("Cancel", role: .cancel) { newFolderName = "" }
+        } message: {
+            Text("Use / to nest, e.g. Work/Servers.")
+        }
         .overlay(alignment: .bottom) { ToastView() }
         .onAppear { if model.selectedID == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id } }
     }
@@ -127,7 +135,7 @@ enum SidebarSelection: Hashable {
         case .watchtower: false
         case .account(let id): !item.isDeleted && item.accountId == id
         case .section(let s): s.includes(item)
-        case .folder(let id): !item.isDeleted && item.folderId == id
+        case .folder(let path): !item.isDeleted && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
         case .organization(let id): !item.isDeleted && item.organizationId == id
         case .collection(let id): !item.isDeleted && item.collectionIds.contains(id)
         }
@@ -188,10 +196,8 @@ private struct Sidebar: View {
             }
             if !model.folders.isEmpty {
                 Section("Folders") {
-                    ForEach(model.folders) { folder in
-                        Label(folder.name, systemImage: "folder")
-                            .badge(count(.folder(folder.id)))
-                            .tag(SidebarSelection.folder(folder.id))
+                    ForEach(FolderNode.tree(model.folders)) { node in
+                        FolderRow(node: node, count: count)
                     }
                 }
             }
@@ -273,6 +279,70 @@ private struct SyncStatusText: View {
     }
 }
 
+// MARK: Folders
+
+/// A folder in the sidebar tree. "Work/Servers" nests under "Work"; parents without a real folder are virtual.
+struct FolderNode: Identifiable, Hashable {
+    var id: String { path }
+    let path: String
+    let name: String
+    var folderIds: [String] = []
+    var children: [FolderNode] = []
+
+    static func tree(_ folders: [Grouping]) -> [FolderNode] {
+        var roots: [FolderNode] = []
+        for folder in folders {
+            let parts = folder.name.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            guard !parts.isEmpty else { continue }
+            insert(parts[...], prefix: "", folderId: folder.id, into: &roots)
+        }
+        return sorted(roots)
+    }
+
+    private static func insert(_ parts: ArraySlice<String>, prefix: String, folderId: String, into nodes: inout [FolderNode]) {
+        guard let head = parts.first else { return }
+        let path = prefix.isEmpty ? head : prefix + "/" + head
+        var index = nodes.firstIndex { $0.path == path }
+        if index == nil { nodes.append(FolderNode(path: path, name: head)); index = nodes.count - 1 }
+        if parts.count == 1 { nodes[index!].folderIds.append(folderId) } else {
+            insert(parts.dropFirst(), prefix: path, folderId: folderId, into: &nodes[index!].children)
+        }
+    }
+
+    private static func sorted(_ nodes: [FolderNode]) -> [FolderNode] {
+        nodes.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            .map { var n = $0; n.children = sorted(n.children); return n }
+    }
+}
+
+/// Recursive folder row; items dropped on a real folder move into it.
+private struct FolderRow: View {
+    @Environment(AppModel.self) private var model
+    let node: FolderNode
+    let count: (SidebarSelection) -> Int
+    @State private var expanded = true
+    @State private var targeted = false
+
+    var body: some View {
+        let label = Label(node.name, systemImage: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
+            .badge(count(.folder(node.path)))
+            .tag(SidebarSelection.folder(node.path))
+            .listRowBackground(targeted ? Color.brand.opacity(0.18).clipShape(.rect(cornerRadius: 6)) : nil)
+            .dropDestination(for: String.self) { ids, _ in
+                guard !node.folderIds.isEmpty else { return false }
+                Task { await model.move(itemIDs: ids, toFolderIn: node.folderIds) }
+                return true
+            } isTargeted: { targeted = $0 }
+        if node.children.isEmpty {
+            label
+        } else {
+            DisclosureGroup(isExpanded: $expanded) {
+                ForEach(node.children) { FolderRow(node: $0, count: count) }
+            } label: { label }
+        }
+    }
+}
+
 // MARK: Search
 
 /// Centered toolbar search, ⌘F to focus.
@@ -332,8 +402,9 @@ private struct ItemColumn: View {
             ScrollView {
                 LazyVStack(spacing: 2) {
                     ForEach(items) { item in
-                        ItemRow(item: item, isSelected: item.id == selection)
+                        ItemRow(item: item, isSelected: item.id == selection, highlight: query)
                             .onTapGesture { selection = item.id }
+                            .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
                     }
                 }
                 .padding(6)
@@ -354,6 +425,8 @@ struct ItemRow: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
     var isSelected = false
+    /// Search text to highlight in the name and username.
+    var highlight = ""
     @State private var hovered = false
 
     /// Account colour, only when more than one account is open.
@@ -373,9 +446,9 @@ struct ItemRow: View {
                     }
                 }
             VStack(alignment: .leading, spacing: 1) {
-                Text(item.name).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
                 if let username = item.username {
-                    Text(username).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                    Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
             Spacer(minLength: 4)
@@ -774,5 +847,23 @@ private struct AccountUnlockPane: View {
             await model.unlock(password: password, accountId: account.id)
             if model.isUnlocked(account.id) { password = "" }
         }
+    }
+}
+
+/// Marks every case/diacritic-insensitive occurrence of `query` with a tinted background.
+enum Highlight {
+    static func marked(_ text: String, _ query: String) -> AttributedString {
+        var out = AttributedString(text)
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return out }
+        var start = text.startIndex
+        while let range = text.range(of: q, options: [.caseInsensitive, .diacriticInsensitive], range: start..<text.endIndex) {
+            if let r = Range(range, in: out) {
+                out[r].backgroundColor = Color.brand.opacity(0.22)
+                out[r].foregroundColor = .primary
+            }
+            start = range.upperBound
+        }
+        return out
     }
 }

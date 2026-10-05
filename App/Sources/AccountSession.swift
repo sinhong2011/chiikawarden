@@ -139,6 +139,19 @@ final class AccountSession {
         try await refresh()
     }
 
+    func createFolder(name: String) async throws -> String {
+        guard let client else { throw WriteError.offline }
+        let id = try await client.createFolder(encryptedName: EncString.encrypt(Data(name.utf8), with: userKey).description)
+        try await refresh()
+        return id
+    }
+
+    func deleteFolder(_ id: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.deleteFolder(id: id)
+        try await refresh()
+    }
+
     func trash(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.trashCipher(id: id)
