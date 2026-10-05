@@ -508,6 +508,14 @@ enum SelfTest {
                 if let mySend { await model.deleteSend(mySend) }
                 check(!model.sends.contains { $0.name == "Selftest send" }, "Send: delete")
 
+                // Update check: version ordering, and a live request that tolerates "no releases yet".
+                check(UpdateChecker.isNewer("0.10.0", than: "0.9.3") && !UpdateChecker.isNewer("1.0", than: "1.0.0")
+                      && UpdateChecker.isNewer("1.0.1", than: "1.0") && !UpdateChecker.isNewer("0.2.9", than: "0.3.0"),
+                      "updates: version comparison")
+                let checker = UpdateChecker()
+                await checker.check()
+                check(checker.error == nil && checker.lastChecked != nil, "updates: GitHub latest-release check")
+
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()
                 var registered: ASPasskeyRegistrationCredential?

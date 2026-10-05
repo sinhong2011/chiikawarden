@@ -98,6 +98,7 @@ final class AppModel {
     /// Serves SSH key items to ssh/git while unlocked (Settings › SSH).
     @ObservationIgnored private(set) var sshAgent: SSHAgentService!
     @ObservationIgnored private(set) var cli: CLIBridge!
+    let updates = UpdateChecker()
 
     /// The app's live model, for App Intents and the CLI bridge.
     nonisolated(unsafe) static weak var current: AppModel?
@@ -109,7 +110,7 @@ final class AppModel {
         let tooling = CommandLine.arguments.contains { $0 == "--selftest" || $0 == "--snapshot" }
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         cli = CLIBridge(model: self)
-        if !tooling { cli.refreshRunning() }
+        if !tooling { cli.refreshRunning(); updates.schedule() }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }

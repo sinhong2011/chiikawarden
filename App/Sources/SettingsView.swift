@@ -27,6 +27,7 @@ private struct GeneralSettings: View {
     @State private var autoFillOn: Bool?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
+    @AppStorage(Pref.checkUpdates) private var checkUpdates = false
 
     var body: some View {
         Form {
@@ -51,6 +52,32 @@ private struct GeneralSettings: View {
                 if let loginError {
                     Text(verbatim: loginError).font(.caption).foregroundStyle(.red)
                 }
+            }
+
+            Section {
+                Toggle("Check for updates daily", isOn: $checkUpdates)
+                    .onChange(of: checkUpdates) { model.updates.schedule() }
+                LabeledContent {
+                    HStack(spacing: 8) {
+                        if model.updates.checking { ProgressView().controlSize(.small) }
+                        Button("Check Now") { Task { await model.updates.check() } }
+                    }
+                } label: {
+                    if let release = model.updates.available {
+                        Link("Version \(release.version) is available", destination: release.page)
+                    } else if let error = model.updates.error {
+                        Text(verbatim: error).foregroundStyle(.secondary)
+                    } else if model.updates.lastChecked != nil {
+                        Text("Chiikawarden \(model.updates.current) is up to date.")
+                    } else {
+                        Text("Version \(model.updates.current)")
+                    }
+                }
+            } header: {
+                Text("Updates")
+            } footer: {
+                Text("Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {

@@ -1038,10 +1038,10 @@
     },
     "Allow the browser extension": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "允許瀏覽器延伸功能"
+            "value": "ブラウザ機能拡張を許可"
           }
         },
         "zh-HK": {
@@ -1056,10 +1056,10 @@
             "value": "允许浏览器扩展"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ブラウザ機能拡張を許可"
+            "value": "允許瀏覽器延伸功能"
           }
         }
       }
@@ -1461,10 +1461,10 @@
     },
     "Browser extension": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "瀏覽器延伸功能"
+            "value": "ブラウザ機能拡張"
           }
         },
         "zh-HK": {
@@ -1479,10 +1479,10 @@
             "value": "浏览器扩展"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ブラウザ機能拡張"
+            "value": "瀏覽器延伸功能"
           }
         }
       }
@@ -1739,6 +1739,34 @@
         }
       }
     },
+    "Check Now": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即檢查"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即刻檢查"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即检查"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ確認"
+          }
+        }
+      }
+    },
     "Check again": {
       "localizations": {
         "ja": {
@@ -1795,6 +1823,34 @@
         }
       }
     },
+    "Check for updates daily": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日檢查更新"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日檢查更新"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天检查更新"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎日アップデートを確認"
+          }
+        }
+      }
+    },
     "Checked %@": {
       "localizations": {
         "ja": {
@@ -1847,6 +1903,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在檢查伺服器…"
+          }
+        }
+      }
+    },
+    "Chiikawarden %@ is up to date.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden %@ 已是最新版本。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden %@ 已經係最新版本。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden %@ 已是最新版本。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiikawarden %@ は最新です。"
           }
         }
       }
@@ -2021,7 +2105,7 @@
     },
     "Chrome, Edge, Brave": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "Chrome、Edge、Brave"
@@ -2039,7 +2123,7 @@
             "value": "Chrome、Edge、Brave"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Chrome、Edge、Brave"
@@ -2799,6 +2883,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝 ${item} 的密碼"
+          }
+        }
+      }
+    },
+    "Couldn't check for updates.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法檢查更新。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法檢查更新。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查更新。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認できませんでした。"
           }
         }
       }
@@ -6641,10 +6753,10 @@
     },
     "Not Now": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在不要"
+            "value": "今はしない"
           }
         },
         "zh-HK": {
@@ -6659,10 +6771,10 @@
             "value": "以后再说"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "今はしない"
+            "value": "現在不要"
           }
         }
       }
@@ -7031,6 +7143,34 @@
         }
       }
     },
+    "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只會向 GitHub 查詢最新版本號，不會自動下載或安裝任何東西。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只會向 GitHub 查詢最新版本號，唔會自動下載或安裝任何嘢。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只会向 GitHub 查询最新版本号，不会自动下载或安装任何内容。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub に最新のリリース番号を問い合わせるだけで、自動でダウンロードやインストールはしません。"
+          }
+        }
+      }
+    },
     "Only if your services live on different URLs. Leave empty to use the server URL.": {
       "localizations": {
         "ja": {
@@ -7257,10 +7397,10 @@
     },
     "Open Safari Extensions": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開 Safari 延伸功能"
+            "value": "Safari 機能拡張を開く"
           }
         },
         "zh-HK": {
@@ -7275,10 +7415,10 @@
             "value": "打开 Safari 扩展"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Safari 機能拡張を開く"
+            "value": "打開 Safari 延伸功能"
           }
         }
       }
@@ -8041,10 +8181,10 @@
     },
     "Recent SSH requests": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近的 SSH 請求"
+            "value": "最近の SSH リクエスト"
           }
         },
         "zh-HK": {
@@ -8059,10 +8199,10 @@
             "value": "最近的 SSH 请求"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近の SSH リクエスト"
+            "value": "最近的 SSH 請求"
           }
         }
       }
@@ -8182,10 +8322,10 @@
     },
     "Requested by the Chiikawarden browser extension.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "由 Chiikawarden 瀏覽器延伸功能要求。"
+            "value": "Chiikawarden ブラウザ機能拡張からのリクエストです。"
           }
         },
         "zh-HK": {
@@ -8200,10 +8340,10 @@
             "value": "由 Chiikawarden 浏览器扩展请求。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chiikawarden ブラウザ機能拡張からのリクエストです。"
+            "value": "由 Chiikawarden 瀏覽器延伸功能要求。"
           }
         }
       }
@@ -8603,7 +8743,7 @@
     },
     "Safari": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "Safari"
@@ -8621,7 +8761,7 @@
             "value": "Safari"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Safari"
@@ -8631,10 +8771,10 @@
     },
     "Safari: turn on Chiikawarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run cw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Safari：在 Safari › 設定 › 延伸功能中開啟 Chiikawarden。Chromium 瀏覽器：以「載入未封裝項目」載入資料夾，再執行 cw install-chrome <延伸功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先詢問你。"
+            "value": "Safari：Safari › 設定 › 機能拡張で Chiikawarden をオンにします。Chromium 系ブラウザ：フォルダを「パッケージ化されていない拡張機能」として読み込み、cw install-chrome <拡張機能 ID> を実行します。候補には名前だけが表示され、入力には Touch ID、保存の前には確認があります。"
           }
         },
         "zh-HK": {
@@ -8649,10 +8789,10 @@
             "value": "Safari：在 Safari › 设置 › 扩展中启用 Chiikawarden。Chromium 浏览器：以“加载已解压的扩展程序”加载文件夹，然后运行 cw install-chrome <扩展 ID>。建议只显示名称；填充需要 Touch ID，保存前会先询问你。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Safari：Safari › 設定 › 機能拡張で Chiikawarden をオンにします。Chromium 系ブラウザ：フォルダを「パッケージ化されていない拡張機能」として読み込み、cw install-chrome <拡張機能 ID> を実行します。候補には名前だけが表示され、入力には Touch ID、保存の前には確認があります。"
+            "value": "Safari：在 Safari › 設定 › 延伸功能中開啟 Chiikawarden。Chromium 瀏覽器：以「載入未封裝項目」載入資料夾，再執行 cw install-chrome <延伸功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先詢問你。"
           }
         }
       }
@@ -8771,10 +8911,10 @@
     },
     "Save this login to Chiikawarden? %@": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "要將這個登入資料儲存到 Chiikawarden 嗎？%@"
+            "value": "このログインを Chiikawarden に保存しますか？%@"
           }
         },
         "zh-HK": {
@@ -8789,10 +8929,10 @@
             "value": "要将此登录信息保存到 Chiikawarden 吗？%@"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "このログインを Chiikawarden に保存しますか？%@"
+            "value": "要將這個登入資料儲存到 Chiikawarden 嗎？%@"
           }
         }
       }
@@ -9444,10 +9584,10 @@
     },
     "Show Extension Folder": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示延伸功能資料夾"
+            "value": "機能拡張フォルダを表示"
           }
         },
         "zh-HK": {
@@ -9462,10 +9602,10 @@
             "value": "显示扩展文件夹"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "機能拡張フォルダを表示"
+            "value": "顯示延伸功能資料夾"
           }
         }
       }
@@ -10994,10 +11134,10 @@
             "value": "Update the password for “%1$@” (%2$@)?"
           }
         },
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "要更新「%1$@」（%2$@）的密碼嗎？"
+            "value": "「%1$@」（%2$@）のパスワードを更新しますか？"
           }
         },
         "zh-HK": {
@@ -11012,10 +11152,38 @@
             "value": "要更新“%1$@”（%2$@）的密码吗？"
           }
         },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要更新「%1$@」（%2$@）的密碼嗎？"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%1$@」（%2$@）のパスワードを更新しますか？"
+            "value": "アップデート"
           }
         }
       }
@@ -11439,6 +11607,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "驗證這台 Mac"
+          }
+        }
+      }
+    },
+    "Version %@": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン %@"
+          }
+        }
+      }
+    },
+    "Version %@ is available": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有 %@ 版本"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %@ 版本可用"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 版本可用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン %@ が利用可能です"
           }
         }
       }
@@ -12141,10 +12365,10 @@
             "value": "fill “%1$@” on %2$@"
           }
         },
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 %2$@ 填入「%1$@」"
+            "value": "%2$@ で「%1$@」を入力する"
           }
         },
         "zh-HK": {
@@ -12159,10 +12383,10 @@
             "value": "在 %2$@ 填充“%1$@”"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%2$@ で「%1$@」を入力する"
+            "value": "在 %2$@ 填入「%1$@」"
           }
         }
       }

@@ -57,6 +57,8 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
   and only fills a login on its own site. Saving or updating a login always asks you in the app first.
 - **Shortcuts / Spotlight actions** only expose item names and usernames. Copying a password or a code works
   only while unlocked, and passwords go through the same concealed, auto-clearing clipboard.
+- **Update check** is off by default. When on, it asks GitHub's public API for the latest release number once a
+  day and links to the release page. It never downloads or installs anything by itself.
 - **Leaked-password check** (Watchtower) uses the Have I Been Pwned k-anonymity range API with padding.
   Only the first 5 hex characters of each SHA-1 are sent.
 - **Self-hosted servers**: public `http://` servers are refused, while local-network `http://` is allowed for

@@ -54,3 +54,5 @@ sudo ln -sf /Applications/Chiikawarden.app/Contents/MacOS/cw /usr/local/bin/cw
 
 `cw get github | pbcopy`, `cw code github`, `cw list mail`, `cw generate --length 32`, `cw lock`.
 Reading from the vault asks for Touch ID in the app.
+
+Maintainers: see [docs/RELEASING.md](docs/RELEASING.md) for signing, notarization and the Homebrew cask.
