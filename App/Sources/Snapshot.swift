@@ -57,6 +57,22 @@ enum Snapshot {
                    size: CGSize(width: 340, height: 420), appearance: appearance,
                    to: dir.appending(path: "generator-\(name).png"))
         }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            let locked = AutoFillState()
+            locked.domains = ["github.com"]
+            locked.email = "usagi@chiikawarden.test"
+            locked.touchIDEnabled = true
+            locked.hasAccount = true
+            render(AutoFillView(state: locked).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+                   appearance: appearance, to: dir.appending(path: "autofill-locked-\(name).png"))
+            let open = AutoFillState()
+            open.domains = ["github.com"]
+            open.items = demoItems.filter { $0.kind == .login }
+            open.unlocked = true
+            open.hasAccount = true
+            render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+                   appearance: appearance, to: dir.appending(path: "autofill-list-\(name).png"))
+        }
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {

@@ -16,11 +16,29 @@ struct SavedAccount: Codable, Equatable {
 }
 
 enum AccountStore {
+    /// Shared with the AutoFill extension (team-prefixed group: no provisioning needed on macOS).
+    static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
+
     private static var dir: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let d = base.appending(path: "Account", directoryHint: .isDirectory)
-        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+        let fm = FileManager.default
+        let legacy = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appending(path: "Account", directoryHint: .isDirectory)
+        guard let group = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else { return legacy }
+        let d = group.appending(path: "Account", directoryHint: .isDirectory)
+        // One-time move from the pre-AutoFill location.
+        if !fm.fileExists(atPath: d.path), fm.fileExists(atPath: legacy.path) {
+            try? fm.moveItem(at: legacy, to: d)
+        }
+        try? fm.createDirectory(at: d, withIntermediateDirectories: true)
         return d
+    }
+
+    /// Offline unlock: re-derive the master key; the MAC on the protected user key proves the password.
+    static func unlock(password: String) -> SymmetricKeyPair? {
+        guard let saved = load(),
+              let mk = try? KDF.masterKey(password: password, email: saved.email, config: saved.kdf),
+              let stretched = try? SymmetricKeyPair.stretched(masterKey: mk),
+              let raw = try? EncString(saved.protectedUserKey).decrypt(with: stretched) else { return nil }
+        return try? SymmetricKeyPair(combined: raw)
     }
     private static var accountURL: URL { dir.appending(path: "account.json") }
     private static var cacheURL: URL { dir.appending(path: "vault.json") }

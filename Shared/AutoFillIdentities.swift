@@ -1,0 +1,29 @@
+import AuthenticationServices
+import Foundation
+
+/// Tells macOS which domains/usernames we can fill, so QuickType suggests them. Only identifiers are
+/// shared with the system — never passwords; those come from the extension after unlock.
+enum AutoFillIdentities {
+    static func publish(_ items: [VaultItem]) {
+        let logins = items.filter { !$0.isDeleted && $0.kind == .login }
+        var identities: [any ASCredentialIdentity] = logins.compactMap { item in
+            guard let host = item.host, item.password != nil else { return nil }
+            return ASPasswordCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: host, type: .domain),
+                                                user: item.username ?? "", recordIdentifier: item.id)
+        }
+        identities += logins.compactMap { item in
+            guard let host = item.host, item.totp != nil else { return nil }
+            return ASOneTimeCodeCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: host, type: .domain),
+                                                   label: item.name, recordIdentifier: item.id)
+        }
+        Task {
+            let store = ASCredentialIdentityStore.shared
+            guard await store.state().isEnabled else { return }
+            try? await store.replaceCredentialIdentities(identities)
+        }
+    }
+
+    static func clear() {
+        Task { try? await ASCredentialIdentityStore.shared.removeAllCredentialIdentities() }
+    }
+}

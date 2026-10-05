@@ -4,66 +4,10 @@ import Foundation
 import Observation
 import VaultwardenAPI
 
-struct VaultItem: Identifiable, Hashable {
-    enum Kind: Int { case login = 1, note = 2, card = 3, identity = 4, sshKey = 5 }
-
-    let id: String
-    var kind: Kind = .login
-    let name: String
-    var username: String?
-    let host: String?
-    let password: String?
-    let totp: TOTP?
-    let notes: String?
-    var totpSecret: String?
-    var uri: String?
-    let favorite: Bool
-    var hasPasskey = false
-    var folderId: String?
-    var isDeleted = false
-    var organizationId: String?
-    var collectionIds: [String] = []
-    /// Filled in after sync: how many other items share this password.
-    var reuseCount = 0
-
-    var hasTOTP: Bool { totp != nil }
-
-    /// Extra fields for non-login kinds (card, identity, SSH key), in display order.
-    var fields: [ItemField] = []
-
-    static func == (a: Self, b: Self) -> Bool { a.id == b.id }
-    func hash(into h: inout Hasher) { h.combine(id) }
-}
-
 /// Drives the create/edit sheet.
 struct EditRequest: Identifiable {
     let id = UUID()
     let mode: EditItemSheet.Mode
-}
-
-/// A folder, organization or collection shown in the sidebar.
-struct Grouping: Identifiable, Hashable {
-    let id: String
-    let name: String
-    var children: [Grouping] = []
-}
-
-struct ItemField: Hashable, Identifiable {
-    var id: String { label }
-    let label: String
-    let value: String
-    var secret = false
-    var monospaced = false
-}
-
-extension TOTP: @retroactive Hashable {
-    public func hash(into h: inout Hasher) { h.combine(secret) }
-
-    /// "621 115" — grouped for reading aloud and typing.
-    func displayCode(at date: Date = .now) -> String {
-        let c = code(at: date)
-        return c.prefix(c.count / 2) + " " + c.suffix(c.count - c.count / 2)
-    }
 }
 
 @MainActor @Observable
@@ -218,6 +162,8 @@ final class AppModel {
 
     /// Re-sync when the app comes to the front if the last sync is stale.
     func appDidBecomeActive() {
+        // AutoFill may have just been switched on in System Settings.
+        if isUnlocked { AutoFillIdentities.publish(items) }
         if isUnlocked, (lastSynced.map { Date.now.timeIntervalSince($0) > 60 } ?? true) { scheduleSync() }
     }
 
@@ -238,6 +184,7 @@ final class AppModel {
     /// Sign out on this Mac: forget the session, cached vault and Touch ID.
     func logOut() {
         stopLiveSync()
+        AutoFillIdentities.clear()
         AccountStore.erase()
         touchIDEnabled = false
         userKey = nil
@@ -371,13 +318,8 @@ final class AppModel {
         isBusy = true
         errorMessage = nil
         defer { isBusy = false }
-        let email = saved.email
-        let derived: SymmetricKeyPair? = await Task.detached(priority: .userInitiated) {
-            guard let mk = try? KDF.masterKey(password: password, email: email, config: saved.kdf),
-                  let stretched = try? SymmetricKeyPair.stretched(masterKey: mk),
-                  let raw = try? EncString(saved.protectedUserKey).decrypt(with: stretched) else { return nil }
-            return try? SymmetricKeyPair(combined: raw)
-        }.value
+        _ = saved
+        let derived = await Task.detached(priority: .userInitiated) { AccountStore.unlock(password: password) }.value
         guard let derived else {
             errorMessage = String(localized: "Wrong master password.")
             return
@@ -428,95 +370,14 @@ final class AppModel {
 
     private func load(cache data: Data) throws {
         guard let userKey else { return }
-        let sync = try SyncResponse.decode(data)
-        let keyring = Keyring(userKey: userKey, profile: sync.profile)
-        var hidden = 0
-        rawCiphers = CipherEditor.rawCiphers(fromSync: data)
-        self.keyring = keyring
-        items = sync.ciphers.compactMap { cipher in
-            guard let key = keyring.key(for: cipher) else { hidden += 1; return nil }
-            func dec(_ s: String?) -> String? {
-                s.flatMap { try? EncString($0).decryptString(with: key) }.flatMap { $0.isEmpty ? nil : $0 }
-            }
-            let kind = VaultItem.Kind(rawValue: cipher.type) ?? .login
-            let fullURI = dec(cipher.login?.uris?.first?.uri)
-            let totpSecret = dec(cipher.login?.totp)
-            var item = VaultItem(
-                id: cipher.id,
-                kind: kind,
-                name: dec(cipher.name) ?? "—",
-                username: dec(cipher.login?.username),
-                host: fullURI.flatMap { URL(string: $0)?.host() },
-                password: dec(cipher.login?.password),
-                totp: totpSecret.flatMap(TOTP.init),
-                notes: dec(cipher.notes),
-                totpSecret: totpSecret,
-                uri: fullURI,
-                favorite: cipher.favorite ?? false,
-                hasPasskey: !(cipher.login?.fido2Credentials ?? []).isEmpty,
-                folderId: cipher.folderId,
-                isDeleted: cipher.deletedDate != nil,
-                organizationId: cipher.organizationId,
-                collectionIds: cipher.collectionIds ?? []
-            )
-            switch kind {
-            case .card:
-                let c = cipher.card
-                let number = dec(c?.number)
-                let month = dec(c?.expMonth), year = dec(c?.expYear)
-                item.username = number.map { "•••• " + $0.suffix(4) } ?? dec(c?.brand)
-                item.fields = [
-                    number.map { ItemField(label: String(localized: "Card number"), value: $0, secret: true, monospaced: true) },
-                    dec(c?.cardholderName).map { ItemField(label: String(localized: "Cardholder"), value: $0) },
-                    (month != nil || year != nil) ? ItemField(label: String(localized: "Expires"), value: "\(month ?? "--")/\(year ?? "----")") : nil,
-                    dec(c?.code).map { ItemField(label: String(localized: "Security code"), value: $0, secret: true, monospaced: true) },
-                ].compactMap { $0 }
-            case .identity:
-                let i = cipher.identity
-                let name = [dec(i?.title), dec(i?.firstName), dec(i?.middleName), dec(i?.lastName)].compactMap { $0 }.joined(separator: " ")
-                item.username = name.isEmpty ? dec(i?.email) : name
-                item.fields = [
-                    name.isEmpty ? nil : ItemField(label: String(localized: "Name"), value: name),
-                    dec(i?.email).map { ItemField(label: String(localized: "Email"), value: $0) },
-                    dec(i?.phone).map { ItemField(label: String(localized: "Phone"), value: $0) },
-                    dec(i?.company).map { ItemField(label: String(localized: "Company"), value: $0) },
-                    dec(i?.username).map { ItemField(label: String(localized: "Username"), value: $0) },
-                    [dec(i?.address1), dec(i?.city), dec(i?.country)].compactMap { $0 }.joined(separator: ", ")
-                        .nilIfEmpty.map { ItemField(label: String(localized: "Address"), value: $0) },
-                ].compactMap { $0 }
-            case .sshKey:
-                let k = cipher.sshKey
-                item.username = dec(k?.keyFingerprint)
-                item.fields = [
-                    dec(k?.publicKey).map { ItemField(label: String(localized: "Public key"), value: $0, monospaced: true) },
-                    dec(k?.keyFingerprint).map { ItemField(label: String(localized: "Fingerprint"), value: $0, monospaced: true) },
-                    dec(k?.privateKey).map { ItemField(label: String(localized: "Private key"), value: $0, secret: true, monospaced: true) },
-                ].compactMap { $0 }
-            case .note:
-                item.username = item.notes.map { String($0.prefix(60)) }
-            case .login:
-                break
-            }
-            return item
-        }
-        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        let counts = Dictionary(items.filter { !$0.isDeleted }.compactMap(\.password).map { ($0, 1) }, uniquingKeysWith: +)
-        for i in items.indices {
-            if let pw = items[i].password { items[i].reuseCount = (counts[pw] ?? 1) - 1 }
-        }
-        skippedOrgItems = hidden
-        folders = (sync.folders ?? []).compactMap { f in
-            (try? EncString(f.name).decryptString(with: userKey)).map { Grouping(id: f.id, name: $0) }
-        }
-        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        organizations = (sync.profile.organizations ?? []).compactMap { org in
-            guard let orgKey = keyring.orgKeys[org.id] else { return nil }
-            let collections = (sync.collections ?? []).filter { $0.organizationId == org.id }.compactMap { c in
-                (try? EncString(c.name).decryptString(with: orgKey)).map { Grouping(id: c.id, name: $0) }
-            }
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            return Grouping(id: org.id, name: org.name ?? String(localized: "Organization"), children: collections)
-        }
+        let vault = try VaultDecoder.decode(data, userKey: userKey)
+        items = vault.items
+        folders = vault.folders
+        organizations = vault.organizations
+        skippedOrgItems = vault.hiddenCount
+        keyring = vault.keyring
+        rawCiphers = vault.rawCiphers
+        AutoFillIdentities.publish(vault.items)
     }
 
     // MARK: Editing
@@ -686,8 +547,4 @@ final class AppModel {
             errorMessage = error.localizedDescription
         }
     }
-}
-
-extension String {
-    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

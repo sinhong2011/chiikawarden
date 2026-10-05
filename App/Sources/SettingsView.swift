@@ -1,4 +1,5 @@
 import AppKit
+import AuthenticationServices
 import ServiceManagement
 import SwiftUI
 import UniformTypeIdentifiers
@@ -19,7 +20,9 @@ struct SettingsView: View {
 // MARK: General
 
 private struct GeneralSettings: View {
+    @Environment(AppModel.self) private var model
     @AppStorage(Pref.appearance) private var appearance = "system"
+    @State private var autoFillOn: Bool?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
 
@@ -46,6 +49,30 @@ private struct GeneralSettings: View {
                 if let loginError {
                     Text(verbatim: loginError).font(.caption).foregroundStyle(.red)
                 }
+            }
+
+            Section {
+                LabeledContent("AutoFill") {
+                    HStack(spacing: 10) {
+                        if let autoFillOn {
+                            Label(autoFillOn ? "On" : "Off", systemImage: autoFillOn ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(autoFillOn ? .green : .secondary)
+                        }
+                        Button(autoFillOn == true ? "Settings…" : "Turn On…") {
+                            ASSettingsHelper.openCredentialProviderAppSettings { _ in }
+                        }
+                    }
+                }
+            } footer: {
+                Text("Fill passwords and verification codes in Safari, Chrome and apps. Turn on Chiikawarden in System Settings › General › AutoFill & Passwords.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .task {
+                autoFillOn = await ASCredentialIdentityStore.shared.state().isEnabled
+                if autoFillOn == true { AutoFillIdentities.publish(model.items) }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                Task { autoFillOn = await ASCredentialIdentityStore.shared.state().isEnabled }
             }
 
             Section {
