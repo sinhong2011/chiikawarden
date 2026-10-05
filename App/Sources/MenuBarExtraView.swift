@@ -33,7 +33,11 @@ struct MenuBarContent: View {
 
     private var topRow: some View {
         HStack(spacing: 8) {
-            Button { model.openPalette() } label: {
+            Button {
+                // Close the menu bar panel first so the palette takes its place.
+                NSApp.keyWindow?.orderOut(nil)
+                DispatchQueue.main.async { model.openPalette() }
+            } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").font(.system(size: 12, weight: .semibold))
                     Text("Search vault").font(.system(size: 13))
@@ -66,12 +70,13 @@ struct MenuBarContent: View {
             Circle().fill(model.isOnline ? Color.green : Color.secondary).frame(width: 7, height: 7)
             Group {
                 if let synced = model.lastSynced {
-                    Text(verbatim: "\(model.serverDisplayName) · ") + Text("synced \(synced.formatted(.relative(presentation: .named)))")
+                    Text("Synced \(synced.formatted(.relative(presentation: .named)))")
                 } else {
                     Text(model.isUnlocked ? "Offline · saved vault" : "Locked")
                 }
             }
             .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+            .help(Text(verbatim: model.serverDisplayName))
             Spacer()
             if model.isUnlocked, model.watchtowerIssueCount > 0 {
                 Button {

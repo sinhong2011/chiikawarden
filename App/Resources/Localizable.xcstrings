@@ -5051,10 +5051,10 @@
     },
     "Hide password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "隱藏密碼"
+            "value": "パスワードを隠す"
           }
         },
         "zh-HK": {
@@ -5069,10 +5069,10 @@
             "value": "隐藏密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードを隠す"
+            "value": "隱藏密碼"
           }
         }
       }
@@ -10183,10 +10183,10 @@
     },
     "Show password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示密碼"
+            "value": "パスワードを表示"
           }
         },
         "zh-HK": {
@@ -10201,10 +10201,10 @@
             "value": "显示密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードを表示"
+            "value": "顯示密碼"
           }
         }
       }
@@ -10500,19 +10500,19 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "已於%@同步"
+            "value": "%@同步"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已于%@同步"
+            "value": "%@同步"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已於%@同步"
+            "value": "%@同步"
           }
         }
       }
@@ -13281,6 +13281,7 @@
       }
     },
     "synced %@": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {

@@ -69,7 +69,8 @@ final class QuickSearchController {
                                      styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
                                      backing: .buffered, defer: false)
         panel.isFloatingPanel = true
-        panel.level = .floating
+        // Above menu bar extras (status-bar level) so it never opens underneath one, like Spotlight.
+        panel.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.backgroundColor = .clear
         panel.isOpaque = false
