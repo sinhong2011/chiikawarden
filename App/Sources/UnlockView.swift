@@ -36,13 +36,19 @@ private struct UnlockForm: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
-                HStack(spacing: 6) {
-                    Monogram(name: model.email, size: 18)
-                    Text(verbatim: model.email).fontWeight(.medium)
-                    Text(verbatim: "·").foregroundStyle(.tertiary)
-                    Text(verbatim: model.serverSummary).foregroundStyle(.secondary).lineLimit(1)
+                if model.accounts.count <= 1, let account = model.unlockTarget {
+                    HStack(spacing: 6) {
+                        Monogram(name: account.email, size: 18)
+                        Text(verbatim: account.email).fontWeight(.medium)
+                        Text(verbatim: "·").foregroundStyle(.tertiary)
+                        Text(verbatim: account.serverSummary).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    .font(.system(size: 13))
                 }
-                .font(.system(size: 13))
+            }
+
+            if model.accounts.count > 1 {
+                AccountChooser()
             }
 
             if model.touchIDEnabled {
@@ -91,7 +97,7 @@ private struct UnlockForm: View {
 
                 HStack(spacing: 4) {
                     Text("Not you?").foregroundStyle(.secondary)
-                    Button("Log out") { model.logOut() }.buttonStyle(.link)
+                    Button("Log out") { model.logOut(model.unlockTarget?.id) }.buttonStyle(.link)
                 }
                 .font(.system(size: 12))
             }
@@ -124,5 +130,40 @@ private struct Shake: GeometryEffect {
 
     func effectValue(size: CGSize) -> ProjectionTransform {
         ProjectionTransform(CGAffineTransform(translationX: 8 * sin(progress * .pi * 6), y: 0))
+    }
+}
+
+/// Which saved account the master password is for (shown when there are several).
+private struct AccountChooser: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                let selected = account.id == model.unlockTarget?.id
+                Button { model.unlockTargetID = account.id; model.errorMessage = nil } label: {
+                    HStack(spacing: 10) {
+                        Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(verbatim: account.email).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                            Text(verbatim: account.serverSummary).font(.system(size: 11)).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if model.isTouchIDEnabled(account.id) {
+                            Image(systemName: "touchid").font(.system(size: 12)).foregroundStyle(.secondary)
+                        }
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selected ? Color.brand : Color.secondary.opacity(0.5))
+                    }
+                    .padding(.horizontal, 12).frame(height: 44)
+                    .background(selected ? Color.brand.opacity(0.08) : Color(nsColor: .controlBackgroundColor),
+                                in: .rect(cornerRadius: 10, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(selected ? Color.brand : Color(nsColor: .separatorColor), lineWidth: selected ? 1.5 : 1))
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }

@@ -68,6 +68,9 @@ struct ChiikawardenApp: App {
                 Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
+                Divider()
+                Button("Add Account…") { model.beginAddAccount() }
+                    .disabled(!model.isUnlocked)
             }
             CommandMenu("Item") {
                 let item = model.selectedItem

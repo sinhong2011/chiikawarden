@@ -33,6 +33,19 @@ enum Snapshot {
                    to: dir.appending(path: "unlock-\(name).png"))
         }
 
+        let multi = AppModel()
+        multi.setPreviewAccounts([
+            SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+                         kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
+            SavedAccount(id: "b", email: "usagi@work.example", serverKind: "bitwardenUS", serverURL: "",
+                         kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
+        ])
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(UnlockView().environment(multi).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 640), appearance: appearance,
+                   to: dir.appending(path: "unlock-multi-\(name).png"))
+        }
+
         let vault = AppModel()
         vault.phase = .vault
         vault.items = demoItems
@@ -142,22 +155,25 @@ enum Snapshot {
 /// real (signed, sandboxed) app: log in → lock → offline unlock from cache → resume session → wrong password → log out.
 @MainActor
 enum SelfTest {
+    /// `--selftest <server> <email> <password> [<second email> <second password>]`
     static func runIfRequested() {
         let args = CommandLine.arguments
         guard let i = args.firstIndex(of: "--selftest"), i + 3 < args.count else { return }
         let (server, email, password) = (args[i + 1], args[i + 2], args[i + 3])
+        let second = i + 5 < args.count ? (args[i + 4], args[i + 5]) : nil
         Task {
             var failures = 0
             func check(_ ok: Bool, _ what: String) { print(ok ? "PASS" : "FAIL", what); if !ok { failures += 1 } }
 
             let model = AppModel()
-            model.logOut()
+            for account in model.accounts { model.logOut(account.id) }
             model.serverKind = .selfHosted
             model.serverURL = server
             model.email = email
             await model.login(password: password)
+            let firstID = SavedAccount.makeID(serverKind: "selfHosted", serverURL: server, email: email)
             check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items)")
-            check(AccountStore.load() != nil && AccountStore.loadCache() != nil && AccountStore.refreshToken != nil,
+            check(AccountStore.load(firstID) != nil && AccountStore.loadCache(firstID) != nil && AccountStore.refreshToken(firstID) != nil,
                   "account, encrypted cache and refresh token persisted")
             let count = model.items.count
             let org = model.organizations.first
@@ -187,11 +203,38 @@ enum SelfTest {
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
+            // Second account: merged list, per-account lock and unlock.
+            var secondID: String?
+            if let (email2, password2) = second {
+                model.beginAddAccount()
+                model.serverKind = .selfHosted
+                model.serverURL = server
+                model.email = email2
+                await model.login(password: password2)
+                let id2 = SavedAccount.makeID(serverKind: "selfHosted", serverURL: server, email: email2)
+                secondID = id2
+                let fromFirst = model.items.filter { $0.accountId == firstID }.count
+                let fromSecond = model.items.filter { $0.accountId == id2 }.count
+                check(model.accounts.count == 2 && model.sessions.count == 2 && fromFirst == count && fromSecond > 0,
+                      "second account merged (\(fromFirst) + \(fromSecond) items)")
+                let created2 = await model.createItem(.secureNote, edit: CipherEdit(name: "Second-account note", notes: "x"), accountId: id2)
+                let note = model.items.first { $0.name == "Second-account note" }
+                check(created2 && note?.accountId == id2, "new item goes to the chosen account")
+                if let note { await model.deleteForever(note) }
+                model.lock(id2)
+                check(model.isUnlocked && model.sessions.count == 1 && !model.items.contains { $0.accountId == id2 },
+                      "lock one account, keep the other open")
+                await model.unlock(password: password2, accountId: id2)
+                check(model.sessions.count == 2 && model.items.contains { $0.accountId == id2 }, "unlock that account again")
+            }
+
             model.lock()
             check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")
 
             let fresh = AppModel() // simulates relaunch
-            check(fresh.phase.id == AppModel.Phase.locked.id, "relaunch starts locked")
+            check(fresh.phase.id == AppModel.Phase.locked.id && fresh.accounts.count == (second == nil ? 1 : 2),
+                  "relaunch starts locked with \(fresh.accounts.count) saved account(s)")
+            fresh.unlockTargetID = firstID
             await fresh.unlock(password: "definitely-wrong")
             check(!fresh.isUnlocked && fresh.errorMessage != nil, "wrong password rejected offline")
             await fresh.unlock(password: password)
@@ -213,8 +256,14 @@ enum SelfTest {
                 }
             }
 
-            fresh.logOut()
-            check(AccountStore.load() == nil && AccountStore.refreshToken == nil, "log out erases account and token")
+            if let secondID {
+                fresh.logOut(secondID)
+                check(fresh.accounts.count == 1 && AccountStore.load(secondID) == nil && fresh.isUnlocked,
+                      "log out one account, the other stays")
+            }
+            fresh.logOut(firstID)
+            check(AccountStore.load(firstID) == nil && AccountStore.refreshToken(firstID) == nil && fresh.phase.id == AppModel.Phase.login.id,
+                  "log out erases account and token")
             print(failures == 0 ? "SELFTEST OK" : "SELFTEST FAILED (\(failures))")
             exit(failures == 0 ? 0 : 1)
         }

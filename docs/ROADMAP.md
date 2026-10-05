@@ -28,7 +28,7 @@ You can replace the official desktop app for **reading** your vault:
 
 ## v0.2 — "use it instead of the browser extension"
 
-- **Multiple accounts** (e.g. personal Vaultwarden + work Bitwarden), one merged list with per-account colour and filter
+- ✅ **Multiple accounts** (e.g. personal Vaultwarden + work Bitwarden): merged list with per-account colour and filter, per-account lock/unlock and Touch ID (one touch opens all), AutoFill across accounts
 - ✅ AutoFill credential provider extension (passwords, one-time codes) — system-wide; QuickType suggestions; unlock required for every fill
 - Passkey provider
 - ✅ Create / edit logins & notes (lossless patching: item key, passkeys, history kept; conflict-safe), Trash (restore / delete forever), password generator (unbiased CSPRNG), hold ⌥ to reveal, Item menu shortcuts

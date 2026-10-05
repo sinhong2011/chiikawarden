@@ -15,9 +15,16 @@ final class AutoFillState {
     var unlocked = false
     var busy = false
     var error: String?
-    var touchIDEnabled = AccountStore.isTouchIDEnabled
-    var email = AccountStore.load()?.email ?? ""
-    var hasAccount = AccountStore.load() != nil
+    var accounts = AccountStore.accounts()
+    /// Account the master-password field unlocks (when there are several).
+    var selectedAccountID = AccountStore.accounts().first?.id
+    var touchIDEnabled = AccountStore.accounts().contains { AccountStore.isTouchIDEnabled($0.id) }
+    var email: String {
+        get { accounts.first { $0.id == selectedAccountID }?.email ?? storedEmail }
+        set { storedEmail = newValue }
+    }
+    private var storedEmail = ""
+    var hasAccount = !AccountStore.accounts().isEmpty
 
     var completePassword: (String, String) -> Void = { _, _ in }
     var completeCode: (String) -> Void = { _ in }
@@ -35,25 +42,30 @@ final class AutoFillState {
     }
 
     func unlock(password: String) async {
+        guard let id = selectedAccountID else { return }
         busy = true
         defer { busy = false }
-        let key = await Task.detached(priority: .userInitiated) { AccountStore.unlock(password: password) }.value
+        let key = await Task.detached(priority: .userInitiated) { AccountStore.unlock(id, password: password) }.value
         guard let key else { error = String(localized: "Wrong master password."); return }
-        open(with: key)
+        open(with: [id: key])
     }
 
+    /// One prompt opens every account that has Touch ID turned on.
     func unlockWithTouchID() async {
-        let reason = String(localized: "fill a password")
-        guard let key = await Task.detached(operation: { try? AccountStore.unlockWithTouchID(reason: reason) }).value else { return }
-        open(with: key)
+        let keys = await AccountStore.unlockAllWithTouchID(accounts.map(\.id), reason: String(localized: "fill a password"))
+        if !keys.isEmpty { open(with: keys) }
     }
 
-    private func open(with key: SymmetricKeyPair) {
-        guard let cache = AccountStore.loadCache(), let vault = try? VaultDecoder.decode(cache, userKey: key) else {
+    private func open(with keys: [String: SymmetricKeyPair]) {
+        let vaults = keys.compactMap { id, key in
+            AccountStore.loadCache(id).flatMap { try? VaultDecoder.decode($0, userKey: key, accountId: id) }
+        }
+        guard !vaults.isEmpty else {
             error = String(localized: "Open Chiikawarden once to download your vault.")
             return
         }
-        items = vault.items.filter { !$0.isDeleted && $0.kind == .login }
+        items = vaults.flatMap(\.items).filter { !$0.isDeleted && $0.kind == .login }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         unlocked = true
         error = nil
         // A QuickType pick fills immediately after unlock.
@@ -118,7 +130,15 @@ private struct UnlockPane: View {
             Spacer()
             Image(systemName: "lock.fill").font(.system(size: 28)).foregroundStyle(.secondary)
             Text("Unlock to fill").font(.system(size: 17, weight: .semibold))
-            Text(verbatim: state.email).foregroundStyle(.secondary)
+            if state.accounts.count > 1 {
+                Picker("Account", selection: $state.selectedAccountID) {
+                    ForEach(state.accounts) { Text(verbatim: "\($0.email) · \($0.serverSummary)").tag(String?.some($0.id)) }
+                }
+                .labelsHidden()
+                .frame(width: 280)
+            } else {
+                Text(verbatim: state.email).foregroundStyle(.secondary)
+            }
             if state.touchIDEnabled {
                 Button { Task { await state.unlockWithTouchID() } } label: {
                     Label("Unlock with Touch ID", systemImage: "touchid")

@@ -8,6 +8,7 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             Tab("General", systemImage: "gearshape") { GeneralSettings() }
+            Tab("Accounts", systemImage: "person.2") { AccountsSettings() }
             Tab("Security", systemImage: "lock.shield") { SecuritySettings() }
             Tab("Server", systemImage: "server.rack") { ServerSettings() }
             Tab("About", systemImage: "info.circle") { AboutSettings() }
@@ -133,19 +134,85 @@ private struct SecuritySettings: View {
                 Text("Copied secrets are marked as concealed, so clipboard managers skip them.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-
-            Section {
-                Toggle("Unlock with Touch ID", isOn: Binding(get: { model.touchIDEnabled }, set: { model.setTouchID($0) }))
-                    .disabled(!AccountStore.isTouchIDAvailable || (!model.isUnlocked && !model.touchIDEnabled))
-            } footer: {
-                Text(AccountStore.isTouchIDAvailable
-                     ? "Your vault key is sealed by the Secure Enclave and only released after Touch ID. Unlock once to turn this on."
-                     : "This Mac has no Touch ID available.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
         }
         .formStyle(.grouped)
     }
+}
+
+// MARK: Accounts
+
+private struct AccountsSettings: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismissWindow) private var dismissWindow
+    @State private var confirmLogOut: SavedAccount?
+
+    var body: some View {
+        Form {
+            Section {
+                if model.accounts.isEmpty {
+                    Text("No accounts yet.").foregroundStyle(.secondary)
+                }
+                ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                    let unlocked = model.isUnlocked(account.id)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 10) {
+                            Circle().fill(AccountColor.color(index)).frame(width: 10, height: 10)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(verbatim: account.email).fontWeight(.semibold)
+                                Text(verbatim: account.serverSummary).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Label(unlocked ? "Unlocked" : "Locked", systemImage: unlocked ? "lock.open" : "lock")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        HStack {
+                            Toggle("Unlock with Touch ID", isOn: Binding(
+                                get: { model.isTouchIDEnabled(account.id) },
+                                set: { model.setTouchID($0, for: account.id) }))
+                                .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
+                            Spacer()
+                            if unlocked {
+                                Button("Lock") { model.lock(account.id) }
+                            }
+                            Button("Log Out…", role: .destructive) { confirmLogOut = account }
+                        }
+                        .font(.callout)
+                    }
+                    .padding(.vertical, 4)
+                }
+            } footer: {
+                Text(AccountStore.isTouchIDAvailable
+                     ? "Touch ID seals each account's key in the Secure Enclave. Unlock an account once to turn it on; one touch then opens every account that has it."
+                     : "This Mac has no Touch ID available.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
+                HStack {
+                    Spacer()
+                    Button("Add Account…") {
+                        model.beginAddAccount()
+                        NSApp.activate()
+                        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .confirmationDialog("Log out of \(confirmLogOut?.email ?? "")?", isPresented: Binding(
+            get: { confirmLogOut != nil }, set: { if !$0 { confirmLogOut = nil } })) {
+            Button("Log Out", role: .destructive) {
+                if let id = confirmLogOut?.id { model.logOut(id) }
+            }
+        } message: {
+            Text("This removes the account and its saved vault from this Mac. Your data stays on the server.")
+        }
+    }
+}
+
+/// Stable colour per account position, used for dots in the sidebar and lists.
+enum AccountColor {
+    static let palette: [Color] = [.blue, .orange, .green, .purple, .pink, .teal, .indigo, .brown]
+    static func color(_ index: Int) -> Color { palette[index % palette.count] }
 }
 
 // MARK: Server
@@ -159,16 +226,6 @@ private struct ServerSettings: View {
 
     var body: some View {
         Form {
-            Section("Account") {
-                LabeledContent("Server") { Text(verbatim: model.serverSummary).textSelection(.enabled) }
-                LabeledContent("Email") { Text(verbatim: model.email.isEmpty ? "—" : model.email).textSelection(.enabled) }
-                HStack {
-                    Spacer()
-                    Button("Log Out", role: .destructive) { model.logOut() }
-                        .disabled(model.email.isEmpty && !model.isUnlocked)
-                }
-            }
-
             Section {
                 if cas.isEmpty {
                     Text("Using the system's trusted certificates.").foregroundStyle(.secondary)

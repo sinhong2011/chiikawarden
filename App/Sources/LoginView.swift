@@ -138,6 +138,12 @@ private struct LoginForm: View {
                         .buttonStyle(.plain)
                         .foregroundStyle(.secondary)
                         .font(.system(size: 12))
+                } else if model.addingAccount {
+                    Button("Cancel") { model.cancelAddAccount() }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .font(.system(size: 12))
+                        .keyboardShortcut(.cancelAction)
                 }
             }
             .padding(.top, 4)

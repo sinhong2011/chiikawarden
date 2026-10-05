@@ -13,7 +13,7 @@ struct DecodedVault {
 }
 
 enum VaultDecoder {
-    static func decode(_ data: Data, userKey: SymmetricKeyPair) throws -> DecodedVault {
+    static func decode(_ data: Data, userKey: SymmetricKeyPair, accountId: String = "") throws -> DecodedVault {
         let sync = try SyncResponse.decode(data)
         let keyring = Keyring(userKey: userKey, profile: sync.profile)
         var hidden = 0
@@ -27,6 +27,7 @@ enum VaultDecoder {
             let totpSecret = dec(cipher.login?.totp)
             var item = VaultItem(
                 id: cipher.id,
+                accountId: accountId,
                 kind: kind,
                 name: dec(cipher.name) ?? "—",
                 username: dec(cipher.login?.username),

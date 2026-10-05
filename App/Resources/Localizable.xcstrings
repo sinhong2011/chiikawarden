@@ -60,6 +60,34 @@
         }
       }
     },
+    "%lld accounts": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個帳號"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個帳戶"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个账户"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件のアカウント"
+          }
+        }
+      }
+    },
     "1 hour": {
       "localizations": {
         "ja": {
@@ -371,6 +399,90 @@
         }
       }
     },
+    "Account locked": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號已鎖定"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳戶已鎖定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户已锁定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントはロックされています"
+          }
+        }
+      }
+    },
+    "Accounts": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳戶"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウント"
+          }
+        }
+      }
+    },
+    "Add Account…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入帳號…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入帳戶…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加账户…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントを追加…"
+          }
+        }
+      }
+    },
     "Add Certificate…": {
       "localizations": {
         "ja": {
@@ -569,10 +681,10 @@
     },
     "AutoFill": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "自動填入"
+            "value": "自動入力"
           }
         },
         "zh-HK": {
@@ -587,10 +699,10 @@
             "value": "自动填充"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "自動入力"
+            "value": "自動填入"
           }
         }
       }
@@ -1916,10 +2028,10 @@
     },
     "Fill": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "填入"
+            "value": "入力"
           }
         },
         "zh-HK": {
@@ -1934,20 +2046,20 @@
             "value": "填充"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "入力"
+            "value": "填入"
           }
         }
       }
     },
     "Fill code": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "填入驗證碼"
+            "value": "コードを入力"
           }
         },
         "zh-HK": {
@@ -1962,20 +2074,20 @@
             "value": "填充验证码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "コードを入力"
+            "value": "填入驗證碼"
           }
         }
       }
     },
     "Fill passwords and verification codes in Safari, Chrome and apps. Turn on Chiikawarden in System Settings › General › AutoFill & Passwords.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Chiikawarden。"
+            "value": "Safari、Chrome、アプリでパスワードと確認コードを入力します。「システム設定 › 一般 › 自動入力とパスワード」で Chiikawarden をオンにしてください。"
           }
         },
         "zh-HK": {
@@ -1990,10 +2102,10 @@
             "value": "在 Safari、Chrome 和 App 中填充密码和验证码。请在“系统设置 › 通用 › 自动填充与密码”中打开 Chiikawarden。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Safari、Chrome、アプリでパスワードと確認コードを入力します。「システム設定 › 一般 › 自動入力とパスワード」で Chiikawarden をオンにしてください。"
+            "value": "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Chiikawarden。"
           }
         }
       }
@@ -2390,6 +2502,34 @@
         }
       }
     },
+    "Lock": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロック"
+          }
+        }
+      }
+    },
     "Lock Vault": {
       "localizations": {
         "ja": {
@@ -2474,6 +2614,34 @@
         }
       }
     },
+    "Locked": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已鎖定"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已鎖定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已锁定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロック中"
+          }
+        }
+      }
+    },
     "Log Out": {
       "localizations": {
         "ja": {
@@ -2498,6 +2666,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "登出"
+          }
+        }
+      }
+    },
+    "Log Out…": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登出…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登出…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出登录…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログアウト…"
           }
         }
       }
@@ -2554,6 +2750,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "登出"
+          }
+        }
+      }
+    },
+    "Log out of %@?": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要登出 %@ 嗎？"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要登出 %@ 嗎？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要退出 %@ 吗？"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ からログアウトしますか？"
           }
         }
       }
@@ -3034,12 +3258,40 @@
         }
       }
     },
-    "No logins for this site": {
+    "No accounts yet.": {
       "localizations": {
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此網站沒有登入資料"
+            "value": "尚無帳號。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚無帳戶。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有账户。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントはまだありません。"
+          }
+        }
+      }
+    },
+    "No logins for this site": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサイトのログインはありません"
           }
         },
         "zh-HK": {
@@ -3054,10 +3306,10 @@
             "value": "此网站没有登录信息"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "このサイトのログインはありません"
+            "value": "此網站沒有登入資料"
           }
         }
       }
@@ -3092,10 +3344,10 @@
     },
     "Not signed in": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未登入"
+            "value": "サインインしていません"
           }
         },
         "zh-HK": {
@@ -3110,10 +3362,10 @@
             "value": "尚未登录"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "サインインしていません"
+            "value": "尚未登入"
           }
         }
       }
@@ -3176,10 +3428,10 @@
     },
     "Off": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "關閉"
+            "value": "オフ"
           }
         },
         "zh-HK": {
@@ -3194,10 +3446,10 @@
             "value": "关闭"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "オフ"
+            "value": "關閉"
           }
         }
       }
@@ -3232,10 +3484,10 @@
     },
     "On": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "開啟"
+            "value": "オン"
           }
         },
         "zh-HK": {
@@ -3250,10 +3502,10 @@
             "value": "打开"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "オン"
+            "value": "開啟"
           }
         }
       }
@@ -3344,10 +3596,10 @@
     },
     "Open Chiikawarden and log in first.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請先打開 Chiikawarden 並登入。"
+            "value": "まず Chiikawarden を開いてログインしてください。"
           }
         },
         "zh-HK": {
@@ -3362,20 +3614,20 @@
             "value": "请先打开 Chiikawarden 并登录。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "まず Chiikawarden を開いてログインしてください。"
+            "value": "請先打開 Chiikawarden 並登入。"
           }
         }
       }
     },
     "Open Chiikawarden once to download your vault.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "請先打開 Chiikawarden 一次以下載保險庫。"
+            "value": "保管庫をダウンロードするため、一度 Chiikawarden を開いてください。"
           }
         },
         "zh-HK": {
@@ -3390,10 +3642,10 @@
             "value": "请先打开 Chiikawarden 一次以下载密码库。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保管庫をダウンロードするため、一度 Chiikawarden を開いてください。"
+            "value": "請先打開 Chiikawarden 一次以下載保險庫。"
           }
         }
       }
@@ -4184,10 +4436,10 @@
     },
     "Search to fill from any item.": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜尋以從任何項目填入。"
+            "value": "検索して任意の項目から入力できます。"
           }
         },
         "zh-HK": {
@@ -4202,10 +4454,10 @@
             "value": "搜索以从任何项目填充。"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "検索して任意の項目から入力できます。"
+            "value": "搜尋以從任何項目填入。"
           }
         }
       }
@@ -4492,7 +4744,7 @@
     },
     "Settings…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "設定…"
@@ -4510,7 +4762,7 @@
             "value": "设置…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "設定…"
@@ -4882,6 +5134,34 @@
         }
       }
     },
+    "This removes the account and its saved vault from this Mac. Your data stays on the server.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會從這部 Mac 移除此帳號及其儲存的保險庫，伺服器上的資料不受影響。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會從這部 Mac 移除此帳戶及其儲存的保險庫，伺服器上的資料不受影響。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会从这台 Mac 移除此账户及其保存的密码库，服务器上的数据不受影响。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この Mac からアカウントと保存された保管庫を削除します。サーバー上のデータはそのまま残ります。"
+          }
+        }
+      }
+    },
     "Toggle Favorite": {
       "localizations": {
         "ja": {
@@ -4912,6 +5192,34 @@
     },
     "Touch ID": {
       "shouldTranslate": false
+    },
+    "Touch ID seals each account's key in the Secure Enclave. Unlock an account once to turn it on; one touch then opens every account that has it.": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID 會把每個帳號的金鑰封存在安全隔離區。先解鎖帳號一次即可開啟；之後按一下就能打開所有已啟用的帳號。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID 會把每個帳戶的密碼匙封存在安全隔離區。先解鎖帳戶一次即可開啟；之後按一下就能打開所有已啟用的帳戶。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触控 ID 会把每个账户的密钥封存在安全隔区。先解锁账户一次即可打开；之后一触即可打开所有已启用的账户。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID は各アカウントの鍵を Secure Enclave で保護します。一度ロックを解除するとオンにでき、以後ワンタッチで有効なすべてのアカウントが開きます。"
+          }
+        }
+      }
     },
     "Touch ID · Safari, Chrome": {
       "localizations": {
@@ -4999,10 +5307,10 @@
     },
     "Turn On…": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "開啟…"
+            "value": "オンにする…"
           }
         },
         "zh-HK": {
@@ -5017,10 +5325,10 @@
             "value": "打开…"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "オンにする…"
+            "value": "開啟…"
           }
         }
       }
@@ -5083,10 +5391,10 @@
     },
     "Unlock to fill": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "解鎖以填入"
+            "value": "ロックを解除して入力"
           }
         },
         "zh-HK": {
@@ -5101,10 +5409,10 @@
             "value": "解锁以填充"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "ロックを解除して入力"
+            "value": "解鎖以填入"
           }
         }
       }
@@ -5133,6 +5441,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "用 Touch ID 解鎖"
+          }
+        }
+      }
+    },
+    "Unlocked": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解鎖"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解鎖"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解锁"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロック解除中"
           }
         }
       }
@@ -5728,34 +6064,6 @@
         }
       }
     },
-    "Your vault key is sealed by the Secure Enclave and only released after Touch ID. Unlock once to turn this on.": {
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保管庫の鍵は Secure Enclave で保護され、Touch ID の後にのみ使用されます。オンにするには一度ロックを解除してください。"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保險庫密碼匙由安全隔離區封存，只有通過 Touch ID 才會釋出。請先解鎖一次再開啟。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "密码库密钥由安全隔区封存，只有通过触控 ID 才会释放。请先解锁一次再打开。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保險庫金鑰由安全隔離區封存，只有通過 Touch ID 才會釋出。請先解鎖一次再開啟。"
-          }
-        }
-      }
-    },
     "bitwarden.com": {
       "shouldTranslate": false
     },
@@ -5792,10 +6100,10 @@
     },
     "fill a password": {
       "localizations": {
-        "zh-Hant": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "填入密碼"
+            "value": "パスワードを入力"
           }
         },
         "zh-HK": {
@@ -5810,10 +6118,10 @@
             "value": "填充密码"
           }
         },
-        "ja": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "パスワードを入力"
+            "value": "填入密碼"
           }
         }
       }

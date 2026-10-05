@@ -21,12 +21,19 @@ struct EditItemSheet: View {
     @State private var uri = ""
     @State private var notes = ""
     @State private var folderId: String?
+    @State private var accountId: String?
     @State private var showPassword = false
     @State private var showGenerator = false
     @State private var saving = false
     @FocusState private var focus: Field?
 
     enum Field { case name }
+
+    /// Folders belong to one account; only offer the item's (or the chosen) account's folders.
+    private var accountFolders: [Grouping] {
+        let id: String? = if case .edit(let item) = mode { item.accountId } else { accountId }
+        return id.flatMap { model.session(for: $0)?.folders } ?? model.folders
+    }
 
     private var isLogin: Bool {
         switch mode {
@@ -54,12 +61,18 @@ struct EditItemSheet: View {
             .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
             Form {
                 Section {
+                    if case .create = mode, model.sessions.count > 1 {
+                        Picker("Account", selection: $accountId) {
+                            ForEach(model.sessions, id: \.id) { Text(verbatim: "\($0.account.email) · \($0.account.serverSummary)").tag(String?.some($0.id)) }
+                        }
+                        .onChange(of: accountId) { folderId = nil }
+                    }
                     TextField("Name", text: $name, prompt: Text("e.g. GitHub"))
                         .focused($focus, equals: .name)
-                    if !model.folders.isEmpty {
+                    if !accountFolders.isEmpty {
                         Picker("Folder", selection: $folderId) {
                             Text("No Folder").tag(String?.none)
-                            ForEach(model.folders) { Text($0.name).tag(String?.some($0.id)) }
+                            ForEach(accountFolders) { Text($0.name).tag(String?.some($0.id)) }
                         }
                     }
                 }
@@ -143,6 +156,7 @@ struct EditItemSheet: View {
 
     private func load() {
         focus = .name
+        accountId = model.defaultAccountId
         guard case .edit(let item) = mode else { return }
         name = item.name
         username = item.username ?? ""
@@ -162,7 +176,7 @@ struct EditItemSheet: View {
             ok = await model.createItem(kind, edit: CipherEdit(
                 name: name, notes: notes, username: kind == .login ? username : nil,
                 password: kind == .login ? password : nil, totp: kind == .login ? totp : nil,
-                uri: kind == .login ? uri : nil, folderId: .some(folderId)))
+                uri: kind == .login ? uri : nil, folderId: .some(folderId)), accountId: accountId)
         case .edit(let item):
             // Send only what changed.
             var edit = CipherEdit()

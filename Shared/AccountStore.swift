@@ -5,70 +5,105 @@ import LocalAuthentication
 import Security
 import VaultwardenAPI
 
-/// What we keep on disk to unlock without the network. Nothing here decrypts the vault on its own:
-/// `protectedUserKey` needs the master password (or the Secure Enclave, for Touch ID).
-struct SavedAccount: Codable, Equatable {
+/// What we keep on disk to unlock an account without the network. Nothing here decrypts the vault on its
+/// own: `protectedUserKey` needs the master password (or the Secure Enclave, for Touch ID).
+struct SavedAccount: Codable, Equatable, Identifiable {
+    /// Stable per server + email, so logging in again replaces rather than duplicates.
+    var id: String
     var email: String
     var serverKind: String
     var serverURL: String
     var kdf: KDFConfig
     var protectedUserKey: String
+    var addedAt = Date()
+
+    static func makeID(serverKind: String, serverURL: String, email: String) -> String {
+        let server = serverKind == "selfHosted" ? serverURL.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) : serverKind
+        let digest = SHA256.hash(data: Data("\(server)|\(KDF.normalizedEmail(email))".utf8))
+        return digest.prefix(8).map { String(format: "%02x", $0) }.joined()
+    }
+
+    var serverSummary: String {
+        switch serverKind {
+        case "bitwardenUS": "bitwarden.com"
+        case "bitwardenEU": "bitwarden.eu"
+        default: URL(string: serverURL)?.host() ?? serverURL
+        }
+    }
 }
 
+/// Per-account storage in the App Group (shared with the AutoFill extension):
+/// `Accounts/<id>/{account,vault,biometric}.json`, refresh token in the Keychain.
 enum AccountStore {
-    /// Shared with the AutoFill extension (team-prefixed group: no provisioning needed on macOS).
+    /// Team-prefixed group: no provisioning needed on macOS.
     static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
 
-    private static var dir: URL {
+    private static var root: URL {
         let fm = FileManager.default
-        let legacy = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appending(path: "Account", directoryHint: .isDirectory)
-        guard let group = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else { return legacy }
-        let d = group.appending(path: "Account", directoryHint: .isDirectory)
-        // One-time move from the pre-AutoFill location.
-        if !fm.fileExists(atPath: d.path), fm.fileExists(atPath: legacy.path) {
-            try? fm.moveItem(at: legacy, to: d)
-        }
+        let base = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
+            ?? fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let d = base.appending(path: "Accounts", directoryHint: .isDirectory)
         try? fm.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }
 
+    private static func dir(_ id: String) -> URL {
+        let d = root.appending(path: id, directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+        return d
+    }
+
+    // MARK: Accounts
+
+    /// All saved accounts, oldest first.
+    static func accounts() -> [SavedAccount] {
+        migrateSingleAccountLayout()
+        let ids = (try? FileManager.default.contentsOfDirectory(atPath: root.path)) ?? []
+        return ids.compactMap(load).sorted { $0.addedAt < $1.addedAt }
+    }
+
+    static func load(_ id: String) -> SavedAccount? {
+        let url = root.appending(path: id).appending(path: "account.json")
+        return (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(SavedAccount.self, from: $0) }
+    }
+
+    static func save(_ account: SavedAccount) {
+        var account = account
+        if let existing = load(account.id) { account.addedAt = existing.addedAt } // keep its place in the list
+        try? JSONEncoder().encode(account).write(to: dir(account.id).appending(path: "account.json"),
+                                                 options: [.atomic, .completeFileProtection])
+    }
+
+    static func erase(_ id: String) {
+        try? FileManager.default.removeItem(at: root.appending(path: id))
+        Keychain.delete(service: refreshService(id))
+    }
+
     /// Offline unlock: re-derive the master key; the MAC on the protected user key proves the password.
-    static func unlock(password: String) -> SymmetricKeyPair? {
-        guard let saved = load(),
+    static func unlock(_ id: String, password: String) -> SymmetricKeyPair? {
+        guard let saved = load(id),
               let mk = try? KDF.masterKey(password: password, email: saved.email, config: saved.kdf),
               let stretched = try? SymmetricKeyPair.stretched(masterKey: mk),
               let raw = try? EncString(saved.protectedUserKey).decrypt(with: stretched) else { return nil }
         return try? SymmetricKeyPair(combined: raw)
     }
-    private static var accountURL: URL { dir.appending(path: "account.json") }
-    private static var cacheURL: URL { dir.appending(path: "vault.json") }
-    private static var biometricURL: URL { dir.appending(path: "biometric.json") }
 
-    static func load() -> SavedAccount? {
-        (try? Data(contentsOf: accountURL)).flatMap { try? JSONDecoder().decode(SavedAccount.self, from: $0) }
-    }
+    // MARK: Encrypted vault cache
 
-    static func save(_ account: SavedAccount) {
-        try? JSONEncoder().encode(account).write(to: accountURL, options: [.atomic, .completeFileProtection])
-    }
-
-    /// Encrypted sync payload, exactly as the server sent it.
-    static func loadCache() -> Data? { try? Data(contentsOf: cacheURL) }
-    static func saveCache(_ data: Data) { try? data.write(to: cacheURL, options: [.atomic, .completeFileProtection]) }
-
-    static func erase() {
-        try? FileManager.default.removeItem(at: dir)
-        Keychain.delete(service: refreshService)
+    /// The sync payload exactly as the server sent it (every secret still encrypted).
+    static func loadCache(_ id: String) -> Data? { try? Data(contentsOf: root.appending(path: id).appending(path: "vault.json")) }
+    static func saveCache(_ data: Data, _ id: String) {
+        try? data.write(to: dir(id).appending(path: "vault.json"), options: [.atomic, .completeFileProtection])
     }
 
     // MARK: Refresh token (Keychain)
 
-    private static let refreshService = "io.github.sinhong2011.chiikawarden.refresh"
-    static var refreshToken: String? {
-        get { Keychain.read(service: refreshService).flatMap { String(data: $0, encoding: .utf8) } }
-        set {
-            if let newValue { Keychain.write(Data(newValue.utf8), service: refreshService) } else { Keychain.delete(service: refreshService) }
-        }
+    private static func refreshService(_ id: String) -> String { "io.github.sinhong2011.chiikawarden.refresh.\(id)" }
+    static func refreshToken(_ id: String) -> String? {
+        Keychain.read(service: refreshService(id)).flatMap { String(data: $0, encoding: .utf8) }
+    }
+    static func setRefreshToken(_ token: String?, _ id: String) {
+        if let token { Keychain.write(Data(token.utf8), service: refreshService(id)) } else { Keychain.delete(service: refreshService(id)) }
     }
 
     // MARK: Touch ID (Secure Enclave)
@@ -80,13 +115,15 @@ enum AccountStore {
         var sealed: Data          // AES-GCM(userKey)
     }
 
-    static var isTouchIDEnabled: Bool { FileManager.default.fileExists(atPath: biometricURL.path) }
+    private static func biometricURL(_ id: String) -> URL { root.appending(path: id).appending(path: "biometric.json") }
+
+    static func isTouchIDEnabled(_ id: String) -> Bool { FileManager.default.fileExists(atPath: biometricURL(id).path) }
 
     static var isTouchIDAvailable: Bool {
         SecureEnclave.isAvailable && LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
     }
 
-    static func enableTouchID(userKey: SymmetricKeyPair) throws {
+    static func enableTouchID(userKey: SymmetricKeyPair, _ id: String) throws {
         var error: Unmanaged<CFError>?
         guard let access = SecAccessControlCreateWithFlags(nil, kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
                                                            [.privateKeyUsage, .biometryCurrentSet], &error) else {
@@ -96,29 +133,70 @@ enum AccountStore {
         let ephemeral = P256.KeyAgreement.PrivateKey()
         // Wrapping only needs the enclave *public* key, so no prompt here.
         let shared = try ephemeral.sharedSecretFromKeyAgreement(with: enclave.publicKey)
-        let wrapKey = shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("chiikawarden-touchid".utf8),
-                                                     sharedInfo: Data(), outputByteCount: 32)
-        let sealed = try AES.GCM.seal(userKey.encryptionKey + userKey.macKey, using: wrapKey).combined!
+        let sealed = try AES.GCM.seal(userKey.encryptionKey + userKey.macKey, using: wrapKey(shared)).combined!
         let blob = BiometricBlob(enclaveKey: enclave.dataRepresentation,
                                  ephemeralPublic: ephemeral.publicKey.rawRepresentation, sealed: sealed)
-        try JSONEncoder().encode(blob).write(to: biometricURL, options: [.atomic, .completeFileProtection])
+        try JSONEncoder().encode(blob).write(to: dir(id).appending(path: "biometric.json"), options: [.atomic, .completeFileProtection])
     }
 
-    static func disableTouchID() { try? FileManager.default.removeItem(at: biometricURL) }
+    static func disableTouchID(_ id: String) { try? FileManager.default.removeItem(at: biometricURL(id)) }
 
-    /// Prompts for Touch ID (via the Secure Enclave) and returns the user key.
-    static func unlockWithTouchID(reason: String) throws -> SymmetricKeyPair {
-        let blob = try JSONDecoder().decode(BiometricBlob.self, from: Data(contentsOf: biometricURL))
-        let context = LAContext()
-        context.localizedReason = reason
+    /// Unseals one account's user key. Pass an already-evaluated `LAContext` to avoid a second prompt.
+    static func unlockWithTouchID(_ id: String, context: LAContext) throws -> SymmetricKeyPair {
+        let blob = try JSONDecoder().decode(BiometricBlob.self, from: Data(contentsOf: biometricURL(id)))
         let enclave = try SecureEnclave.P256.KeyAgreement.PrivateKey(dataRepresentation: blob.enclaveKey,
                                                                       authenticationContext: context)
         let peer = try P256.KeyAgreement.PublicKey(rawRepresentation: blob.ephemeralPublic)
-        let shared = try enclave.sharedSecretFromKeyAgreement(with: peer)
-        let wrapKey = shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("chiikawarden-touchid".utf8),
-                                                     sharedInfo: Data(), outputByteCount: 32)
-        let raw = try AES.GCM.open(AES.GCM.SealedBox(combined: blob.sealed), using: wrapKey)
+        let raw = try AES.GCM.open(AES.GCM.SealedBox(combined: blob.sealed),
+                                   using: wrapKey(try enclave.sharedSecretFromKeyAgreement(with: peer)))
         return try SymmetricKeyPair(combined: raw)
+    }
+
+    /// One Touch ID prompt, then every enrolled account in `ids` is unsealed with the same context.
+    static func unlockAllWithTouchID(_ ids: [String], reason: String) async -> [String: SymmetricKeyPair] {
+        let enrolled = ids.filter(isTouchIDEnabled)
+        guard !enrolled.isEmpty else { return [:] }
+        let context = LAContext()
+        guard (try? await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)) == true else {
+            return [:]
+        }
+        var keys: [String: SymmetricKeyPair] = [:]
+        for id in enrolled { keys[id] = try? unlockWithTouchID(id, context: context) }
+        return keys
+    }
+
+    private static func wrapKey(_ shared: SharedSecret) -> SymmetricKey {
+        shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("chiikawarden-touchid".utf8),
+                                       sharedInfo: Data(), outputByteCount: 32)
+    }
+
+    // MARK: Migration
+
+    /// Moves the earlier single-account layout (`Account/` in the group or Application Support) into
+    /// `Accounts/<id>/`, carrying the refresh token along.
+    private static func migrateSingleAccountLayout() {
+        let fm = FileManager.default
+        var candidates = [fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appending(path: "Account")]
+        if let group = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) {
+            candidates.insert(group.appending(path: "Account"), at: 0)
+        }
+        struct Legacy: Codable { var email: String; var serverKind: String; var serverURL: String; var kdf: KDFConfig; var protectedUserKey: String }
+        for old in candidates where fm.fileExists(atPath: old.path) {
+            defer { try? fm.removeItem(at: old) }
+            guard let data = try? Data(contentsOf: old.appending(path: "account.json")),
+                  let legacy = try? JSONDecoder().decode(Legacy.self, from: data) else { continue }
+            let id = SavedAccount.makeID(serverKind: legacy.serverKind, serverURL: legacy.serverURL, email: legacy.email)
+            let target = root.appending(path: id)
+            guard !fm.fileExists(atPath: target.path) else { continue }
+            try? fm.moveItem(at: old, to: target)
+            save(SavedAccount(id: id, email: legacy.email, serverKind: legacy.serverKind, serverURL: legacy.serverURL,
+                              kdf: legacy.kdf, protectedUserKey: legacy.protectedUserKey))
+            let oldService = "io.github.sinhong2011.chiikawarden.refresh"
+            if let token = Keychain.read(service: oldService) {
+                Keychain.write(token, service: refreshService(id))
+                Keychain.delete(service: oldService)
+            }
+        }
     }
 }
 

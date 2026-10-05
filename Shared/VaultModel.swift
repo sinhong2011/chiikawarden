@@ -7,6 +7,8 @@ struct VaultItem: Identifiable, Hashable {
     enum Kind: Int { case login = 1, note = 2, card = 3, identity = 4, sshKey = 5 }
 
     let id: String
+    /// Which saved account this item belongs to (several can be unlocked at once).
+    var accountId = ""
     var kind: Kind = .login
     let name: String
     var username: String?

@@ -38,6 +38,17 @@ final class AppModel {
     }
 
     var phase: Phase = .login
+    /// Every account saved on this Mac, oldest first.
+    private(set) var accounts: [SavedAccount] = AccountStore.accounts()
+    /// Unlocked accounts. Items from all of them are merged into `items`.
+    private(set) var sessions: [AccountSession] = []
+    /// The account the unlock screen is asking for.
+    var unlockTargetID: String?
+    var unlockTarget: SavedAccount? { accounts.first { $0.id == unlockTargetID } ?? accounts.first }
+    /// Sidebar filter: show one account only.
+    var accountFilter: String?
+    /// True while adding another account from an unlocked vault (login screen can be cancelled).
+    var addingAccount = false
     var items: [VaultItem] = []
     /// Selected item, shared by the list, detail and the Item menu commands.
     var selectedID: VaultItem.ID?
@@ -46,11 +57,7 @@ final class AppModel {
     var editing: EditRequest?
     /// True while ⌥ is held: reveals masked fields.
     var optionHeld = false
-    var isOnline: Bool { client != nil && lastSynced != nil }
-
-    /// Raw cipher JSON from the last sync, so edits can patch it without losing fields.
-    private var rawCiphers: [String: Data] = [:]
-    private var keyring: Keyring?
+    var isOnline: Bool { sessions.contains { $0.lastSynced != nil } }
     var folders: [Grouping] = []
     /// Organizations, each with its collections as children.
     var organizations: [Grouping] = []
@@ -62,20 +69,46 @@ final class AppModel {
     var serverURL = UserDefaults.standard.string(forKey: "serverURL") ?? "https://"
     var email = UserDefaults.standard.string(forKey: "email") ?? ""
 
-    var isUnlocked: Bool { phase.id == Phase.vault.id }
+    var isUnlocked: Bool { phase.id == Phase.vault.id && !sessions.isEmpty }
 
-    /// Last successful sync with the server; nil while showing cached data only.
-    var lastSynced: Date?
-    var isSyncing = false
-    var touchIDEnabled = AccountStore.isTouchIDEnabled
+    /// Most recent successful sync across accounts; nil while showing cached data only.
+    var lastSynced: Date? { sessions.compactMap(\.lastSynced).max() }
+    var isSyncing: Bool { sessions.contains(where: \.isSyncing) }
+    /// Whether any locked account can be opened with Touch ID (unlock screen).
+    var touchIDEnabled = false
 
     init() {
-        if let saved = AccountStore.load() {
-            serverKind = ServerKind(rawValue: saved.serverKind) ?? .selfHosted
-            serverURL = saved.serverURL
-            email = saved.email
-            phase = .locked
+        refreshAccounts()
+        if !accounts.isEmpty { phase = .locked }
+    }
+
+    private func refreshAccounts() {
+        accounts = AccountStore.accounts()
+        if unlockTargetID == nil || !accounts.contains(where: { $0.id == unlockTargetID }) {
+            unlockTargetID = accounts.first { a in !sessions.contains { $0.id == a.id } }?.id ?? accounts.first?.id
         }
+        touchIDEnabled = accounts.contains { a in AccountStore.isTouchIDEnabled(a.id) && !sessions.contains { $0.id == a.id } }
+    }
+
+    func session(for accountId: String) -> AccountSession? { sessions.first { $0.id == accountId } }
+
+    #if DEBUG
+    /// Snapshot/demo only: pretend these accounts are saved.
+    func setPreviewAccounts(_ accounts: [SavedAccount]) { self.accounts = accounts; unlockTargetID = accounts.first?.id }
+    #endif
+    func isUnlocked(_ accountId: String) -> Bool { session(for: accountId) != nil }
+    func isTouchIDEnabled(_ accountId: String) -> Bool { AccountStore.isTouchIDEnabled(accountId) }
+
+    /// Merges every unlocked account into one list.
+    private func rebuild() {
+        let multi = sessions.count > 1
+        items = sessions.flatMap(\.items).sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        folders = sessions.flatMap(\.folders)
+        organizations = sessions.flatMap(\.organizations)
+        skippedOrgItems = sessions.reduce(0) { $0 + $1.hiddenCount }
+        if !multi { accountFilter = nil }
+        if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+        AutoFillIdentities.publish(items)
     }
 
     enum ServerStatus: Equatable {
@@ -94,8 +127,8 @@ final class AppModel {
     private var toastTask: Task<Void, Never>?
     private var clearTask: Task<Void, Never>?
 
+    /// Login-in-progress client (kept between the password and 2FA steps).
     private var client: VaultClient?
-    private var userKey: SymmetricKeyPair?
 
     private var deviceIdentifier: String {
         if let id = UserDefaults.standard.string(forKey: "deviceIdentifier") { return id }
@@ -116,60 +149,23 @@ final class AppModel {
         return cas.isEmpty ? URLSession.shared : ServerTrust(certificates: cas).makeSession()
     }
 
-    // MARK: Live sync
-
-    private var live: LiveSync?
-    private var liveDebounce: Task<Void, Never>?
-    private var periodicSync: Timer?
-
-    /// Connects to the notifications hub so changes on other devices appear within a second or two.
-    private func startLiveSync() async {
-        guard live == nil, let client, let token = await client.currentAccessToken else { return }
-        let live = LiveSync(environment: client.environment, accessToken: token, session: makeSession()) { [weak self] in
-            Task { @MainActor in self?.scheduleSync() }
-        }
-        self.live = live
-        do { try await live.start() } catch { self.live = nil }
-        if periodicSync == nil {
-            periodicSync = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.scheduleSync() }
-            }
-        }
-    }
-
-    private func stopLiveSync() {
-        let live = self.live
-        self.live = nil
-        Task { await live?.stop() }
-        periodicSync?.invalidate()
-        periodicSync = nil
-    }
-
-    /// Coalesces bursts of change notifications into one sync.
     func scheduleSync() {
         guard isUnlocked else { return }
-        liveDebounce?.cancel()
-        liveDebounce = Task {
-            try? await Task.sleep(for: .milliseconds(800))
-            guard !Task.isCancelled else { return }
-            do { try await refresh() } catch {
-                // Token likely expired: refresh it once and retry.
-                if let token = try? await client?.refreshAccessToken() { AccountStore.refreshToken = token }
-                try? await refresh()
-            }
-        }
+        sessions.forEach { $0.scheduleSync() }
     }
 
     /// Re-sync when the app comes to the front if the last sync is stale.
     func appDidBecomeActive() {
         // AutoFill may have just been switched on in System Settings.
         if isUnlocked { AutoFillIdentities.publish(items) }
-        if isUnlocked, (lastSynced.map { Date.now.timeIntervalSince($0) > 60 } ?? true) { scheduleSync() }
+        for session in sessions where session.lastSynced.map({ Date.now.timeIntervalSince($0) > 60 }) ?? true {
+            session.scheduleSync()
+        }
     }
 
     /// Drop the cached client so new headers / certificates take effect on the next request.
     func resetClient() {
-        if !isUnlocked { client = nil }
+        client = nil
         checkServer()
     }
 
@@ -181,19 +177,41 @@ final class AppModel {
         }
     }
 
-    /// Sign out on this Mac: forget the session, cached vault and Touch ID.
-    func logOut() {
-        stopLiveSync()
-        AutoFillIdentities.clear()
-        AccountStore.erase()
-        touchIDEnabled = false
-        userKey = nil
-        items = []
+    /// Sign one account out on this Mac: forget its session, cached vault, token and Touch ID.
+    /// With no id: the account the unlock screen shows.
+    func logOut(_ accountId: String? = nil) {
+        guard let id = accountId ?? unlockTarget?.id else { return }
+        if let session = session(for: id) { session.close() }
+        sessions.removeAll { $0.id == id }
+        AccountStore.erase(id)
+        if accountFilter == id { accountFilter = nil }
+        unlockTargetID = nil
+        refreshAccounts()
+        rebuild()
+        if accounts.isEmpty {
+            AutoFillIdentities.clear()
+            email = ""
+            UserDefaults.standard.removeObject(forKey: "email")
+            phase = .login
+        } else if sessions.isEmpty {
+            phase = .locked
+        }
+    }
+
+    /// Opens the login screen to add another account (cancellable back to the vault).
+    func beginAddAccount() {
+        addingAccount = true
         client = nil
-        lastSynced = nil
+        errorMessage = nil
         email = ""
-        UserDefaults.standard.removeObject(forKey: "email")
+        serverURL = "https://"
         phase = .login
+    }
+
+    func cancelAddAccount() {
+        addingAccount = false
+        errorMessage = nil
+        phase = sessions.isEmpty ? (accounts.isEmpty ? .login : .locked) : .vault
     }
 
     private func environment() -> ServerEnvironment? {
@@ -287,123 +305,121 @@ final class AppModel {
             UserDefaults.standard.set(serverKind.rawValue, forKey: "serverKind")
             UserDefaults.standard.set(serverURL, forKey: "serverURL")
             UserDefaults.standard.set(email, forKey: "email")
-            AccountStore.save(SavedAccount(email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
-                                           kdf: result.kdf, protectedUserKey: result.protectedUserKey))
-            AccountStore.refreshToken = result.refreshToken
-            userKey = result.userKey
-            try await refresh()
+            let id = SavedAccount.makeID(serverKind: serverKind.rawValue, serverURL: serverURL, email: email)
+            let account = SavedAccount(id: id, email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
+                                       kdf: result.kdf, protectedUserKey: result.protectedUserKey)
+            AccountStore.save(account)
+            AccountStore.setRefreshToken(result.refreshToken, id)
+            let session = open(account, key: result.userKey, client: client)
+            self.client = nil
+            try await session.refresh()
+            addingAccount = false
             phase = .vault
         } catch {
             handle(error)
         }
     }
 
-    /// Pulls the vault from the server, caches the (still encrypted) payload, and rebuilds the list.
+    /// Syncs every unlocked account now.
     func refresh() async throws {
-        guard let client, userKey != nil else { return }
-        isSyncing = true
-        defer { isSyncing = false }
-        let data = try await client.syncData()
-        AccountStore.saveCache(data)
-        try load(cache: data)
-        lastSynced = .now
-        await startLiveSync()
+        for session in sessions { try await session.refresh() }
     }
 
     // MARK: Unlock
 
-    /// Offline unlock: re-derive the master key locally; the MAC on the protected key proves the password.
-    func unlock(password: String) async {
-        guard let saved = AccountStore.load() else { phase = .login; return }
+    @discardableResult
+    private func open(_ account: SavedAccount, key: SymmetricKeyPair, client: VaultClient? = nil) -> AccountSession {
+        if let existing = session(for: account.id) { existing.close() }
+        sessions.removeAll { $0.id == account.id }
+        let session = AccountSession(account: account, userKey: key, client: client,
+                                     makeClient: { [weak self] env in self?.makeClient(env) ?? VaultClient(environment: env, deviceIdentifier: "") },
+                                     makeSession: { [weak self] in self?.makeSession() ?? .shared })
+        session.onChange = { [weak self] in self?.rebuild() }
+        sessions.append(session)
+        sessions.sort { a, b in
+            (accounts.firstIndex { $0.id == a.id } ?? 0) < (accounts.firstIndex { $0.id == b.id } ?? 0)
+        }
+        refreshAccounts()
+        rebuild()
+        return session
+    }
+
+    /// Offline unlock of one account (the unlock screen's target, or `accountId`).
+    func unlock(password: String, accountId: String? = nil) async {
+        guard let target = accountId.flatMap({ id in accounts.first { $0.id == id } }) ?? unlockTarget else { phase = .login; return }
         isBusy = true
         errorMessage = nil
         defer { isBusy = false }
-        _ = saved
-        let derived = await Task.detached(priority: .userInitiated) { AccountStore.unlock(password: password) }.value
+        let id = target.id
+        let derived = await Task.detached(priority: .userInitiated) { AccountStore.unlock(id, password: password) }.value
         guard let derived else {
             errorMessage = String(localized: "Wrong master password.")
             return
         }
-        finishUnlock(with: derived)
+        finishUnlock([target.id: derived])
     }
 
+    /// One Touch ID prompt unlocks every locked account that has it turned on.
     func unlockWithTouchID() async {
         errorMessage = nil
-        let reason = String(localized: "unlock your vault")
-        let key = await Task.detached { try? AccountStore.unlockWithTouchID(reason: reason) }.value
-        if let key { finishUnlock(with: key) }
+        let locked = accounts.map(\.id).filter { !isUnlocked($0) }
+        let keys = await AccountStore.unlockAllWithTouchID(locked, reason: String(localized: "unlock your vault"))
+        if !keys.isEmpty { finishUnlock(keys) }
     }
 
-    private func finishUnlock(with key: SymmetricKeyPair) {
-        userKey = key
-        if let cache = AccountStore.loadCache() { try? load(cache: cache) }
+    private func finishUnlock(_ keys: [String: SymmetricKeyPair]) {
+        for (id, key) in keys {
+            guard let account = accounts.first(where: { $0.id == id }) else { continue }
+            let session = open(account, key: key)
+            Task { await session.resume() }
+        }
         phase = .vault
         noteActivity()
-        Task { await resumeSession() }
     }
 
-    /// Reconnects in the background with the stored refresh token, then syncs. Failures keep the cached vault.
-    private func resumeSession() async {
-        guard let environment = environment(), let token = AccountStore.refreshToken else { return }
-        let client = self.client ?? makeClient(environment)
-        self.client = client
-        do {
-            await client.restore(refreshToken: token)
-            AccountStore.refreshToken = try await client.refreshAccessToken()
-            try await refresh()
-        } catch {
-            // Offline or session expired: keep showing the cache; the sidebar shows the sync state.
-        }
+    func setTouchID(_ enabled: Bool, for accountId: String) {
+        guard let session = session(for: accountId) else { return }
+        do { try session.setTouchID(enabled) } catch { flash(String(localized: "Couldn't turn on Touch ID")) }
+        refreshAccounts()
     }
 
-    func setTouchID(_ enabled: Bool) {
-        if enabled, let userKey {
-            do { try AccountStore.enableTouchID(userKey: userKey); touchIDEnabled = true } catch {
-                toast = String(localized: "Couldn't turn on Touch ID")
-                touchIDEnabled = false
-            }
-        } else if !enabled {
-            AccountStore.disableTouchID()
-            touchIDEnabled = false
-        }
-    }
-
-    private func load(cache data: Data) throws {
-        guard let userKey else { return }
-        let vault = try VaultDecoder.decode(data, userKey: userKey)
-        items = vault.items
-        folders = vault.folders
-        organizations = vault.organizations
-        skippedOrgItems = vault.hiddenCount
-        keyring = vault.keyring
-        rawCiphers = vault.rawCiphers
-        AutoFillIdentities.publish(vault.items)
+    /// Locks one account; the others stay open.
+    func lock(_ accountId: String) {
+        session(for: accountId)?.close()
+        sessions.removeAll { $0.id == accountId }
+        if accountFilter == accountId { accountFilter = nil }
+        refreshAccounts()
+        rebuild()
+        if sessions.isEmpty { lock() }
     }
 
     // MARK: Editing
 
     enum NewItemKind { case login, secureNote }
 
+    /// Where new items go: the filtered account, else the first unlocked one.
+    var defaultAccountId: String? { accountFilter ?? sessions.first?.id }
+
     @discardableResult
-    func createItem(_ kind: NewItemKind, edit: CipherEdit) async -> Bool {
-        guard let client, let key = userKey else { return offline() }
+    func createItem(_ kind: NewItemKind, edit: CipherEdit, accountId: String? = nil) async -> Bool {
+        guard let session = (accountId ?? defaultAccountId).flatMap(session(for:)) else { return offline() }
         do {
-            let body = try CipherEditor.newCipher(kind: kind == .login ? .login : .secureNote, edit: edit, key: key)
-            let id = try await client.createCipher(body)
-            try await refresh()
+            let id = try await session.create(kind == .login ? .login : .secureNote, edit: edit)
             selectedID = id
             flash(String(localized: "Item created"))
             return true
         } catch { return failed(error) }
     }
 
+    private func session(for item: VaultItem) -> AccountSession? {
+        session(for: item.accountId) ?? sessions.first { s in s.items.contains { $0.id == item.id } }
+    }
+
     @discardableResult
     func updateItem(_ id: String, edit: CipherEdit) async -> Bool {
-        guard let client, let raw = rawCiphers[id], let cipher = try? SyncResponse.decode(cacheData()).ciphers.first(where: { $0.id == id }),
-              let key = keyring?.key(for: cipher) else { return offline() }
+        guard let item = items.first(where: { $0.id == id }), let session = session(for: item) else { return offline() }
         do {
-            try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: edit, key: key))
-            try await refresh()
+            try await session.update(id, edit: edit)
             return true
         } catch { return failed(error) }
     }
@@ -413,34 +429,29 @@ final class AppModel {
     }
 
     func trash(_ item: VaultItem) async {
-        guard let client else { _ = offline(); return }
+        guard let session = session(for: item) else { _ = offline(); return }
         do {
-            try await client.trashCipher(id: item.id)
-            try await refresh()
+            try await session.trash(item.id)
             flash(String(localized: "Moved to Trash"))
         } catch { _ = failed(error) }
     }
 
     func restore(_ item: VaultItem) async {
-        guard let client else { _ = offline(); return }
+        guard let session = session(for: item) else { _ = offline(); return }
         do {
-            try await client.restoreCipher(id: item.id)
-            try await refresh()
+            try await session.restore(item.id)
             flash(String(localized: "Restored"))
         } catch { _ = failed(error) }
     }
 
     func deleteForever(_ item: VaultItem) async {
-        guard let client else { _ = offline(); return }
+        guard let session = session(for: item) else { _ = offline(); return }
         do {
-            try await client.deleteCipher(id: item.id)
+            try await session.deleteForever(item.id)
             if selectedID == item.id { selectedID = nil }
-            try await refresh()
             flash(String(localized: "Deleted permanently"))
         } catch { _ = failed(error) }
     }
-
-    private func cacheData() -> Data { AccountStore.loadCache() ?? Data() }
 
     private func offline() -> Bool {
         flash(String(localized: "You're offline — changes need a connection to your server."))
@@ -448,6 +459,7 @@ final class AppModel {
     }
 
     private func failed(_ error: Error) -> Bool {
+        if error is AccountSession.WriteError { return offline() }
         if case .http(let status, let message)? = error as? APIError {
             flash(message ?? String(localized: "Server error (\(status))."))
         } else {
@@ -508,16 +520,18 @@ final class AppModel {
         if isUnlocked, UserDefaults.standard.bool(forKey: Pref.lockOnSleep) { lock() }
     }
 
+    /// Locks every account.
     func lock() {
-        stopLiveSync()
-        rawCiphers = [:]
-        keyring = nil
+        sessions.forEach { $0.close() }
+        sessions = []
         selectedID = nil
-        userKey = nil
+        accountFilter = nil
         items = []
         folders = []
         organizations = []
-        phase = AccountStore.load() != nil ? .locked : .login
+        refreshAccounts()
+        addingAccount = false
+        phase = accounts.isEmpty ? .login : .locked
     }
 
     func cancelChallenge() {
@@ -525,7 +539,9 @@ final class AppModel {
         phase = .login
     }
 
-    var serverDisplayName: String { client?.environment.displayHost ?? "" }
+    var serverDisplayName: String {
+        sessions.count > 1 ? String(localized: "\(sessions.count) accounts") : (sessions.first?.account.serverSummary ?? "")
+    }
 
     private func handle(_ error: Error) {
         switch error as? APIError {

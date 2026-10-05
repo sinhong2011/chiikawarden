@@ -58,7 +58,13 @@ struct VaultView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             HStack(spacing: 8) {
-                ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { model.selectedID = $0 }), query: $query, chip: $chip)
+                Group {
+                    if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
+                        AccountUnlockPane(account: account)
+                    } else {
+                        ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { model.selectedID = $0 }), query: $query, chip: $chip)
+                    }
+                }
                     .frame(width: 300)
                 Group {
                     if let item = model.selectedItem {
@@ -106,9 +112,11 @@ enum SidebarSelection: Hashable {
     case folder(String)
     case organization(String)
     case collection(String)
+    case account(String)
 
     func includes(_ item: VaultItem) -> Bool {
         switch self {
+        case .account(let id): !item.isDeleted && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let id): !item.isDeleted && item.folderId == id
         case .organization(let id): !item.isDeleted && item.organizationId == id
@@ -173,6 +181,29 @@ private struct Sidebar: View {
                             .badge(count(.folder(folder.id)))
                             .tag(SidebarSelection.folder(folder.id))
                     }
+                }
+            }
+            if model.accounts.count > 1 {
+                Section("Accounts") {
+                    ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                        let unlocked = model.isUnlocked(account.id)
+                        HStack(spacing: 8) {
+                            Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
+                            Text(verbatim: account.email).lineLimit(1).truncationMode(.middle)
+                            Spacer(minLength: 4)
+                            if !unlocked { Image(systemName: "lock.fill").font(.system(size: 10)).foregroundStyle(.secondary) }
+                        }
+                        .badge(unlocked ? count(.account(account.id)) : 0)
+                        .help(Text(verbatim: account.serverSummary))
+                        .tag(SidebarSelection.account(account.id))
+                        .contextMenu {
+                            if unlocked { Button("Lock") { model.lock(account.id) } }
+                            Button("Log Out…", role: .destructive) { model.logOut(account.id) }
+                        }
+                    }
+                    Button { model.beginAddAccount() } label: { Label("Add Account…", systemImage: "plus") }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
                 }
             }
             ForEach(model.organizations) { org in
@@ -308,13 +339,27 @@ private struct ItemColumn: View {
 }
 
 struct ItemRow: View {
+    @Environment(AppModel.self) private var model
     let item: VaultItem
     var isSelected = false
     @State private var hovered = false
 
+    /// Account colour, only when more than one account is open.
+    private var accountDot: Color? {
+        guard model.sessions.count > 1, let i = model.accounts.firstIndex(where: { $0.id == item.accountId }) else { return nil }
+        return AccountColor.color(i)
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             Monogram(name: item.name, size: 38)
+                .overlay(alignment: .bottomTrailing) {
+                    if let accountDot {
+                        Circle().fill(accountDot).frame(width: 11, height: 11)
+                            .overlay(Circle().strokeBorder(Color.windowBase, lineWidth: 2))
+                            .offset(x: 3, y: 3)
+                    }
+                }
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.name).font(.system(size: 14, weight: .bold)).lineLimit(1)
                 if let username = item.username {
@@ -677,5 +722,45 @@ struct Monogram: View {
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(Self.palette[abs(hue) % Self.palette.count], in: .rect(cornerRadius: size * 0.29, style: .continuous))
+    }
+}
+
+/// Unlock one locked account in place (from the sidebar), without leaving the vault.
+private struct AccountUnlockPane: View {
+    @Environment(AppModel.self) private var model
+    let account: SavedAccount
+    @State private var password = ""
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "lock.fill").font(.system(size: 24)).foregroundStyle(.secondary)
+            Text("Account locked").font(.system(size: 16, weight: .semibold))
+            Text(verbatim: "\(account.email) · \(account.serverSummary)")
+                .font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            if model.isTouchIDEnabled(account.id) {
+                Button { Task { await model.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid") }
+            }
+            SecureField("Master password", text: $password)
+                .textFieldStyle(SoftFieldStyle())
+                .frame(width: 240)
+                .onSubmit { submit() }
+            if let error = model.errorMessage {
+                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+            }
+            Button("Unlock") { submit() }
+                .buttonStyle(.borderedProminent)
+                .disabled(password.isEmpty || model.isBusy)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
+        .padding(.horizontal, 6)
+    }
+
+    private func submit() {
+        Task {
+            await model.unlock(password: password, accountId: account.id)
+            if model.isUnlocked(account.id) { password = "" }
+        }
     }
 }
