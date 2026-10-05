@@ -7,6 +7,7 @@ enum Pref {
     static let appearance = "appearance"           // "system" | "light" | "dark"
     static let autoLockMinutes = "autoLockMinutes" // 0 = never
     static let lockOnSleep = "lockOnSleep"
+    static let lockAnimations = "lockAnimations"   // the vault door's moving lock screen and its open/close sequences
     static let clipboardSeconds = "clipboardSeconds" // 0 = never clear
     static let showIcons = "showIcons"
     static let sshAgent = "sshAgent"                 // serve SSH key items over the agent socket
@@ -18,7 +19,7 @@ enum Pref {
 
     static func register() {
         UserDefaults.standard.register(defaults: [
-            appearance: "system", autoLockMinutes: 15, lockOnSleep: true, clipboardSeconds: 30,
+            appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
         ])
     }
 

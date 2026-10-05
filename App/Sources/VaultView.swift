@@ -137,13 +137,17 @@ struct VaultView: View {
         }
     }
 
+    /// False while the lock layer lies over the vault: the header's controls are kept in place but out of sight.
+    private var vaultOpen: Bool { model.phase.id == AppModel.Phase.vault.id }
+
     private var content: some View {
         @Bindable var model = model
         return NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
-                // Narrow windows navigate with the strip's own back button; one sidebar control is enough.
-                .toolbar(removing: compact ? .sidebarToggle : nil)
+                // Narrow windows navigate with the strip's own back button; one sidebar control is enough. None under
+                // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
+                .toolbar(removing: compact || !vaultOpen ? .sidebarToggle : nil)
         } detail: {
             Group {
                 if compact {
@@ -182,6 +186,11 @@ struct VaultView: View {
                             NewItemButton()
                         }
                     }
+                    // Under the lock layer: present (so the header keeps its height and nothing moves on unlock)
+                    // but invisible and inert.
+                    .opacity(vaultOpen ? 1 : 0)
+                    .disabled(!vaultOpen) // shortcuts too
+                    .accessibilityHidden(!vaultOpen)
                 }
                 .sharedBackgroundVisibility(.hidden)
             }
@@ -240,7 +249,13 @@ struct VaultView: View {
             Text("Use / to nest, e.g. Work/Servers.")
         }
         .overlay(alignment: .bottom) { ToastView() }
-        .onAppear { if model.selectedID == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id } }
+        .onAppear(perform: selectFirst)
+        // Under the lock layer the vault starts empty; pick an item once unlocking fills it.
+        .onChange(of: model.items.isEmpty) { _, empty in if !empty { selectFirst() } }
+    }
+
+    private func selectFirst() {
+        if model.selectedID == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id }
     }
 }
 
@@ -428,7 +443,7 @@ private struct SidebarAccountCard: View {
                 Button("Add Account…", systemImage: "person.badge.plus") { model.beginAddAccount() }
                 Button("Settings…", systemImage: "gearshape") { model.showSettings() }
                 Divider()
-                Button("Lock Vault", systemImage: "lock") { model.lock() }
+                Button("Lock Vault", systemImage: "lock") { model.lock(animated: true) }
                 Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
                     model.confirmLogOut(model.sessions.count == 1 ? model.sessions[0].account.id : nil)
                 }
@@ -461,7 +476,7 @@ private struct SidebarAccountCard: View {
             .accessibilityLabel(Text("Account"))
 
             footerButton("arrow.triangle.2.circlepath", help: "Sync Now", spinning: model.isSyncing) { sync() }
-            footerButton("lock", help: "Lock Vault") { model.lock() }
+            footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
         }
         .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
         .background {
@@ -934,8 +949,9 @@ struct ItemDetail: View {
         }
         .animation(.easeOut(duration: 0.15), value: dropping)
         .toolbar {
-            // Item actions sit in the header, top right (Liquid layout) — only while this detail is in view.
-            if showsToolbar {
+            // Item actions sit in the header, top right (Liquid layout) — only while this detail is in view, and not
+            // under the lock layer.
+            if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
                 ToolbarSpacer(.flexible)
                 ToolbarItem { actions }
                     .sharedBackgroundVisibility(.hidden)

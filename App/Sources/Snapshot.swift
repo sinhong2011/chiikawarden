@@ -43,26 +43,28 @@ enum Snapshot {
                    to: dir.appending(path: "unlock-\(name).png"))
         }
 
-        // The vault door's sequence, frozen at key moments.
-        let doorFrames: [(String, VaultDoorStage.Motion)] = [
-            ("0-closed", .init()),
-            ("1-dial", .init(dial: -250, wheel: 40)),
-            ("2-bolts", .init(dial: -216, wheel: 150, bolts: 1)),
-            ("3-swing", .init(dial: -216, wheel: 150, bolts: 1, swing: 0.55, light: 0.4)),
-            ("4-light", .init(dial: -216, wheel: 150, bolts: 1, swing: 0.95, light: 0.9)),
+        // The vault door at rest, typing, deriving the key, a wrong password, and the unlock sequence's key moments.
+        let doorFrames: [(String, VaultDoorFrozen)] = [
+            ("0-rest", .init(time: 12, opened: nil)),
+            ("1-typing", .init(time: 12, opened: nil, typed: 5)),
+            ("2-busy", .init(time: 12.2, opened: nil, typed: 9, busy: true)),
+            ("3-wrong", .init(time: 12, opened: nil, alert: 0.9)),
+            ("4-unlatch", .init(time: 12.3, opened: 0.32, typed: 9)),
+            ("5-hub", .init(time: 12.45, opened: 0.45, typed: 9)),
+            ("6-louvres", .init(time: 12.58, opened: 0.58, typed: 9)),
+            ("7-runes", .init(time: 12.7, opened: 0.7, typed: 9)),
+            ("8-assemble", .init(time: 12.2, opened: nil, closed: 0.2)),
+            ("9-sealed", .init(time: 12.8, opened: nil, closed: 0.8)),
         ]
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            for (frame, motion) in doorFrames {
-                // ImageRenderer draws SwiftUI's 3D projection (the swing); the window cache would drop it.
-                let renderer = ImageRenderer(content: VaultDoorStage(frozen: motion).environment(model)
-                    .environment(\.colorScheme, name == "dark" ? .dark : .light).frame(width: 520, height: 600))
-                renderer.scale = 2
-                if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
-                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
-                    try? png.write(to: dir.appending(path: "door-\(frame)-\(name).png"))
-                }
+            for (frame, moment) in doorFrames {
+                render(desktop(UnlockView().environment(model).environment(\.vaultDoorFrozen, moment).tint(.brand), dark: name == "dark"),
+                       size: CGSize(width: 900, height: 600), appearance: appearance,
+                       to: dir.appending(path: "door-\(frame)-\(name).png"))
             }
         }
+        render(desktop(UnlockView().environment(model).tint(.brand), dark: false),
+               size: CGSize(width: 380, height: 520), appearance: .aqua, to: dir.appending(path: "unlock-small-light.png"))
 
         // The unlock animation's open moment, and Settings at its default size.
         let opening = AppModel()

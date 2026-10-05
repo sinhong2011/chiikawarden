@@ -611,14 +611,14 @@ final class AppModel {
         noteActivity()
         // From the lock screen: the lock opens first, then the vault comes in. Instant for tooling and Reduce Motion.
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
-        guard phase.id == Phase.locked.id, !tooling, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+        guard phase.id == Phase.locked.id, !tooling, Self.doorAnimates else {
             phase = .vault
             return
         }
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         Task {
-            // The vault door's sequence (dial, wheel, bolts, swing, light) runs ~1.5 s; the vault takes over at the light.
-            try? await Task.sleep(for: .milliseconds(1450))
+            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock layer dissolves over the vault.
+            try? await Task.sleep(for: .milliseconds(780))
             phase = .vault
             try? await Task.sleep(for: .milliseconds(400))
             unlockOpening = false
@@ -901,8 +901,9 @@ final class AppModel {
         if isUnlocked, UserDefaults.standard.bool(forKey: Pref.lockOnSleep) { lock() }
     }
 
-    /// Locks every account.
-    func lock() {
+    /// Locks every account. `animated` (a lock the user asked for): the keys go at once, but the vault's contents stay
+    /// on screen a moment longer, so the door can close over them before they're cleared.
+    func lock(animated: Bool = false) {
         previewURL = nil
         generatorHistory = []
         AttachmentFiles.wipe()
@@ -912,6 +913,30 @@ final class AppModel {
         breachesCheckedAt = nil
         sessions.forEach { $0.close() }
         sessions = []
+        refreshAccounts()
+        addingAccount = false
+        let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
+        let closing = animated && phase.id == Phase.vault.id && !accounts.isEmpty && !tooling && Self.doorAnimates
+        phase = accounts.isEmpty ? .login : .locked
+        guard closing else { clearVaultContents(); return }
+        lockClosing = true
+        Task {
+            // The lock layer's closing sequence (VaultDoorStage) runs ~1 s; the vault is covered well before that.
+            try? await Task.sleep(for: .milliseconds(650))
+            lockClosing = false
+            if sessions.isEmpty { clearVaultContents() } // unless Touch ID already opened it again
+        }
+    }
+
+    /// The vault door's open/close sequences: off with Reduce Motion or Settings › Security › Animate the vault door.
+    static var doorAnimates: Bool {
+        !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion && UserDefaults.standard.bool(forKey: Pref.lockAnimations)
+    }
+
+    /// True while the lock layer closes over the vault (an animated lock).
+    var lockClosing = false
+
+    private func clearVaultContents() {
         selectedID = nil
         accountFilter = nil
         items = []
@@ -919,9 +944,6 @@ final class AppModel {
         selectedSendID = nil
         folders = []
         organizations = []
-        refreshAccounts()
-        addingAccount = false
-        phase = accounts.isEmpty ? .login : .locked
     }
 
     func cancelChallenge() {

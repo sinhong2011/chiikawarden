@@ -192,6 +192,7 @@ private struct SecuritySettings: View {
     @Environment(AppModel.self) private var model
     @AppStorage(Pref.autoLockMinutes) private var autoLockMinutes = 15
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
+    @AppStorage(Pref.lockAnimations) private var lockAnimations = true
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
 
     var body: some View {
@@ -207,8 +208,12 @@ private struct SecuritySettings: View {
                     Text("Never").tag(0)
                 }
                 Toggle("Lock when the Mac sleeps or the screen locks", isOn: $lockOnSleep)
+                Toggle("Animate the vault door", isOn: $lockAnimations)
             } header: {
                 Text("Vault")
+            } footer: {
+                Text("When off, the lock screen stays still and the vault opens and locks at once.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {

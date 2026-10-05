@@ -81,7 +81,7 @@ struct PasswordField: View {
         switch look {
         case .soft: field.textFieldStyle(SoftFieldStyle(trailingInset: 22))
         case .rounded: field.textFieldStyle(.roundedBorder).padding(.trailing, 0)
-        case .plain: field.textFieldStyle(.plain)
+        case .plain: field.textFieldStyle(.plain).padding(.trailing, 28) // room for the reveal button
         }
     }
 }

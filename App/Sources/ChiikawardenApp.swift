@@ -132,7 +132,7 @@ struct ChiikawardenApp: App {
             }
             CommandGroup(after: .appSettings) {
                 Button("Command Palette") { quickSearch?.show() } // its shortcut is the global one from Settings
-                Button("Lock Vault") { model.lock() }
+                Button("Lock Vault") { model.lock(animated: true) }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
             }
@@ -152,23 +152,29 @@ struct RootView: View {
                 LoginView()
                     .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 560, idealHeight: 640, maxHeight: .infinity)
                     .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))
-            case .locked:
-                UnlockView()
-                    .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 520, idealHeight: 600, maxHeight: .infinity)
-                    // Leaves by opening up: a little larger, blurred, fading.
-                    .transition(.asymmetric(insertion: .opacity,
-                                            removal: .modifier(active: SceneFade(scale: 1.05, blur: 14, opacity: 0),
-                                                               identity: SceneFade(scale: 1, blur: 0, opacity: 1))))
-            case .vault:
+            case .locked, .vault:
+                // Signed in: the vault is always the window; while locked, the lock lies over it as one layer.
                 VaultView()
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
-                    // Arrives from just behind the lock screen.
+                    // No blur or scaling of its own behind the lock (the lock's frosted layer blurs it): a blur would lay
+                    // it out under the title bar, and it would jump into place on unlock.
                     .transition(.asymmetric(insertion: .modifier(active: SceneFade(scale: 0.96, blur: 8, opacity: 0),
                                                                  identity: SceneFade(scale: 1, blur: 0, opacity: 1)),
                                             removal: .opacity))
             }
         }
-        .animation(.spring(duration: 0.5, bounce: 0.2), value: model.phase.id)
+        // The lock lies over the window as an overlay (not a sibling): it reaches under the title bar without
+        // stretching the vault's layout there, so nothing moves when it lifts.
+        .overlay {
+            if model.phase.id == AppModel.Phase.locked.id {
+                UnlockView()
+                    // Fades in over the vault while the door assembles itself; on unlock it dissolves.
+                    .transition(.asymmetric(insertion: .opacity,
+                                            removal: .modifier(active: SceneFade(scale: 1.06, blur: 12, opacity: 0),
+                                                               identity: SceneFade(scale: 1, blur: 0, opacity: 1))))
+            }
+        }
+        .animation(.smooth(duration: 0.45), value: model.phase.id) // no overshoot: nothing wobbles into place
         .onAppear { model.openSettingsAction = { openSettings() } }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(

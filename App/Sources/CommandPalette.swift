@@ -210,7 +210,7 @@ struct CommandPalette: View {
                                keywords: ["csv", "json", "chrome", "safari", "firefox", "bitwarden"]) { model.beginImport() },
                 PaletteCommand(id: "export", title: String(localized: "Export Vault…"), symbol: "square.and.arrow.up",
                                keywords: ["backup", "csv", "json"]) { model.beginExport() },
-                PaletteCommand(id: "lock", title: String(localized: "Lock Vault"), symbol: "lock", shortcut: "⇧⌘L") { model.lock() },
+                PaletteCommand(id: "lock", title: String(localized: "Lock Vault"), symbol: "lock", shortcut: "⇧⌘L") { model.lock(animated: true) },
             ]
         }
         list.append(PaletteCommand(id: "settings", title: String(localized: "Settings…"), symbol: "gearshape", shortcut: "⌘,",
