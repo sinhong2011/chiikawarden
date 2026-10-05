@@ -81,12 +81,8 @@ final class IconStore {
 
     static func url(for host: String, environment: ServerEnvironment?) -> URL? {
         let safe = host.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "." || $0 == "-" }
-        guard !safe.isEmpty else { return nil }
-        switch environment {
-        case .selfHosted(let base)?: return base.appending(path: "icons/\(safe)/icon.png")
-        case .bitwardenUS?, .bitwardenEU?: return URL(string: "https://icons.bitwarden.net/\(safe)/icon.png")
-        case nil: return nil
-        }
+        guard !safe.isEmpty, let root = environment?.iconsURL else { return nil }
+        return root.appending(path: "\(safe)/icon.png")
     }
 
     private func fileURL(_ host: String) -> URL {

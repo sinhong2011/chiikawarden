@@ -94,6 +94,8 @@ extension ServerEnvironment {
         case .bitwardenUS: URL(string: "https://notifications.bitwarden.com/hub")!
         case .bitwardenEU: URL(string: "https://notifications.bitwarden.eu/hub")!
         case .selfHosted(let base): base.appendingSlash.appending(path: "notifications/hub")
+        case .custom(let urls):
+            (urls.resolve(urls.notifications, suffix: "notifications") ?? URL(string: "https://invalid.invalid/")!).appending(path: "hub")
         }
     }
 }

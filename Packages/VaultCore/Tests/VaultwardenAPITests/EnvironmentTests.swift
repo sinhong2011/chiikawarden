@@ -16,6 +16,24 @@ import Testing
         #expect(env.identityURL.absoluteString == trimmed + "/identity/")
     }
 
+    @Test func customEnvironmentDerivation() {
+        // Only a base: every service derives from it.
+        let base = ServerEnvironment.custom(CustomURLs(base: URL(string: "https://vault.example.com/")))
+        #expect(base.apiURL.absoluteString == "https://vault.example.com/api/")
+        #expect(base.notificationsURL.absoluteString == "https://vault.example.com/notifications/hub")
+        // Explicit overrides win; the rest still derive from the base.
+        let split = ServerEnvironment.custom(CustomURLs(base: URL(string: "https://vault.example.com"),
+                                                        identity: URL(string: "https://id.example.com"),
+                                                        icons: URL(string: "https://icons.example.com/")))
+        #expect(split.identityURL.absoluteString == "https://id.example.com/")
+        #expect(split.apiURL.absoluteString == "https://vault.example.com/api/")
+        #expect(split.iconsURL?.absoluteString == "https://icons.example.com/")
+        // No base: derive from the web vault, like the official clients.
+        let webOnly = ServerEnvironment.custom(CustomURLs(webVault: URL(string: "https://web.example.com")))
+        #expect(webOnly.identityURL.absoluteString == "https://web.example.com/identity/")
+        #expect(CustomURLs().isUsable == false)
+    }
+
     @Test func messagePackFraming() {
         #expect(!LiveSync.containsChange(LiveSync.pingFrame))
         #expect(!LiveSync.containsChange(LiveSync.pingFrame + LiveSync.pingFrame))
