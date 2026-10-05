@@ -229,7 +229,7 @@ private struct SelectedItemCard: View {
                     GeometryReader { g in
                         Capsule().fill(.white.opacity(0.15))
                             .overlay(alignment: .leading) {
-                                Capsule().fill(Color(red: 0.55, green: 0.78, blue: 0.95)).frame(width: g.size.width * remaining)
+                                Capsule().fill(Color.brandFill).frame(width: g.size.width * remaining)
                             }
                     }
                     .frame(height: 4)
@@ -282,17 +282,17 @@ private struct CommandLine: View {
         HStack(spacing: 12) {
             Image(systemName: command.symbol)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(selected ? .white : Color.brand)
+                .foregroundStyle(selected ? Color.onBrandFill : Color.brand)
                 .frame(width: 32, height: 32)
-                .background(selected ? Color.white.opacity(0.18) : Color.brand.opacity(0.10), in: .rect(cornerRadius: 10, style: .continuous))
+                .background(selected ? Color.white.opacity(0.35) : Color.brand.opacity(0.10), in: .rect(cornerRadius: 10, style: .continuous))
             Text(command.title).font(.system(size: 14, weight: .semibold))
             Spacer()
             if let shortcut = command.shortcut {
-                Text(verbatim: shortcut).font(.system(size: 12, weight: .medium)).foregroundStyle(selected ? .white.opacity(0.8) : .secondary)
+                Text(verbatim: shortcut).font(.system(size: 12, weight: .medium)).foregroundStyle(selected ? Color.onBrandFill.opacity(0.7) : .secondary)
             }
         }
-        .foregroundStyle(selected ? .white : .primary)
+        .foregroundStyle(selected ? Color.onBrandFill : .primary)
         .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(selected ? Color.brand : .clear, in: .rect(cornerRadius: 16, style: .continuous))
+        .background(selected ? Color.brandFill : .clear, in: .rect(cornerRadius: 16, style: .continuous))
     }
 }

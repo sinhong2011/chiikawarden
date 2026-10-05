@@ -214,12 +214,12 @@ struct PrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.onBrandFill)
             .frame(maxWidth: .infinity, minHeight: 40)
-            // Fixed deep blue in both appearances so white text keeps ≥4.5:1 contrast.
-            .background(Color(nsColor: .chiikawardenBrand).opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.12)))
-            .shadow(color: Color.brand.opacity(configuration.isPressed ? 0.15 : 0.3), radius: configuration.isPressed ? 3 : 8, y: 3)
+            // The tail's sky blue with navy text (7.9:1) in both appearances.
+            .background(Color.brandFill.opacity(isEnabled ? 1 : 0.5), in: .rect(cornerRadius: 10, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.35)))
+            .shadow(color: Color.brandFill.opacity(configuration.isPressed ? 0.25 : 0.55), radius: configuration.isPressed ? 3 : 10, y: 3)
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }

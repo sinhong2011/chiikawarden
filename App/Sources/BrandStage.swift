@@ -48,7 +48,7 @@ struct BrandStage: View {
                     VaultMark(palette: palette)
                         .frame(width: d * 0.24, height: d * 0.24)
                         .scaleEffect(1 + 0.015 * sin(t * 1.3))
-                        .shadow(color: palette.brand.opacity(0.35), radius: d * 0.05, y: d * 0.015)
+                        .shadow(color: Color.brandFill.opacity(0.7), radius: d * 0.06, y: d * 0.015)
                         .position(center)
 
                     HStack(spacing: 9) {
@@ -88,11 +88,11 @@ struct BrandStage: View {
 
 struct StagePalette {
     let dark: Bool
-    var brand: Color { dark ? Color(red: 0.28, green: 0.63, blue: 0.88) : Color(red: 0.14, green: 0.44, blue: 0.66) }
+    var brand: Color { dark ? Color.brandFill : Color(red: 0.06, green: 0.45, blue: 0.70) }
     var ink: Color { dark ? .white : Color(red: 0.05, green: 0.16, blue: 0.27) }
-    var orbit: Color { dark ? .white.opacity(0.10) : Color(red: 0.14, green: 0.44, blue: 0.66).opacity(0.16) }
+    var orbit: Color { dark ? .white.opacity(0.10) : Color.brandFill.opacity(0.45) }
     var token: Color { dark ? Color(red: 0.12, green: 0.16, blue: 0.31) : .white }
-    var tokenEdge: Color { dark ? .white.opacity(0.10) : Color(red: 0.14, green: 0.44, blue: 0.66).opacity(0.14) }
+    var tokenEdge: Color { dark ? .white.opacity(0.10) : Color.brandFill.opacity(0.5) }
 
     var background: some View {
         ZStack {
@@ -132,7 +132,7 @@ struct VaultMark: View {
             let s = min(size.width, size.height)
             let c = CGPoint(x: size.width / 2, y: size.height / 2)
             func disc(_ p: CGPoint, _ r: CGFloat) -> Path { Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)) }
-            ctx.fill(disc(c, s / 2), with: .color(palette.brand))
+            ctx.fill(disc(c, s / 2), with: .color(.brandFill))
             let white = GraphicsContext.Shading.color(.white)
             ctx.stroke(disc(c, s * 0.19), with: white, lineWidth: s * 0.065)
             let reach = s * 0.27
@@ -148,7 +148,7 @@ struct VaultMark: View {
                 ctx.fill(disc(CGPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach), s * 0.062), with: white)
             }
             ctx.fill(disc(c, s * 0.11), with: white)
-            ctx.fill(disc(c, s * 0.042), with: .color(palette.brand))
+            ctx.fill(disc(c, s * 0.042), with: .color(.brandFill))
         }
         .accessibilityHidden(true)
     }

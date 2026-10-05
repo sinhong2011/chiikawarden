@@ -2,17 +2,22 @@ import AppKit
 import SwiftUI
 
 extension NSColor {
-    /// Brand sky blue, from the tail of the mascot (tint #CBE4F6). Tuned for WCAG contrast: #2371A9 in light
-    /// mode (4.7:1 as text on the window, 5.2:1 under white text), #47A0E1 in dark mode (4.9–5.9:1 on panels).
-    /// Mirrors AccentColor in the app's asset catalog.
+    /// Brand blue for text, links and icons. The mascot's tail is #80C5EF (see `Color.brandFill`); in light mode
+    /// text needs a deeper vivid sky, #0F74B3 (4.5:1 on the window, 5.0:1 on white); in dark mode the tail colour
+    /// itself works as text (8.9:1). Mirrors AccentColor in the app's asset catalog.
     static let chiikawardenBrand = NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            ? NSColor(srgbRed: 0x47 / 255, green: 0xA0 / 255, blue: 0xE1 / 255, alpha: 1)
-            : NSColor(srgbRed: 0x23 / 255, green: 0x71 / 255, blue: 0xA9 / 255, alpha: 1)
+            ? NSColor(srgbRed: 0x80 / 255, green: 0xC5 / 255, blue: 0xEF / 255, alpha: 1)
+            : NSColor(srgbRed: 0x0F / 255, green: 0x74 / 255, blue: 0xB3 / 255, alpha: 1)
     }
 }
 
 extension Color {
+    /// The tail's sky blue as a fill (buttons, the vault mark, selection). Pair with `onBrandFill`.
+    static let brandFill = Color(red: 0x80 / 255, green: 0xC5 / 255, blue: 0xEF / 255)
+    /// Navy text on `brandFill` (7.9:1).
+    static let onBrandFill = Color(red: 0x0B / 255, green: 0x2A / 255, blue: 0x40 / 255)
+
     /// The tail itself: a pale sky tint for washes and soft fills (deep blue in dark mode).
     static let brandTint = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua

@@ -35,16 +35,16 @@ With Full Keyboard Access on (System Settings › Keyboard › Keyboard navigati
 
 ## Contrast
 
-The brand colour is the sky blue of the mascot's tail (tint #CBE4F6), deepened until it meets WCAG 2.2 AA
-(relative-luminance formula):
+The brand colour is the sky blue of the mascot's tail, #80C5EF. It is used as a **fill** (buttons, the vault mark,
+selection) with navy text, and a deeper vivid sky carries blue **text** where it has to be readable on light
+backgrounds (WCAG 2.2 AA, relative-luminance formula):
 
 | Use | Light | Dark |
 |---|---|---|
-| Blue text / links on the window background | #2371A9 on #F2F2F7: **4.70:1** | #47A0E1 on #1E1E1E: **5.86:1** |
-| Blue text on panels | #2371A9 on #FFFFFF: **5.24:1** | #47A0E1 on #2C2C2E: **4.90:1** |
-| White text on blue buttons | **5.24:1** | **2.84:1** (below AA; see known gaps) |
+| Navy text on tail-blue buttons | #0B2A40 on #80C5EF: **7.86:1** | same |
+| Blue text / links / icons | #0F74B3 on #F2F2F7: **4.51:1** (5.04:1 on white) | #80C5EF on #1E1E1E: **8.85:1** |
+| White text on system prominent buttons | on #0F74B3: **5.04:1** | on #80C5EF: below AA (see known gaps) |
 
-The pale tail tint itself is only used for washes and soft fills, never for text.
 All other text uses system semantic colours (`.primary`, `.secondary`), which follow macOS Increase Contrast.
 
 ## Motion
@@ -54,7 +54,7 @@ The animated dial on the login screen stops when **Reduce Motion** is on.
 ## Known gaps
 
 - Short UI transitions (list changes, the toast, sheet content) still animate with Reduce Motion on.
-- White on the dark-mode sky blue is 2.84:1, under AA. Prominent buttons in dark mode should move to dark
-  label text; tracked as a follow-up.
+- System `.borderedProminent` buttons (e.g. Save in sheets) draw white text on the accent; in dark mode that is
+  under AA on the tail sky. Chiikawarden's own primary buttons use navy text instead; the system ones are a follow-up.
 - There is no automated accessibility test yet. Checks so far are code review plus snapshot review.
   A VoiceOver walkthrough on real hardware is tracked in the issues.

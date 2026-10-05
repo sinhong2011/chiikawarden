@@ -140,7 +140,7 @@ private struct FeaturedCard: View {
                         ZStack {
                             Circle().stroke(.white.opacity(0.18), lineWidth: 3)
                             Circle().trim(from: 1 - remaining, to: 1)
-                                .stroke(Color(red: 0.55, green: 0.78, blue: 0.95), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                                .stroke(Color.brandFill, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                         }
                         .frame(width: 26, height: 26)
