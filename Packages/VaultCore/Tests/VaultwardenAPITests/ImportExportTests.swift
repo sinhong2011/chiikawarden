@@ -128,4 +128,47 @@ import Testing
         let folderName = ((root["folders"] as? [[String: Any]])?.first?["name"] as? String).flatMap { try? EncString($0).decryptString(with: otherKey) }
         #expect(folderName == "Work")
     }
+
+    // MARK: Organizations
+
+    @Test func organizationExportsImportByCollection() throws {
+        let collections: [[String: Any]] = [["id": "c1", "organizationId": "o1", "name": "Family"], ["id": "c2", "organizationId": "o1", "name": "Shared"]]
+        let items: [[String: Any]] = [
+            ["type": 1, "name": "Netflix", "organizationId": "o1", "collectionIds": ["c2", "c1"],
+             "login": ["username": "family@x.com", "password": "pw", "uris": [["uri": "https://netflix.com"]]]],
+            ["type": 2, "name": "Router", "organizationId": "o1", "collectionIds": [], "notes": "admin/admin"],
+        ]
+        let json = try VaultImport.preview(VaultExport.json(collections: collections, items: items))
+        #expect(json.folders == ["Family", "Shared"])
+        #expect(json.items[0].folder == 1 && json.items[1].folder == nil)
+
+        let (csvData, _) = VaultExport.csv(collections: collections, items: items)
+        #expect(String(decoding: csvData, as: UTF8.self).hasPrefix("collections,type,name,notes,fields,reprompt,login_uri"))
+        let csv = try VaultImport.preview(csvData)
+        #expect(csv.format == .bitwardenCSV && csv.folders == ["Shared"] && csv.items[0].folder == 0)
+    }
+
+    @Test func organizationRequestUsesTheOrganizationKey() throws {
+        let preview = try VaultImport.preview(Data("name,url,username,password,note\nGitHub,https://github.com,usagi,pw,\n".utf8))
+        var items = preview.items
+        items[0].folder = 0
+        let body = try VaultImport.organizationRequestBody(items: items, collections: ["Shared"], organizationId: "o1", key: otherKey)
+        let root = try #require(try JSONSerialization.jsonObject(with: body) as? [String: Any])
+        let cipher = try #require((root["ciphers"] as? [[String: Any]])?.first)
+        #expect(cipher["organizationId"] as? String == "o1")
+        #expect((CipherFields.decrypt(cipher, key: otherKey) as? [String: Any])?["name"] as? String == "GitHub")
+        #expect((CipherFields.decrypt(cipher, key: key) as? [String: Any])?["name"] as? String != "GitHub", "only the org key opens it")
+        let collection = try #require((root["collections"] as? [[String: Any]])?.first)
+        #expect((collection["name"] as? String).flatMap { try? EncString($0).decryptString(with: otherKey) } == "Shared")
+        #expect((root["collectionRelationships"] as? [[String: Int]]) == [["key": 0, "value": 0]])
+    }
+
+    @Test func largeImportsGoInBatchesWithWholeFolders() {
+        let items = (0..<12_000).map { i in ImportedItem(json: ["type": 2, "name": "n\(i)"], folder: i < 4_000 ? 0 : i < 9_000 ? 1 : nil) }
+        let batches = VaultImport.batches(items, limit: 5_000)
+        #expect(batches.allSatisfy { $0.count <= 5_000 })
+        #expect(batches.reduce(0) { $0 + $1.count } == 12_000)
+        #expect(batches.filter { $0.contains { $0.folder == 0 } }.count == 1, "a folder that fits stays in one batch")
+        #expect(VaultImport.batches(Array(items.prefix(10)), limit: 5_000).count == 1)
+    }
 }

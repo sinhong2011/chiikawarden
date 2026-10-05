@@ -65,14 +65,17 @@ final class AppModel {
     var transfer: Transfer?
 
     enum Transfer: Identifiable {
-        case export
+        case export(accountId: String?)
         case importFile(URL?)
         var id: String {
-            switch self { case .export: "export"; case .importFile(let url): "import-" + (url?.path ?? "") }
+            switch self {
+            case .export(let account): "export-" + (account ?? "")
+            case .importFile(let url): "import-" + (url?.path ?? "")
+            }
         }
     }
 
-    func beginExport() { bringToFront(); transfer = .export }
+    func beginExport(accountId: String? = nil) { bringToFront(); transfer = .export(accountId: accountId) }
     func beginImport(_ url: URL? = nil) { bringToFront(); transfer = .importFile(url) }
 
     /// Checks a master password offline (re-entry before an export).

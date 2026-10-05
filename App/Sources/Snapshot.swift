@@ -676,6 +676,26 @@ enum SelfTest {
                         for item in imported { await model.deleteForever(item) }
                         for folder in s2.folders where !beforeFolders.contains(folder.id) { try? await s2.deleteFolder(folder.id) }
 
+                        // Organization vault: export, read back, import a copy into the organization, clean up.
+                        if let org = s1.transferVaults().first(where: { $0.id != nil }), let orgId = org.id {
+                            let orgItems = model.items.filter { $0.organizationId == orgId && !$0.isDeleted }
+                            let orgFile = try s1.export(.encryptedJSON, filePassword: "selftest-file", organizationId: orgId).data
+                            let orgPreview = try s1.previewImport(orgFile, password: "selftest-file")
+                            check(orgPreview.items.count == orgItems.count && !orgItems.isEmpty,
+                                  "organization export: \(orgPreview.items.count) items, \(orgPreview.folders.count) collections")
+                            let before = Set(model.items.map(\.id))
+                            // Without collections, so repeated runs don't leave duplicate collections behind.
+                            let copies = orgPreview.items.map { item -> ImportedItem in var item = item; item.folder = nil; return item }
+                            try await s1.importItems(copies, folders: [], organizationId: orgId)
+                            let imported = model.items.filter { !before.contains($0.id) }
+                            check(imported.count == orgItems.count && imported.allSatisfy { $0.organizationId == orgId }
+                                  && imported.allSatisfy { copy in orgItems.contains { $0.name == copy.name && $0.password == copy.password } },
+                                  "import into the organization (\(imported.count) items, organization key)")
+                            for item in imported { await model.deleteForever(item) }
+                        } else {
+                            check(false, "organization export: no organization with import/export access")
+                        }
+
                         let csv = try VaultImport.preview(try s1.export(.csv).data)
                         let csvKinds: Set<VaultItem.Kind> = [.login, .note]
                         let expected = mine.filter { csvKinds.contains($0.kind) }.count

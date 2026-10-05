@@ -218,7 +218,7 @@ struct VaultView: View {
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .sheet(item: $model.transfer) { transfer in
             switch transfer {
-            case .export: ExportSheet()
+            case .export(let accountId): ExportSheet(initialAccount: accountId)
             case .importFile(let url): ImportSheet(initialFile: url)
             }
         }

@@ -189,6 +189,34 @@
         }
       }
     },
+    "%lld collections": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個のコレクション"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個集合"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个集合"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個集合"
+          }
+        }
+      }
+    },
     "%lld entries can't be imported": {
       "localizations": {
         "ja": {
@@ -581,6 +609,8 @@
         }
       }
     },
+    "1Password (.1pux)": {},
+    "1Password CSV": {},
     "2 days": {
       "localizations": {
         "ja": {
@@ -1909,6 +1939,7 @@
       }
     },
     "Bitwarden JSON or CSV · browser CSV exports": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -4545,6 +4576,7 @@
         }
       }
     },
+    "Dashlane CSV": {},
     "Decrease": {
       "localizations": {
         "ja": {
@@ -5527,6 +5559,7 @@
       }
     },
     "Every login,\nin one quiet orbit.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -5775,6 +5808,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "匯出密碼庫⋯"
+          }
+        }
+      }
+    },
+    "Export this account's vault": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアカウントの保管庫を書き出す"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出呢個帳戶嘅密碼庫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出这个账户的密码库"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出這個帳號的密碼庫"
           }
         }
       }
@@ -6396,6 +6457,7 @@
       }
     },
     "From Bitwarden, Chrome, Edge, Brave, Arc, Safari, Apple Passwords or Firefox.": {
+      "extractionState": "stale",
       "localizations": {
         "ja": {
           "stringUnit": {
@@ -7040,6 +7102,34 @@
         }
       }
     },
+    "Import into": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込み先"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入去"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入到"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入至"
+          }
+        }
+      }
+    },
     "Imported %lld items": {
       "localizations": {
         "ja": {
@@ -7432,6 +7522,8 @@
         }
       }
     },
+    "KeePass 2 XML": {},
+    "KeePassXC CSV": {},
     "Language": {
       "localizations": {
         "ja": {
@@ -7544,6 +7636,7 @@
         }
       }
     },
+    "LastPass CSV": {},
     "Length": {
       "localizations": {
         "ja": {
@@ -10856,6 +10949,34 @@
         }
       }
     },
+    "Personal": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人"
+          }
+        }
+      }
+    },
     "Phone": {
       "localizations": {
         "ja": {
@@ -11024,6 +11145,7 @@
         }
       }
     },
+    "Proton Pass CSV": {},
     "Public key": {
       "localizations": {
         "ja": {

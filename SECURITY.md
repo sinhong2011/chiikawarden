@@ -76,10 +76,13 @@ Formats match Bitwarden's official clients, so files move between them.
 | JSON | The same, in plain text | None. Anyone with the file can read everything. |
 | CSV | Logins and secure notes only | None. |
 
-- Exports cover the personal vault only. Organization items, Trash and attachments are left out, as in Bitwarden's export.
+- An export covers the personal vault, or one organization's vault (with its collections) for owners, admins and members
+  with the import/export permission. Trash and attachments are left out, as in Bitwarden's export.
 - Exporting asks for the master password again (checked on the Mac, offline) and warns before any unencrypted format.
 - The file is written straight to the place chosen in the save panel with `0600` permissions, never to a temporary copy.
-- Imports are read only from the file you choose or drop on the window. Every item is encrypted on the Mac with your account key, then sent in one batch (`POST /api/ciphers/import`); nothing leaves unencrypted.
+- Imports are read only from the file you choose or drop on the window. Every item is encrypted on the Mac with your account
+  key (or the organization's key, `POST /api/ciphers/import-organization`), then sent in batches of at most 5,000
+  (`POST /api/ciphers/import`); nothing leaves unencrypted. 1Password `.1pux` files are unzipped in memory.
 - `DevServer/verify_export.py` decrypts a password-protected export with an implementation independent of the app.
 
 ## Threat model

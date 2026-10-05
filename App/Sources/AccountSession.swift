@@ -150,19 +150,37 @@ final class AccountSession {
 
     // MARK: Import and export
 
-    /// The personal vault as a file in one of Bitwarden's export formats.
+    /// Vaults this account may import into and export: Personal (nil id), then each organization where the user is an
+    /// owner or admin, or has the import/export permission.
+    func transferVaults() -> [(id: String?, name: String)] {
+        let orgs = (try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).profile.organizations) ?? nil
+        let allowed = Set((orgs ?? []).filter(\.canImportExport).map(\.id))
+        return [(nil, String(localized: "Personal"))] + organizations.filter { allowed.contains($0.id) }.map { ($0.id, $0.name) }
+    }
+
+    /// The personal vault, or an organization's, as a file in one of Bitwarden's export formats.
     /// Uses the synced (still encrypted) payload, so the export matches the server exactly.
-    func export(_ format: VaultExport.Format, filePassword: String? = nil) throws -> (data: Data, skipped: Int) {
+    func export(_ format: VaultExport.Format, filePassword: String? = nil, organizationId: String? = nil) throws -> (data: Data, skipped: Int, count: Int) {
         guard let cache = AccountStore.loadCache(account.id) else { throw WriteError.offline }
+        if let organizationId {
+            let vault = try VaultExport.organizationVault(syncData: cache, userKey: userKey, organizationId: organizationId)
+            let json = { try VaultExport.json(collections: vault.collections, items: vault.items) }
+            switch format {
+            case .json: return (try json(), 0, vault.items.count)
+            case .encryptedJSON: return (try VaultExport.passwordProtected(json(), password: filePassword ?? ""), 0, vault.items.count)
+            case .csv:
+                let csv = VaultExport.csv(collections: vault.collections, items: vault.items)
+                return (csv.data, csv.skipped, vault.items.count - csv.skipped)
+            }
+        }
         let vault = try VaultExport.plainVault(syncData: cache, userKey: userKey)
+        let json = { try VaultExport.json(folders: vault.folders, items: vault.items) }
         switch format {
-        case .json:
-            return (try VaultExport.json(folders: vault.folders, items: vault.items), 0)
-        case .encryptedJSON:
-            let plain = try VaultExport.json(folders: vault.folders, items: vault.items)
-            return (try VaultExport.passwordProtected(plain, password: filePassword ?? ""), 0)
+        case .json: return (try json(), 0, vault.items.count)
+        case .encryptedJSON: return (try VaultExport.passwordProtected(json(), password: filePassword ?? ""), 0, vault.items.count)
         case .csv:
-            return VaultExport.csv(folders: vault.folders, items: vault.items)
+            let csv = VaultExport.csv(folders: vault.folders, items: vault.items)
+            return (csv.data, csv.skipped, vault.items.count - csv.skipped)
         }
     }
 
@@ -171,10 +189,21 @@ final class AccountSession {
         try VaultImport.preview(data, password: password, accountKey: userKey)
     }
 
-    /// Encrypts the chosen items here, sends them in one batch, then syncs.
-    func importItems(_ items: [ImportedItem], folders: [String]) async throws {
+    /// Encrypts the chosen items here (with the organization's key when importing into one), sends them in one batch,
+    /// then syncs. Into an organization, the file's folders become collections.
+    func importItems(_ items: [ImportedItem], folders: [String], organizationId: String? = nil) async throws {
         guard let client else { throw WriteError.offline }
-        try await client.importCiphers(VaultImport.requestBody(items: items, folders: folders, key: userKey))
+        // Bitwarden's cloud caps one import at about 7,000 items: send batches, keeping each folder in one batch.
+        for batch in VaultImport.batches(items, limit: 5_000) {
+            if let organizationId {
+                guard let key = keyring?.orgKeys[organizationId] else { throw WriteError.offline }
+                try await client.importOrganizationCiphers(
+                    VaultImport.organizationRequestBody(items: batch, collections: folders, organizationId: organizationId, key: key),
+                    organizationId: organizationId)
+            } else {
+                try await client.importCiphers(VaultImport.requestBody(items: batch, folders: folders, key: userKey))
+            }
+        }
         try await refresh()
     }
 

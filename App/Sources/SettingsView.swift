@@ -375,6 +375,8 @@ private struct AccountsSettings: View {
                                 .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
                             Spacer()
                             if unlocked {
+                                Button("Export…") { model.beginExport(accountId: account.id) }
+                                    .help(Text("Export this account's vault"))
                                 Button("Lock") { model.lock(account.id) }
                             }
                             Button("Log Out…", role: .destructive) { confirmLogOut = account }
