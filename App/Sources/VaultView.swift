@@ -141,7 +141,7 @@ private struct Sidebar: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: model.serverDisplayName.isEmpty ? "vault" : model.serverDisplayName)
                         .font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                    Text("Synced just now").font(.system(size: 11)).foregroundStyle(.secondary)
+                    SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
                 Button { model.lock() } label: { Image(systemName: "lock") }
@@ -150,6 +150,26 @@ private struct Sidebar: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+        }
+    }
+}
+
+private struct SyncStatusText: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        if model.isSyncing {
+            Text("Syncing…")
+        } else if let date = model.lastSynced {
+            TimelineView(.periodic(from: .now, by: 30)) { context in
+                if context.date.timeIntervalSince(date) < 60 {
+                    Text("Synced just now")
+                } else {
+                    Text("Synced \(date, format: .relative(presentation: .named))")
+                }
+            }
+        } else {
+            Text("Offline · saved vault")
         }
     }
 }
@@ -392,9 +412,11 @@ private struct HeroCard: View {
                     }
                 }
                 if let totp = item.totp {
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in
                         let code = totp.code(at: context.date)
                         let left = totp.secondsRemaining(at: context.date)
+                        let period = Double(totp.period)
+                        let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
                         Tile {
                             model.copy(code, label: String(localized: "Code"))
                         } content: {
@@ -411,11 +433,10 @@ private struct HeroCard: View {
                                 Capsule().fill(.white.opacity(0.15))
                                     .overlay(alignment: .leading) {
                                         Capsule().fill(left <= 5 ? Color.orange : Color.white)
-                                            .frame(width: g.size.width * Double(left) / Double(totp.period))
+                                            .frame(width: g.size.width * remaining)
                                     }
                             }
                             .frame(height: 4)
-                            .animation(.linear(duration: 1), value: left)
                         }
                         .animation(.snappy, value: code)
                     }

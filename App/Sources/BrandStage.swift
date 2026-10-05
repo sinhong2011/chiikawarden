@@ -137,16 +137,18 @@ private struct Chip<Content: View>: View {
     }
 }
 
-/// A demo one-time code that really counts down.
+/// A demo one-time code that really counts down: the ring drains smoothly, clockwise from 12 o'clock.
 private struct CodeChip: View {
     let date: Date
 
     var body: some View {
-        let left = 30 - Int(date.timeIntervalSince1970) % 30
+        let period = 30.0
+        let remaining = 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
         HStack(spacing: 8) {
             ZStack {
                 Circle().stroke(.white.opacity(0.18), lineWidth: 2)
-                Circle().trim(from: 0, to: Double(left) / 30)
+                // Trimming from the start makes the leading edge sweep clockwise as time runs out.
+                Circle().trim(from: 1 - remaining, to: 1)
                     .stroke(Color(red: 0.55, green: 0.69, blue: 1), style: StrokeStyle(lineWidth: 2, lineCap: .round))
                     .rotationEffect(.degrees(-90))
             }

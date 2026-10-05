@@ -4,7 +4,7 @@ import CryptoKit
 import Foundation
 
 /// Key-derivation settings returned by the server's prelogin endpoint.
-public enum KDFConfig: Sendable, Equatable {
+public enum KDFConfig: Sendable, Equatable, Codable {
     case pbkdf2(iterations: Int)
     case argon2id(iterations: Int, memoryMiB: Int, parallelism: Int)
 

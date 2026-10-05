@@ -66,6 +66,23 @@ struct DevServerTests {
     }
 
     @Test(arguments: DevServer.ports)
+    func offlineUnlockAndRefreshToken(port: Int) async throws {
+        // Log in once, keep only what an app stores on disk…
+        let first = try await DevServer.client(port: port).loginDetailed(email: "usagi@chiikawarden.test", password: DevServer.password)
+        let refresh = try #require(first.refreshToken)
+        // …unlock offline: re-derive the master key and open the protected user key.
+        let mk = try KDF.masterKey(password: DevServer.password, email: "usagi@chiikawarden.test", config: first.kdf)
+        let userKey = try SymmetricKeyPair(combined: EncString(first.protectedUserKey).decrypt(with: .stretched(masterKey: mk)))
+        #expect(userKey == first.userKey)
+        // …and resume the session with a fresh client using the refresh token.
+        let resumed = try DevServer.client(port: port)
+        await resumed.restore(refreshToken: refresh)
+        try await resumed.refreshAccessToken()
+        let names = try await resumed.sync().ciphers.compactMap { try? EncString($0.name).decryptString(with: userKey) }
+        #expect(names.contains("GitHub"))
+    }
+
+    @Test(arguments: DevServer.ports)
     func wrongPasswordIsRejected(port: Int) async throws {
         let client = try DevServer.client(port: port)
         await #expect(throws: APIError.self) {

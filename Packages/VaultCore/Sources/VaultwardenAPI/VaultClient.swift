@@ -8,6 +8,7 @@ public actor VaultClient {
     private let deviceIdentifier: String
     private let extraHeaders: [String: String]
     private var accessToken: String?
+    private var refreshToken: String?
 
     /// Identifies us to the server. The official cloud gates features on known client names.
     static let clientName = "desktop"
@@ -44,6 +45,30 @@ public actor VaultClient {
         throw lastError
     }
 
+    /// Everything needed to unlock later without the network (all of it is safe at rest except `refreshToken`,
+    /// which belongs in the Keychain).
+    public struct LoginResult: Sendable {
+        public let userKey: SymmetricKeyPair
+        public let protectedUserKey: String
+        public let kdf: KDFConfig
+        public let refreshToken: String?
+    }
+
+    /// Restores a session from a stored refresh token (no password needed).
+    public func restore(refreshToken: String) { self.refreshToken = refreshToken }
+
+    /// Exchanges the refresh token for a new access token. Returns the (possibly rotated) refresh token.
+    @discardableResult
+    public func refreshAccessToken() async throws(APIError) -> String {
+        guard let refreshToken else { throw .http(status: 401, message: "No session") }
+        let token: TokenResponse = try await send(post(environment.identityURL, "connect/token", formBody: [
+            "grant_type": "refresh_token", "client_id": Self.clientName, "refresh_token": refreshToken,
+        ]))
+        accessToken = token.accessToken
+        if let rotated = token.refreshToken { self.refreshToken = rotated }
+        return self.refreshToken ?? refreshToken
+    }
+
     /// Logs in and returns the decrypted user key.
     ///
     /// - Parameters:
@@ -52,6 +77,12 @@ public actor VaultClient {
     public func login(email: String, password: String,
                       twoFactor: (provider: String, token: String)? = nil,
                       newDeviceOTP: String? = nil) async throws(APIError) -> SymmetricKeyPair {
+        try await loginDetailed(email: email, password: password, twoFactor: twoFactor, newDeviceOTP: newDeviceOTP).userKey
+    }
+
+    public func loginDetailed(email: String, password: String,
+                              twoFactor: (provider: String, token: String)? = nil,
+                              newDeviceOTP: String? = nil) async throws(APIError) -> LoginResult {
         let config = try await prelogin(email: email).config()
         do {
             let masterKey = try KDF.masterKey(password: password, email: email, config: config)
@@ -76,9 +107,11 @@ public actor VaultClient {
             request.setValue(Data(KDF.normalizedEmail(email).utf8).base64URLEncoded, forHTTPHeaderField: "Auth-Email")
             let token: TokenResponse = try await send(request)
             accessToken = token.accessToken
+            refreshToken = token.refreshToken
             guard let protected = token.key else { throw APIError.missingUserKey }
             let stretched = try SymmetricKeyPair.stretched(masterKey: masterKey)
-            return try SymmetricKeyPair(combined: EncString(protected).decrypt(with: stretched))
+            let userKey = try SymmetricKeyPair(combined: EncString(protected).decrypt(with: stretched))
+            return LoginResult(userKey: userKey, protectedUserKey: protected, kdf: config, refreshToken: token.refreshToken)
         } catch let error as CryptoError {
             throw .crypto(error)
         } catch let error as APIError {
@@ -111,9 +144,14 @@ public actor VaultClient {
     // MARK: Sync
 
     public func sync() async throws(APIError) -> SyncResponse {
+        try SyncResponse.decode(await syncData())
+    }
+
+    /// Raw sync payload — every secret in it is already encrypted, so it can be cached as-is.
+    public func syncData() async throws(APIError) -> Data {
         var request = try request(environment.apiURL, "sync?excludeDomains=true")
         if let accessToken { request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
-        return try await send(request)
+        return try await sendRaw(request)
     }
 
     // MARK: Plumbing
@@ -154,6 +192,17 @@ public actor VaultClient {
 
     private func json(_ object: [String: String]) throws(APIError) -> Data {
         do { return try JSONEncoder().encode(object) } catch { throw .http(status: -1, message: "encode") }
+    }
+
+    private func sendRaw(_ request: URLRequest) async throws(APIError) -> Data {
+        let data: Data
+        let response: URLResponse
+        do { (data, response) = try await session.data(for: request) } catch {
+            throw .http(status: -1, message: error.localizedDescription)
+        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(status) else { throw APIError.from(status: status, body: data, decoder: .vaultwarden) }
+        return data
     }
 
     private func send<T: Decodable>(_ request: URLRequest) async throws(APIError) -> T {

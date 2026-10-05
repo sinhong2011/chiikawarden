@@ -69,6 +69,7 @@ private struct GeneralSettings: View {
 // MARK: Security
 
 private struct SecuritySettings: View {
+    @Environment(AppModel.self) private var model
     @AppStorage(Pref.autoLockMinutes) private var autoLockMinutes = 15
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
@@ -107,9 +108,13 @@ private struct SecuritySettings: View {
             }
 
             Section {
-                LabeledContent("Unlock with Touch ID") {
-                    Text("Coming soon").foregroundStyle(.secondary)
-                }
+                Toggle("Unlock with Touch ID", isOn: Binding(get: { model.touchIDEnabled }, set: { model.setTouchID($0) }))
+                    .disabled(!AccountStore.isTouchIDAvailable || (!model.isUnlocked && !model.touchIDEnabled))
+            } footer: {
+                Text(AccountStore.isTouchIDAvailable
+                     ? "Your vault key is sealed by the Secure Enclave and only released after Touch ID. Unlock once to turn this on."
+                     : "This Mac has no Touch ID available.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

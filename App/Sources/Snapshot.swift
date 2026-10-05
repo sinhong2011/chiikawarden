@@ -19,12 +19,19 @@ enum Snapshot {
         model.serverURL = "https://vault.home.arpa"
         model.email = "usagi@chiikawarden.test"
         model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
+        model.touchIDEnabled = true
 
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(LoginView().environment(model).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 900, height: 600), appearance: appearance,
                    to: dir.appending(path: "login-\(name).png"))
         }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(UnlockView().environment(model).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 600), appearance: appearance,
+                   to: dir.appending(path: "unlock-\(name).png"))
+        }
+
         let vault = AppModel()
         vault.phase = .vault
         vault.items = demoItems
@@ -93,6 +100,51 @@ enum Snapshot {
         frame.cacheDisplay(in: frame.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
         window.orderOut(nil)
+    }
+}
+#endif
+
+#if DEBUG
+/// Debug-only: `Chiikawarden --selftest <server> <email> <password>` runs the account lifecycle inside the
+/// real (signed, sandboxed) app: log in → lock → offline unlock from cache → resume session → wrong password → log out.
+@MainActor
+enum SelfTest {
+    static func runIfRequested() {
+        let args = CommandLine.arguments
+        guard let i = args.firstIndex(of: "--selftest"), i + 3 < args.count else { return }
+        let (server, email, password) = (args[i + 1], args[i + 2], args[i + 3])
+        Task {
+            var failures = 0
+            func check(_ ok: Bool, _ what: String) { print(ok ? "PASS" : "FAIL", what); if !ok { failures += 1 } }
+
+            let model = AppModel()
+            model.logOut()
+            model.serverKind = .selfHosted
+            model.serverURL = server
+            model.email = email
+            await model.login(password: password)
+            check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items)")
+            check(AccountStore.load() != nil && AccountStore.loadCache() != nil && AccountStore.refreshToken != nil,
+                  "account, encrypted cache and refresh token persisted")
+            let count = model.items.count
+
+            model.lock()
+            check(model.phase.id == AppModel.Phase.locked.id && model.items.isEmpty, "lock clears vault, shows unlock")
+
+            let fresh = AppModel() // simulates relaunch
+            check(fresh.phase.id == AppModel.Phase.locked.id, "relaunch starts locked")
+            await fresh.unlock(password: "definitely-wrong")
+            check(!fresh.isUnlocked && fresh.errorMessage != nil, "wrong password rejected offline")
+            await fresh.unlock(password: password)
+            check(fresh.isUnlocked && fresh.items.count == count, "offline unlock restores \(fresh.items.count) items from cache")
+            try? await Task.sleep(for: .seconds(3))
+            check(fresh.lastSynced != nil, "session resumed with refresh token and re-synced")
+
+            fresh.logOut()
+            check(AccountStore.load() == nil && AccountStore.refreshToken == nil, "log out erases account and token")
+            print(failures == 0 ? "SELFTEST OK" : "SELFTEST FAILED (\(failures))")
+            exit(failures == 0 ? 0 : 1)
+        }
     }
 }
 #endif

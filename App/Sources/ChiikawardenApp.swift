@@ -9,6 +9,7 @@ struct ChiikawardenApp: App {
         Pref.register()
         #if DEBUG
         Snapshot.runIfRequested()
+        SelfTest.runIfRequested()
         // `--demo`: open straight into the vault with demo items, for UI review.
         if CommandLine.arguments.contains("--demo") {
             let demo = AppModel()
@@ -58,6 +59,10 @@ struct RootView: View {
                 LoginView()
                     .frame(minWidth: 520, idealWidth: 920, maxWidth: 1600, minHeight: 600, idealHeight: 640, maxHeight: 1200)
                     .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))
+            case .locked:
+                UnlockView()
+                    .frame(minWidth: 520, idealWidth: 920, maxWidth: 1600, minHeight: 560, idealHeight: 600, maxHeight: 1200)
+                    .transition(.opacity)
             case .vault:
                 VaultView()
                     .frame(minWidth: 960, idealWidth: 1120, minHeight: 620, idealHeight: 720)

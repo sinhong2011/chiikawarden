@@ -48,9 +48,11 @@ final class AppModel {
         case twoFactor(providers: [String])
         /// Official cloud emailed a one-time code for this new device.
         case deviceVerification
+        /// Signed in on this Mac, vault locked: unlock offline with the master password or Touch ID.
+        case locked
         case vault
         var id: Int {
-            switch self { case .login: 0; case .twoFactor: 1; case .deviceVerification: 3; case .vault: 2 }
+            switch self { case .login: 0; case .twoFactor: 1; case .deviceVerification: 3; case .locked: 4; case .vault: 2 }
         }
     }
 
@@ -77,6 +79,20 @@ final class AppModel {
     var email = UserDefaults.standard.string(forKey: "email") ?? ""
 
     var isUnlocked: Bool { phase.id == Phase.vault.id }
+
+    /// Last successful sync with the server; nil while showing cached data only.
+    var lastSynced: Date?
+    var isSyncing = false
+    var touchIDEnabled = AccountStore.isTouchIDEnabled
+
+    init() {
+        if let saved = AccountStore.load() {
+            serverKind = ServerKind(rawValue: saved.serverKind) ?? .selfHosted
+            serverURL = saved.serverURL
+            email = saved.email
+            phase = .locked
+        }
+    }
 
     enum ServerStatus: Equatable {
         case unknown, checking
@@ -123,12 +139,17 @@ final class AppModel {
         }
     }
 
-    /// Lock and forget the remembered account on this Mac.
+    /// Sign out on this Mac: forget the session, cached vault and Touch ID.
     func logOut() {
-        lock()
+        AccountStore.erase()
+        touchIDEnabled = false
+        userKey = nil
+        items = []
         client = nil
+        lastSynced = nil
         email = ""
         UserDefaults.standard.removeObject(forKey: "email")
+        phase = .login
     }
 
     private func environment() -> ServerEnvironment? {
@@ -216,13 +237,16 @@ final class AppModel {
         let isDeviceCode: Bool = if case .deviceVerification = phase { true } else { false }
         do {
             // Provider "0" is the authenticator app (TOTP).
-            let key = try await client.login(email: email, password: password,
-                                             twoFactor: isDeviceCode ? nil : code.map { ("0", $0) },
-                                             newDeviceOTP: isDeviceCode ? code : nil)
+            let result = try await client.loginDetailed(email: email, password: password,
+                                                        twoFactor: isDeviceCode ? nil : code.map { ("0", $0) },
+                                                        newDeviceOTP: isDeviceCode ? code : nil)
             UserDefaults.standard.set(serverKind.rawValue, forKey: "serverKind")
             UserDefaults.standard.set(serverURL, forKey: "serverURL")
             UserDefaults.standard.set(email, forKey: "email")
-            userKey = key
+            AccountStore.save(SavedAccount(email: email, serverKind: serverKind.rawValue, serverURL: serverURL,
+                                           kdf: result.kdf, protectedUserKey: result.protectedUserKey))
+            AccountStore.refreshToken = result.refreshToken
+            userKey = result.userKey
             try await refresh()
             phase = .vault
         } catch {
@@ -230,9 +254,83 @@ final class AppModel {
         }
     }
 
+    /// Pulls the vault from the server, caches the (still encrypted) payload, and rebuilds the list.
     func refresh() async throws {
-        guard let client, let userKey else { return }
-        let sync = try await client.sync()
+        guard let client, userKey != nil else { return }
+        isSyncing = true
+        defer { isSyncing = false }
+        let data = try await client.syncData()
+        AccountStore.saveCache(data)
+        try load(cache: data)
+        lastSynced = .now
+    }
+
+    // MARK: Unlock
+
+    /// Offline unlock: re-derive the master key locally; the MAC on the protected key proves the password.
+    func unlock(password: String) async {
+        guard let saved = AccountStore.load() else { phase = .login; return }
+        isBusy = true
+        errorMessage = nil
+        defer { isBusy = false }
+        let email = saved.email
+        let derived: SymmetricKeyPair? = await Task.detached(priority: .userInitiated) {
+            guard let mk = try? KDF.masterKey(password: password, email: email, config: saved.kdf),
+                  let stretched = try? SymmetricKeyPair.stretched(masterKey: mk),
+                  let raw = try? EncString(saved.protectedUserKey).decrypt(with: stretched) else { return nil }
+            return try? SymmetricKeyPair(combined: raw)
+        }.value
+        guard let derived else {
+            errorMessage = String(localized: "Wrong master password.")
+            return
+        }
+        finishUnlock(with: derived)
+    }
+
+    func unlockWithTouchID() async {
+        errorMessage = nil
+        let reason = String(localized: "unlock your vault")
+        let key = await Task.detached { try? AccountStore.unlockWithTouchID(reason: reason) }.value
+        if let key { finishUnlock(with: key) }
+    }
+
+    private func finishUnlock(with key: SymmetricKeyPair) {
+        userKey = key
+        if let cache = AccountStore.loadCache() { try? load(cache: cache) }
+        phase = .vault
+        noteActivity()
+        Task { await resumeSession() }
+    }
+
+    /// Reconnects in the background with the stored refresh token, then syncs. Failures keep the cached vault.
+    private func resumeSession() async {
+        guard let environment = environment(), let token = AccountStore.refreshToken else { return }
+        let client = self.client ?? makeClient(environment)
+        self.client = client
+        do {
+            await client.restore(refreshToken: token)
+            AccountStore.refreshToken = try await client.refreshAccessToken()
+            try await refresh()
+        } catch {
+            // Offline or session expired: keep showing the cache; the sidebar shows the sync state.
+        }
+    }
+
+    func setTouchID(_ enabled: Bool) {
+        if enabled, let userKey {
+            do { try AccountStore.enableTouchID(userKey: userKey); touchIDEnabled = true } catch {
+                toast = String(localized: "Couldn't turn on Touch ID")
+                touchIDEnabled = false
+            }
+        } else if !enabled {
+            AccountStore.disableTouchID()
+            touchIDEnabled = false
+        }
+    }
+
+    private func load(cache data: Data) throws {
+        guard let userKey else { return }
+        let sync = try SyncResponse.decode(data)
         let keyring = Keyring(userKey: userKey, profile: sync.profile)
         var hidden = 0
         items = sync.ciphers.compactMap { cipher in
@@ -342,7 +440,7 @@ final class AppModel {
     func lock() {
         userKey = nil
         items = []
-        phase = .login
+        phase = AccountStore.load() != nil ? .locked : .login
     }
 
     func cancelChallenge() {

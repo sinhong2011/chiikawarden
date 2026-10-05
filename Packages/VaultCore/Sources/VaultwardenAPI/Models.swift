@@ -63,6 +63,13 @@ public struct SyncResponse: Decodable, Sendable {
     public let profile: Profile
     public let ciphers: [Cipher]
 
+    /// Decodes a raw (possibly cached) sync payload.
+    public static func decode(_ data: Data) throws(APIError) -> SyncResponse {
+        do { return try JSONDecoder.vaultwarden.decode(SyncResponse.self, from: data) } catch {
+            throw .http(status: -1, message: "Unexpected sync payload: \(error)")
+        }
+    }
+
     public struct Profile: Decodable, Sendable {
         public let id: String
         public let email: String
