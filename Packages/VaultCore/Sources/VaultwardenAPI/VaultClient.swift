@@ -200,8 +200,8 @@ public actor VaultClient {
         var r = try request(base, path)
         r.httpMethod = "POST"
         r.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        var allowed = CharacterSet.alphanumerics
-        allowed.insert(charactersIn: "-._~")
+        // RFC 3986 unreserved set only — `.alphanumerics` would let non-ASCII letters through unencoded.
+        let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
         r.httpBody = formBody
             .sorted { $0.key < $1.key }
             .map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: allowed) ?? "")" }

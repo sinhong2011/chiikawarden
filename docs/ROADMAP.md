@@ -34,6 +34,16 @@ You can replace the official desktop app for **reading** your vault:
 - Create / edit / delete items, password generator
 - Favicons (privacy-respecting, cached), Watchtower screen (weak / reused / breached via HIBP k-anonymity)
 
+### Adopted from reviewing prizm (ideas only — its license is MIT + Commons Clause, so no code)
+
+- Inline Touch ID prompt on the unlock screen (`LAAuthenticationView`)
+- Hold ⌥ to reveal all masked fields; Edit-menu copy commands (⇧⌘C username, ⌥⌘C password)
+- Search-match highlighting; drag items onto folders; nested folders via `/` names
+- Trash (restore / delete forever)
+- Editing must preserve `key`, `fido2Credentials`, `passwordHistory` and send `lastKnownRevisionDate`
+- Favicons must not leak the domain list or sit in a plaintext cache
+- `SECURITY.md` (where every key lives) and `ACCESSIBILITY.md`
+
 ## v0.3 — "power users"
 
 - SSH agent with Touch ID per signature; git commit signing
@@ -55,3 +65,4 @@ You can replace the official desktop app for **reading** your vault:
 - 2026-10-05 Vaultwarden-first; official Bitwarden cloud also supported.
 - 2026-10-05 UI follows the canvas "Vault window (static spec)"; **no Liquid Glass on custom components**, system sidebar only.
 - 2026-10-05 Keyguard is reference-only (All Rights Reserved) — never port its code.
+- 2026-10-05 prizm (b0x42/prizm) is reference-only (MIT + Commons Clause) — never port its code.
