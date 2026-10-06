@@ -7,12 +7,13 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, accounts, security, developer, server, about
+        case general, accounts, accountSecurity, security, developer, server, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
             case .general: "General"
             case .accounts: "Accounts"
+            case .accountSecurity: "Account Security"
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
@@ -23,6 +24,7 @@ struct SettingsView: View {
             switch self {
             case .general: "gearshape"
             case .accounts: "person.2"
+            case .accountSecurity: "person.badge.shield.checkmark"
             case .security: "lock.shield"
             case .developer: "terminal"
             case .server: "server.rack"
@@ -50,6 +52,7 @@ struct SettingsView: View {
                 switch pane.wrappedValue ?? .general {
                 case .general: GeneralSettings()
                 case .accounts: AccountsSettings()
+                case .accountSecurity: AccountSecuritySettings()
                 case .security: SecuritySettings()
                 case .developer: DeveloperSettings()
                 case .server: ServerSettings()

@@ -6,7 +6,7 @@ import VaultwardenAPI
 /// One unlocked account: its key, decrypted vault, server connection and live sync.
 @MainActor @Observable
 final class AccountSession {
-    let account: SavedAccount
+    private(set) var account: SavedAccount
     private(set) var items: [VaultItem] = []
     private(set) var folders: [Grouping] = []
     private(set) var organizations: [Grouping] = []
@@ -338,5 +338,130 @@ final class AccountSession {
         try await client.updateSend(id: send.id, body: sealed.body)
         if removePassword { try await client.removeSendPassword(id: send.id) }
         try await refresh()
+    }
+
+    // MARK: Account security
+
+    enum SecurityError: Error { case wrongPassword, signInAgain }
+
+    /// The server's login hash for `password`, after checking it unlocks this account.
+    func passwordHash(_ password: String) throws -> String {
+        guard AccountStore.unlock(account.id, password: password) != nil else { throw SecurityError.wrongPassword }
+        let master = try KDF.masterKey(password: password, email: account.email, config: account.kdf)
+        return try KDF.masterPasswordHash(masterKey: master, password: password)
+    }
+
+    private var profile: SyncResponse.Profile? { try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).profile }
+
+    /// The account's public key, from its private key (offline).
+    func publicKeySPKI() -> Data? {
+        guard let encrypted = profile?.privateKey, let der = try? EncString(encrypted).decrypt(with: userKey),
+              let key = try? RSAPrivateKey(pkcs8: der) else { return nil }
+        return try? key.publicKeySPKI()
+    }
+
+    /// The private key itself, for unwrapping keys others wrapped for this account.
+    func privateKey() -> RSAPrivateKey? {
+        guard let encrypted = profile?.privateKey, let der = try? EncString(encrypted).decrypt(with: userKey) else { return nil }
+        return try? RSAPrivateKey(pkcs8: der)
+    }
+
+    var userId: String? { profile?.id }
+
+    /// Five words to compare out loud: this account's fingerprint phrase.
+    func fingerprint() -> [String] {
+        guard let spki = publicKeySPKI(), let id = userId else { return [] }
+        return Fingerprint.phrase(publicKeySPKI: spki, material: id)
+    }
+
+    func devices() async throws -> [DeviceInfo] {
+        guard let client else { throw WriteError.offline }
+        return try await client.devices()
+    }
+
+    /// Signs out every other session; this Mac signs straight back in.
+    func deauthorizeSessions(password: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.deauthorizeSessions(masterPasswordHash: passwordHash(password))
+        do {
+            let login = try await client.loginDetailed(email: account.email, password: password)
+            AccountStore.setRefreshToken(login.refreshToken, account.id)
+        } catch {
+            throw SecurityError.signInAgain
+        }
+    }
+
+    /// The web vault, for what's managed there (security keys, Duo, organizations' admin).
+    var webVault: URL? {
+        switch environment {
+        case .bitwardenUS: URL(string: "https://vault.bitwarden.com")
+        case .bitwardenEU: URL(string: "https://vault.bitwarden.eu")
+        case .selfHosted(let base): base
+        case .custom(let urls): urls.webVault ?? urls.base
+        case nil: nil
+        }
+    }
+
+    /// New master password (and/or KDF): the server first, then the copy on this Mac, so unlocking keeps working.
+    func changeMasterPassword(current: String, new: String, kdf: KDFConfig? = nil, hint: String?) async throws {
+        guard let client else { throw WriteError.offline }
+        let currentHash = try passwordHash(current)
+        let change = try MasterPasswordChange(email: account.email, newPassword: new, kdf: kdf ?? account.kdf, userKey: userKey)
+        if kdf != nil, new == current {
+            try await client.changeKDF(currentHash: currentHash, change: change)
+        } else {
+            try await client.changeMasterPassword(currentHash: currentHash, change: change, hint: hint)
+        }
+        var saved = account
+        saved.kdf = change.kdf
+        saved.protectedUserKey = change.protectedUserKey
+        AccountStore.save(saved)
+        account = saved
+        // The server signs every session out (refresh tokens rotate): sign this one back in with the new password.
+        // With two-step login on, that needs a code, so the account asks to sign in again instead.
+        do {
+            let login = try await client.loginDetailed(email: account.email, password: new)
+            AccountStore.setRefreshToken(login.refreshToken, account.id)
+        } catch {
+            throw SecurityError.signInAgain
+        }
+        try? await refresh()
+    }
+
+    // Two-step login
+
+    func twoFactorProviders() async throws -> [Int: Bool] {
+        guard let client else { throw WriteError.offline }
+        return try await client.twoFactorProviders()
+    }
+
+    func authenticatorSecret(password: String) async throws -> (key: String, enabled: Bool) {
+        guard let client else { throw WriteError.offline }
+        return try await client.authenticatorSecret(masterPasswordHash: passwordHash(password))
+    }
+
+    func enableAuthenticator(key: String, code: String, password: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.enableAuthenticator(key: key, code: code, masterPasswordHash: passwordHash(password))
+    }
+
+    func disableTwoFactor(type: Int, password: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.disableTwoFactor(type: type, masterPasswordHash: passwordHash(password))
+    }
+
+    func recoveryCode(password: String) async throws -> String? {
+        guard let client else { throw WriteError.offline }
+        return try await client.twoFactorRecoveryCode(masterPasswordHash: passwordHash(password))
+    }
+
+    func sendTwoFactorEmail(to email: String, password: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.sendTwoFactorEmail(to: email, masterPasswordHash: passwordHash(password))
+    }
+
+    func enableEmailTwoFactor(email: String, code: String, password: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.enableEmailTwoFactor(email: email, code: code, masterPasswordHash: passwordHash(password))
     }
 }

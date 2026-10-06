@@ -790,6 +790,51 @@ enum SelfTest {
                 check(created2 && note?.accountId == id2, "new item goes to the chosen account")
                 if let note { await model.deleteForever(note) }
 
+                // Account security, on the second account (everything put back afterwards).
+                if let s2 = model.session(for: id2) {
+                    let temporary = password2 + "-changed"
+                    do {
+                        guard let spki = s2.publicKeySPKI() else { throw AccountSession.SecurityError.wrongPassword }
+                        let serverKey = try await s2.client?.publicKey(userId: s2.userId ?? "")
+                        check(serverKey == spki.base64EncodedString() && s2.fingerprint().count == 5,
+                              "fingerprint phrase from the account's public key (\(s2.fingerprint().joined(separator: "-")))")
+                        let devices = try await s2.devices()
+                        check(!devices.isEmpty, "devices signed in (\(devices.count))")
+
+                        let secret = try await s2.authenticatorSecret(password: password2)
+                        let code = TOTP(secret.key)?.code() ?? ""
+                        try await s2.enableAuthenticator(key: secret.key, code: code, password: password2)
+                        let on = try await s2.twoFactorProviders()[0] == true
+                        let recovery = try await s2.recoveryCode(password: password2)
+                        try await s2.disableTwoFactor(type: 0, password: password2)
+                        let off = try await s2.twoFactorProviders()[0] != true
+                        check(on && recovery?.isEmpty == false && off, "authenticator two-step login: turn on with a code, recovery code, turn off")
+
+                        try await s2.changeMasterPassword(current: password2, new: temporary, hint: nil)
+                        let opensWithNew = AccountStore.unlock(id2, password: temporary) != nil && AccountStore.unlock(id2, password: password2) == nil
+                        try await s2.changeMasterPassword(current: temporary, new: password2, hint: nil)
+                        let opensWithOld = AccountStore.unlock(id2, password: password2) != nil
+                        let stillSyncs = (try? await s2.refresh()) != nil
+                        check(opensWithNew && opensWithOld && stillSyncs, "change the master password (and back), still signed in")
+
+                        let original = s2.account.kdf
+                        let stronger: KDFConfig = switch original {
+                        case .pbkdf2(let n): .pbkdf2(iterations: n + 10_000)
+                        case .argon2id(let t, let m, let p): .argon2id(iterations: t + 1, memoryMiB: m, parallelism: p)
+                        }
+                        try await s2.changeMasterPassword(current: password2, new: password2, kdf: stronger, hint: nil)
+                        let changed = AccountStore.load(id2)?.kdf == stronger && AccountStore.unlock(id2, password: password2) != nil
+                        try await s2.changeMasterPassword(current: password2, new: password2, kdf: original, hint: nil)
+                        check(changed && AccountStore.load(id2)?.kdf == original, "change the KDF (and back)")
+                    } catch {
+                        check(false, "account security: \(error)")
+                        // Never leave the test account on the temporary password.
+                        if AccountStore.unlock(id2, password: temporary) != nil {
+                            try? await s2.changeMasterPassword(current: temporary, new: password2, hint: nil)
+                        }
+                    }
+                }
+
                 // Import / export: account 1's vault, password-protected, imported into account 2; compare; clean up.
                 if let s1 = model.session(for: firstID), let s2 = model.session(for: id2) {
                     do {
