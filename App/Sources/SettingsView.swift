@@ -7,14 +7,13 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, shortcuts, accounts, accountSecurity, emergency, security, developer, server, about
+        case general, shortcuts, accounts, emergency, security, developer, server, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
             case .general: "General"
             case .shortcuts: "Shortcuts"
             case .accounts: "Accounts"
-            case .accountSecurity: "Account Security"
             case .emergency: "Emergency Access"
             case .security: "Security"
             case .developer: "Developer"
@@ -27,7 +26,6 @@ struct SettingsView: View {
             case .general: "gearshape"
             case .shortcuts: "keyboard"
             case .accounts: "person.2"
-            case .accountSecurity: "person.badge.shield.checkmark"
             case .emergency: "cross.case"
             case .security: "lock.shield"
             case .developer: "terminal"
@@ -57,7 +55,6 @@ struct SettingsView: View {
                 case .general: GeneralSettings()
                 case .shortcuts: ShortcutsSettings()
                 case .accounts: AccountsSettings()
-                case .accountSecurity: AccountSecuritySettings()
                 case .emergency: EmergencyAccessSettings()
                 case .security: SecuritySettings()
                 case .developer: DeveloperSettings()
@@ -359,17 +356,38 @@ private struct DeveloperSettings: View {
 
 // MARK: Accounts
 
+/// Every account in one place: pick one along the top, then everything about it below — who and where, this Mac
+/// (Touch ID, sync), and, while it's unlocked, its security (two-step login, master password, fingerprint, devices).
 private struct AccountsSettings: View {
     @Environment(AppModel.self) private var model
     @State private var confirmLogOut: SavedAccount?
+    @AppStorage("settingsAccount") private var selectedID = ""
+
+    private var selected: (index: Int, account: SavedAccount)? {
+        let all = Array(model.accounts.enumerated())
+        let match = all.first { $0.element.id == selectedID } ?? all.first
+        return match.map { ($0.offset, $0.element) }
+    }
 
     var body: some View {
         Form {
-            if model.accounts.isEmpty {
+            if let selected {
+                if model.accounts.count > 1 {
+                    Section { AccountStrip(selection: $selectedID, current: selected.account.id) }
+                }
+                AccountCard(account: selected.account, index: selected.index, logOut: { confirmLogOut = selected.account })
+                if let session = model.session(for: selected.account.id) {
+                    AccountSecuritySections(session: session).id(session.id)
+                } else {
+                    Section {
+                        Label("Unlock this account to manage its two-step login, master password and devices.", systemImage: "lock")
+                            .foregroundStyle(.secondary)
+                    } header: {
+                        Text("Security")
+                    }
+                }
+            } else {
                 Section { Text("No accounts yet.").foregroundStyle(.secondary) }
-            }
-            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                AccountCard(account: account, index: index, logOut: { confirmLogOut = account })
             }
             Section {
                 Button {
@@ -388,6 +406,7 @@ private struct AccountsSettings: View {
             }
         }
         .formStyle(.grouped)
+        .animation(.snappy(duration: 0.2), value: selected?.account.id)
         .confirmationDialog("Log out of \(confirmLogOut?.email ?? "")?", isPresented: Binding(
             get: { confirmLogOut != nil }, set: { if !$0 { confirmLogOut = nil } })) {
             Button("Log Out", role: .destructive) {
@@ -395,6 +414,52 @@ private struct AccountsSettings: View {
             }
         } message: {
             Text("This removes the account and its saved vault from this Mac. Your data stays on the server.")
+        }
+    }
+}
+
+/// The accounts side by side, one selected: avatar with its colour, email, and whether it's open.
+private struct AccountStrip: View {
+    @Environment(AppModel.self) private var model
+    @Binding var selection: String
+    let current: String
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                    let on = account.id == current
+                    let open = model.session(for: account.id) != nil
+                    Button { selection = account.id } label: {
+                        HStack(spacing: 9) {
+                            Monogram(name: account.email, size: 28)
+                                .overlay(alignment: .bottomTrailing) {
+                                    Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
+                                        .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5))
+                                        .offset(x: 2, y: 2)
+                                }
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(verbatim: account.email).font(.system(size: 12, weight: .semibold))
+                                    .lineLimit(1).truncationMode(.middle)
+                                HStack(spacing: 4) {
+                                    Circle().fill(open ? Color.green : Color.secondary.opacity(0.6)).frame(width: 5, height: 5)
+                                    Text(open ? "Unlocked" : "Locked")
+                                }
+                                .font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.leading, 8).padding(.trailing, 12)
+                        .frame(maxWidth: 220, minHeight: 46, alignment: .leading)
+                        .background(on ? Color.primary.opacity(0.08) : .clear, in: .rect(cornerRadius: 11, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(on ? 0.22 : 0.08), lineWidth: 1))
+                        .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
+            .padding(.vertical, 2)
         }
     }
 }

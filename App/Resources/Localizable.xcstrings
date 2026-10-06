@@ -7,6 +7,34 @@
     " " : {
 
     },
+    "Ask them to read their fingerprint phrase (Settings › Accounts). Confirm only if it matches." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相手にフィンガープリントフレーズ（設定 › アカウント）を読み上げてもらい、一致した場合のみ確認してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请对方读出他们的指纹短语（设置 › 账户），相符时才确认。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請對方念出他們的指紋短語（設定 › 帳號），相符時才確認。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "叫對方讀出佢哋嘅指紋短語（設定 › 帳戶），一致先好確認。"
+          }
+        }
+      }
+    },
     "Paste %@" : {
       "localizations" : {
         "ja" : {
@@ -87,6 +115,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 秒後可以再傳送"
+          }
+        }
+      }
+    },
+    "Unlock this account to manage its two-step login, master password and devices." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアカウントのロックを解除すると、2段階ログイン、マスターパスワード、デバイスを管理できます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解锁此账户以管理其两步登录、主密码和设备。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解鎖此帳號以管理其兩步驟登入、主密碼和裝置。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解鎖呢個帳戶就可以管理佢嘅兩步驟登入、主密碼同裝置。"
           }
         }
       }
@@ -2119,34 +2175,6 @@
         }
       }
     },
-    "Account Security" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アカウントのセキュリティ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "账户安全"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "帳號安全性"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "帳戶安全"
-          }
-        }
-      }
-    },
     "Accounts" : {
       "localizations" : {
         "ja" : {
@@ -3424,34 +3452,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要求輸入主密碼"
-          }
-        }
-      }
-    },
-    "Ask them to read their fingerprint phrase (Settings › Account Security). Confirm only if it matches." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "相手にフィンガープリントフレーズ（設定 › アカウントのセキュリティ）を読み上げてもらい、一致した場合のみ確認してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请对方读出他们的指纹短语（设置 › 账户安全），相符时才确认。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請對方念出他們的指紋短語（設定 › 帳號安全性），相符時才確認。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "叫對方讀出佢哋嘅指紋短語（設定 › 帳戶安全），一致先好確認。"
           }
         }
       }
@@ -25898,34 +25898,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解鎖帳戶就可以管理緊急存取。"
-          }
-        }
-      }
-    },
-    "Unlock an account to manage its security." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "セキュリティを管理するにはアカウントのロックを解除してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解锁账户以管理其安全性。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖帳號以管理其安全性。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖帳戶就可以管理佢嘅安全設定。"
           }
         }
       }

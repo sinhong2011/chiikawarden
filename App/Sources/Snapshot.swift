@@ -300,11 +300,18 @@ enum Snapshot {
             render(SettingsView().environment(model).tint(.brand),
                    size: CGSize(width: 600, height: 520), appearance: appearance,
                    to: dir.appending(path: "settings-\(name).png"))
-            // Each pane, so its controls can be checked.
+            // Each pane, so its controls can be checked. Demo accounts only: never the Mac's real ones.
+            let people = AppModel()
+            people.setPreviewAccounts([
+                SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+                             kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
+                SavedAccount(id: "b", email: "hachiware@work.example", serverKind: "bitwardenEU", serverURL: "",
+                             kdf: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4), protectedUserKey: ""),
+            ])
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
             for pane in ["general", "shortcuts", "server", "accounts", "security", "developer"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
-                render(SettingsView().environment(model).tint(.controlTint),
+                render(SettingsView().environment(people).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
                        to: dir.appending(path: "settings-\(pane)-\(name).png"))
             }

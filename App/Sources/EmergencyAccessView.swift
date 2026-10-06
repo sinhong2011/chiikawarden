@@ -219,7 +219,7 @@ private struct ConfirmEmergencyContactSheet: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
                 FormHeader(symbol: "checkmark.shield", title: "Confirm \(contact.email)",
-                           subtitle: "Ask them to read their fingerprint phrase (Settings › Account Security). Confirm only if it matches.")
+                           subtitle: "Ask them to read their fingerprint phrase (Settings › Accounts). Confirm only if it matches.")
                 FormCard {
                     if phrase.isEmpty {
                         ProgressView().frame(maxWidth: .infinity)

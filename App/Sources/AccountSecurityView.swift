@@ -2,10 +2,11 @@ import TriCrypto
 import SwiftUI
 import VaultwardenAPI
 
-/// Settings › Account Security: the fingerprint phrase, two-step login, master password and encryption, devices.
-struct AccountSecuritySettings: View {
+/// One unlocked account's security, as sections inside Settings › Accounts: the fingerprint phrase, two-step
+/// login, master password and encryption, devices.
+struct AccountSecuritySections: View {
     @Environment(AppModel.self) private var model
-    @State private var accountId: String?
+    let session: AccountSession
     @State private var providers: [Int: Bool] = [:]
     @State private var devices: [DeviceInfo] = []
     @State private var loading = false
@@ -22,48 +23,31 @@ struct AccountSecuritySettings: View {
         }
     }
 
-    private var session: AccountSession? { (accountId ?? model.sessions.first?.id).flatMap { model.session(for: $0) } }
-
     var body: some View {
-        Form {
-            if model.sessions.isEmpty {
-                Section { Text("Unlock an account to manage its security.").foregroundStyle(.secondary) }
-            } else if let session {
-                if model.sessions.count > 1 {
-                    Section {
-                        Picker("Account", selection: Binding(get: { session.id }, set: { accountId = $0 })) {
-                            ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag($0.id) }
-                        }
-                    }
-                }
-                fingerprintSection(session)
-                twoFactorSection(session)
-                passwordSection(session)
-                devicesSection(session)
-            }
+        Group {
             if let error {
                 Section { Label(error, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
             }
+            twoFactorSection(session)
+            passwordSection(session)
+            fingerprintSection(session)
+            devicesSection(session)
         }
-        .formStyle(.grouped)
-        .task(id: session?.id) { await load() }
+        .task(id: session.id) { await load() }
         .sheet(item: $sheet) { sheet in
-            if let session {
-                switch sheet {
-                case .authenticator: AuthenticatorSetupSheet(session: session) { Task { await load() } }
-                case .email: EmailTwoFactorSheet(session: session) { Task { await load() } }
-                case .recovery: RecoveryCodeSheet(session: session)
-                case .disable(let type, let name): DisableTwoFactorSheet(session: session, type: type, name: name) { Task { await load() } }
-                case .password: ChangePasswordSheet(session: session, changeKDF: false)
-                case .kdf: ChangePasswordSheet(session: session, changeKDF: true)
-                case .signOutEverywhere: SignOutEverywhereSheet(session: session) { Task { await load() } }
-                }
+            switch sheet {
+            case .authenticator: AuthenticatorSetupSheet(session: session) { Task { await load() } }
+            case .email: EmailTwoFactorSheet(session: session) { Task { await load() } }
+            case .recovery: RecoveryCodeSheet(session: session)
+            case .disable(let type, let name): DisableTwoFactorSheet(session: session, type: type, name: name) { Task { await load() } }
+            case .password: ChangePasswordSheet(session: session, changeKDF: false)
+            case .kdf: ChangePasswordSheet(session: session, changeKDF: true)
+            case .signOutEverywhere: SignOutEverywhereSheet(session: session) { Task { await load() } }
             }
         }
     }
 
     private func load() async {
-        guard let session else { return }
         loading = true
         defer { loading = false }
         do {
