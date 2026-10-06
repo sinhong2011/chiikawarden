@@ -350,6 +350,7 @@ private struct Sidebar: View {
     @Binding var section: SidebarSelection
 
     @AppStorage("sidebarTypesExpanded") private var typesExpanded = true
+    @AppStorage("sidebarFoldersExpanded") private var foldersExpanded = true
 
     private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
 
@@ -362,20 +363,31 @@ private struct Sidebar: View {
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
             if !model.organizations.isEmpty {
-                VaultSwitcher().listRowSeparator(.hidden)
+                VaultSwitcher()
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
             }
             Section("Vault") {
-                // All Items, with its narrower views (favorites and each type) folded under it.
+                // All Items, with its narrower views folded under it: favorites, each type, then the folders.
                 DisclosureGroup(isExpanded: $typesExpanded) {
                     ForEach(VaultSection.underAll, id: \.self) { row($0) }
+                    if !model.folders.isEmpty {
+                        DisclosureGroup(isExpanded: $foldersExpanded) {
+                            ForEach(FolderNode.tree(model.folders)) { node in
+                                FolderRow(node: node, count: count)
+                            }
+                        } label: {
+                            Label("Folders", systemImage: "folder")
+                        }
+                    }
                 } label: {
                     row(.all)
                 }
                 row(.archive)
                 row(.trash)
-                Label("Watchtower", systemImage: "checkmark.shield")
-                    .badge(model.watchtowerIssueCount)
-                    .tag(SidebarSelection.watchtower)
+            }
+            // Things to do with the vault, rather than kinds of items in it.
+            Section("Tools") {
                 Label("Send", systemImage: "paperplane")
                     .badge(model.sends.count)
                     .tag(SidebarSelection.sends)
@@ -384,13 +396,9 @@ private struct Sidebar: View {
                     .tag(SidebarSelection.codes)
                 Label("Generator", systemImage: "dice")
                     .tag(SidebarSelection.generator)
-            }
-            if !model.folders.isEmpty {
-                Section("Folders") {
-                    ForEach(FolderNode.tree(model.folders)) { node in
-                        FolderRow(node: node, count: count)
-                    }
-                }
+                Label("Watchtower", systemImage: "checkmark.shield")
+                    .badge(model.watchtowerIssueCount)
+                    .tag(SidebarSelection.watchtower)
             }
             if model.accounts.count > 1 {
                 Section("Accounts") {
@@ -970,9 +978,13 @@ struct ItemRow: View {
                 }
             VStack(alignment: .leading, spacing: 1) {
                 Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                if let username = item.username {
-                    Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                HStack(spacing: 6) {
+                    if let username = item.username {
+                        Text(Highlight.marked(username, highlight)).lineLimit(1).layoutPriority(1)
+                    }
+                    OwnerTag(item: item)
                 }
+                .font(.system(size: 12)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 4)
             if item.favorite {
@@ -1068,6 +1080,12 @@ struct ItemDetail: View {
                     }
                     if !item.passwordHistory.isEmpty {
                         DetailRow(symbol: "clock.arrow.circlepath", title: "Password history") { PasswordHistoryButton(item: item) }
+                    }
+                    if item.organizationId == nil {
+                        DetailRow(symbol: "person", title: "Owner") {
+                            Text(verbatim: model.accounts.first { $0.id == item.accountId }?.email ?? String(localized: "Me"))
+                                .foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                        }
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
                         DetailRow(symbol: "building.2", title: "Organization") {
@@ -1459,13 +1477,13 @@ struct Monogram: View {
     let size: CGFloat
     @Environment(\.colorScheme) private var scheme
 
-    /// The same tile as a site's icon (white, hairline edge), with the initial in the app's sky blue, so letters and
-    /// logos sit together as one family.
+    /// The same tile as a site's icon (white, hairline edge), with the initial in dark grey, so letters and logos sit
+    /// together as one family. (The tile is always light, so the letter is a fixed dark, not the text colour.)
     var body: some View {
         let dark = scheme == .dark
         Text(name.prefix(1).uppercased())
             .font(.system(size: size * 0.44, weight: .semibold, design: .rounded))
-            .foregroundStyle(Color.primary.opacity(dark ? 0.85 : 0.7))
+            .foregroundStyle(Color.black.opacity(0.62))
             .frame(width: size, height: size)
             .background(dark ? Color(white: 0.96) : .white, in: .rect(cornerRadius: size * 0.29, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: size * 0.29, style: .continuous).strokeBorder(.black.opacity(0.08)))
@@ -1738,13 +1756,14 @@ private struct VaultSwitcher: View {
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 8).frame(height: 34)
+            .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34)
             .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 10, style: .continuous))
             .contentShape(.rect)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
+        .frame(maxWidth: .infinity)
         .help(Text("Show one vault"))
         .accessibilityLabel(Text("Vault"))
         .accessibilityValue(Text(verbatim: title))
@@ -1906,5 +1925,44 @@ private struct SignInApprovalSheet: View {
     private func answer(_ approve: Bool) {
         busy = true
         Task { await model.answerSignIn(prompt, approve: approve) }
+    }
+}
+
+/// Whose an item is: the organization's name, or yours (the account's email when several are open).
+struct OwnerTag: View {
+    @Environment(AppModel.self) private var model
+    let item: VaultItem
+    var showsYours = true
+
+    var body: some View {
+        if let name = Self.owner(item, model) {
+            Label { Text(verbatim: name).lineLimit(1).truncationMode(.tail) } icon: {
+                Image(systemName: item.organizationId == nil ? "person.fill" : "building.2.fill").font(.system(size: 8))
+            }
+            .labelStyle(OwnerLabelStyle())
+            .font(.system(size: 10, weight: .medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 6).frame(height: 16)
+            .background(Color.primary.opacity(0.06), in: .capsule)
+            .fixedSize(horizontal: false, vertical: true)
+            .help(Text(item.organizationId == nil ? "Owner: you" : "Owner: an organization"))
+        }
+    }
+
+    static func owner(_ item: VaultItem, _ model: AppModel) -> String? {
+        if let org = item.organizationId {
+            return model.organizations.first { $0.id == org }?.name ?? String(localized: "Organization")
+        }
+        // Yours: "Me", or the account when more than one is open.
+        if model.sessions.count > 1, let email = model.accounts.first(where: { $0.id == item.accountId })?.email {
+            return email.split(separator: "@").first.map(String.init) ?? email
+        }
+        return String(localized: "Me")
+    }
+}
+
+private struct OwnerLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 3) { configuration.icon; configuration.title }
     }
 }

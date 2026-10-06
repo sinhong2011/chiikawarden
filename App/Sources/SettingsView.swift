@@ -352,60 +352,30 @@ private struct DeveloperSettings: View {
 
 private struct AccountsSettings: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dismissWindow) private var dismissWindow
     @State private var confirmLogOut: SavedAccount?
 
     var body: some View {
         Form {
-            Section {
-                if model.accounts.isEmpty {
-                    Text("No accounts yet.").foregroundStyle(.secondary)
-                }
-                ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                    let unlocked = model.isUnlocked(account.id)
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 10) {
-                            Circle().fill(AccountColor.color(index)).frame(width: 10, height: 10)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(verbatim: account.email).fontWeight(.semibold)
-                                Text(verbatim: account.serverSummary).font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Label(unlocked ? "Unlocked" : "Locked", systemImage: unlocked ? "lock.open" : "lock")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                        HStack {
-                            Toggle("Unlock with Touch ID", isOn: Binding(
-                                get: { model.isTouchIDEnabled(account.id) },
-                                set: { model.setTouchID($0, for: account.id) }))
-                                .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
-                            Spacer()
-                            if unlocked {
-                                Button("Export…") { model.beginExport(accountId: account.id) }
-                                    .help(Text("Export this account's vault"))
-                                Button("Lock") { model.lock(account.id) }
-                            }
-                            Button("Log Out…", role: .destructive) { confirmLogOut = account }
-                        }
-                        .font(.callout)
-                    }
-                    .padding(.vertical, 4)
-                }
-            } footer: {
-                Text(AccountStore.isTouchIDAvailable
-                     ? "Touch ID seals each account's key in the Secure Enclave. Unlock an account once to turn it on; one touch then opens every account that has it."
-                     : "This Mac has no Touch ID available.")
-                    .font(.caption).foregroundStyle(.secondary)
+            if model.accounts.isEmpty {
+                Section { Text("No accounts yet.").foregroundStyle(.secondary) }
+            }
+            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                AccountCard(account: account, index: index, logOut: { confirmLogOut = account })
             }
             Section {
-                HStack {
-                    Spacer()
-                    Button("Add Account…") {
-                        model.beginAddAccount()
-                        NSApp.activate()
-                        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
-                    }
+                Button {
+                    model.beginAddAccount()
+                    NSApp.activate()
+                    NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+                } label: {
+                    Label("Add Account…", systemImage: "plus.circle")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(.rect)
                 }
+                .buttonStyle(.plain)
+            } footer: {
+                Text("Several accounts can be open at once, on different servers. Each keeps its own vault, and lists show them together.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -416,6 +386,95 @@ private struct AccountsSettings: View {
             }
         } message: {
             Text("This removes the account and its saved vault from this Mac. Your data stays on the server.")
+        }
+    }
+}
+
+/// One account: who and where, whether it's open, Touch ID, sync, and the rest in a menu.
+private struct AccountCard: View {
+    @Environment(AppModel.self) private var model
+    let account: SavedAccount
+    let index: Int
+    let logOut: () -> Void
+
+    private var session: AccountSession? { model.session(for: account.id) }
+    private var unlocked: Bool { session != nil }
+
+    var body: some View {
+        Section {
+            // Who and where.
+            HStack(spacing: 12) {
+                Monogram(name: account.email, size: 40)
+                    .overlay(alignment: .bottomTrailing) {
+                        Circle().fill(AccountColor.color(index)).frame(width: 12, height: 12)
+                            .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
+                            .offset(x: 3, y: 3)
+                    }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: account.email).font(.system(size: 14, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                    Text(verbatim: "\(account.serverSummary) · \(kdf)").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                Label(unlocked ? "Unlocked" : "Locked", systemImage: unlocked ? "lock.open.fill" : "lock.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(unlocked ? Color.green : .secondary)
+                    .padding(.horizontal, 9).frame(height: 22)
+                    .background((unlocked ? Color.green : Color.primary).opacity(0.12), in: .capsule)
+                Menu {
+                    if unlocked {
+                        Button("Export Vault…", systemImage: "square.and.arrow.up") { model.beginExport(accountId: account.id) }
+                        Button("Lock", systemImage: "lock") { model.lock(account.id) }
+                    }
+                    Divider()
+                    Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: logOut)
+                } label: {
+                    Image(systemName: "ellipsis").font(.system(size: 13, weight: .semibold))
+                        .frame(width: 28, height: 28)
+                        .background(Color.primary.opacity(0.07), in: .circle)
+                        .contentShape(.circle)
+                }
+                .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+                .help(Text("More"))
+            }
+            .padding(.vertical, 4)
+
+            // Touch ID.
+            Toggle(isOn: Binding(get: { model.isTouchIDEnabled(account.id) }, set: { model.setTouchID($0, for: account.id) })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Unlock with Touch ID")
+                    Text(!AccountStore.isTouchIDAvailable ? "Not available on this Mac."
+                         : unlocked || model.isTouchIDEnabled(account.id) ? "One touch opens every account that has it."
+                         : "Unlock this account once to turn it on.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
+
+            // Sync.
+            if let session {
+                LabeledContent {
+                    HStack(spacing: 8) {
+                        if session.isSyncing {
+                            ProgressView().controlSize(.small)
+                        } else if let synced = session.lastSynced {
+                            Text(synced, format: .relative(presentation: .named)).foregroundStyle(.secondary)
+                        } else {
+                            Text("Offline").foregroundStyle(.secondary)
+                        }
+                        Button("Sync Now") { Task { try? await session.refresh() } }
+                            .disabled(session.isSyncing)
+                    }
+                } label: {
+                    Text("Last synced")
+                }
+            }
+        }
+    }
+
+    private var kdf: String {
+        switch account.kdf {
+        case .pbkdf2: "PBKDF2"
+        case .argon2id: "Argon2id"
         }
     }
 }
