@@ -69,9 +69,11 @@
   </tr>
 </table>
 
-Locking shows the vault door; unlocking turns the dial and the wheel, draws the bolts and swings it open:
+The lock is a vault door over the vault. You type the master password at its hub; each character lights a pin and
+turns the rings. On unlock the door takes itself apart, then the whole screen parts like a vault's inner gate:
 
-<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door opening, in four steps"></p>
+<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door: at rest, typing, unlatching, the hub opening, the louvres turning"></p>
+<p align="center"><img src="docs/images/gate.jpg" width="820" alt="The lock screen parting like a gate over the vault"></p>
 
 ## Install
 
