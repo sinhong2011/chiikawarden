@@ -17,14 +17,16 @@ struct AppButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         let dark = scheme == .dark
-        configuration.label
+        // A button with the destructive role (Log Out, Remove…) is red whatever kind it was given.
+        let kind = configuration.role == .destructive && self.kind == .secondary ? Kind.destructive : self.kind
+        return configuration.label
             .font(.system(size: small ? 12 : large ? 14 : 13, weight: .semibold))
             .lineLimit(1)
             .fixedSize(horizontal: !large, vertical: false) // a label never truncates; neighbours give way instead
             .padding(.horizontal, small ? 12 : 16)
             .frame(maxWidth: large ? .infinity : nil)
             .frame(height: small ? 28 : large ? 40 : 36)
-            .foregroundStyle(foreground(dark))
+            .foregroundStyle(foreground(dark, kind))
             .background {
                 switch kind {
                 case .primary:
@@ -42,7 +44,7 @@ struct AppButtonStyle: ButtonStyle {
             .contentShape(.capsule)
     }
 
-    private func foreground(_ dark: Bool) -> Color {
+    private func foreground(_ dark: Bool, _ kind: Kind) -> Color {
         switch kind {
         case .primary: contrast == .increased ? Color.onBrandFill : .white
         case .secondary: dark ? .white : Color(red: 0.07, green: 0.09, blue: 0.16)
