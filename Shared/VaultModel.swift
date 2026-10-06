@@ -70,7 +70,17 @@ struct VaultItem: Identifiable, Hashable {
         func hash(into h: inout Hasher) { h.combine(id) }
     }
 
-    static func == (a: Self, b: Self) -> Bool { a.id == b.id }
+    /// Equal when everything shown is the same — not just the id: SwiftUI compares views' inputs with this, and an
+    /// id-only check made it skip redrawing after a favorite, archive or edit. (Hashing stays by id, for identity.)
+    static func == (a: Self, b: Self) -> Bool {
+        a.id == b.id && a.revised == b.revised && a.favorite == b.favorite && a.isDeleted == b.isDeleted
+            && a.archived == b.archived && a.name == b.name && a.username == b.username && a.password == b.password
+            && a.notes == b.notes && a.totpSecret == b.totpSecret && a.uri == b.uri && a.folderId == b.folderId
+            && a.folderName == b.folderName && a.organizationId == b.organizationId && a.collectionIds == b.collectionIds
+            && a.reprompt == b.reprompt && a.properties == b.properties && a.customFields == b.customFields
+            && a.attachments == b.attachments && a.passwordHistory == b.passwordHistory && a.reuseCount == b.reuseCount
+            && a.passkeys.map(\.credentialId) == b.passkeys.map(\.credentialId) && a.accountId == b.accountId
+    }
     func hash(into h: inout Hasher) { h.combine(id) }
 }
 
