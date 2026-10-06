@@ -3,8 +3,9 @@
 reference exports (AppIcon.svg, -Dark, -Tinted, -macOS-grid).
 
 三才 (heaven, person, earth) are three dial rings on a round vault door, lightest outside to deepest inside.
-Each ring has one notch; the notches line up below the keyhole into one keyway — 歸元, the moment the lock
-opens. The keyhole's round head is 無極. Colours follow the brand sky.
+Each ring has one notch, turned apart from the others: the dial mid-turn, still locked. (Lined up under
+the keyhole they read as a podcast mark.) 歸元, the notches coming into line, is left to the unlock.
+The keyhole's round head is 無極. Colours follow the brand sky.
 
     python3 Design/AppIcon/generate.py
 """
@@ -15,8 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 W = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">'
 C = 512
 
-# Ring radii (stroke centre) and width: heaven, person, earth.
-RINGS = [("heaven", 270), ("person", 202), ("earth", 134)]
+# Ring radii (stroke centre) and where each notch sits, in degrees clockwise from 3 o'clock.
+RINGS = [("heaven", 270, -45), ("person", 202, 165), ("earth", 134, 60)]
 STROKE = 40
 GAP = 30  # clear space across each notch, in points
 
@@ -39,10 +40,11 @@ def grad(id, a, b, y1=300, y2=724):
             f'<stop offset="0" stop-color="{a}"/><stop offset="1" stop-color="{b}"/></linearGradient>')
 
 
-def notched_ring(r, stroke):
-    """A ring with its notch at 6 o'clock; round caps, so the clear gap is GAP wide."""
+def notched_ring(r, stroke, notch):
+    """A ring with its notch centred on `notch` degrees; round caps, so the clear gap is GAP wide."""
     half = math.asin((GAP + stroke) / 2 / r)
-    a0, a1 = math.pi / 2 + half, math.pi / 2 - half + 2 * math.pi
+    n = math.radians(notch)
+    a0, a1 = n + half, n - half + 2 * math.pi
     x0, y0 = C + r * math.cos(a0), C + r * math.sin(a0)
     x1, y1 = C + r * math.cos(a1), C + r * math.sin(a1)
     return (f'<path d="M{x0:.1f} {y0:.1f} A{r} {r} 0 1 1 {x1:.1f} {y1:.1f}" fill="none" '
@@ -58,10 +60,10 @@ def layers(p):
             '<circle cx="512" cy="512" r="344" fill="url(#d)"/>'
             f'<circle cx="512" cy="512" r="336" fill="none" stroke="{p["rim"]}" stroke-opacity=".10" stroke-width="12"/></svg>')
     rings = []
-    for name, r in RINGS:
+    for name, r, notch in RINGS:
         top, bottom = p[name]
         rings.append(W + '<defs>' + grad('r', top, bottom, C - r, C + r) + '</defs>'
-                     + notched_ring(r, STROKE) + ' stroke="url(#r)"/></svg>')
+                     + notched_ring(r, STROKE, notch) + ' stroke="url(#r)"/></svg>')
     # The keyhole: a round head and a slot that runs down into the line of notches.
     hub = (W + '<defs>' + grad('h', *p['hub'], 440, 600) + '</defs>'
            '<circle cx="512" cy="488" r="46" fill="url(#h)"/>'
@@ -94,7 +96,7 @@ def main():
     grid = flat(PALETTES['light']).replace(
         '</g></svg>', '</g><g fill="none" stroke="#FF2D55" stroke-opacity=".5" stroke-width="2">'
         '<rect x="100" y="100" width="824" height="824" rx="185"/><circle cx="512" cy="512" r="344"/>'
-        + ''.join(f'<circle cx="512" cy="512" r="{r}"/>' for _, r in RINGS) +
+        + ''.join(f'<circle cx="512" cy="512" r="{r}"/>' for _, r, _ in RINGS) +
         '<line x1="512" y1="0" x2="512" y2="1024"/><line x1="0" y1="512" x2="1024" y2="512"/></g></svg>')
     with open(os.path.join(HERE, 'AppIcon-macOS-grid.svg'), 'w') as f:
         f.write(grid)
