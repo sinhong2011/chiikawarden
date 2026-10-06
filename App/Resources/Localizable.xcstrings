@@ -1486,6 +1486,34 @@
         }
       }
     },
+    "Animate the vault door": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金庫の扉をアニメーション"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫門動畫"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保险库门动画"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保險庫門動畫"
+          }
+        }
+      }
+    },
     "Another app uses %@": {
       "localizations": {
         "ja": {
@@ -2889,6 +2917,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "選擇檔案，或拖放到這裡"
+          }
+        }
+      }
+    },
+    "Choose an account": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントを選択"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇帳戶"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择账户"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇帳號"
           }
         }
       }
@@ -11145,6 +11201,34 @@
         }
       }
     },
+    "Press Return to unlock": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return キーで解錠"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 Return 鍵解鎖"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 Return 键解锁"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 Return 鍵解鎖"
+          }
+        }
+      }
+    },
     "Private key": {
       "localizations": {
         "ja": {
@@ -14767,6 +14851,34 @@
         }
       }
     },
+    "Turning the tumblers…": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タンブラーを回しています…"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在轉動鎖芯…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在转动锁芯…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在轉動鎖芯…"
+          }
+        }
+      }
+    },
     "Two-step verification": {
       "localizations": {
         "ja": {
@@ -16119,6 +16231,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "歡迎回來"
+          }
+        }
+      }
+    },
+    "When off, the lock screen stays still and the vault opens and locks at once.": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフにすると、ロック画面は静止し、保管庫はすぐに開閉します。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉後，鎖定畫面保持靜止，保險庫會即時開啟和鎖定。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭后，锁定画面保持静止，保险库会立即打开和锁定。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉後，鎖定畫面保持靜止，保險庫會立即開啟和鎖定。"
           }
         }
       }

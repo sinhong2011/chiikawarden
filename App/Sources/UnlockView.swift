@@ -3,205 +3,221 @@ import LocalAuthentication
 import LocalAuthenticationEmbeddedUI
 import SwiftUI
 
-/// Signed in, vault locked: Touch ID first, master password as fallback. Works offline.
+/// Signed in, vault locked: a vault door fills the window, the master password goes in at its hub, and Touch ID
+/// waits below. Works offline.
 struct UnlockView: View {
-    var body: some View {
-        GeometryReader { geo in
-            let showStage = geo.size.width >= 820
-            HStack(spacing: 0) {
-                if showStage {
-                    VaultDoorStage()
-                        .frame(width: min(max(geo.size.width * 0.46, 380), 560))
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                }
-                UnlockForm()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .animation(.snappy(duration: 0.3), value: showStage)
-        }
-        .ignoresSafeArea()
-    }
-}
-
-/// Which vault is being unlocked: avatar, email and server, as a quiet card.
-private struct LockedAccountCard: View {
-    let account: SavedAccount
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Monogram(name: account.email, size: 36)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
-                Label {
-                    Text(verbatim: account.serverSummary).lineLimit(1).truncationMode(.middle)
-                } icon: {
-                    Image(systemName: account.environment?.isOfficialCloud == true ? "cloud" : "server.rack")
-                }
-                .labelStyle(TightLabel())
-                .font(.system(size: 11)).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            Image(systemName: "lock.fill").font(.system(size: 11)).foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 12).padding(.vertical, 10)
-        .modifier(SoftCard())
-        .accessibilityElement(children: .combine)
-    }
-
-    private struct TightLabel: LabelStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            HStack(spacing: 4) { configuration.icon; configuration.title }
-        }
-    }
-}
-
-/// The unlock screen's card surface (account, Touch ID): translucent white, hairline edge, no shadow.
-private struct SoftCard: ViewModifier {
-    @Environment(\.colorScheme) private var scheme
-    func body(content: Content) -> some View {
-        let dark = scheme == .dark
-        content
-            .background(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.6), in: .rect(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.06)))
-    }
-}
-
-private struct UnlockForm: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.vaultDoorFrozen) private var frozen
     @State private var password = ""
-    @State private var shake = 0
+    @State private var turns = 0
+    @State private var errorAt: Date?
+    @State private var closedAt: Date?
+    /// While the door assembles itself after a lock, the hub's controls wait.
+    @State private var assembling = false
     @FocusState private var focused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        GeometryReader { geo in
+            let size = geo.size
+            let top: CGFloat = 40
+            let bottom: CGFloat = model.touchIDEnabled ? 124 : 74
+            let outer = max(130, min((size.width - 32) / 2, (size.height - top - bottom) / 2))
+            let radius = outer / DoorGeometry.frameOuter
+            let center = CGPoint(x: size.width / 2, y: top + (size.height - top - bottom) / 2)
+            let opening = model.unlockOpening || frozen?.opened != nil
+            let hubHidden = opening || assembling || (frozen?.closed ?? 1) < 0.5
 
-            VStack(alignment: .leading, spacing: 14) {
-                let opening = model.unlockOpening
-                Image(systemName: opening ? "lock.open.fill" : "lock.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(opening ? Color.white : Color.brand)
-                    .contentTransition(.symbolEffect(.replace))
-                    .symbolEffect(.bounce, value: opening)
-                    .frame(width: 44, height: 44)
-                    .background(opening ? Color.brandButton : Color.brandFill.opacity(0.22), in: .circle)
-                    .scaleEffect(opening ? 1.12 : 1)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(opening ? "Unlocked" : "Vault locked").font(.system(size: 26, weight: .bold)).tracking(-0.3)
-                        .contentTransition(.opacity)
-                    Text("Enter your master password to continue.")
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
+            ZStack {
+                // A layer over the (empty, locked) vault: frosted, then the door's own room on top.
+                Rectangle().fill(.ultraThinMaterial)
+
+                VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
+                               busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: closedAt)
+
+                DoorCore(password: $password, focused: $focused, submit: submit)
+                    .frame(width: radius * DoorGeometry.core * 2 * 0.84)
+                    .position(center)
+                    .opacity(hubHidden ? 0 : 1)
+                    .scaleEffect(hubHidden ? 0.9 : 1)
+                    .blur(radius: hubHidden ? 6 : 0)
+                    .animation(.easeOut(duration: 0.25), value: assembling)
+
+                VStack(spacing: 14) {
+                    if model.touchIDEnabled { InlineTouchID() }
+                    // Whose vault this is.
+                    AccountLine()
+                        .padding(.horizontal, 24)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, 20)
+                .opacity(opening ? 0 : 1)
             }
-
-            if model.accounts.count <= 1, let account = model.unlockTarget {
-                LockedAccountCard(account: account)
-            }
-
-            if model.accounts.count > 1 {
-                AccountChooser()
-            }
-
-            if model.touchIDEnabled {
-                InlineTouchID()
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Master password").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                PasswordField(title: "Master password", text: $password, isFocused: $focused.wrappedBinding)
-                    .modifier(Shake(trigger: shake))
-            }
-
-            if let message = model.errorMessage {
-                Label(message, systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 12)).foregroundStyle(.red).transition(.opacity)
-            }
-
-            VStack(spacing: 12) {
-                Button(action: submit) {
-                    HStack(spacing: 8) {
-                        if model.isBusy { ProgressView().controlSize(.small).tint(.white) }
-                        if model.unlockOpening {
-                            Label("Unlocked", systemImage: "checkmark").font(.system(size: 14, weight: .semibold))
-                                .transition(.scale(scale: 0.8).combined(with: .opacity))
-                        } else {
-                            Text("Unlock").font(.system(size: 14, weight: .semibold))
-                        }
-                    }
-                }
-                .buttonStyle(PrimaryButtonStyle())
-                .keyboardShortcut(.defaultAction)
-                .disabled(model.isBusy || password.isEmpty)
-
-                HStack(spacing: 4) {
-                    Text("Not you?").foregroundStyle(.secondary)
-                    Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }.buttonStyle(.link)
-                }
-                .font(.system(size: 12))
-            }
+            .animation(.easeIn(duration: 0.28), value: opening)
         }
-        .frame(width: 360)
-        .animation(.easeOut(duration: 0.2), value: model.errorMessage)
+        .ignoresSafeArea()
         .onAppear {
             focused = true
+            // Locked from the vault: the door closes over it.
+            if model.lockClosing {
+                closedAt = .now
+                assembling = true
+                Task {
+                    try? await Task.sleep(for: .milliseconds(560))
+                    assembling = false
+                }
+            }
         }
+        .onChange(of: model.errorMessage) { _, message in
+            // A wrong password: the light warms to red and the tumblers rewind to an empty field.
+            guard message != nil else { return }
+            errorAt = .now
+            password = ""
+        }
+        .onChange(of: password.count) { old, new in
+            // The pins repeat every 12 notches, so a paste (or a clear) only needs the shortest turn to the same place;
+            // one character at a time clicks a single notch.
+            var delta = (new - old) % 12
+            if delta > 6 { delta -= 12 } else if delta < -6 { delta += 12 }
+            let paste = abs(new - old) > 1
+            withAnimation(paste ? .easeInOut(duration: 0.7) : .spring(duration: 0.5, bounce: 0.1)) { turns += delta }
+        }
+        .onChange(of: password) { _, typed in if !typed.isEmpty, model.errorMessage != nil { model.errorMessage = nil } }
     }
 
     private func submit() {
-        Task {
-            await model.unlock(password: password)
-            if model.isUnlocked { password = "" } else { withAnimation(.default) { shake += 1 } }
-        }
+        guard !password.isEmpty, !model.isBusy, !model.unlockOpening else { return }
+        Task { await model.unlock(password: password) }
     }
 }
 
-/// Small horizontal shake for a wrong password.
-private struct Shake: GeometryEffect {
-    var trigger: Int
-    var animatableData: CGFloat {
-        get { CGFloat(trigger) }
-        set { progress = newValue }
-    }
-    private var progress: CGFloat = 0
-    init(trigger: Int) { self.trigger = trigger; progress = CGFloat(trigger) }
-
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        ProjectionTransform(CGAffineTransform(translationX: 8 * sin(progress * .pi * 6), y: 0))
-    }
-}
-
-/// Which saved account the master password is for (shown when there are several).
-private struct AccountChooser: View {
+/// What sits in the door's hub: the master password and what's happening.
+private struct DoorCore: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    @Binding var password: String
+    var focused: FocusState<Bool>.Binding
+    let submit: () -> Void
 
     var body: some View {
-        VStack(spacing: 4) {
-            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                let selected = account.id == model.unlockTarget?.id
-                Button { model.unlockTargetID = account.id; model.errorMessage = nil } label: {
-                    HStack(spacing: 10) {
-                        Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(verbatim: account.email).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                            Text(verbatim: account.serverSummary).font(.system(size: 11)).foregroundStyle(.secondary)
+        let dark = scheme == .dark
+        VStack(spacing: 12) {
+            Image(systemName: model.unlockOpening ? "lock.open.fill" : "lock.fill")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(dark ? Color.brandFill : Color.brand)
+                .contentTransition(.symbolEffect(.replace))
+                .accessibilityHidden(true)
+
+            HStack(spacing: 4) {
+                PasswordField(title: "Master password", text: $password, look: .plain, prompt: Text("Master password"),
+                              isFocused: focused.wrappedBinding, onSubmit: submit)
+                    .font(.system(size: 13))
+                    .disabled(model.isBusy)
+                Button(action: submit) {
+                    ZStack {
+                        if model.isBusy {
+                            ProgressView().controlSize(.mini).tint(.white)
+                        } else {
+                            Image(systemName: "arrow.right").font(.system(size: 11, weight: .bold))
                         }
-                        Spacer()
-                        if model.isTouchIDEnabled(account.id) {
-                            Image(systemName: "touchid").font(.system(size: 12)).foregroundStyle(.secondary)
-                        }
-                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(selected ? Color.brand : Color.secondary.opacity(0.5))
                     }
-                    .padding(.horizontal, 12).frame(height: 44)
-                    .background(selected ? Color.brand.opacity(0.08) : Color(nsColor: .controlBackgroundColor),
-                                in: .rect(cornerRadius: 10, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(selected ? Color.brand : Color(nsColor: .separatorColor), lineWidth: selected ? 1.5 : 1))
-                    .contentShape(.rect)
+                    .foregroundStyle(password.isEmpty ? Color.secondary : Color.white)
+                    .frame(width: 26, height: 26)
+                    .background(password.isEmpty ? Color.primary.opacity(0.08) : Color.brandButton, in: .circle)
+                    .contentShape(.circle)
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut(.defaultAction)
+                .disabled(password.isEmpty || model.isBusy)
+                .help(Text("Unlock"))
+                .accessibilityLabel(Text("Unlock"))
+                .animation(.easeOut(duration: 0.15), value: password.isEmpty)
+            }
+            .padding(.leading, 14).padding(.trailing, 5)
+            .frame(height: 36)
+            .background(dark ? Color.black.opacity(0.35) : Color.white.opacity(0.9), in: .capsule)
+            .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.brandFill.opacity(dark ? 0.8 : 1) : Color.primary.opacity(0.1),
+                                            lineWidth: focused.wrappedValue ? 1.5 : 1))
+            .shadow(color: Color.brandFill.opacity(focused.wrappedValue ? 0.45 : 0), radius: 8)
+            .animation(.easeOut(duration: 0.15), value: focused.wrappedValue)
+
+            Group {
+                if let message = model.errorMessage {
+                    Text(message).foregroundStyle(dark ? Color(red: 1, green: 0.55, blue: 0.55) : Color(red: 0.8, green: 0.2, blue: 0.2))
+                } else if model.isBusy {
+                    Text("Turning the tumblers…").foregroundStyle(.secondary)
+                } else {
+                    Text("Press Return to unlock").foregroundStyle(.tertiary)
+                }
+            }
+            .font(.system(size: 11, weight: .medium))
+            .lineLimit(1).minimumScaleFactor(0.8)
+            .contentTransition(.opacity)
+            .animation(.easeOut(duration: 0.2), value: model.errorMessage)
+            .animation(.easeOut(duration: 0.2), value: model.isBusy)
+
+            HStack(spacing: 4) {
+                Text("Not you?").foregroundStyle(.secondary)
+                Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }.buttonStyle(.link)
+            }
+            .font(.system(size: 11))
+            .padding(.top, -4)
+        }
+    }
+}
+
+/// Whose vault this is, as a quiet pill; with several accounts on this Mac, a menu to pick which one to unlock.
+private struct AccountLine: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        if model.accounts.count > 1 {
+            Menu {
+                ForEach(model.accounts, id: \.id) { account in
+                    Button {
+                        model.unlockTargetID = account.id
+                        model.errorMessage = nil
+                    } label: {
+                        if account.id == model.unlockTarget?.id {
+                            Label { Text(verbatim: account.email) } icon: { Image(systemName: "checkmark") }
+                        } else {
+                            Text(verbatim: account.email)
+                        }
+                    }
+                }
+            } label: {
+                label(chevron: true)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize(horizontal: false, vertical: true)
+            .help(Text("Choose an account"))
+        } else {
+            label(chevron: false)
+        }
+    }
+
+    private func label(chevron: Bool) -> some View {
+        let account = model.unlockTarget
+        let dark = scheme == .dark
+        return HStack(spacing: 8) {
+            Monogram(name: account?.email ?? "?", size: 24)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: account?.email ?? "").font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1).truncationMode(.middle)
+                Text(verbatim: account?.serverSummary ?? "").font(.system(size: 10)).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
+            }
+            if chevron {
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
             }
         }
+        .padding(.leading, 6).padding(.trailing, 14).padding(.vertical, 5)
+        .background(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.7), in: .capsule)
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(dark ? 0.1 : 0.08)))
+        .contentShape(.capsule)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -212,26 +228,30 @@ private struct InlineTouchID: View {
     @State private var attempt = 0
     @State private var prompting = false
 
+    @Environment(\.colorScheme) private var scheme
+
     var body: some View {
-        HStack(spacing: 14) {
+        let dark = scheme == .dark
+        HStack(spacing: 8) {
             ZStack {
                 // The system glyph only draws during a prompt; show ours otherwise.
-                Image(systemName: "touchid").font(.system(size: 24)).foregroundStyle(Color.brand)
+                Image(systemName: "touchid").font(.system(size: 17)).foregroundStyle(Color.brand)
                     .opacity(prompting ? 0 : 1)
                 TouchIDGlyph(context: context).opacity(prompting ? 1 : 0)
             }
-            .frame(width: 34, height: 34)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Touch ID to unlock").font(.system(size: 13, weight: .semibold))
-                Text("Or enter your master password below.").font(.system(size: 12)).foregroundStyle(.secondary)
+            .frame(width: 24, height: 24)
+            Text("Touch ID to unlock").font(.system(size: 12, weight: .semibold))
+            Button { attempt += 1 } label: {
+                Image(systemName: "arrow.clockwise").font(.system(size: 10, weight: .semibold))
+                    .accessibilityLabel(Text("Try Touch ID again"))
             }
-            Spacer()
-            Button { attempt += 1 } label: { Image(systemName: "arrow.clockwise").accessibilityLabel(Text("Try Touch ID again")) }
-                .buttonStyle(.borderless)
-                .help(Text("Try Touch ID again"))
+            .buttonStyle(.borderless)
+            .help(Text("Try Touch ID again"))
         }
-        .padding(14)
-        .modifier(SoftCard())
+        .padding(.leading, 10).padding(.trailing, 12)
+        .frame(height: 36)
+        .background(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.7), in: .capsule)
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(dark ? 0.1 : 0.08)))
         .task(id: attempt) {
             // A fresh context per attempt; the embedded view shows its prompt inline.
             let fresh = LAContext()
@@ -260,7 +280,7 @@ private struct TouchIDGlyph: NSViewRepresentable {
 
     private func install(in container: NSView) {
         container.subviews.forEach { $0.removeFromSuperview() }
-        let glyph = LAAuthenticationView(context: self.context, controlSize: .large)
+        let glyph = LAAuthenticationView(context: self.context, controlSize: .small)
         glyph.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(glyph)
         NSLayoutConstraint.activate([

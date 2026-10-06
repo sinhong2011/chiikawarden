@@ -51,7 +51,7 @@ struct MenuBarContent: View {
             }
             .buttonStyle(.plain)
             if model.isUnlocked {
-                Button { model.lock() } label: {
+                Button { model.lock(animated: true) } label: {
                     Image(systemName: "lock").font(.system(size: 13, weight: .medium))
                         .frame(width: 36, height: 36)
                         .background(Pill.fill(scheme), in: .circle)
