@@ -933,12 +933,15 @@ final class AppModel {
         let closing = animated && phase.id == Phase.vault.id && !accounts.isEmpty && !tooling && Self.doorAnimates
         phase = accounts.isEmpty ? .login : .locked
         guard closing else { clearVaultContents(); return }
+        // The gate closes over the vault first (RootView, ~0.6 s), then the door assembles inside it (~1.2 s).
+        lockClosedAt = .now.addingTimeInterval(Self.gateClose)
         lockClosing = true
         Task {
-            // The lock layer's closing sequence (VaultDoorStage) runs ~1 s; the vault is covered well before that.
-            try? await Task.sleep(for: .milliseconds(650))
+            try? await Task.sleep(for: .seconds(Self.gateClose + 0.05))
+            if sessions.isEmpty { clearVaultContents() } // covered now; unless Touch ID already opened it again
+            try? await Task.sleep(for: .seconds(1.3))
             lockClosing = false
-            if sessions.isEmpty { clearVaultContents() } // unless Touch ID already opened it again
+            lockClosedAt = nil
         }
     }
 
@@ -949,6 +952,10 @@ final class AppModel {
 
     /// True while the lock layer closes over the vault (an animated lock).
     var lockClosing = false
+    /// When the door starts assembling (just after the gate has closed). Shared by every copy of the door.
+    var lockClosedAt: Date?
+    /// How long the gate takes to close over the vault when locking.
+    static let gateClose = 0.6
 
     private func clearVaultContents() {
         selectedID = nil

@@ -151,6 +151,18 @@ struct RootView: View {
                                               removal: .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0)))
     }
 
+    /// Closes when it appears, parts when it leaves.
+    private var gateBothWays: AnyTransition {
+        .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0))
+    }
+
+    /// Into the vault: the gate's heavy ease. Locking: the gate closing. Elsewhere: smooth, nothing wobbles into place.
+    private var phaseAnimation: Animation {
+        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.75) }
+        if model.phase.id == AppModel.Phase.locked.id, model.lockClosing { return .easeInOut(duration: AppModel.gateClose) }
+        return .smooth(duration: 0.45)
+    }
+
     var body: some View {
         @Bindable var model = model
         ZStack {
@@ -176,13 +188,12 @@ struct RootView: View {
         .overlay {
             if model.phase.id == AppModel.Phase.locked.id {
                 UnlockView()
-                    // Fades in over the vault while the door assembles itself; on unlock it parts like a gate.
-                    .transition(gate)
+                    // Locking: the gate closes over the vault, then the door assembles inside it. Unlocking: it parts.
+                    // (Auto-lock and lock-on-sleep just appear.)
+                    .transition(model.lockClosing && !reduceMotion ? gateBothWays : gate)
             }
         }
-        // Into the vault: the gate's heavy ease. Elsewhere: smooth, no overshoot, so nothing wobbles into place.
-        .animation(model.phase.id == AppModel.Phase.vault.id ? .easeInOut(duration: 0.75) : .smooth(duration: 0.45),
-                   value: model.phase.id)
+        .animation(phaseAnimation, value: model.phase.id)
         .onAppear { model.openSettingsAction = { openSettings() } }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(

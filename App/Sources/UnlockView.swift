@@ -11,7 +11,6 @@ struct UnlockView: View {
     @State private var password = ""
     @State private var turns = 0
     @State private var errorAt: Date?
-    @State private var closedAt: Date?
     /// While the door assembles itself after a lock, the hub's controls wait.
     @State private var assembling = false
     @FocusState private var focused: Bool
@@ -32,7 +31,7 @@ struct UnlockView: View {
                 Rectangle().fill(.ultraThinMaterial)
 
                 VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
-                               busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: closedAt)
+                               busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: model.lockClosedAt)
 
                 DoorCore(password: $password, focused: $focused, submit: submit)
                     .frame(width: radius * DoorGeometry.core * 2 * 0.84)
@@ -58,11 +57,11 @@ struct UnlockView: View {
         .onAppear {
             focused = true
             // Locked from the vault: the door closes over it.
-            if model.lockClosing {
-                closedAt = .now
+            // (The gate closes first; the door's own timing comes from model.lockClosedAt, shared by every copy.)
+            if model.lockClosing, let start = model.lockClosedAt {
                 assembling = true
                 Task {
-                    try? await Task.sleep(for: .milliseconds(560))
+                    try? await Task.sleep(for: .seconds(max(0, start.timeIntervalSinceNow) + 0.56))
                     assembling = false
                 }
             }
