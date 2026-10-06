@@ -72,7 +72,7 @@ struct TrailingSwitchStyle: ToggleStyle {
             Toggle("", isOn: configuration.$isOn)
                 .toggleStyle(.switch)
                 .controlSize(size)
-                .tint(.controlTint)
+                .tint(.brand) // on = the brand fill; other system controls stay graphite
                 .labelsHidden()
         }
         .contentShape(.rect)
@@ -82,6 +82,17 @@ struct TrailingSwitchStyle: ToggleStyle {
 
 extension ToggleStyle where Self == TrailingSwitchStyle {
     static var trailingSwitch: TrailingSwitchStyle { TrailingSwitchStyle() }
+}
+
+/// The system switch, filled with the brand colour when on (for forms, where rows lay it out themselves).
+struct BrandSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration).toggleStyle(.switch).tint(.brand)
+    }
+}
+
+extension ToggleStyle where Self == BrandSwitchStyle {
+    static var brandSwitch: BrandSwitchStyle { BrandSwitchStyle() }
 }
 
 /// Capsule tabs with a raised thumb that slides between options.

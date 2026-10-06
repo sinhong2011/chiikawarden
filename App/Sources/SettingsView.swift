@@ -68,6 +68,8 @@ struct SettingsView: View {
             .navigationTitle(pane.wrappedValue?.title ?? "General")
             // Every pane's buttons in the app's capsule style (explicit styles, like links, still win).
             .buttonStyle(.appSecondarySmall)
+            // …and every switch in the brand colour when on.
+            .toggleStyle(.brandSwitch)
         }
         // Opens roomy and resizes freely; forms scroll when the window is shorter than their content.
         .frame(minWidth: 680, idealWidth: 820, maxWidth: .infinity, minHeight: 460, idealHeight: 640, maxHeight: .infinity)

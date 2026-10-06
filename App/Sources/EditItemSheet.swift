@@ -161,7 +161,7 @@ struct EditItemSheet: View {
             FormFooter(action: "Save", busy: saving, disabled: name.trimmingCharacters(in: .whitespaces).isEmpty,
                        cancel: cancel, submit: { Task { await save() } }) {
                 if hasHiddenValues {
-                    Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.switch).controlSize(.mini).font(.system(size: 12))
+                    Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.switch).tint(.brand).controlSize(.mini).font(.system(size: 12))
                 }
             }
         }
@@ -327,7 +327,7 @@ struct EditItemSheet: View {
                         switch field.kind {
                         case .boolean:
                             Toggle("Value", isOn: Binding(get: { field.value == "true" }, set: { field.value = $0 ? "true" : "false" }))
-                                .labelsHidden().toggleStyle(.switch)
+                                .labelsHidden().toggleStyle(.switch).tint(.brand)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         case .hidden where !showSecrets:
                             SecureField("Value", text: $field.value, prompt: Text("Value")).textFieldStyle(SoftFieldStyle())
