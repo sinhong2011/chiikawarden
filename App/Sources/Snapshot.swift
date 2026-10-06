@@ -1126,6 +1126,19 @@ enum SelfTest {
                 check(onDisk && model.isPINEnabled(id2) && !model.isPINPersistent(id2), "a PIN moves between this run and disk")
                 model.disablePIN(for: id2)
                 model.errorMessage = nil
+
+                // Timeouts per account: only the account whose own time ran out locks.
+                let globalMinutes = UserDefaults.standard.object(forKey: Pref.autoLockMinutes)
+                UserDefaults.standard.set(0, forKey: Pref.autoLockMinutes)
+                model.setOwnAutoLockMinutes(1, id2)
+                model.applyTimeouts(idle: 30)
+                let stillOpen = model.isUnlocked(id2)
+                model.applyTimeouts(idle: 120)
+                check(stillOpen && !model.isUnlocked(id2) && model.sessions.count == 1,
+                      "an account's own timeout locks it alone, after its own time")
+                model.setOwnAutoLockMinutes(nil, id2)
+                UserDefaults.standard.set(globalMinutes, forKey: Pref.autoLockMinutes)
+                await model.unlock(password: password2, accountId: id2)
             }
 
             // Custom environment: no server URL, explicit per-service URLs.
@@ -1202,9 +1215,19 @@ enum SelfTest {
             }
 
             if let secondID {
-                fresh.logOut(secondID)
+                // Logged out by its own timeout (action: log out), while the other account has none. Timeouts act on
+                // open accounts, so it's unlocked first.
+                if let second { await fresh.unlock(password: second.1, accountId: secondID) }
+                let globalMinutes = UserDefaults.standard.object(forKey: Pref.autoLockMinutes)
+                UserDefaults.standard.set(0, forKey: Pref.autoLockMinutes)
+                fresh.setOwnAutoLockMinutes(5, secondID)
+                fresh.setOwnTimeoutAction(.logOut, secondID)
+                fresh.applyTimeouts(idle: 6 * 60)
+                UserDefaults.standard.set(globalMinutes, forKey: Pref.autoLockMinutes)
+                fresh.setOwnAutoLockMinutes(nil, secondID)
+                fresh.setOwnTimeoutAction(nil, secondID)
                 check(fresh.accounts.count == 1 && AccountStore.load(secondID) == nil && fresh.isUnlocked,
-                      "log out one account, the other stays")
+                      "log out one account by its timeout, the other stays")
             }
             fresh.logOut(firstID)
             check(AccountStore.load(firstID) == nil && AccountStore.refreshToken(firstID) == nil && fresh.phase.id == AppModel.Phase.login.id,

@@ -203,6 +203,7 @@ private struct GeneralSettings: View {
 private struct SecuritySettings: View {
     @Environment(AppModel.self) private var model
     @AppStorage(Pref.autoLockMinutes) private var autoLockMinutes = 15
+    @AppStorage(Pref.timeoutAction) private var timeoutAction = "lock"
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
     @AppStorage(Pref.lockAnimations) private var lockAnimations = true
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
@@ -221,12 +222,17 @@ private struct SecuritySettings: View {
                     Divider()
                     Text("Never").tag(0)
                 }
+                Picker("When it times out", selection: $timeoutAction) {
+                    Text("Lock").tag("lock")
+                    Text("Log out").tag("logOut")
+                }
+                .disabled(autoLockMinutes == 0)
                 Toggle("Lock when the Mac sleeps or the screen locks", isOn: $lockOnSleep)
                 Toggle("Animate the vault door", isOn: $lockAnimations)
             } header: {
                 Text("Vault")
             } footer: {
-                Text("When off, the lock screen stays still and the vault opens and locks at once.")
+                Text("Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With the door animation off, the lock screen stays still and the vault opens and locks at once.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -480,6 +486,32 @@ private struct AccountSettingsPage: View {
                 }
             } header: {
                 Text("This Mac")
+            }
+
+            Section {
+                Picker("Lock after inactivity", selection: Binding(
+                    get: { model.ownAutoLockMinutes(account.id) ?? -1 },
+                    set: { model.setOwnAutoLockMinutes($0 == -1 ? nil : $0, account.id) })) {
+                    Text("Default (\(TimeoutLabels.minutes(UserDefaults.standard.integer(forKey: Pref.autoLockMinutes))))").tag(-1)
+                    Divider()
+                    ForEach([1, 5, 15, 30, 60], id: \.self) { Text(TimeoutLabels.minutes($0)).tag($0) }
+                    Divider()
+                    Text("Never").tag(0)
+                }
+                Picker("When it times out", selection: Binding(
+                    get: { model.ownTimeoutAction(account.id)?.rawValue ?? "default" },
+                    set: { model.setOwnTimeoutAction(AppModel.TimeoutAction(rawValue: $0), account.id) })) {
+                    Text("Default (\(TimeoutLabels.action(UserDefaults.standard.string(forKey: Pref.timeoutAction) ?? "lock")))").tag("default")
+                    Divider()
+                    Text("Lock").tag("lock")
+                    Text("Log out").tag("logOut")
+                }
+                .disabled(model.autoLockMinutes(for: account.id) == 0)
+            } header: {
+                Text("Timeout")
+            } footer: {
+                Text("For this account only; Default follows Settings › Security. Log out removes the account and its saved vault from this Mac.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             if let session {
@@ -1077,5 +1109,20 @@ private struct SetPINSheet: View {
             busy = false
             if ok { dismiss() } else { error = String(localized: "Couldn't set the PIN. Unlock the account and try again.") }
         }
+    }
+}
+
+/// Words for inactivity timeouts, shared by Security and each account's page.
+enum TimeoutLabels {
+    static func minutes(_ n: Int) -> String {
+        switch n {
+        case 0: String(localized: "Never")
+        case 60: String(localized: "1 hour")
+        case 1: String(localized: "1 minute")
+        default: String(localized: "\(n) minutes")
+        }
+    }
+    static func action(_ raw: String) -> String {
+        raw == "logOut" ? String(localized: "Log out") : String(localized: "Lock")
     }
 }

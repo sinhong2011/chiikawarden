@@ -18,11 +18,12 @@ enum Pref {
     static let checkUpdates = "checkUpdates"             // opt-in: look at GitHub's latest release daily
     static let codeAfterPassword = "codeAfterPassword"   // after a password is pasted, the clipboard holds its code
     static let hideFromCapture = "hideFromCapture"       // windows stay out of screen sharing, recordings and screenshots
+    static let timeoutAction = "timeoutAction"           // after inactivity: "lock" or "logOut" (accounts may override)
 
     static func register() {
         UserDefaults.standard.register(defaults: [
             appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
-            codeAfterPassword: true, hideFromCapture: false, // opt-in: some screen tools and recordings need the window
+            codeAfterPassword: true, hideFromCapture: false, timeoutAction: "lock", // opt-in: some screen tools and recordings need the window
         ])
     }
 

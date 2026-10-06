@@ -1570,6 +1570,53 @@ final class AppModel {
 
     func noteActivity() { lastActivity = .now }
 
+    // MARK: Timeout, per account
+
+    /// What inactivity does to an account: lock it, or log it out (erase it from this Mac).
+    enum TimeoutAction: String, CaseIterable { case lock, logOut }
+
+    /// An account's own inactivity minutes, or nil to follow Settings › Security (0 = never).
+    func ownAutoLockMinutes(_ accountId: String) -> Int? {
+        _ = timeoutRevision
+        return UserDefaults.standard.object(forKey: "autoLock." + accountId) as? Int
+    }
+    func setOwnAutoLockMinutes(_ minutes: Int?, _ accountId: String) {
+        UserDefaults.standard.set(minutes, forKey: "autoLock." + accountId)
+        timeoutRevision += 1
+    }
+    func ownTimeoutAction(_ accountId: String) -> TimeoutAction? {
+        _ = timeoutRevision
+        return UserDefaults.standard.string(forKey: "timeoutAction." + accountId).flatMap(TimeoutAction.init)
+    }
+    func setOwnTimeoutAction(_ action: TimeoutAction?, _ accountId: String) {
+        UserDefaults.standard.set(action?.rawValue, forKey: "timeoutAction." + accountId)
+        timeoutRevision += 1
+    }
+    /// Bumped when an account's timeout changes (UserDefaults isn't observable).
+    var timeoutRevision = 0
+
+    func autoLockMinutes(for accountId: String) -> Int {
+        ownAutoLockMinutes(accountId) ?? UserDefaults.standard.integer(forKey: Pref.autoLockMinutes)
+    }
+    func timeoutAction(for accountId: String) -> TimeoutAction {
+        ownTimeoutAction(accountId) ?? TimeoutAction(rawValue: UserDefaults.standard.string(forKey: Pref.timeoutAction) ?? "") ?? .lock
+    }
+
+    /// Each open account whose inactivity time has run out is locked or logged out, by its own setting.
+    /// `idle` overrides the time since the last activity (self-test).
+    func applyTimeouts(idle: TimeInterval? = nil) {
+        let idle = idle ?? Date.now.timeIntervalSince(lastActivity)
+        for session in sessions {
+            let id = session.id
+            let minutes = autoLockMinutes(for: id)
+            guard minutes > 0, idle > Double(minutes) * 60 else { continue }
+            switch timeoutAction(for: id) {
+            case .lock: lock(id)
+            case .logOut: logOut(id)
+            }
+        }
+    }
+
     /// Locks after inactivity and on sleep / screen lock, per Settings.
     func startAutoLock() {
         guard monitors.isEmpty else { return }
@@ -1595,8 +1642,7 @@ final class AppModel {
         autoLockTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, self.isUnlocked else { return }
-                let minutes = UserDefaults.standard.integer(forKey: Pref.autoLockMinutes)
-                if minutes > 0, Date.now.timeIntervalSince(self.lastActivity) > Double(minutes) * 60 { self.lock() }
+                self.applyTimeouts()
             }
         }
     }
