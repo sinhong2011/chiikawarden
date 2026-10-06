@@ -234,37 +234,163 @@ final class AutoFillState {
 struct AutoFillView: View {
     @Bindable var state: AutoFillState
 
+    private var heading: (symbol: String, title: LocalizedStringKey) {
+        switch state.mode {
+        case .registration: ("person.badge.key.fill", "Save a passkey")
+        case .passkey: ("person.badge.key.fill", "Sign in with a passkey")
+        case .oneTimeCode: ("clock.badge.checkmark", "Fill a one-time code")
+        case .password: ("key.fill", "Fill a password")
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Image(systemName: "key.viewfinder").font(.system(size: 16, weight: .semibold)).foregroundStyle(.tint)
+            HStack(spacing: 12) {
+                IconTile(symbol: heading.symbol, size: 36)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(verbatim: "Chiikawarden").font(.system(size: 13, weight: .semibold))
-                    Text(verbatim: state.domains.first ?? "").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(heading.title).font(.system(size: 14, weight: .semibold))
+                    Text(verbatim: state.passkeyRequest?.rpId ?? state.domains.first ?? "Chiikawarden")
+                        .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
-                Button("Cancel") { state.cancel() }.keyboardShortcut(.cancelAction)
+                Button("Cancel") { state.cancel() }
+                    .buttonStyle(CapsuleButtonStyle(primary: false))
+                    .keyboardShortcut(.cancelAction)
             }
-            .padding(14)
-            Divider()
+            .padding(.horizontal, 18).padding(.vertical, 14)
 
-            if !state.hasAccount {
-                ContentUnavailableView("Not signed in", systemImage: "person.crop.circle.badge.questionmark",
-                                       description: Text("Open Chiikawarden and log in first."))
-            } else if state.unlocked && state.mode == .registration {
-                RegisterPane(state: state)
-            } else if state.unlocked && state.mode == .passkey {
-                PasskeyList(state: state)
-            } else if state.unlocked {
-                PickList(state: state)
-            } else {
-                UnlockPane(state: state)
+            Group {
+                if !state.hasAccount {
+                    ContentUnavailableView("Not signed in", systemImage: "person.crop.circle.badge.questionmark",
+                                           description: Text("Open Chiikawarden and log in first."))
+                } else if state.unlocked && state.mode == .registration {
+                    RegisterPane(state: state)
+                } else if state.unlocked && state.mode == .passkey {
+                    PasskeyList(state: state)
+                } else if state.unlocked {
+                    PickList(state: state)
+                } else {
+                    UnlockPane(state: state)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 440, height: 500)
+        .frame(width: 440, height: 520)
+        .background(Palette.window)
         .tint(Color(nsColor: .chiikawardenBrand))
     }
 }
+
+// MARK: - The app's look, for the extension (which can't use the app's own controls)
+
+private enum Palette {
+    static let brand = Color(nsColor: .chiikawardenBrand)
+    static let window = adaptive(light: NSColor(red: 0.945, green: 0.947, blue: 0.965, alpha: 1),
+                                 dark: NSColor(red: 0.105, green: 0.108, blue: 0.125, alpha: 1))
+    static let card = adaptive(light: NSColor.white.withAlphaComponent(0.85), dark: NSColor.white.withAlphaComponent(0.07))
+    static let edge = adaptive(light: NSColor.white, dark: NSColor.white.withAlphaComponent(0.08))
+    static let selected = adaptive(light: NSColor.chiikawardenBrand.withAlphaComponent(0.1), dark: NSColor.chiikawardenBrand.withAlphaComponent(0.2))
+
+    static func adaptive(light: NSColor, dark: NSColor) -> Color {
+        Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light })
+    }
+}
+
+private struct IconTile: View {
+    let symbol: String
+    var size: CGFloat = 40
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let tint = scheme == .dark ? Color.brandFill : Palette.brand
+        Image(systemName: symbol)
+            .font(.system(size: size * 0.42, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: size, height: size)
+            .background(tint.opacity(scheme == .dark ? 0.18 : 0.12), in: .rect(cornerRadius: size * 0.28, style: .continuous))
+    }
+}
+
+private struct Card<Content: View>: View {
+    var padding: CGFloat = 14
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        content
+            .padding(padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.card, in: .rect(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.edge))
+    }
+}
+
+/// The app's capsule buttons: flat brand blue, or a quiet grey.
+private struct CapsuleButtonStyle: ButtonStyle {
+    var primary = true
+    var large = false
+    @Environment(\.isEnabled) private var enabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: large ? 14 : 12, weight: .semibold))
+            .foregroundStyle(primary ? Color.white : Color.primary)
+            .padding(.horizontal, large ? 20 : 12)
+            .frame(height: large ? 38 : 28)
+            .background(primary ? Color.brandButton : Color.primary.opacity(0.08), in: .capsule)
+            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
+            .contentShape(.capsule)
+    }
+}
+
+/// A white tile with the item's first letter in the brand's sky, like the app's monograms.
+private struct LetterTile: View {
+    let name: String
+    var size: CGFloat = 32
+
+    var body: some View {
+        Text(verbatim: name.prefix(1).uppercased())
+            .font(.system(size: size * 0.44, weight: .bold, design: .rounded))
+            .foregroundStyle(LinearGradient(colors: [Color.brandFill, Palette.brand], startPoint: .top, endPoint: .bottom))
+            .frame(width: size, height: size)
+            .background(.white, in: .rect(cornerRadius: size * 0.26, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: size * 0.26, style: .continuous).strokeBorder(Color.black.opacity(0.08)))
+    }
+}
+
+/// A row to pick: soft until hovered or chosen, then a brand tint and border.
+private struct ChoiceRow<Leading: View>: View {
+    let title: String
+    let subtitle: String
+    let selected: Bool
+    var trailing: LocalizedStringKey?
+    @ViewBuilder var leading: Leading
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            leading
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                if !subtitle.isEmpty {
+                    Text(verbatim: subtitle).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                }
+            }
+            Spacer(minLength: 6)
+            if let trailing {
+                Text(trailing).font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(selected ? Palette.brand : .secondary)
+            }
+        }
+        .padding(.horizontal, 10).frame(height: 50)
+        .background(selected ? Palette.selected : hovering ? Color.primary.opacity(0.05) : .clear,
+                    in: .rect(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(selected ? Palette.brand.opacity(0.6) : .clear))
+        .contentShape(.rect)
+        .onHover { hovering = $0 }
+    }
+}
+
+// MARK: - Panes
 
 private struct UnlockPane: View {
     @Bindable var state: AutoFillState
@@ -273,48 +399,71 @@ private struct UnlockPane: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "lock.fill").font(.system(size: 28)).foregroundStyle(.secondary)
-            Group {
-                switch state.mode {
-                case .passkey: Text("Unlock to sign in")
-                case .registration: Text("Unlock to save passkey")
-                default: Text("Unlock to fill")
+            Spacer(minLength: 0)
+            Card(padding: 22) {
+                VStack(spacing: 14) {
+                    IconTile(symbol: "lock.fill", size: 48)
+                    Group {
+                        switch state.mode {
+                        case .passkey: Text("Unlock to sign in")
+                        case .registration: Text("Unlock to save passkey")
+                        default: Text("Unlock to fill")
+                        }
+                    }
+                    .font(.system(size: 17, weight: .semibold))
+                    if state.accounts.count > 1 {
+                        Menu {
+                            ForEach(state.accounts) { account in
+                                Button { state.selectedAccountID = account.id } label: {
+                                    Text(verbatim: "\(account.email) · \(account.serverSummary)")
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text(verbatim: state.email).lineLimit(1).truncationMode(.middle)
+                                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
+                            }
+                            .font(.system(size: 12)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 12).frame(height: 26)
+                            .background(Color.primary.opacity(0.06), in: .capsule)
+                        }
+                        .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+                    } else {
+                        Text(verbatim: state.email).font(.system(size: 12)).foregroundStyle(.secondary)
+                    }
+                    PasswordField(title: "Master password", text: $password, prompt: Text("Master password"),
+                                  isFocused: $focused.wrappedBinding) {
+                        Task { await state.unlock(password: password) }
+                    }
+                    if let error = state.error {
+                        Text(verbatim: error).font(.system(size: 11)).foregroundStyle(.red)
+                    }
+                    HStack(spacing: 8) {
+                        if state.touchIDEnabled {
+                            Button { Task { await state.unlockWithTouchID() } } label: {
+                                Label("Touch ID", systemImage: "touchid")
+                            }
+                            .buttonStyle(CapsuleButtonStyle(primary: false, large: true))
+                        }
+                        Button {
+                            Task { await state.unlock(password: password) }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if state.busy { ProgressView().controlSize(.small).tint(.white) }
+                                Text("Unlock")
+                            }
+                            .frame(minWidth: 90)
+                        }
+                        .buttonStyle(CapsuleButtonStyle(large: true))
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(password.isEmpty || state.busy)
+                    }
                 }
+                .frame(maxWidth: .infinity)
             }
-            .font(.system(size: 17, weight: .semibold))
-            if state.accounts.count > 1 {
-                Picker("Account", selection: $state.selectedAccountID) {
-                    ForEach(state.accounts) { Text(verbatim: "\($0.email) · \($0.serverSummary)").tag(String?.some($0.id)) }
-                }
-                .labelsHidden()
-                .frame(width: 280)
-            } else {
-                Text(verbatim: state.email).foregroundStyle(.secondary)
-            }
-            if state.touchIDEnabled {
-                Button { Task { await state.unlockWithTouchID() } } label: {
-                    Label("Unlock with Touch ID", systemImage: "touchid")
-                }
-                .controlSize(.large)
-            }
-            PasswordField(title: "Master password", text: $password, isFocused: $focused.wrappedBinding) {
-                Task { await state.unlock(password: password) }
-            }
-            .frame(width: 280)
-            if let error = state.error {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
-            }
-            Button {
-                Task { await state.unlock(password: password) }
-            } label: {
-                HStack { if state.busy { ProgressView().controlSize(.small) }; Text("Unlock") }.frame(width: 120)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(password.isEmpty || state.busy)
-            Spacer()
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, 28).padding(.bottom, 20)
         .onAppear {
             focused = true
             if state.touchIDEnabled { Task { await state.unlockWithTouchID() } }
@@ -338,65 +487,40 @@ private struct PickList: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            TextField("Search vault", text: $query)
-                .textFieldStyle(.roundedBorder)
-                .padding(12)
+        VStack(spacing: 10) {
+            TextField("Search vault", text: $query, prompt: Text("Search vault"))
+                .textFieldStyle(SoftFieldStyle())
                 .onKeyPress(.downArrow) { index = min(index + 1, max(candidates.count - 1, 0)); return .handled }
                 .onKeyPress(.upArrow) { index = max(index - 1, 0); return .handled }
                 .onSubmit { if candidates.indices.contains(index) { state.fill(candidates[index]) } }
                 .onChange(of: query) { index = 0 }
-            if candidates.isEmpty {
-                ContentUnavailableView(query.isEmpty ? "No logins for this site" : "No results",
-                                       systemImage: "magnifyingglass",
-                                       description: query.isEmpty ? Text("Search to fill from any item.") : nil)
-            } else {
-                ScrollView {
-                    VStack(spacing: 2) {
-                        ForEach(Array(candidates.enumerated()), id: \.element.id) { i, item in
-                            Row(item: item, mode: state.mode, selected: i == index)
+            Card(padding: 6) {
+                if candidates.isEmpty {
+                    ContentUnavailableView(query.isEmpty ? "No logins for this site" : "No results",
+                                           systemImage: "magnifyingglass",
+                                           description: query.isEmpty ? Text("Search to fill from any item.") : nil)
+                        .frame(maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 2) {
+                            ForEach(Array(candidates.enumerated()), id: \.element.id) { i, item in
+                                ChoiceRow(title: item.name, subtitle: item.username ?? item.host ?? "", selected: i == index,
+                                          trailing: state.mode == .oneTimeCode ? "Fill code" : "Fill") {
+                                    LetterTile(name: item.name)
+                                }
                                 .onTapGesture { state.fill(item) }
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityAction { state.fill(item) }
+                            }
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .scrollIndicators(.never)
                 }
             }
+            .frame(maxHeight: .infinity)
         }
-    }
-}
-
-private struct Row: View {
-    let item: VaultItem
-    let mode: AutoFillState.Mode
-    let selected: Bool
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Text(item.name.prefix(1).uppercased())
-                .font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background(selected ? Color.white.opacity(0.22) : Color.secondary, in: .rect(cornerRadius: 8, style: .continuous))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 11)).foregroundStyle(selected ? .white.opacity(0.8) : .secondary)
-            }
-            Spacer()
-            Group {
-                switch mode {
-                case .oneTimeCode: Text("Fill code")
-                case .passkey: Text("Sign In")
-                default: Text("Fill")
-                }
-            }
-            .font(.system(size: 11, weight: .semibold))
-        }
-        .foregroundStyle(selected ? .white : .primary)
-        .padding(.horizontal, 10).frame(height: 44)
-        .background(selected ? Color(nsColor: .chiikawardenBrand) : .clear, in: .rect(cornerRadius: 9))
-        .contentShape(.rect)
+        .padding(.horizontal, 18).padding(.bottom, 18)
     }
 }
 
@@ -407,38 +531,44 @@ private struct PasskeyList: View {
 
     var body: some View {
         let candidates = state.passkeyCandidates
-        VStack(spacing: 0) {
-            if candidates.isEmpty {
-                ContentUnavailableView("No passkeys for this site", systemImage: "person.badge.key",
-                                       description: Text("Passkeys you save with Chiikawarden appear here."))
-            } else {
-                ScrollView {
-                    VStack(spacing: 2) {
-                        ForEach(Array(candidates.enumerated()), id: \.element.passkey.credentialId) { i, c in
-                            Row(item: VaultItem(id: c.item.id, name: c.item.name, username: c.passkey.userName ?? c.item.username,
-                                                host: c.passkey.rpId, password: nil, totp: nil, notes: nil, favorite: false),
-                                mode: .passkey, selected: i == index)
+        VStack(spacing: 10) {
+            Card(padding: 6) {
+                if candidates.isEmpty {
+                    ContentUnavailableView("No passkeys for this site", systemImage: "person.badge.key",
+                                           description: Text("Passkeys you save with Chiikawarden appear here."))
+                        .frame(maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 2) {
+                            ForEach(Array(candidates.enumerated()), id: \.element.passkey.credentialId) { i, c in
+                                ChoiceRow(title: c.passkey.userName ?? c.item.username ?? c.item.name,
+                                          subtitle: "\(c.item.name) · \(c.passkey.rpId)", selected: i == index, trailing: "Sign In") {
+                                    IconTile(symbol: "person.badge.key.fill", size: 32)
+                                }
                                 .onTapGesture { Task { await state.signIn(c.item, c.passkey) } }
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityAction { Task { await state.signIn(c.item, c.passkey) } }
+                            }
                         }
                     }
-                    .padding(8)
-                }
-                .focusable()
-                .focusEffectDisabled()
-                .onKeyPress(.downArrow) { index = min(index + 1, candidates.count - 1); return .handled }
-                .onKeyPress(.upArrow) { index = max(index - 1, 0); return .handled }
-                .onKeyPress(.return) {
-                    if candidates.indices.contains(index) { Task { await state.signIn(candidates[index].item, candidates[index].passkey) } }
-                    return .handled
+                    .scrollIndicators(.never)
+                    .focusable()
+                    .focusEffectDisabled()
+                    .onKeyPress(.downArrow) { index = min(index + 1, candidates.count - 1); return .handled }
+                    .onKeyPress(.upArrow) { index = max(index - 1, 0); return .handled }
+                    .onKeyPress(.return) {
+                        if candidates.indices.contains(index) { Task { await state.signIn(candidates[index].item, candidates[index].passkey) } }
+                        return .handled
+                    }
                 }
             }
+            .frame(maxHeight: .infinity)
             if let error = state.error {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red).padding(10)
+                Text(verbatim: error).font(.system(size: 11)).foregroundStyle(.red)
             }
         }
+        .padding(.horizontal, 18).padding(.bottom, 18)
     }
 }
 
@@ -452,55 +582,87 @@ struct RegisterPane: View {
         let request = state.passkeyRequest
         let targets = state.registrationTargets(accountId)
         VStack(spacing: 0) {
-            VStack(spacing: 8) {
-                Image(systemName: "person.badge.key.fill")
-                    .font(.system(size: 30)).foregroundStyle(.tint)
-                    .frame(width: 60, height: 60)
-                    .background(.tint.opacity(0.12), in: .rect(cornerRadius: 16, style: .continuous))
-                Text("Save a passkey").font(.system(size: 17, weight: .semibold))
-                Text(verbatim: "\(request?.userName ?? "") · \(request?.rpId ?? "")")
-                    .font(.callout).foregroundStyle(.secondary).lineLimit(1)
-            }
-            .padding(.top, 22).padding(.bottom, 14)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    // What's being saved: the site and the account name it gave.
+                    Card {
+                        HStack(spacing: 12) {
+                            LetterTile(name: request?.rpId ?? "?", size: 40)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: request?.userName.isEmpty == false ? request!.userName : String(localized: "New passkey"))
+                                    .font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                                Text(verbatim: request?.rpId ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Label("End-to-end encrypted", systemImage: "lock.shield")
+                                .labelStyle(.iconOnly)
+                                .foregroundStyle(.secondary)
+                                .help(Text("Saved encrypted in your vault, and synced to your other devices."))
+                        }
+                    }
 
-            Form {
-                if state.openedAccounts.count > 1 {
-                    Picker("Account", selection: $accountId) {
-                        ForEach(state.openedAccounts) { Text(verbatim: $0.email).tag(String?.some($0.id)) }
+                    if state.openedAccounts.count > 1 {
+                        Text("Account").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary).padding(.horizontal, 4)
+                        Card(padding: 6) {
+                            VStack(spacing: 2) {
+                                ForEach(state.openedAccounts) { account in
+                                    ChoiceRow(title: account.email, subtitle: account.serverSummary, selected: accountId == account.id) {
+                                        LetterTile(name: account.email, size: 30)
+                                    }
+                                    .onTapGesture { withAnimation(.snappy(duration: 0.2)) { accountId = account.id } }
+                                }
+                            }
+                        }
+                    }
+
+                    Text("Save to").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary).padding(.horizontal, 4)
+                    Card(padding: 6) {
+                        VStack(spacing: 2) {
+                            ChoiceRow(title: String(localized: "New login"), subtitle: request?.rpId ?? "", selected: target == nil) {
+                                IconTile(symbol: "plus", size: 32)
+                            }
+                            .onTapGesture { withAnimation(.snappy(duration: 0.2)) { target = nil } }
+                            ForEach(targets) { item in
+                                ChoiceRow(title: item.name, subtitle: item.username ?? "", selected: target == item.id,
+                                          trailing: item.hasPasskey ? "Has a passkey" : nil) {
+                                    LetterTile(name: item.name, size: 32)
+                                }
+                                .onTapGesture { withAnimation(.snappy(duration: 0.2)) { target = item.id } }
+                            }
+                        }
+                    }
+                    if let target, targets.first(where: { $0.id == target })?.hasPasskey == true {
+                        Label("This replaces the passkey already saved on that login.", systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11)).foregroundStyle(.orange).padding(.horizontal, 4)
+                            .transition(.opacity)
+                    }
+                    if let error = state.error {
+                        Text(verbatim: error).font(.system(size: 11)).foregroundStyle(.red).padding(.horizontal, 4)
                     }
                 }
-                Picker("Save to", selection: $target) {
-                    Label("New login", systemImage: "plus.circle").tag(String?.none)
-                    ForEach(targets) { item in
-                        Text(verbatim: "\(item.name) — \(item.username ?? "")").tag(String?.some(item.id))
-                    }
-                }
-                .pickerStyle(.inline)
-                if let target, targets.first(where: { $0.id == target })?.hasPasskey == true {
-                    Label("This replaces the passkey already saved on that login.", systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange)
-                }
+                .padding(.horizontal, 18).padding(.bottom, 12)
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
+            .scrollIndicators(.never)
 
-            if let error = state.error {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red).padding(.horizontal, 16)
-            }
-            HStack {
+            HStack(spacing: 10) {
+                Label("Saved to your vault, on every device.", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                 Spacer()
                 Button {
                     guard let accountId else { return }
                     Task { await state.register(accountId: accountId, itemId: target) }
                 } label: {
-                    HStack { if state.busy { ProgressView().controlSize(.small) }; Text("Save Passkey") }.frame(minWidth: 120)
+                    HStack(spacing: 6) {
+                        if state.busy { ProgressView().controlSize(.small).tint(.white) }
+                        Text("Save Passkey")
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(CapsuleButtonStyle(large: true))
                 .keyboardShortcut(.defaultAction)
                 .disabled(accountId == nil || state.busy)
             }
-            .padding(14)
+            .padding(.horizontal, 18).padding(.vertical, 12)
+            .background(alignment: .top) { Divider().opacity(0.5) }
         }
         .onAppear { accountId = accountId ?? state.openedAccounts.first?.id }
         .onChange(of: accountId) { target = nil }

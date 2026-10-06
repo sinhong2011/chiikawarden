@@ -150,7 +150,7 @@ enum Snapshot {
                    size: CGSize(width: 760, height: 620), appearance: appearance,
                    to: dir.appending(path: "palette-\(name).png"))
             render(MenuBarContent().environment(vault).tint(.brand).background(.regularMaterial),
-                   size: CGSize(width: 372, height: 640), appearance: appearance,
+                   size: CGSize(width: 380, height: 760), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -213,21 +213,21 @@ enum Snapshot {
             locked.email = "usagi@chiikawarden.test"
             locked.touchIDEnabled = true
             locked.hasAccount = true
-            render(AutoFillView(state: locked).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+            render(AutoFillView(state: locked).background(Color.windowBase), size: CGSize(width: 440, height: 520),
                    appearance: appearance, to: dir.appending(path: "autofill-locked-\(name).png"))
             let open = AutoFillState()
             open.domains = ["github.com"]
             open.items = demoItems.filter { $0.kind == .login }
             open.unlocked = true
             open.hasAccount = true
-            render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+            render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 520),
                    appearance: appearance, to: dir.appending(path: "autofill-list-\(name).png"))
             let register = AutoFillState()
             register.begin(passkey: .init(rpId: "github.com", clientDataHash: Data(), userName: "usagi"), registering: true)
             register.items = demoItems.filter { $0.kind == .login }
             register.unlocked = true
             register.hasAccount = true
-            render(AutoFillView(state: register).background(Color.windowBase), size: CGSize(width: 440, height: 500),
+            render(AutoFillView(state: register).background(Color.windowBase), size: CGSize(width: 440, height: 520),
                    appearance: appearance, to: dir.appending(path: "autofill-passkey-\(name).png"))
         }
         vault.breachCounts = ["4": 1203]
