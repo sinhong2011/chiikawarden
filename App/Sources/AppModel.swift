@@ -1010,7 +1010,7 @@ final class AppModel {
         let fromLock = phase.id == Phase.locked.id
         Task {
             // The door transforms open (~0.85 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
-            // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out over the core.
+            // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out into the light.
             try? await Task.sleep(for: .milliseconds(940)) // the door's last piece lands at 1.12 / 1.2 s
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves

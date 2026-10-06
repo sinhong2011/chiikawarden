@@ -105,8 +105,6 @@ private struct Mechanism {
     var seal = 0.0
     /// The hub turning as one before it splits, degrees.
     var twist = 0.0
-    /// The geared core under the hub plates: 1 in place … 0 retracted into the light.
-    var core = 1.0
     /// 歸元: the three notches in line at the top, light running down the keyway, 0…1.
     var keyway = 0.0
     /// An arc of energy running along the seams: its angle (degrees) and strength.
@@ -158,9 +156,8 @@ private struct Mechanism {
         m.bolts = Ease.inOut(seg(0.44, 0.54))
         m.latch = Ease.backOut(seg(0.48, 0.58))
         m.twist = 30 * Ease.backOut(seg(0.5, 0.62))
-        // Transform: pieces cascade out (see `piece`); the core spins up, then retracts into the light.
+        // Transform: pieces cascade out (see `piece`), leaving the light inside.
         for k in 0..<4 { m.parts[k] = m.piece(k, pieceCount[k] - 1) > 0 ? m.piece(k, 0) : 0 }
-        m.core = 1 - Ease.inOut(seg(0.92, 1.12))
         m.light = Ease.out(seg(0.05, 0.7))
         return m
     }
@@ -175,7 +172,6 @@ private struct Mechanism {
             m.align[k] = 1
             m.parts[k] = m.piece(k, 0)
         }
-        m.core = Ease.inOut(seg(0.0, 0.2))
         m.twist = 30 * (1 - Ease.backOut(seg(0.68, 0.8)))
         m.latch = 1 - Ease.inOut(seg(0.76, 0.84))
         m.bolts = 1 - Ease.backOut(seg(0.8, 0.92))
@@ -429,8 +425,6 @@ private struct VaultDoorArt: View, Animatable {
             b.stroke(shape, with: .color(p.edge), lineWidth: 0.8)
         }
 
-        // Under the hub plates: the geared core and the pistons that push the plates out.
-        drawMechanism(c, m: m, p: p, glow: glow)
 
         // The pieces, inside out, so each slides out under the next; the rune segments retract into the frame.
         c.clip(to: circle(1.0 * R))
@@ -575,58 +569,6 @@ private struct VaultDoorArt: View, Animatable {
                          lineWidth: 1.2)
             }
         }
-    }
-
-    /// Under the hub: a geared core with four struts, and a piston behind each hub plate. Hidden while the door is
-    /// whole; revealed as the plates ride out, spinning up, then drawn back into the light.
-    private func drawMechanism(_ c: GraphicsContext, m: Mechanism, p: DoorPalette, glow: RGB) {
-        let hub = (0..<4).map { m.piece(0, $0) }
-        guard (hub.max() ?? 0) > 0 || m.latch > 0, m.core > 0.01 else { return }
-        let R = radius
-        var g = c
-        g.rotate(by: .degrees(m.twist))
-        let k = m.core
-        // Pistons: a rod from the core to each plate (it follows the plate's travel), with a lit collar.
-        for i in 0..<4 {
-            let a = (Double(i) + 0.5) * 90 * .pi / 180
-            let reach = R * (0.12 + 0.62 * hub[i]) * k
-            guard reach > R * 0.13 else { continue }
-            var rod = Path()
-            rod.move(to: CGPoint(x: cos(a) * R * 0.1, y: sin(a) * R * 0.1))
-            rod.addLine(to: CGPoint(x: cos(a) * reach, y: sin(a) * reach))
-            g.stroke(rod, with: .color(.black.opacity(dark ? 0.5 : 0.2)), style: StrokeStyle(lineWidth: R * 0.05, lineCap: .round))
-            g.stroke(rod, with: .linearGradient(Gradient(colors: p.bolt), startPoint: CGPoint(x: -R * 0.02, y: -R * 0.3),
-                                                endPoint: CGPoint(x: R * 0.02, y: R * 0.3)),
-                     style: StrokeStyle(lineWidth: R * 0.034, lineCap: .round))
-            let collar = CGPoint(x: cos(a) * R * 0.2 * k, y: sin(a) * R * 0.2 * k)
-            g.fill(circle(R * 0.024, at: collar), with: .color(glow(0.9)))
-        }
-        // The core: a toothed wheel and hub that spin up as the plates leave.
-        var w = g
-        w.scaleBy(x: k, y: k)
-        w.rotate(by: .degrees(m.twist * 4 + (hub.max() ?? 0) * 220))
-        var teeth = Path()
-        for i in 0..<16 {
-            let a0 = Double(i) / 16 * 2 * .pi
-            let a1 = a0 + .pi / 16
-            teeth.move(to: CGPoint(x: cos(a0) * R * 0.17, y: sin(a0) * R * 0.17))
-            teeth.addLine(to: CGPoint(x: cos(a0) * R * 0.205, y: sin(a0) * R * 0.205))
-            teeth.addLine(to: CGPoint(x: cos(a1) * R * 0.205, y: sin(a1) * R * 0.205))
-            teeth.addLine(to: CGPoint(x: cos(a1) * R * 0.17, y: sin(a1) * R * 0.17))
-        }
-        w.fill(teeth, with: .linearGradient(Gradient(colors: p.metal), startPoint: CGPoint(x: 0, y: -R * 0.2), endPoint: CGPoint(x: 0, y: R * 0.2)))
-        w.fill(circle(R * 0.175), with: .linearGradient(Gradient(colors: p.metal), startPoint: CGPoint(x: 0, y: -R * 0.18),
-                                                       endPoint: CGPoint(x: 0, y: R * 0.18)))
-        w.stroke(circle(R * 0.175), with: .color(p.edge), lineWidth: 1)
-        for i in 0..<6 {
-            var spoke = Path()
-            let a = Double(i) / 6 * 2 * .pi
-            spoke.move(to: CGPoint(x: cos(a) * R * 0.05, y: sin(a) * R * 0.05))
-            spoke.addLine(to: CGPoint(x: cos(a) * R * 0.15, y: sin(a) * R * 0.15))
-            w.stroke(spoke, with: .color(p.engrave), lineWidth: 1.2)
-        }
-        w.fill(circle(R * 0.06), with: .color(glow(0.85)))
-        w.fill(circle(R * 0.025), with: .color(.white.opacity(0.9)))
     }
 
     private func sector(_ r0: CGFloat, _ r1: CGFloat, _ a0: Double, _ a1: Double) -> Path {
