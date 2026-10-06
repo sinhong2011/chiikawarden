@@ -436,7 +436,7 @@ private struct VaultDoorArt: View, Animatable {
         c.clip(to: circle(1.0 * R))
         let turn = (0..<4).map { angle($0, m) }
         // The notches show the light inside; brighter as the keyway lines up.
-        let slot = min(1, 0.45 + 0.4 * inner + 0.6 * m.keyway)
+        let slot = min(1, 0.3 + 0.4 * inner + 0.7 * m.keyway)
         let glyphs = Glyphs(ctx)
         pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow, m: m, glyphs: glyphs) }
         pieces(c, ring: 1, m: m, p: p, count: 8, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
@@ -470,8 +470,8 @@ private struct VaultDoorArt: View, Animatable {
             var beam = Path()
             beam.move(to: CGPoint(x: 0, y: -R * DoorGeometry.runes.outer))
             beam.addLine(to: CGPoint(x: 0, y: -R * DoorGeometry.core * 0.9))
-            k.stroke(beam, with: .color(glow(0.35 * m.keyway)), style: StrokeStyle(lineWidth: R * 0.07, lineCap: .round))
-            k.stroke(beam, with: .color(.white.opacity(0.85 * m.keyway)), style: StrokeStyle(lineWidth: R * 0.012, lineCap: .round))
+            k.stroke(beam, with: .color(glow(0.22 * m.keyway)), style: StrokeStyle(lineWidth: R * 0.03, lineCap: .round))
+            k.stroke(beam, with: .color(.white.opacity(0.9 * m.keyway)), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
         }
 
         // Energy running along the seams (power-up when opening, power-down when closing).
@@ -773,20 +773,17 @@ private struct VaultDoorArt: View, Animatable {
         d.fill(circle(rd * 0.025), with: .color(.white.opacity(0.9)))
     }
 
-    /// Ring `k`'s notch: a slot cut through the band where the light inside shows, with machined faces.
+    /// Ring `k`'s notch: a fine radial cut through the band, lit from inside like the seams between the rings.
     /// Drawn in the ring's own (turned) coordinates.
     private func drawNotch(_ r: inout GraphicsContext, ring k: Int, inner: CGFloat, outer: CGFloat, p: DoorPalette,
                            glow: RGB, light: Double) {
         let R = radius
-        let mid = R * (inner + outer) / 2
-        let half = asin(R * 0.032 / mid) * 180 / .pi
-        let a = Self.notch[k]
-        let slot = sector(R * inner - 1, R * outer + 1, a - half, a + half)
-        let rad = a * .pi / 180
-        r.fill(slot, with: .linearGradient(Gradient(colors: [Color.white.opacity(0.55 * light), glow(light)]),
-                                           startPoint: CGPoint(x: cos(rad) * R * outer, y: sin(rad) * R * outer),
-                                           endPoint: CGPoint(x: cos(rad) * R * inner, y: sin(rad) * R * inner)))
-        r.stroke(slot, with: .color(p.edge), lineWidth: 1)
+        let a = Self.notch[k] * .pi / 180
+        var cut = Path()
+        cut.move(to: CGPoint(x: cos(a) * R * (inner + 0.012), y: sin(a) * R * (inner + 0.012)))
+        cut.addLine(to: CGPoint(x: cos(a) * R * (outer - 0.012), y: sin(a) * R * (outer - 0.012)))
+        engrave(&r, cut, p: p, width: R * 0.014)
+        r.stroke(cut, with: .color(glow(light)), style: StrokeStyle(lineWidth: 1.1, lineCap: .round))
     }
 
     // MARK: Helpers
