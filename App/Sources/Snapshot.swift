@@ -450,6 +450,12 @@ enum SelfTest {
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
+            // Watchtower's two-step login list (2fa.directory).
+            let directory = await TwoFactorDirectory.load()
+            check(directory.count > 500 && WatchtowerReport.guide(for: "gist.github.com", in: directory) != nil
+                  && WatchtowerReport.guide(for: "example.invalid", in: directory) == nil,
+                  "two-step login directory (\(directory.count) sites)")
+
             // Item extras: password history, the master-password re-prompt flag, clone.
             _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest extras", username: "u", password: "first-pass"))
             if let extra = model.items.first(where: { $0.name == "Selftest extras" }) {
