@@ -87,9 +87,7 @@ struct ExportSheet: View {
                 SheetLabel("Format")
                 AppSegmented(options: [(VaultExport.Format.encryptedJSON, LocalizedStringKey("Password-protected")),
                                        (.json, LocalizedStringKey("JSON")), (.csv, LocalizedStringKey("CSV"))],
-                             selection: Binding(get: { format }, set: { new in
-                                 withAnimation(.easeInOut(duration: 0.2)) { formatRaw = new.rawValue; error = nil }
-                             }))
+                             selection: Binding(get: { format }, set: { formatRaw = $0.rawValue; error = nil }))
                 // Every format's line laid over the others, so switching never changes the sheet's height (a height
                 // change mid-switch broke the segment's sliding thumb).
                 ZStack(alignment: .topLeading) {
@@ -100,6 +98,8 @@ struct ExportSheet: View {
                             .accessibilityHidden(option != format)
                     }
                 }
+                // The text fades; the segment keeps its own spring (an animation set here would override it).
+                .animation(.easeInOut(duration: 0.2), value: format)
             }
 
             // The file password for an encrypted file; for a plain one, the same space warns that it isn't.
@@ -130,6 +130,7 @@ struct ExportSheet: View {
                     .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: format)
 
             VStack(alignment: .leading, spacing: 8) {
                 SheetLabel("Master password")
