@@ -435,7 +435,7 @@ private struct Sidebar: View {
                             .labelStyle(.titleAndIcon)
                         }
                     ForEach(org.children) { collection in
-                        SidebarLabel(collection.name, symbol: "rectangle.stack")
+                        SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack")
                             .badge(count(.collection(collection.id)))
                             .tag(SidebarSelection.collection(collection.id))
                     }
@@ -630,7 +630,7 @@ private struct FolderRow: View {
     @State private var targeted = false
 
     var body: some View {
-        let label = SidebarLabel(node.name, symbol: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
+        let label = SidebarLabel(verbatim: node.name, symbol: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
             .badge(count(.folder(node.path)))
             .tag(SidebarSelection.folder(node.path))
             .listRowBackground(targeted ? Color.brand.opacity(0.18).clipShape(.rect(cornerRadius: 6)) : nil)
@@ -1927,7 +1927,8 @@ struct SidebarLabel: View {
     let symbol: String
 
     init(_ title: LocalizedStringKey, symbol: String) { self.title = Text(title); self.symbol = symbol }
-    init<S: StringProtocol>(_ title: S, symbol: String) { self.title = Text(title); self.symbol = symbol }
+    /// User data (folder and collection names), shown as is.
+    init<S: StringProtocol>(verbatim title: S, symbol: String) { self.title = Text(title); self.symbol = symbol }
 
     var body: some View {
         Label { title } icon: {
