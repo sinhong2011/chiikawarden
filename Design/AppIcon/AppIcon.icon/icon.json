@@ -6,12 +6,20 @@
     {
       "layers": [
         {
-          "image-name": "4-hub.svg",
-          "name": "4-hub"
+          "image-name": "6-keyhole.svg",
+          "name": "6-keyhole"
         },
         {
-          "image-name": "3-wheel.svg",
-          "name": "3-wheel"
+          "image-name": "5-earth.svg",
+          "name": "5-earth"
+        },
+        {
+          "image-name": "4-person.svg",
+          "name": "4-person"
+        },
+        {
+          "image-name": "3-heaven.svg",
+          "name": "3-heaven"
         },
         {
           "image-name": "2-door.svg",
