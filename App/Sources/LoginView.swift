@@ -31,6 +31,8 @@ struct LoginView: View {
 private struct LoginForm: View {
     @Environment(AppModel.self) private var model
     @State private var password = ""
+    /// Bumped by each refusal, to shake the password field.
+    @State private var refusals = 0
     @State private var code = ""
     @AppStorage("rememberEmail") private var rememberEmail = true
     @AppStorage("ssoIdentifier") private var ssoIdentifier = ""
@@ -107,6 +109,7 @@ private struct LoginForm: View {
                     }
                     LabeledField("Master password", accessory: { ForgotPasswordButton(email: model.email) }) {
                         PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
+                            .shake(on: refusals)
                     }
                     Toggle("Remember email", isOn: $rememberEmail)
                         .toggleStyle(TrailingSwitchStyle(size: .mini))
@@ -116,6 +119,7 @@ private struct LoginForm: View {
             } else if step == .ssoPassword {
                 LabeledField("Master password") {
                     PasswordField(title: "Master password", text: $password, isFocused: passwordFocus)
+                        .shake(on: refusals)
                 }
                 .textFieldStyle(SoftFieldStyle())
             } else {
@@ -203,6 +207,7 @@ private struct LoginForm: View {
         .animation(.snappy(duration: 0.25), value: step)
         .animation(.snappy(duration: 0.25), value: model.serverKind)
         .animation(.easeOut(duration: 0.2), value: model.errorMessage)
+        .onChange(of: model.errorMessage) { _, message in if message != nil, step == .credentials || step == .ssoPassword { refusals += 1 } }
         .onAppear {
             focus = model.email.isEmpty ? .email : .password
             model.checkServer()

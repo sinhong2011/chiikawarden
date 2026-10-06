@@ -42,6 +42,7 @@ struct UnlockView: View {
                 DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN,
                          switchMode: { usePassword.toggle(); password = ""; model.errorMessage = nil; focused = true },
                          submit: submit)
+                    .shake(on: errorAt)
                     .frame(width: radius * DoorGeometry.core * 2 * 0.84)
                     .position(center)
                     .opacity(hubHidden ? 0 : 1)

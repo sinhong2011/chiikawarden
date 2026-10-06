@@ -16,8 +16,11 @@ struct CodesPane: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("One-Time Codes").font(.system(size: 22, weight: .bold)).tracking(-0.3)
                 if items.isEmpty {
-                    ContentUnavailableView("No one-time codes", systemImage: "clock.badge.checkmark",
-                                           description: Text("Add a code secret to a login to see it here."))
+                    ContentUnavailableView {
+                        Label("No one-time codes", systemImage: "clock.badge.checkmark").modifier(Floating())
+                    } description: {
+                        Text("Add a code secret to a login to see it here.")
+                    }
                         .frame(maxWidth: .infinity, minHeight: 300)
                 } else {
                     TimelineView(.animation(minimumInterval: 1 / 30)) { context in

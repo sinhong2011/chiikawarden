@@ -4,34 +4,50 @@ import SwiftUI
 /// (~0.4 s). With Reduce Motion it just appears. The glyphs are random, so the flicker gives nothing away.
 struct DecodingText: View {
     let text: String
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Rolling(text) { Text(verbatim: $0) }
+    }
+}
+
+/// Draws `text` through `content`, rolling every character through random glyphs whenever it changes, settling left
+/// to right like a slot machine. `keep`: characters that stay put (spaces, a passphrase's separators).
+struct Rolling<Content: View>: View {
+    let text: String
+    var keep: Set<Character> = [" "]
+    @ViewBuilder let content: (String) -> Content
     @State private var shown: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let glyphs = Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#$%&*+=?")
+    private static var glyphs: [Character] { Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#$%&*+=?") }
 
-    init(_ text: String) {
+    init(_ text: String, keep: Set<Character> = [" "], @ViewBuilder content: @escaping (String) -> Content) {
         self.text = text
-        _shown = State(initialValue: Self.scramble(text, keeping: 0))
+        self.keep = keep
+        self.content = content
+        _shown = State(initialValue: Motion.plays ? Self.scramble(text, keeping: 0, keep: keep) : text)
     }
 
     var body: some View {
-        Text(verbatim: shown)
+        content(shown)
             .task(id: text) {
-                guard !reduceMotion, !text.isEmpty else { shown = text; return }
+                guard Motion.plays, !reduceMotion, !text.isEmpty else { shown = text; return }
                 let steps = 14
                 for step in 0...steps {
                     // Settled characters lead; the rest keep flickering.
-                    shown = Self.scramble(text, keeping: text.count * step / steps)
+                    shown = Self.scramble(text, keeping: text.count * step / steps, keep: keep)
                     try? await Task.sleep(for: .milliseconds(28))
-                    if Task.isCancelled { break }
+                    if Task.isCancelled { return }
                 }
                 shown = text
             }
     }
 
-    private static func scramble(_ text: String, keeping settled: Int) -> String {
+    private static func scramble(_ text: String, keeping settled: Int, keep: Set<Character>) -> String {
         String(text.enumerated().map { index, char in
-            index < settled || char == " " ? char : glyphs.randomElement()!
+            index < settled || keep.contains(char) ? char : glyphs.randomElement()!
         })
     }
 }
@@ -83,5 +99,136 @@ struct ArrivalPop: ViewModifier {
             }
             .onAppear { if arrived, !reduceMotion { beat += 1 } }
             .onChange(of: arrived) { _, now in if now, !reduceMotion { beat += 1 } }
+    }
+}
+
+/// Off for snapshots and self-tests, which render one frame and must show everything in place.
+enum Motion {
+    static let plays = !CommandLine.arguments.contains { $0 == "--snapshot" || $0.hasPrefix("--selftest") }
+}
+
+/// A block that rises into place a beat after the one above it (`index`), as a new item opens.
+struct StaggerIn: ViewModifier {
+    let index: Int
+    @State private var shown = !Motion.plays
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 10)
+            .onAppear {
+                guard !shown else { return }
+                if reduceMotion { shown = true; return }
+                withAnimation(.spring(duration: 0.45, bounce: 0.15).delay(0.04 + Double(min(index, 6)) * 0.045)) { shown = true }
+            }
+    }
+}
+
+/// A VStack whose children stagger in, top to bottom.
+struct StaggeredStack<Content: View>: View {
+    var alignment: HorizontalAlignment = .leading
+    var spacing: CGFloat?
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: alignment, spacing: spacing) {
+            Group(subviews: content) { subviews in
+                ForEach(Array(subviews.enumerated()), id: \.element.id) { index, subview in
+                    subview.modifier(StaggerIn(index: index))
+                }
+            }
+        }
+    }
+}
+
+/// A firm side-to-side shake each time `trigger` changes: the field said no.
+struct Shake<Trigger: Equatable>: ViewModifier {
+    let trigger: Trigger
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content
+        } else {
+            content.keyframeAnimator(initialValue: 0.0, trigger: trigger) { view, x in
+                view.offset(x: x)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(-9, duration: 0.06)
+                    CubicKeyframe(8, duration: 0.08)
+                    CubicKeyframe(-6, duration: 0.08)
+                    CubicKeyframe(4, duration: 0.07)
+                    SpringKeyframe(0, duration: 0.25, spring: .bouncy)
+                }
+            }
+        }
+    }
+}
+
+extension View {
+    func shake<T: Equatable>(on trigger: T) -> some View { modifier(Shake(trigger: trigger)) }
+}
+
+/// A whole number that counts its way to a new value as it animates (rather than swapping digits).
+struct CountingNumber: View, @MainActor Animatable {
+    var value: Double
+    var animatableData: Double {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View {
+        Text(verbatim: "\(Int(value.rounded()))").monospacedDigit()
+    }
+}
+
+/// Little sparks flying out of a symbol (a star being set): `trigger` fires a burst. Plain dots, no glow.
+struct Burst<Trigger: Equatable>: View {
+    let trigger: Trigger
+    var color: Color = .yellow
+    var count = 8
+    var reach: CGFloat = 16
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if !reduceMotion {
+            KeyframeAnimator(initialValue: 1.0, trigger: trigger) { progress in
+                ZStack {
+                    ForEach(0..<count, id: \.self) { i in
+                        let angle = Angle.degrees(Double(i) / Double(count) * 360 - 90)
+                        let distance = 5 + reach * progress
+                        Circle()
+                            .fill(color)
+                            .frame(width: i.isMultiple(of: 2) ? 3.5 : 2.5, height: i.isMultiple(of: 2) ? 3.5 : 2.5)
+                            .offset(x: cos(angle.radians) * distance, y: sin(angle.radians) * distance)
+                            .scaleEffect(1 - 0.5 * progress)
+                    }
+                }
+                .opacity(progress >= 1 ? 0 : 1 - progress * 0.9)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    LinearKeyframe(0, duration: 0.001)
+                    CubicKeyframe(1, duration: 0.5)
+                }
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+}
+
+/// An empty state's symbol, drifting gently up and down.
+struct Floating: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion || !Motion.plays {
+            content
+        } else {
+            content.phaseAnimator([false, true]) { view, up in
+                view.offset(y: up ? -4 : 2)
+            } animation: { _ in .easeInOut(duration: 1.8) }
+        }
     }
 }

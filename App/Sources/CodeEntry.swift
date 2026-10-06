@@ -13,6 +13,7 @@ struct CodeEntry: View {
 
     @FocusState private var focused: Bool
     @State private var clipboardCode: String?
+    @State private var refusals = 0
     @Environment(\.colorScheme) private var scheme
 
     private var digits: [Character] { Array(code) }
@@ -43,6 +44,8 @@ struct CodeEntry: View {
                 .accessibilityHidden(true)
             }
             .frame(height: 58)
+            .shake(on: refusals)
+            .onChange(of: rejected) { _, now in if now { refusals += 1 } }
 
             if let clipboardCode, clipboardCode != code {
                 Button { accept(clipboardCode) } label: {

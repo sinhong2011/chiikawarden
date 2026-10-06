@@ -176,6 +176,9 @@ struct WatchtowerView: View {
     @Environment(AppModel.self) private var model
     var onOpen: (VaultItem) -> Void
     @State private var directory: [String: URL] = [:]
+    /// The score as drawn: it sweeps up from 0 when the page opens, then follows the real one.
+    @State private var animatedScore: Double?
+    @State private var allClear = 0
 
     var body: some View {
         let report = WatchtowerReport(items: model.vaultItems, breaches: model.breachCounts, twoFactor: directory)
@@ -188,36 +191,52 @@ struct WatchtowerView: View {
                     }
                 }
                 if report.problemCount == 0 {
-                    ContentUnavailableView("Looking good", systemImage: "checkmark.shield",
-                                           description: Text(model.breachCounts == nil
+                    ContentUnavailableView {
+                        Label("Looking good", systemImage: "checkmark.shield")
+                            .symbolEffect(.bounce.up, options: .speed(0.9), value: allClear)
+                    } description: {
+                        Text(model.breachCounts == nil
                                                ? "No weak, reused or unsecured passwords. Check for breaches to be sure."
-                                               : "No issues found."))
+                                               : "No issues found.")
+                    }
                         .frame(maxWidth: .infinity)
                         .padding(.top, 20)
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                        .onAppear { allClear += 1 }
                 }
             }
             .padding(24)
             .frame(maxWidth: 760)
             .frame(maxWidth: .infinity)
+            .animation(.spring(duration: 0.45, bounce: 0.2), value: report.problemCount)
         }
         .task { directory = await TwoFactorDirectory.load() }
+        .onAppear {
+            // The ring sweeps up to the score and the number counts with it.
+            animatedScore = 0
+            withAnimation(.spring(duration: 1.1, bounce: 0.1).delay(0.15)) { animatedScore = report.score }
+        }
+        .onChange(of: report.score) { _, new in withAnimation(.spring(duration: 0.7, bounce: 0.15)) { animatedScore = new } }
     }
 
     private func header(_ report: WatchtowerReport) -> some View {
-        HStack(spacing: 22) {
+        let shownScore = Motion.plays ? animatedScore ?? 0 : report.score
+        return HStack(spacing: 22) {
             ZStack {
                 Circle().stroke(.quaternary, lineWidth: 9)
-                Circle().trim(from: 0, to: report.score)
-                    .stroke(report.score > 0.9 ? Color.green : report.score > 0.7 ? Color.orange : Color.red,
+                Circle().trim(from: 0, to: shownScore)
+                    .stroke(shownScore > 0.9 ? Color.green : shownScore > 0.7 ? Color.orange : Color.red,
                             style: StrokeStyle(lineWidth: 9, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 VStack(spacing: 0) {
-                    Text(verbatim: "\(Int((report.score * 100).rounded()))").font(.system(size: 28, weight: .bold, design: .rounded))
+                    CountingNumber(value: shownScore * 100).font(.system(size: 28, weight: .bold, design: .rounded))
                     Text("score").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
             .frame(width: 96, height: 96)
-            .animation(.snappy, value: report.score)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("score"))
+            .accessibilityValue(Text(verbatim: "\(Int((report.score * 100).rounded()))"))
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Watchtower").font(.system(size: 24, weight: .bold))

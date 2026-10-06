@@ -91,7 +91,9 @@ struct GeneratorView: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ColoredSecret(value: value.isEmpty ? " " : value, separator: mode == .passphrase ? passphrase.separator : nil)
+            Rolling(value.isEmpty ? " " : value, keep: rollKeep) { shown in
+                ColoredSecret(value: shown, separator: mode == .passphrase ? passphrase.separator : nil)
+            }
                 .font(.system(size: value.count > 40 ? 20 : 28, weight: .medium, design: .monospaced))
                 .textSelection(.enabled)
                 .lineLimit(4)
@@ -171,7 +173,9 @@ struct GeneratorView: View {
     private var output: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 6) {
-                ColoredSecret(value: value, separator: mode == .passphrase ? passphrase.separator : nil)
+                Rolling(value, keep: rollKeep) { shown in
+                    ColoredSecret(value: shown, separator: mode == .passphrase ? passphrase.separator : nil)
+                }
                     .font(.system(size: 15, weight: .medium, design: .monospaced))
                     .textSelection(.enabled)
                     .lineLimit(3)
@@ -303,6 +307,9 @@ struct GeneratorView: View {
         storedPassphrase = (try? JSONEncoder().encode(passphrase)) ?? storedPassphrase
         storedUsername = (try? JSONEncoder().encode(username)) ?? storedUsername
     }
+
+    /// What stays still while a new value rolls in: spaces, and a passphrase's separators (so the words keep their shape).
+    private var rollKeep: Set<Character> { mode == .passphrase ? Set(" " + passphrase.separator) : [" "] }
 
     private func regenerate() {
         withAnimation(.snappy(duration: 0.2)) {

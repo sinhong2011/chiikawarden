@@ -147,7 +147,9 @@ struct VaultView: View {
                 .id(item.id)
                 .transition(.opacity.combined(with: .offset(y: 8)))
         } else {
-            ContentUnavailableView("No Item Selected", systemImage: "key.viewfinder")
+            ContentUnavailableView {
+                Label("No Item Selected", systemImage: "key.viewfinder").modifier(Floating())
+            }
         }
     }
 
@@ -487,7 +489,7 @@ private struct SidebarAccountCard: View {
                 AccountSwitcher(close: { switching = false })
             }
 
-            footerButton("arrow.triangle.2.circlepath", help: "Sync Now", spinning: model.isSyncing) { sync() }
+            SyncFooterButton { sync() }
             footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
         }
         .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
@@ -515,6 +517,43 @@ private struct SidebarAccountCard: View {
         .disabled(spinning)
         .help(Text(help))
         .accessibilityLabel(Text(help))
+    }
+}
+
+/// The footer's Sync Now: spins while syncing, then shows a tick for a moment when a sync you asked for is done.
+private struct SyncFooterButton: View {
+    @Environment(AppModel.self) private var model
+    let action: () -> Void
+    @State private var asked = false
+    @State private var done = false
+
+    var body: some View {
+        Button {
+            asked = true
+            action()
+        } label: {
+            Image(systemName: done ? "checkmark" : "arrow.triangle.2.circlepath")
+                .font(.system(size: 12, weight: done ? .semibold : .medium))
+                .foregroundStyle(.secondary)
+                .symbolEffect(.rotate, isActive: model.isSyncing)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 26, height: 26)
+                .contentShape(.rect)
+        }
+        .buttonStyle(HeaderIconStyle())
+        .disabled(model.isSyncing)
+        .help(Text("Sync Now"))
+        .accessibilityLabel(Text("Sync Now"))
+        .onChange(of: model.isSyncing) { was, now in
+            guard was, !now, asked else { return }
+            asked = false
+            guard model.lastSynced.map({ Date.now.timeIntervalSince($0) < 5 }) ?? false else { return } // it failed
+            done = true
+            Task {
+                try? await Task.sleep(for: .seconds(1.4))
+                done = false
+            }
+        }
     }
 }
 
@@ -1066,7 +1105,10 @@ private struct ItemColumn: View {
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
             .overlay {
                 if items.isEmpty {
-                    ContentUnavailableView(query.isEmpty ? "No Items" : "No Results", systemImage: "tray")
+                    ContentUnavailableView {
+                        Label(query.isEmpty ? "No Items" : "No Results", systemImage: query.isEmpty ? "tray" : "magnifyingglass")
+                            .modifier(Floating())
+                    }
                 }
             }
             .overlay(alignment: .bottom) {
@@ -1178,6 +1220,7 @@ struct ItemDetail: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
     @State private var revealToggle = false
+    @State private var starBurst = 0
     @State private var confirmDelete = false
     @State private var dropping = false
     /// Revealed while toggled on, or while ⌥ is held.
@@ -1188,7 +1231,7 @@ struct ItemDetail: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            StaggeredStack(spacing: 18) {
                 if item.isDeleted {
                     Group {
                         if let purge = model.purgeDate(item) {
@@ -1407,8 +1450,12 @@ struct ItemDetail: View {
                               spoken: item.isArchived ? "Unarchive" : "Archive", effect: .bounceDown) {
                     Task { await model.setArchived(item, !item.isArchived) }
                 }
-                toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite", effect: .bounce) { Task { await model.toggleFavorite(item) } }
+                toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite", effect: .bounce) {
+                    if !item.favorite { starBurst += 1 }
+                    Task { await model.toggleFavorite(item) }
+                }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
+                    .overlay { Burst(trigger: starBurst) }
                 toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit", effect: .wiggle) { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                 toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash", effect: .bounce) { model.trashWithUndo(item) }
             }
@@ -1767,6 +1814,7 @@ private struct AccountUnlockPane: View {
     let account: SavedAccount
     @State private var password = ""
     @State private var usePassword = false
+    @State private var refusals = 0
 
     private var pinMode: Bool { model.isPINEnabled(account.id) && !usePassword }
 
@@ -1781,6 +1829,8 @@ private struct AccountUnlockPane: View {
             }
             PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, onSubmit: submit)
                 .frame(width: 260)
+                .shake(on: refusals)
+                .onChange(of: model.errorMessage) { _, message in if message != nil { refusals += 1 } }
             if model.isPINEnabled(account.id) {
                 Button(pinMode ? "Use master password" : "Use PIN") { usePassword.toggle(); password = ""; model.errorMessage = nil }
                     .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary).underline()

@@ -496,13 +496,16 @@ struct StrengthMeter: View {
         HStack(spacing: 8) {
             HStack(spacing: 3) {
                 ForEach(0..<4, id: \.self) { i in
+                    // Segments fill (or empty) one after another, each with a little spring.
                     Capsule().fill(i < level.0 ? level.2 : Color.secondary.opacity(0.2)).frame(height: 4)
+                        .animation(.spring(duration: 0.35, bounce: 0.3).delay(Double(i) * 0.05), value: level.0)
                 }
             }
             .frame(width: 120)
             Text(level.1).font(.caption).foregroundStyle(.secondary)
+                .contentTransition(.opacity)
+                .animation(.snappy, value: level.0)
             Spacer()
         }
-        .animation(.snappy, value: level.0)
     }
 }
