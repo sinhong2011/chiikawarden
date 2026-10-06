@@ -7,55 +7,74 @@ struct SendsPane: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        @Bindable var model = model
         HStack(spacing: 8) {
             VStack(spacing: 10) {
-                HStack {
-                    Text("Send").font(.system(size: 13, weight: .semibold))
+                // Like the item list: a count, and + at the list's edge.
+                HStack(spacing: 6) {
+                    Text("\(model.sends.count) sends").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                     Spacer()
-                    Button { model.composingSend = true } label: { Label("New Send", systemImage: "plus") }
-                        .buttonStyle(.borderless)
+                    Button { compose() } label: {
+                        Image(systemName: "plus").font(.system(size: 13, weight: .semibold))
+                            .frame(width: 32, height: 32)
+                            .modifier(HeaderChrome(shape: .circle))
+                            .contentShape(.circle)
+                    }
+                    .buttonStyle(.plain)
+                    .help(Text("New Send"))
+                    .accessibilityLabel(Text("New Send"))
                 }
-                .padding(.horizontal, 8).padding(.top, 4)
+                .padding(.leading, 6)
                 ScrollView {
                     LazyVStack(spacing: 2) {
                         ForEach(model.sends) { send in
-                            SendRow(send: send, selected: send.id == model.selectedSendID)
-                                .onTapGesture { model.selectedSendID = send.id }
+                            SendRow(send: send, selected: send.id == model.selectedSendID && !model.composingSend)
+                                .onTapGesture { model.composingSend = false; model.selectedSendID = send.id }
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(send.id == model.selectedSendID ? [.isButton, .isSelected] : .isButton)
-                                .accessibilityAction { model.selectedSendID = send.id }
+                                .accessibilityAction { model.composingSend = false; model.selectedSendID = send.id }
                         }
                     }
                     .padding(6)
                 }
-                .scrollIndicators(.never)
+                .thinScroller()
                 .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
                 .overlay {
                     if model.sends.isEmpty {
-                        ContentUnavailableView {
-                            Label("No Sends", systemImage: "paperplane")
-                        } description: {
-                            Text("Share text or a file with anyone through an encrypted link that expires.")
-                        } actions: {
-                            Button("New Send") { model.composingSend = true }
-                        }
+                        Text("Your Sends appear here.").font(.system(size: 12)).foregroundStyle(.tertiary)
                     }
                 }
             }
+            .padding(.horizontal, 6)
             .frame(width: 300)
 
             Group {
-                if let send = model.sends.first(where: { $0.id == model.selectedSendID }) {
+                if model.composingSend {
+                    SendComposer()
+                        .transition(.opacity.combined(with: .offset(y: 8)))
+                } else if let send = model.sends.first(where: { $0.id == model.selectedSendID }) {
                     SendDetail(send: send).id(send.id)
                 } else {
-                    ContentUnavailableView("No Send Selected", systemImage: "paperplane")
+                    VStack(spacing: 14) {
+                        Image(systemName: "paperplane")
+                            .font(.system(size: 26, weight: .medium)).foregroundStyle(Color.brand)
+                            .frame(width: 64, height: 64)
+                            .background(Color.brandFill.opacity(0.18), in: .circle)
+                        Text("Share something securely").font(.system(size: 17, weight: .semibold))
+                        Text("Send text or a file through an end-to-end encrypted link that expires on its own.")
+                            .font(.system(size: 13)).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                            .frame(maxWidth: 320)
+                        Button { compose() } label: { Label("New Send", systemImage: "plus") }
+                            .buttonStyle(.appPrimary)
+                            .padding(.top, 4)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.snappy(duration: 0.25), value: model.composingSend)
         }
-        .sheet(isPresented: $model.composingSend) { NewSendSheet() }
     }
+
+    private func compose() { withAnimation(.snappy(duration: 0.25)) { model.composingSend = true } }
 }
 
 private struct SendRow: View {
@@ -203,10 +222,9 @@ private struct HeroButtonStyle: ButtonStyle {
     }
 }
 
-/// New text or file Send.
-struct NewSendSheet: View {
+/// New text or file Send, composed in place (no sheet): cards of soft fields, switches at the row ends.
+struct SendComposer: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dismiss) private var dismiss
     enum Kind: Hashable { case text, file }
     @State private var kind = Kind.text
     @State private var name = ""
@@ -224,90 +242,177 @@ struct NewSendSheet: View {
     @State private var accountId: String?
     @State private var picking = false
     @State private var saving = false
+    @State private var dropTargeted = false
+    @FocusState private var textFocused: Bool
 
     private var ready: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && (kind == .text ? !text.isEmpty : file != nil)
     }
 
+    private func dismiss() { withAnimation(.snappy(duration: 0.25)) { model.composingSend = false } }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Image(systemName: "paperplane.fill").foregroundStyle(Color.brand)
-                Text("New Send").font(.system(size: 15, weight: .semibold))
-                Spacer()
-            }
-            .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
-            Form {
-                Section {
-                    if model.sessions.count > 1 {
-                        Picker("Account", selection: $accountId) {
-                            ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag(String?.some($0.id)) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("New Send").font(.system(size: 22, weight: .bold)).tracking(-0.3)
+                        Text("Share text or a file through an encrypted link that expires.")
+                            .font(.system(size: 13)).foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 4)
+
+                    HStack(spacing: 12) {
+                        AppSegmented(options: [(Kind.text, LocalizedStringKey("Text")), (.file, LocalizedStringKey("File"))],
+                                     selection: $kind)
+                            .frame(maxWidth: 260)
+                        Spacer()
+                        if model.sessions.count > 1 {
+                            Picker("Account", selection: $accountId) {
+                                ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag(String?.some($0.id)) }
+                            }
+                            .labelsHidden().fixedSize()
                         }
                     }
-                    Picker("Type", selection: $kind) {
-                        Label("Text", systemImage: "text.alignleft").tag(Kind.text)
-                        Label("File", systemImage: "doc").tag(Kind.file)
+
+                    card {
+                        field("Name") {
+                            TextField("Name", text: $name, prompt: Text("e.g. Wi-Fi password")).textFieldStyle(SoftFieldStyle())
+                        }
+                        if kind == .text {
+                            field("Text") {
+                                TextEditor(text: $text)
+                                    .font(.system(size: 13))
+                                    .scrollContentBackground(.hidden)
+                                    .focused($textFocused)
+                                    .padding(8)
+                                    .frame(minHeight: 120)
+                                    .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                        .strokeBorder(textFocused ? Color.brand : Color(nsColor: .separatorColor), lineWidth: textFocused ? 1.5 : 1))
+                                    .animation(.easeOut(duration: 0.15), value: textFocused)
+                            }
+                            Toggle("Hide the text until the recipient reveals it", isOn: $hideText).toggleStyle(.trailingSwitch)
+                        } else {
+                            field("File") { fileZone }
+                        }
                     }
-                    .pickerStyle(.segmented)
-                    TextField("Name", text: $name, prompt: Text("e.g. Wi-Fi password"))
-                    if kind == .text {
-                        TextEditor(text: $text).frame(minHeight: 90).font(.body).scrollContentBackground(.hidden)
-                        Toggle("Hide text until the recipient reveals it", isOn: $hideText)
-                    } else {
-                        LabeledContent("File") {
+
+                    card(title: "Availability") {
+                        HStack {
+                            Text("Delete after").font(.system(size: 13))
+                            Spacer()
+                            Picker("Delete after", selection: $deleteAfterDays) {
+                                ForEach([1, 2, 3, 7, 14, 30], id: \.self) { Text("\($0) days").tag($0) }
+                            }
+                            .labelsHidden().fixedSize()
+                        }
+                        Toggle("Expire earlier", isOn: $expires).toggleStyle(.trailingSwitch)
+                        if expires {
+                            DatePicker("Expires", selection: $expiration,
+                                       in: Date.now...Date.now.addingTimeInterval(Double(deleteAfterDays) * 86_400))
+                                .font(.system(size: 13))
+                        }
+                        Toggle("Limit views", isOn: $limitViews).toggleStyle(.trailingSwitch)
+                        if limitViews {
                             HStack {
-                                Text(verbatim: file?.lastPathComponent ?? "").foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                                Button(file == nil ? "Choose…" : "Change…") { picking = true }
+                                Text("Views").font(.system(size: 13))
+                                Spacer()
+                                NumberStepper(value: $maxViews, range: 1...100)
                             }
                         }
                     }
-                }
-                Section("Availability") {
-                    Picker("Delete after", selection: $deleteAfterDays) {
-                        Text("1 day").tag(1); Text("2 days").tag(2); Text("3 days").tag(3)
-                        Text("7 days").tag(7); Text("14 days").tag(14); Text("30 days").tag(30)
+
+                    card(title: "Protection") {
+                        field("Password") {
+                            PasswordField(title: "Password", text: $password, prompt: Text("Optional"))
+                        }
+                        Toggle("Hide my email address from recipients", isOn: $hideEmail).toggleStyle(.trailingSwitch)
+                        field("Private notes") {
+                            TextField("Private notes", text: $notes, prompt: Text("Only you see these")).textFieldStyle(SoftFieldStyle())
+                        }
                     }
-                    Toggle("Expire earlier", isOn: $expires)
-                    if expires {
-                        DatePicker("Expires", selection: $expiration, in: Date.now...Date.now.addingTimeInterval(Double(deleteAfterDays) * 86_400))
-                    }
-                    Toggle("Limit views", isOn: $limitViews)
-                    if limitViews { Stepper("Up to \(maxViews) view(s)", value: $maxViews, in: 1...100) }
                 }
-                Section("Protection") {
-                    LabeledContent("Password (optional)") {
-                        PasswordField(title: "Password (optional)", text: $password, look: .plain, prompt: Text("None"))
-                            .multilineTextAlignment(.trailing)
-                    }
-                    Toggle("Hide my email address from recipients", isOn: $hideEmail)
-                    TextField("Private notes", text: $notes, prompt: Text("Only you see these"))
-                }
+                .padding(18)
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
             }
-            .formStyle(.grouped)
-            Divider()
-            HStack {
-                Text("The link holds the key; the server never sees your content.")
-                    .font(.caption).foregroundStyle(.secondary)
+            .thinScroller()
+
+            HStack(spacing: 10) {
+                Label("The link holds the key; the server never sees your content.", systemImage: "lock.shield")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
                 Button("Cancel") { dismiss() }.buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
                 Button {
                     Task { await create() }
                 } label: {
-                    HStack(spacing: 6) { if saving { ProgressView().controlSize(.small) }; Text("Create & Copy Link") }
+                    HStack(spacing: 6) {
+                        if saving { ProgressView().controlSize(.small).tint(.white) }
+                        Text("Create & Copy Link")
+                    }
                 }
                 .buttonStyle(.appPrimary).keyboardShortcut(.defaultAction)
                 .disabled(!ready || saving)
             }
-            .padding(14)
+            .padding(.horizontal, 18).padding(.vertical, 12)
+            .background(alignment: .top) { Divider().opacity(0.5) }
         }
-        .frame(width: 520, height: 640)
         .fileImporter(isPresented: $picking, allowedContentTypes: [.item]) { result in
-            if case .success(let url) = result {
-                file = url
-                if name.isEmpty { name = url.lastPathComponent }
-            }
+            if case .success(let url) = result { choose(url) }
         }
         .onAppear { accountId = model.defaultAccountId }
+    }
+
+    private func choose(_ url: URL) {
+        file = url
+        if name.isEmpty { name = url.lastPathComponent }
+    }
+
+    /// Choose or drop a file: a dashed zone that shows the file once chosen.
+    private var fileZone: some View {
+        Button { picking = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: file == nil ? "doc.badge.plus" : "doc.fill")
+                    .font(.system(size: 22)).foregroundStyle(file == nil ? Color.secondary : Color.brand)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: file?.lastPathComponent ?? String(localized: "Choose a file, or drop it here"))
+                        .font(.system(size: 13, weight: .medium)).lineLimit(1).truncationMode(.middle)
+                    Text(file == nil ? "Up to 500 MB" : "Click to choose another").font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .background(Color.primary.opacity(dropTargeted ? 0.08 : 0.03), in: .rect(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.primary.opacity(dropTargeted ? 0.3 : 0.14), style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first else { return false }
+            choose(url)
+            return true
+        } isTargeted: { dropTargeted = $0 }
+    }
+
+    private func card<Content: View>(title: LocalizedStringKey? = nil, @ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if let title { Text(title).font(.system(size: 13, weight: .semibold)) }
+            content()
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
+    }
+
+    private func field<Content: View>(_ label: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+            content()
+        }
     }
 
     private func create() async {

@@ -191,6 +191,11 @@ enum Snapshot {
             render(desktop(SendsPane().environment(vault).tint(.brand).padding(14), dark: name == "dark"),
                    size: CGSize(width: 960, height: 640), appearance: appearance,
                    to: dir.appending(path: "send-\(name).png"))
+            vault.composingSend = true
+            render(desktop(SendsPane().environment(vault).tint(.brand).padding(14), dark: name == "dark"),
+                   size: CGSize(width: 1100, height: 860), appearance: appearance,
+                   to: dir.appending(path: "send-compose-\(name).png"))
+            vault.composingSend = false
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let locked = AutoFillState()
