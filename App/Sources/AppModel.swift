@@ -51,6 +51,35 @@ final class AppModel {
     var unlockTarget: SavedAccount? { accounts.first { $0.id == unlockTargetID } ?? accounts.first }
     /// Sidebar filter: show one account only.
     var accountFilter: String?
+
+    /// Which vault the lists show, like Bitwarden's vault filter: everything, your own items, or one organization.
+    enum VaultFilter: Hashable {
+        case all, personal, organization(String)
+    }
+    var vaultFilter: VaultFilter = {
+        switch UserDefaults.standard.string(forKey: "vaultFilter") {
+        case "personal": .personal
+        case let id? where id.hasPrefix("org:"): .organization(String(id.dropFirst(4)))
+        default: .all
+        }
+    }() {
+        didSet {
+            let raw: String? = switch vaultFilter { case .all: nil; case .personal: "personal"; case .organization(let id): "org:" + id }
+            UserDefaults.standard.set(raw, forKey: "vaultFilter")
+        }
+    }
+
+    /// Whether an item is in the vault the filter shows.
+    func inVault(_ item: VaultItem) -> Bool {
+        switch vaultFilter {
+        case .all: true
+        case .personal: item.organizationId == nil
+        case .organization(let id): item.organizationId == id
+        }
+    }
+
+    /// The items in the chosen vault.
+    var vaultItems: [VaultItem] { vaultFilter == .all ? items : items.filter(inVault) }
     /// True while adding another account from an unlocked vault (login screen can be cancelled).
     var addingAccount = false
     var items: [VaultItem] = []
@@ -200,6 +229,9 @@ final class AppModel {
         if let id = selectedSendID, !sends.contains(where: { $0.id == id }) { selectedSendID = nil }
         skippedOrgItems = sessions.reduce(0) { $0 + $1.hiddenCount }
         if !multi { accountFilter = nil }
+        if case .organization(let id) = vaultFilter, !organizations.isEmpty, !organizations.contains(where: { $0.id == id }) {
+            vaultFilter = .all
+        }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items)
     }

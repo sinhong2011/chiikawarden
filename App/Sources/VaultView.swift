@@ -62,7 +62,7 @@ struct VaultView: View {
     private var sort: ItemSort { ItemSort(rawValue: sortRaw) ?? .title }
 
     private var filtered: [VaultItem] {
-        let matching = model.items
+        let matching = model.vaultItems
             .filter(section.includes)
             .filter { item in
                 query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
@@ -340,7 +340,7 @@ private struct Sidebar: View {
 
     @AppStorage("sidebarTypesExpanded") private var typesExpanded = true
 
-    private func count(_ selection: SidebarSelection) -> Int { model.items.filter(selection.includes).count }
+    private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
 
     private func row(_ s: VaultSection) -> some View {
         Label(s.title, systemImage: s.symbol)
@@ -350,6 +350,9 @@ private struct Sidebar: View {
 
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
+            if !model.organizations.isEmpty {
+                VaultSwitcher().listRowSeparator(.hidden)
+            }
             Section("Vault") {
                 // All Items, with its narrower views (favorites and each type) folded under it.
                 DisclosureGroup(isExpanded: $typesExpanded) {
@@ -366,7 +369,7 @@ private struct Sidebar: View {
                     .badge(model.sends.count)
                     .tag(SidebarSelection.sends)
                 Label("One-Time Codes", systemImage: "clock.badge.checkmark")
-                    .badge(model.items.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
+                    .badge(model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
                     .tag(SidebarSelection.codes)
                 Label("Generator", systemImage: "dice")
                     .tag(SidebarSelection.generator)
@@ -1609,6 +1612,70 @@ private struct NewFolderSheet: View {
         Task {
             if await model.createFolder(name: trimmed, accountId: accountId) != nil { dismiss() }
             saving = false
+        }
+    }
+}
+
+/// All vaults / My vault / each organization: narrows every list, count and code to one vault.
+private struct VaultSwitcher: View {
+    @Environment(AppModel.self) private var model
+
+    private var title: String {
+        switch model.vaultFilter {
+        case .all: String(localized: "All vaults")
+        case .personal: String(localized: "My vault")
+        case .organization(let id): model.organizations.first { $0.id == id }?.name ?? String(localized: "All vaults")
+        }
+    }
+
+    private var symbol: String {
+        switch model.vaultFilter {
+        case .all: "square.stack.3d.up"
+        case .personal: "person"
+        case .organization: "building.2"
+        }
+    }
+
+    var body: some View {
+        Menu {
+            choice(.all, "All vaults", "square.stack.3d.up")
+            choice(.personal, "My vault", "person")
+            Divider()
+            ForEach(model.organizations) { org in
+                Button {
+                    withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .organization(org.id) }
+                } label: {
+                    Label { Text(verbatim: org.name) } icon: {
+                        Image(systemName: model.vaultFilter == .organization(org.id) ? "checkmark" : "building.2")
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.brand)
+                    .frame(width: 22, height: 22)
+                    .background(Color.brand.opacity(0.14), in: .rect(cornerRadius: 6, style: .continuous))
+                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Spacer(minLength: 4)
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 8).frame(height: 34)
+            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 10, style: .continuous))
+            .contentShape(.rect)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .help(Text("Show one vault"))
+        .accessibilityLabel(Text("Vault"))
+        .accessibilityValue(Text(verbatim: title))
+    }
+
+    private func choice(_ filter: AppModel.VaultFilter, _ title: LocalizedStringKey, _ symbol: String) -> some View {
+        Button {
+            withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = filter }
+        } label: {
+            Label(title, systemImage: model.vaultFilter == filter ? "checkmark" : symbol)
         }
     }
 }

@@ -88,7 +88,7 @@ struct WatchtowerView: View {
     var onOpen: (VaultItem) -> Void
 
     var body: some View {
-        let report = WatchtowerReport(items: model.items, breaches: model.breachCounts)
+        let report = WatchtowerReport(items: model.vaultItems, breaches: model.breachCounts)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header(report)
