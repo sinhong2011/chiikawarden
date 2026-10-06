@@ -915,7 +915,7 @@ final class AppModel {
                 try await session.share(id, organizationId: organizationId, collectionIds: collectionIds)
                 moved += 1
             } catch CipherEditor.ShareError.hasAttachments {
-                flash(String(localized: "“\(item.name)” has attachments; move it from the web vault."))
+                flash(String(localized: "“\(item.name)” has an old-style attachment; move it from the web vault."))
                 return false
             } catch {
                 _ = failed(error); return false

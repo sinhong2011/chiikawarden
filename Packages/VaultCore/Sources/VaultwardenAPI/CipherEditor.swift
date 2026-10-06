@@ -83,13 +83,25 @@ public enum CipherEditor {
 
     /// A personal item re-encrypted for an organization, as `PUT /ciphers/{id}/share` takes it: every field decrypted
     /// with the item's current key and encrypted again with the organization's key (the per-item key is dropped).
-    /// Items with attachments can't move this way (their files are encrypted with keys this doesn't re-wrap).
+    /// Attachments move with it (their keys re-wrapped), except very old ones without a key of their own.
     public static func sharedCipher(raw: Data, key: SymmetricKeyPair, organizationKey: SymmetricKeyPair,
                                     organizationId: String) throws -> [String: Any] {
         guard let dict = normalize(try JSONSerialization.jsonObject(with: raw)) as? [String: Any] else {
             throw APIError.http(status: -1, message: "Malformed cipher")
         }
-        if let attachments = dict["attachments"] as? [Any], !attachments.isEmpty { throw ShareError.hasAttachments }
+        // Attachments keep their files: each one's own key is unwrapped and wrapped again with the organization key
+        // (`attachments2`). Very old attachments have no key of their own (the file is encrypted with the item's key);
+        // those would need re-uploading, so the move is refused.
+        var attachments2: [String: Any] = [:]
+        for case let attachment as [String: Any] in dict["attachments"] as? [Any] ?? [] {
+            guard let id = attachment["id"] as? String, let wrapped = attachment["key"] as? String,
+                  let raw = try? EncString(wrapped).decrypt(with: key) else { throw ShareError.hasAttachments }
+            let name = (attachment["fileName"] as? String).flatMap { try? EncString($0).decryptString(with: key) } ?? "attachment"
+            attachments2[id] = [
+                "fileName": try EncString.encrypt(Data(name.utf8), with: organizationKey).description,
+                "key": try EncString.encrypt(raw, with: organizationKey).description,
+            ]
+        }
         let fields = ["type", "folderId", "name", "notes", "fields", "login", "card", "identity", "secureNote", "sshKey",
                       "favorite", "reprompt", "passwordHistory"]
         var plain: [String: Any] = [:]
@@ -99,11 +111,12 @@ public enum CipherEditor {
         }
         out["organizationId"] = organizationId
         out["key"] = NSNull()
+        if !attachments2.isEmpty { out["attachments2"] = attachments2 }
         if let revision = dict["revisionDate"] { out["lastKnownRevisionDate"] = revision }
         return out
     }
 
-    public enum ShareError: Error { case hasAttachments }
+    public enum ShareError: Error { case hasAttachments } // only legacy attachments, without their own key
 
     /// Extracts each cipher's raw JSON from a sync payload, keyed by id.
     public static func rawCiphers(fromSync data: Data) -> [String: Data] {

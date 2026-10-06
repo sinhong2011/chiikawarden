@@ -146,8 +146,20 @@ import Testing
         #expect((CipherFields.decrypt(shared, key: userKey) as? [String: Any])?["name"] as? String != "GitHub")
     }
 
-    @Test func itemsWithAttachmentsAreRefused() throws {
-        let raw: [String: Any] = ["id": "c1", "type": 2, "name": "x", "attachments": [["id": "a1"]]]
+    @Test func attachmentKeysAreRewrappedForTheOrganization() throws {
+        let fileKey = Data((0..<64).map { UInt8(truncatingIfNeeded: $0 &* 3) })
+        let raw: [String: Any] = ["id": "c1", "type": 2, "name": try EncString.encrypt(Data("x".utf8), with: userKey).description,
+                                  "attachments": [["id": "a1", "fileName": try EncString.encrypt(Data("scan.pdf".utf8), with: userKey).description,
+                                                   "key": try EncString.encrypt(fileKey, with: userKey).description]]]
+        let shared = try CipherEditor.sharedCipher(raw: JSONSerialization.data(withJSONObject: raw), key: userKey,
+                                                   organizationKey: orgKey, organizationId: "o1")
+        let moved = try #require((shared["attachments2"] as? [String: Any])?["a1"] as? [String: String])
+        #expect(try EncString(moved["key"]!).decrypt(with: orgKey) == fileKey, "the file's own key, now under the organization's")
+        #expect(try EncString(moved["fileName"]!).decryptString(with: orgKey) == "scan.pdf")
+    }
+
+    @Test func legacyAttachmentsWithoutTheirOwnKeyAreRefused() throws {
+        let raw: [String: Any] = ["id": "c1", "type": 2, "name": "x", "attachments": [["id": "a1", "fileName": "f"]]]
         #expect(throws: CipherEditor.ShareError.self) {
             try CipherEditor.sharedCipher(raw: JSONSerialization.data(withJSONObject: raw), key: userKey, organizationKey: orgKey, organizationId: "o1")
         }

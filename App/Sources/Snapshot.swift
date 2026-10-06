@@ -503,7 +503,20 @@ enum SelfTest {
                 _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest share", username: "kurimanju", password: "s3cret-share",
                                                                 uri: "https://share.example"))
                 if let mine = model.items.first(where: { $0.name == "Selftest share" }) {
+                    // With an attachment: it must move along, readable with the organization's key.
+                    let fileBytes = Data("attached to usagi's login \(UUID().uuidString)".utf8)
+                    if let session = model.session(for: mine.accountId) {
+                        try? await session.addAttachment(mine.id, name: "share-note.txt", contents: fileBytes)
+                    }
                     let ok = await model.share([mine.id], organizationId: org.id, collectionIds: [collection.id])
+                    if let moved = model.items.first(where: { $0.id == mine.id }), let attachment = moved.attachments.first,
+                       let session = model.session(for: moved.accountId) {
+                        let contents = try? await session.attachmentContents(moved.id, attachment)
+                        check(contents == fileBytes && attachment.fileName == "share-note.txt",
+                              "move to organization keeps an attachment (key re-wrapped, file unchanged)")
+                    } else {
+                        check(false, "move to organization keeps an attachment: not found after the move")
+                    }
                     let moved = model.items.first { $0.id == mine.id }
                     check(ok && moved?.organizationId == org.id && moved?.password == "s3cret-share" && moved?.username == "kurimanju"
                           && moved?.uri == "https://share.example" && moved?.collectionIds == [collection.id],
