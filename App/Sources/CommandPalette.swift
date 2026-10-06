@@ -267,16 +267,11 @@ private struct ItemLine: View {
                 if selected, let totp = item.totp {
                     TimelineView(.periodic(from: .now, by: 1)) { ctx in
                         let period = Double(totp.period)
-                        let left = 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                        HStack(spacing: 8) {
-                            Text(verbatim: totp.displayCode(at: ctx.date))
-                                .font(.system(size: 15, weight: .medium, design: .monospaced))
-                                .contentTransition(.numericText())
-                            Circle().trim(from: 1 - left, to: 1)
-                                .stroke(Color.brand, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                                .rotationEffect(.degrees(-90))
-                                .background(Circle().stroke(Color.primary.opacity(0.10), lineWidth: 2))
-                                .frame(width: 12, height: 12)
+                        let left = totp.secondsRemaining(at: ctx.date)
+                        HStack(spacing: 12) {
+                            OTPCode(code: totp.code(at: ctx.date), size: 17, urgent: left <= 5)
+                            CountdownRing(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
+                                          seconds: left, size: 30)
                         }
                     }
                 }
