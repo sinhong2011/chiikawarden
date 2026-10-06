@@ -62,6 +62,7 @@ enum VaultDecoder {
                 collectionIds: cipher.collectionIds ?? []
             )
             item.revised = Self.date(cipher.revisionDate)
+            item.deleted = Self.date(cipher.deletedDate)
             item.created = Self.date(cipher.creationDate)
             item.passwordRevised = Self.date(cipher.login?.passwordRevisionDate)
             item.archived = Self.date(cipher.archivedDate)

@@ -1097,6 +1097,23 @@ final class AppModel {
         }
     }
 
+    // MARK: Trash
+
+    /// Bitwarden's cloud empties the Trash after 30 days; Vaultwarden keeps items unless its admin set
+    /// TRASH_AUTO_DELETE_DAYS (which the client can't see).
+    static let cloudTrashDays = 30
+
+    func isCloud(_ accountId: String) -> Bool {
+        guard let kind = accounts.first(where: { $0.id == accountId })?.serverKind else { return false }
+        return kind == "bitwardenUS" || kind == "bitwardenEU"
+    }
+
+    /// When the server will delete a trashed item for good, if we know: cloud accounts only.
+    func purgeDate(_ item: VaultItem) -> Date? {
+        guard item.isDeleted, isCloud(item.accountId), let deleted = item.deleted else { return nil }
+        return Calendar.current.date(byAdding: .day, value: Self.cloudTrashDays, to: deleted)
+    }
+
     /// Locks one account; the others stay open.
     func lock(_ accountId: String) {
         session(for: accountId)?.close()

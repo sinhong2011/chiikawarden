@@ -25,6 +25,8 @@ struct VaultItem: Identifiable, Hashable {
     /// Decrypted folder name, e.g. "Work/Servers" (nested by "/").
     var folderName: String?
     var isDeleted = false
+    /// When it went to the Trash.
+    var deleted: Date?
     /// When it was archived; archived items stay in the vault but out of the lists, search and AutoFill.
     var archived: Date?
     var isArchived: Bool { archived != nil }
@@ -80,7 +82,7 @@ struct VaultItem: Identifiable, Hashable {
             && a.notes == b.notes && a.totpSecret == b.totpSecret && a.uri == b.uri && a.folderId == b.folderId
             && a.folderName == b.folderName && a.organizationId == b.organizationId && a.collectionIds == b.collectionIds
             && a.reprompt == b.reprompt && a.properties == b.properties && a.customFields == b.customFields
-            && a.attachments == b.attachments && a.passwordHistory == b.passwordHistory && a.passwordRevised == b.passwordRevised && a.reuseCount == b.reuseCount
+            && a.attachments == b.attachments && a.passwordHistory == b.passwordHistory && a.passwordRevised == b.passwordRevised && a.deleted == b.deleted && a.reuseCount == b.reuseCount
             && a.passkeys.map(\.credentialId) == b.passkeys.map(\.credentialId) && a.accountId == b.accountId
     }
     func hash(into h: inout Hasher) { h.combine(id) }

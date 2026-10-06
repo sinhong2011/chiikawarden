@@ -32,6 +32,8 @@ extension Color {
 
 struct VaultView: View {
     var initialSelection: VaultItem.ID?
+    /// The section to open on (snapshots).
+    var initialSection: SidebarSelection?
     /// Narrow windows: the strip's starting pane (snapshots and previews).
     var initialDepth = 1
     @Environment(AppModel.self) private var model
@@ -131,7 +133,7 @@ struct VaultView: View {
            !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
             AccountUnlockPane(account: account) // the account in focus is locked: unlock it right here
         } else {
-            ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
+            ItemColumn(items: filtered, isTrash: section == .section(.trash), selection: Binding(get: { model.selectedID }, set: { id in
                 model.selectedID = id
                 if compact, id != nil { depth = 2 } // tapping an item slides to it
             }), query: $query, sort: $sortRaw, ascending: $ascending)
@@ -270,7 +272,10 @@ struct VaultView: View {
         }
         .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
         .overlay(alignment: .bottom) { ToastView() }
-        .onAppear(perform: selectFirst)
+        .onAppear {
+            if let initialSection { section = initialSection }
+            selectFirst()
+        }
         // Under the lock layer the vault starts empty; pick an item once unlocking fills it.
         .onChange(of: model.items.isEmpty) { _, empty in if !empty { selectFirst() } }
     }
@@ -930,6 +935,8 @@ private struct SectionHeader: View {
 
 private struct ItemColumn: View {
     let items: [VaultItem]
+    /// The Trash: a note on when its items go for good.
+    var isTrash = false
     @Binding var selection: VaultItem.ID?
     @Binding var query: String
     @Binding var sort: String
@@ -998,6 +1005,8 @@ private struct ItemColumn: View {
                 .accessibilityLabel(Text("Sort"))
             }
             .padding(.leading, 6) // the sort button lines up with the list's edge (and + above it)
+
+            if isTrash, !items.isEmpty { TrashNotice(items: items) }
 
             ScrollViewReader { proxy in
             ScrollView {
@@ -1092,8 +1101,10 @@ struct ItemRow: View {
                 }
                 // Marks in one row under the name, so the name keeps the full width.
                 let issue = item.passwordIssue(breaches: model.breachCounts)
-                if issue != nil || item.favorite || item.hasTOTP {
+                let purge = model.purgeDate(item)
+                if issue != nil || item.favorite || item.hasTOTP || purge != nil {
                     HStack(spacing: 6) {
+                        if let purge { PurgeChip(date: purge) }
                         if let issue {
                             HStack(spacing: 3) {
                                 Image(systemName: issue.rowSymbol).font(.system(size: 9, weight: .bold))
@@ -1166,7 +1177,14 @@ struct ItemDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 if item.isDeleted {
-                    Label("In Trash. Restore it to use it again, or delete it forever.", systemImage: "trash")
+                    Group {
+                        if let purge = model.purgeDate(item) {
+                            Label("In Trash until \(purge.formatted(date: .abbreviated, time: .omitted)), when Bitwarden deletes it for good. Restore it to use it again.",
+                                  systemImage: "trash")
+                        } else {
+                            Label("In Trash. Restore it to use it again, or delete it forever.", systemImage: "trash")
+                        }
+                    }
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 HeroCard(item: item, reveal: reveal)
@@ -2259,5 +2277,57 @@ struct ToolbarSymbolButton: View {
         case .wiggle: image.symbolEffect(.wiggle, value: taps)
         case .wiggleBack: image.symbolEffect(.wiggle.backward, value: taps)
         }
+    }
+}
+
+/// At the top of the Trash: when its items are deleted for good, which depends on the server.
+private struct TrashNotice: View {
+    @Environment(AppModel.self) private var model
+    let items: [VaultItem]
+
+    var body: some View {
+        let cloud = items.contains { model.isCloud($0.accountId) }
+        let own = items.contains { !model.isCloud($0.accountId) }
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "clock.badge.exclamationmark")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.orange)
+            Group {
+                if cloud && own {
+                    Text("Bitwarden deletes items for good \(AppModel.cloudTrashDays) days after they go to the Trash. Your own server keeps them until you delete them, unless its admin set it to empty the Trash.")
+                } else if cloud {
+                    Text("Bitwarden deletes items for good \(AppModel.cloudTrashDays) days after they go to the Trash.")
+                } else {
+                    Text("Items stay here until you delete them, unless your server's admin set it to empty the Trash after a while.")
+                }
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(.primary.opacity(0.85))
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.1), in: .rect(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.orange.opacity(0.22)))
+        .padding(.horizontal, 6)
+    }
+}
+
+/// "Deleted in 12 days" on a trashed item, orange in its last three days.
+private struct PurgeChip: View {
+    let date: Date
+
+    var body: some View {
+        let days = max(0, Int((date.timeIntervalSinceNow / 86_400).rounded(.up))) // a day and a bit left reads "2 days"
+        let soon = days <= 3
+        HStack(spacing: 3) {
+            Image(systemName: "clock").font(.system(size: 9, weight: .bold))
+            Text(days == 0 ? "Deleted today" : "Deleted in ^[\(days) day](inflect: true)")
+                .font(.system(size: 10, weight: .semibold))
+        }
+        .foregroundStyle(soon ? Color.orange : .secondary)
+        .padding(.horizontal, 6).frame(height: 17)
+        .background((soon ? Color.orange : Color.primary).opacity(soon ? 0.14 : 0.07), in: .capsule)
+        .help(Text(date.formatted(date: .complete, time: .shortened)))
     }
 }

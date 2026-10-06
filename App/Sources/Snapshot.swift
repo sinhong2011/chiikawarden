@@ -294,6 +294,24 @@ enum Snapshot {
             render(LargeTypeView(text: "m7Kq#vR2!tLp 0O1lI|"), size: CGSize(width: 1000, height: 420), appearance: appearance,
                    to: dir.appending(path: "largetype-\(name).png"))
         }
+        // The Trash on a Bitwarden cloud account: the 30-day note, and when each item goes for good.
+        let trash = AppModel()
+        trash.setPreviewAccounts([SavedAccount(id: "cloud", email: "usagi@example.com", serverKind: "bitwardenUS", serverURL: "",
+                                               kdf: .pbkdf2(iterations: 600_000), protectedUserKey: "")])
+        trash.previewUnlocked = true
+        trash.phase = .vault
+        trash.items = demoItems.prefix(4).enumerated().map { i, item in
+            var gone = item
+            gone.accountId = "cloud"
+            gone.isDeleted = true
+            gone.deleted = Calendar.current.date(byAdding: .day, value: -[28, 12, 3, 0][i], to: .now)
+            return gone
+        }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(VaultView(initialSelection: trash.items.first?.id, initialSection: .section(.trash)).environment(trash).tint(.brand),
+                           dark: name == "dark"),
+                   size: CGSize(width: 1180, height: 760), appearance: appearance, to: dir.appending(path: "trash-\(name).png"))
+        }
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
