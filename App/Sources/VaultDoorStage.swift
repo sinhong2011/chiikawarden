@@ -112,7 +112,7 @@ private struct Mechanism {
         if let e = openT {
             // Every piece has landed by ~1.02 (0.68 s at play speed), before the gate takes over with a still copy.
             let start = [0.42, 0.5, 0.58, 0.66][k] + Double(i) / n * 0.1
-            return Ease.machine(Self.seg(e, start, start + 0.28))
+            return Ease.inOut(Self.seg(e, start, start + 0.28)) // soft in, soft out: no snap at either end
         }
         if let e = closeT {
             let start = [0.42, 0.3, 0.16, 0.02][k] + Double(i) / n * 0.1
@@ -123,7 +123,7 @@ private struct Mechanism {
 
     static func seg(_ e: Double, _ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
 
-    /// Unlocking, `e` seconds of timeline in (~1.02; played 1.5x, so AppModel hands over to the gate at 0.7 s).
+    /// Unlocking, `e` seconds of timeline in (~1.02; played 1.2x, so AppModel hands over to the gate at 0.87 s).
     static func opening(_ e: Double) -> Mechanism {
         func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
         var m = Mechanism()
@@ -256,17 +256,71 @@ private struct VaultDoorArt: View, Animatable {
     /// The twelve pins, one Elder Futhark rune each.
     private static let runes = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛉ")
 
+    /// How much faster than written the opening plays; AppModel waits `1.02 / openSpeed` before the gate.
+    static let openSpeed = 1.2
+
     private static let runeSymbols = ["key.fill", "person.badge.key.fill", "terminal.fill",
                                       "creditcard.fill", "envelope.fill", "note.text"]
 
     var body: some View {
-        Canvas { ctx, size in draw(&ctx, size: size) }
+        Canvas { ctx, size in draw(&ctx, size: size) } symbols: { glyphSymbols }
             .drawingGroup() // rendered with Metal: smooth at 120 Hz while the pieces move
     }
 
+    // MARK: Glyphs, laid out once
+
+    /// Every engraved glyph (pin runes, zodiac signs, the six inlaid icons) in its three looks — the lip of light, the
+    /// cut, and the glow — as Canvas symbols: laid out once, then only placed each frame. (Resolving text in the frame
+    /// itself cost hundreds of layouts per frame while the pieces moved, since each piece redraws its whole ring.)
+    @ViewBuilder private var glyphSymbols: some View {
+        let p = DoorPalette(dark: dark)
+        let glow = p.glow(alert: alert)
+        let looks: [Color] = [p.engraveLip, p.engrave.opacity(0.8), glow(1)]
+        let size = radius * 0.062
+        ForEach(0..<3, id: \.self) { look in
+            ForEach(0..<12, id: \.self) { i in
+                Text(String(Self.runes[i])).font(.custom("Apple Symbols", size: size)).foregroundStyle(looks[look])
+                    .tag("rune-\(i)-\(look)")
+                // U+FE0E asks for the text form, not the emoji.
+                Text(String(Self.zodiac[i]) + "\u{FE0E}").font(.custom("Apple Symbols", size: size)).foregroundStyle(looks[look])
+                    .tag("zodiac-\(i)-\(look)")
+            }
+            ForEach(0..<6, id: \.self) { i in
+                Image(systemName: Self.runeSymbols[i]).resizable().scaledToFit()
+                    .frame(width: radius * 0.064, height: radius * 0.064)
+                    .foregroundStyle(look == 1 ? p.engrave.opacity(0.75) : looks[look])
+                    .tag("icon-\(i)-\(look)")
+            }
+        }
+    }
+
+    /// The glyphs resolved for this frame (cheap: the layout is already done).
+    struct Glyphs {
+        var runes: [[GraphicsContext.ResolvedSymbol?]] = []
+        var zodiac: [[GraphicsContext.ResolvedSymbol?]] = []
+        var icons: [[GraphicsContext.ResolvedSymbol?]] = []
+
+        init(_ ctx: GraphicsContext) {
+            runes = (0..<12).map { i in (0..<3).map { ctx.resolveSymbol(id: "rune-\(i)-\($0)") } }
+            zodiac = (0..<12).map { i in (0..<3).map { ctx.resolveSymbol(id: "zodiac-\(i)-\($0)") } }
+            icons = (0..<6).map { i in (0..<3).map { ctx.resolveSymbol(id: "icon-\(i)-\($0)") } }
+        }
+
+        /// Draws one glyph as an engraving: lip, cut, then the glow at `light` strength.
+        static func engrave(_ looks: [GraphicsContext.ResolvedSymbol?], in g: GraphicsContext, light: Double) {
+            if let lip = looks[0] { g.draw(lip, at: CGPoint(x: 0, y: 0.7), anchor: .center) }
+            if let cut = looks[1] { g.draw(cut, at: .zero, anchor: .center) }
+            if light > 0, let glow = looks[2] {
+                var lit = g
+                lit.opacity = min(1, light)
+                lit.draw(glow, at: .zero, anchor: .center)
+            }
+        }
+    }
+
     private var mechanism: Mechanism {
-        // The opening plays half again as fast as its timeline is written (~0.7 s), so unlocking doesn't keep you waiting.
-        if let opened { return .opening(opened * 1.5) }
+        // The opening plays a little faster than its timeline is written (~0.85 s): brisk, but every step readable.
+        if let opened { return .opening(opened * Self.openSpeed) }
         if let closed { return .closing(closed) }
         return Mechanism()
     }
@@ -342,14 +396,15 @@ private struct VaultDoorArt: View, Animatable {
         c.clip(to: circle(1.0 * R))
         let turn = (0..<4).map { angle($0, m) }
         pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow) }
+        let glyphs = Glyphs(ctx)
         pieces(c, ring: 1, m: m, p: p, count: 8, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
-            drawPins(&$0, p: p, m: m, glow: glow, turn: turn[1])
+            drawPins(&$0, p: p, m: m, glyphs: glyphs, turn: turn[1])
         }
         pieces(c, ring: 2, m: m, p: p, count: 12, cut: 15, inner: DoorGeometry.tumbler.inner, outer: DoorGeometry.tumbler.outer) {
-            drawTumbler(&$0, p: p, glow: glow, inner: inner, turn: turn[2])
+            drawTumbler(&$0, p: p, glyphs: glyphs, inner: inner, turn: turn[2])
         }
         pieces(c, ring: 3, m: m, p: p, count: 6, cut: 30, inner: DoorGeometry.runes.inner, outer: DoorGeometry.runes.outer) {
-            drawRunes(&$0, p: p, m: m, glow: glow, turn: turn[3])
+            drawRunes(&$0, p: p, m: m, glyphs: glyphs, turn: turn[3])
         }
 
         // Seams glow onto the steel around them (while the door is whole).
@@ -532,36 +587,20 @@ private struct VaultDoorArt: View, Animatable {
 
     // MARK: Rings (drawn already turned to their angle)
 
-    private func drawRunes(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glow: RGB, turn: Double) {
+    private func drawRunes(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glyphs: Glyphs, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.runes.inner * R, outer: DoorGeometry.runes.outer * R, colors: p.metal, turn: turn)
         for i in 0..<6 {
-            let local = Double(i) * 60
-            // Lit only while the door opens; at rest a quiet inlay.
-            let glowAmount = m.light
-
+            // Inlaid icons: a quiet cut at rest, lit only while the door opens.
             var g = r
-            g.rotate(by: .degrees(local))
+            g.rotate(by: .degrees(Double(i) * 60))
             g.translateBy(x: R * 0.893, y: 0)
             g.rotate(by: .degrees(90))
-            var image = g.resolve(Image(systemName: Self.runeSymbols[i]))
-            let side = R * 0.064
-            let scale = side / max(image.size.width, image.size.height, 1)
-            let rect = CGRect(x: -image.size.width * scale / 2, y: -image.size.height * scale / 2,
-                              width: image.size.width * scale, height: image.size.height * scale)
-            // Inlaid: the cut with a lip of light, warming to the glow as the door opens.
-            image.shading = .color(p.engraveLip)
-            g.draw(image, in: rect.offsetBy(dx: 0, dy: 0.7))
-            image.shading = .color(p.engrave.opacity(0.75))
-            g.draw(image, in: rect)
-            if glowAmount > 0 {
-                image.shading = .color(glow(glowAmount * 0.9))
-                g.draw(image, in: rect)
-            }
+            Glyphs.engrave(glyphs.icons[i], in: g, light: m.light * 0.9)
         }
     }
 
-    private func drawTumbler(_ r: inout GraphicsContext, p: DoorPalette, glow: RGB, inner: Double, turn: Double) {
+    private func drawTumbler(_ r: inout GraphicsContext, p: DoorPalette, glyphs: Glyphs, inner: Double, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.tumbler.inner * R, outer: DoorGeometry.tumbler.outer * R, colors: p.metal, turn: turn)
         // The twelve signs of the zodiac, engraved upright to the centre around the tumbler.
@@ -570,18 +609,11 @@ private struct VaultDoorArt: View, Animatable {
             var g = r
             g.translateBy(x: cos(t) * R * 0.7725, y: sin(t) * R * 0.7725)
             g.rotate(by: .radians(t + .pi / 2))
-            // U+FE0E asks for the text form, not the emoji.
-            let sign = String(Self.zodiac[i]) + "\u{FE0E}"
-            func glyph(_ color: Color) -> GraphicsContext.ResolvedText {
-                g.resolve(Text(sign).font(.custom("Apple Symbols", size: R * 0.062)).foregroundColor(color))
-            }
-            g.draw(glyph(p.engraveLip), at: CGPoint(x: 0, y: 0.7), anchor: .center)
-            g.draw(glyph(p.engrave.opacity(0.8)), at: .zero, anchor: .center)
-            if inner > 0.75 { g.draw(glyph(glow((inner - 0.75) * 2)), at: .zero, anchor: .center) }
+            Glyphs.engrave(glyphs.zodiac[i], in: g, light: inner > 0.75 ? (inner - 0.75) * 2 : 0)
         }
     }
 
-    private func drawPins(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glow: RGB, turn: Double) {
+    private func drawPins(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glyphs: Glyphs, turn: Double) {
         let R = radius
         // While the key is derived, a light chases around the pins.
         let head = (time * 1.6).truncatingRemainder(dividingBy: 1) * 12
@@ -599,15 +631,7 @@ private struct VaultDoorArt: View, Animatable {
             var g = r
             g.translateBy(x: pt.x, y: pt.y)
             g.rotate(by: .radians(t + .pi / 2))
-            let rune = String(Self.runes[i])
-            func glyph(_ color: Color) -> GraphicsContext.ResolvedText {
-                g.resolve(Text(rune).font(.custom("Apple Symbols", size: R * 0.062)).foregroundColor(color))
-            }
-            g.draw(glyph(p.engraveLip), at: CGPoint(x: 0, y: 0.7), anchor: .center)
-            g.draw(glyph(p.engrave.opacity(0.8)), at: .zero, anchor: .center)
-            if on > 0 {
-                g.draw(glyph(glow(on)), at: .zero, anchor: .center)
-            }
+            Glyphs.engrave(glyphs.runes[i], in: g, light: on)
         }
     }
 
