@@ -11,7 +11,8 @@ Releases are automatic once the one-time setup is done:
    `.github/workflows/release.yml` then runs `scripts/release.sh X.Y.Z --publish`:
    - archive a Release build (build number = commit count);
    - Developer ID export, signature check, notarize and staple the app and the DMG;
-   - sign the zip for Sparkle and write `appcast.xml`;
+   - sign the zip for Sparkle and write `appcast.xml`, with this version's `CHANGELOG.md` section embedded as the
+     release notes the update window shows (`scripts/release-notes.py`);
    - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`triwarden.rb`) to the release;
    - push the cask to `Casks/triwarden.rb` in `sinhong2011/homebrew-tap`.
 4. Installed copies with automatic checks on find the update through

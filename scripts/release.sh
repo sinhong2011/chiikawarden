@@ -113,6 +113,9 @@ echo "== Sparkle appcast"
 SPARKLE_BIN=${SPARKLE_BIN:-$(find build/SourcePackages/artifacts ~/Library/Developer/Xcode/DerivedData -path "*sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)}
 [[ -x $SPARKLE_BIN/generate_appcast ]] || { echo "Sparkle tools not found; build once (make build) or set SPARKLE_BIN"; exit 1; }
 FEED=$OUT/feed && mkdir -p "$FEED" && cp "$ZIP" "$FEED/"
+# What's new, shown in the update window: this version's CHANGELOG section as HTML, named like the zip so
+# generate_appcast embeds it in the appcast item.
+python3 scripts/release-notes.py "$VERSION" CHANGELOG.md > "$FEED/Triwarden-$VERSION.html"
 KEY_ARGS=(); [[ -n ${SPARKLE_KEY_FILE:-} ]] && KEY_ARGS=(--ed-key-file "$SPARKLE_KEY_FILE")
 "$SPARKLE_BIN/generate_appcast" "${KEY_ARGS[@]}" --maximum-deltas 0 \
   --download-url-prefix "https://github.com/sinhong2011/triwarden/releases/download/v$VERSION/" \
