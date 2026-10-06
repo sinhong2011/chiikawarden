@@ -22,6 +22,8 @@ struct LoginView: View {
             }
             .animation(.snappy(duration: 0.3), value: showStage)
         }
+        // One calm surface for the page (the window's base, as under the vault's panels): no washes meeting.
+        .background(Color.windowBase)
         .ignoresSafeArea()
     }
 }
@@ -93,7 +95,7 @@ private struct LoginForm: View {
                     }
                     ServerStatusLine(status: model.serverStatus)
                         .padding(.top, 4) // a breath between the field and what it says about the server
-                    if model.serverKind == .selfHosted { CustomEnvironmentFields() }
+                    if model.serverKind == .selfHosted { CustomEnvironmentFields().padding(.top, 4) }
                 }
 
                 VStack(alignment: .leading, spacing: 14) {

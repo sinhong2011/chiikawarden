@@ -796,7 +796,9 @@ struct LoginDoorStage: View {
         let dark = scheme == .dark
         let ink = dark ? Color.white : Color(red: 0.05, green: 0.16, blue: 0.27)
         ZStack {
-            VaultDoorStage.roomGradient(dark: dark)
+            // A panel like the app's own, on the window's base, edged by a hairline: two flat surfaces, nothing blending.
+            Color.panel
+                .overlay(alignment: .trailing) { Rectangle().fill(Color.primary.opacity(dark ? 0.08 : 0.06)).frame(width: 1) }
             // The welcome: the app's icon, its name and promise, and what it keeps — centred, quiet.
             VStack(alignment: .leading, spacing: 0) {
                 Image(nsImage: NSApp.applicationIconImage)
@@ -822,10 +824,7 @@ struct LoginDoorStage: View {
             .frame(maxWidth: 340, alignment: .leading)
             .padding(.horizontal, 44)
         }
-        // Fades out on the right so the stage melts into the form's side (no hard seam).
-        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.78),
-                                     .init(color: .black.opacity(0.5), location: 0.92), .init(color: .clear, location: 1)],
-                             startPoint: .leading, endPoint: .trailing))
+
         .accessibilityElement(children: .combine)
     }
 
