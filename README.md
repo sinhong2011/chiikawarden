@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/images/icon.png" width="128" height="128" alt="Chiikawarden app icon">
+  <img src="docs/images/icon.png" width="128" height="128" alt="Triwarden app icon">
 </p>
 
-<h1 align="center">Chiikawarden</h1>
+<h1 align="center">Triwarden</h1>
 
 <p align="center">
   A native Mac password manager for <a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a> and Bitwarden.<br>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sinhong2011/chiikawarden/actions/workflows/ci.yml"><img src="https://github.com/sinhong2011/chiikawarden/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/sinhong2011/triwarden/actions/workflows/ci.yml"><img src="https://github.com/sinhong2011/triwarden/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License: GPL-3.0"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-black?logo=apple" alt="macOS 26+">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
@@ -45,7 +45,7 @@
   (a google.com login fills on youtube.com).
 - Touch ID unlock, one touch for every account.
 - An SSH agent backed by your vault's SSH keys (sign git commits too).
-- A Safari extension and a Chrome native host; App Intents and Shortcuts; a `cw` command-line tool.
+- A Safari extension and a Chrome native host; App Intents and Shortcuts; a `tw` command-line tool.
 
 **Security tools**
 - Watchtower: weak, reused, breached and unsecured (http://) passwords, and sites that offer two-step login you
@@ -94,8 +94,8 @@ build it from source (below).
 Requirements: macOS 26 and Xcode 26, plus [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 
 ```bash
-git clone https://github.com/sinhong2011/chiikawarden.git
-cd chiikawarden
+git clone https://github.com/sinhong2011/triwarden.git
+cd triwarden
 make run        # generate the project, build and open the app
 ```
 
@@ -107,19 +107,19 @@ make run        # generate the project, build and open the app
 | `make uitest` | Click-through UI tests on a demo vault (quit any running copy first) |
 | `make snapshots` | Light and dark renders of every screen into `build/snapshots` (`ONLY=login,send` for just those) |
 
-Core logic lives in the `Packages/VaultCore` Swift package: `ChiikawaCrypto` (KDFs, EncString, keys, TOTP,
+Core logic lives in the `Packages/VaultCore` Swift package: `TriCrypto` (KDFs, EncString, keys, TOTP,
 generators, passkeys), `VaultwardenAPI` (login, 2FA, SSO, sync, edits, attachments, Send, import/export) and
 `SSHAgent`. The app is in `App/`, the AutoFill extension in `AutoFill/`, browser extensions in `BrowserExtension/`.
 
 ## Command line
 
-Turn on **Settings › Developer › Answer the cw command**, then link the bundled tool:
+Turn on **Settings › Developer › Answer the tw command**, then link the bundled tool:
 
 ```bash
-sudo ln -sf /Applications/Chiikawarden.app/Contents/MacOS/cw /usr/local/bin/cw
+sudo ln -sf /Applications/Triwarden.app/Contents/MacOS/tw /usr/local/bin/tw
 ```
 
-`cw get github | pbcopy`, `cw code github`, `cw list mail`, `cw generate --length 32`, `cw lock`.
+`tw get github | pbcopy`, `tw code github`, `tw list mail`, `tw generate --length 32`, `tw lock`.
 Reading from the vault asks for Touch ID in the app.
 
 ## Security
@@ -137,18 +137,18 @@ VoiceOver labels, full keyboard control, Increase Contrast and Reduce Motion are
 
 Issues and pull requests are welcome. Commits follow [Conventional Commits](https://www.conventionalcommits.org)
 (`feat:`, `fix:`, …), which drive the changelog and releases; see [docs/RELEASING.md](docs/RELEASING.md).
-The [roadmap](docs/ROADMAP.md) and [open issues](https://github.com/sinhong2011/chiikawarden/issues) show what's next.
+The [roadmap](docs/ROADMAP.md) and [open issues](https://github.com/sinhong2011/triwarden/issues) show what's next.
 
 ## License
 
-Chiikawarden is free software under the [GNU General Public License v3.0](LICENSE): you may use, study, share and
+Triwarden is free software under the [GNU General Public License v3.0](LICENSE): you may use, study, share and
 change it, and anyone who distributes a modified version must publish its full source under the same license.
 Third-party components and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the app
 shows them in Settings › About › Acknowledgements.
 
-**Name and icon.** The license covers the code, not the name. "Chiikawarden" and the app icon may not be used for
+**Name and icon.** The license covers the code, not the name. "Triwarden" and the app icon may not be used for
 modified versions or other products without permission: forks must use their own name and icon, and must not
 suggest they are the official app.
 
-Chiikawarden is not affiliated with Bitwarden, Inc. or the Vaultwarden project. Bitwarden is a trademark of
+Triwarden is not affiliated with Bitwarden, Inc. or the Vaultwarden project. Bitwarden is a trademark of
 Bitwarden, Inc.

@@ -90,7 +90,7 @@ public struct PassphraseGenerator: Sendable, Equatable, Codable {
 
     public init() {}
 
-    /// The EFF Large Wordlist, bundled with ChiikawaCrypto.
+    /// The EFF Large Wordlist, bundled with TriCrypto.
     public static let wordList: [String] = {
         guard let url = Bundle.module.url(forResource: "eff_large_wordlist", withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else { return [] }

@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Chiikawarden</string>
+	<string>Triwarden</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -41,12 +41,12 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Generate Password with Chiikawarden</string>
+				<string>Generate Password with Triwarden</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>generatePassword</string>
 			<key>NSPortName</key>
-			<string>Chiikawarden</string>
+			<string>Triwarden</string>
 			<key>NSReturnTypes</key>
 			<array>
 				<string>public.utf8-plain-text</string>
@@ -59,7 +59,7 @@
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://github.com/sinhong2011/chiikawarden/releases/latest/download/appcast.xml</string>
+	<string>https://github.com/sinhong2011/triwarden/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>$(SPARKLE_PUBLIC_KEY)</string>
 	<key>SUScheduledCheckInterval</key>

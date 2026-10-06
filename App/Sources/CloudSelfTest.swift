@@ -1,5 +1,5 @@
 #if DEBUG
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import VaultwardenAPI
 
@@ -49,7 +49,7 @@ enum CloudSelfTest {
             print("  vault has \(model.items.count) item(s), \(model.folders.count) folder(s)")
 
             // Items
-            let tag = "chiikawarden-selftest-\(Int(Date().timeIntervalSince1970))"
+            let tag = "triwarden-selftest-\(Int(Date().timeIntervalSince1970))"
             let created = await model.createItem(.login, edit: CipherEdit(name: tag, username: "test", password: "pw-1",
                                                                          totp: "JBSWY3DPEHPK3PXP", uri: "https://example.com"))
             var item = model.items.first { $0.name == tag }

@@ -131,7 +131,7 @@ struct ExportSheet: View {
 
     private var description: LocalizedStringKey {
         switch format {
-        case .encryptedJSON: "Encrypted with a password you choose. Recommended: Bitwarden and Chiikawarden can import it on any device."
+        case .encryptedJSON: "Encrypted with a password you choose. Recommended: Bitwarden and Triwarden can import it on any device."
         case .json: "Everything, readable by any app: logins, notes, cards, identities, SSH keys, passkeys and folders."
         case .csv: "Logins and secure notes only, for spreadsheets and other password managers."
         }
@@ -155,7 +155,7 @@ struct ExportSheet: View {
         let panel = NSSavePanel()
         let stamp = Date.now.formatted(.iso8601.year().month().day().dateSeparator(.omitted).time(includingFractionalSeconds: false).timeSeparator(.omitted))
             .replacingOccurrences(of: "T", with: "")
-        panel.nameFieldStringValue = "chiikawarden_export_\(stamp).\(format == .csv ? "csv" : "json")"
+        panel.nameFieldStringValue = "triwarden_export_\(stamp).\(format == .csv ? "csv" : "json")"
         panel.allowedContentTypes = [format == .csv ? .commaSeparatedText : .json]
         panel.canCreateDirectories = true
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -429,7 +429,7 @@ struct ImportSheet: View {
         } catch .empty {
             error = String(localized: "There's nothing to import in this file.")
         } catch {
-            self.error = String(localized: "This file isn't in a format Chiikawarden can import.")
+            self.error = String(localized: "This file isn't in a format Triwarden can import.")
         }
     }
 

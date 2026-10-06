@@ -17,7 +17,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "chiikawarden",
+      "package-name": "triwarden",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [{ "type": "generic", "path": "project.yml" }]
     }

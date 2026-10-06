@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ChiikawaCrypto
+@testable import TriCrypto
 
 /// Vectors generated independently with Python `hashlib` + `cryptography`.
 @Suite struct CryptoVectorTests {
@@ -126,7 +126,7 @@ extension Data {
 @Suite struct SSHKeyTests {
     /// The generated key must be accepted by OpenSSH itself: ssh-keygen derives the same public key and fingerprint.
     @Test func ed25519RoundTripsThroughSSHKeygen() throws {
-        let pair = SSHKeyPair.generateEd25519(comment: "test@chiikawarden")
+        let pair = SSHKeyPair.generateEd25519(comment: "test@triwarden")
         let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }

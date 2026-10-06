@@ -61,7 +61,7 @@ jobs:
       - name: Resolve packages (Sparkle tools)
         run: |
           xcodegen generate
-          xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -resolvePackageDependencies
+          xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDataPath build -resolvePackageDependencies
 
       - name: Build, sign, notarize, publish
         env:

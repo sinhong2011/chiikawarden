@@ -18,7 +18,7 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version && swift --version
       - name: Unit tests
-        # Dev-server integration tests skip themselves without CHIIKAWARDEN_DEV_HOST.
+        # Dev-server integration tests skip themselves without TRIWARDEN_DEV_HOST.
         working-directory: Packages/VaultCore
         run: swift test
 
@@ -33,7 +33,7 @@ jobs:
         run: xcodegen generate
       - name: Build (unsigned)
         run: |
-          xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -configuration Debug \
+          xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -configuration Debug \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" build | tail -20
       - name: JavaScript syntax
         run: |

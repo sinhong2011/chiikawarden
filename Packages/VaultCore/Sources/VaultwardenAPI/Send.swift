@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 /// A Send as the server returns it (sync and create). Name, notes, text and file name are EncStrings

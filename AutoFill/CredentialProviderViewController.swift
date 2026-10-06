@@ -56,7 +56,7 @@ final class CredentialProviderViewController: ASCredentialProviderViewController
                                                           code: ASExtensionError.userInteractionRequired.rawValue))
     }
 
-    // A site asked for a passkey and the user chose Chiikawarden.
+    // A site asked for a passkey and the user chose Triwarden.
     override func prepareCredentialList(for serviceIdentifiers: [ASCredentialServiceIdentifier],
                                         requestParameters: ASPasskeyCredentialRequestParameters) {
         state.begin(passkey: .init(rpId: requestParameters.relyingPartyIdentifier, clientDataHash: requestParameters.clientDataHash,
@@ -64,7 +64,7 @@ final class CredentialProviderViewController: ASCredentialProviderViewController
                     registering: false)
     }
 
-    // A site is creating a passkey and the user chose to save it in Chiikawarden.
+    // A site is creating a passkey and the user chose to save it in Triwarden.
     override func prepareInterface(forPasskeyRegistration registrationRequest: any ASCredentialRequest) {
         guard let request = registrationRequest as? ASPasskeyCredentialRequest,
               let identity = request.credentialIdentity as? ASPasskeyCredentialIdentity else {

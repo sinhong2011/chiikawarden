@@ -12,9 +12,9 @@ Releases are automatic once the one-time setup is done:
    - archive a Release build (build number = commit count);
    - Developer ID export, signature check, notarize and staple the app and the DMG;
    - sign the zip for Sparkle and write `appcast.xml`;
-   - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`chiikawarden.rb`) to the release.
+   - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`triwarden.rb`) to the release.
 4. Installed copies with automatic checks on find the update through
-   `https://github.com/sinhong2011/chiikawarden/releases/latest/download/appcast.xml`. They verify the EdDSA
+   `https://github.com/sinhong2011/triwarden/releases/latest/download/appcast.xml`. They verify the EdDSA
    signature and the notarization, install, and relaunch. Everyone else gets it from **Check for Updates…**.
 
 ## One-time setup (maintainer)
@@ -62,7 +62,7 @@ notarize, without an Apple ID or password.
 On your Mac, with an Xcode account for team `FX3VR69P5K` and notary credentials in your keychain:
 
 ```bash
-xcrun notarytool store-credentials chiikawarden-notary --apple-id <you@example.com> --team-id FX3VR69P5K
+xcrun notarytool store-credentials triwarden-notary --apple-id <you@example.com> --team-id FX3VR69P5K
 scripts/release.sh 0.3.0 --publish
 ```
 
@@ -71,6 +71,6 @@ build without notarizing or publishing: `ALLOW_DIRTY=1 scripts/release.sh 0.3.0 
 
 ## Homebrew
 
-Copy `chiikawarden.rb` from the release to `Casks/chiikawarden.rb` in `sinhong2011/homebrew-tap`. Users run
-`brew install sinhong2011/tap/chiikawarden`. The cask also links `cw` onto the PATH. Homebrew users can update
+Copy `triwarden.rb` from the release to `Casks/triwarden.rb` in `sinhong2011/homebrew-tap`. Users run
+`brew install sinhong2011/tap/triwarden`. The cask also links `tw` onto the PATH. Homebrew users can update
 with `brew upgrade` or in the app; both work.

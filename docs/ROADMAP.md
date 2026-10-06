@@ -1,9 +1,9 @@
-# Chiikawarden roadmap
+# Triwarden roadmap
 
 Owner: product. Updated 2026-10-05. Status: ✅ done · 🟡 in progress · ⬜ planned
 
-> **Work is tracked in [GitHub Issues](https://github.com/sinhong2011/chiikawarden/issues)** by milestone
-> ([v0.2](https://github.com/sinhong2011/chiikawarden/milestone/1), [v0.3](https://github.com/sinhong2011/chiikawarden/milestone/2), [v1.0](https://github.com/sinhong2011/chiikawarden/milestone/3)).
+> **Work is tracked in [GitHub Issues](https://github.com/sinhong2011/triwarden/issues)** by milestone
+> ([v0.2](https://github.com/sinhong2011/triwarden/milestone/1), [v0.3](https://github.com/sinhong2011/triwarden/milestone/2), [v1.0](https://github.com/sinhong2011/triwarden/milestone/3)).
 > This page keeps the product intent, exit criteria and decisions.
 
 ## North star
@@ -52,15 +52,15 @@ You can replace the official desktop app for **reading** your vault:
 ## v0.3 — "power users"
 
 - SSH agent with Touch ID per signature; git commit signing
-- App Intents / Shortcuts, Services menu, `cw` CLI over XPC
+- App Intents / Shortcuts, Services menu, `tw` CLI over XPC
 - Send, attachments, collections management, emergency access (Vaultwarden)
 - Safari Web Extension + Chromium native messaging (save prompts, inline fill)
 
 ## Quality bar (every change)
 
 - Unit tests + dev-server integration tests pass (`DevServer/dev.sh test`)
-- In-app lifecycle self-test passes (`Chiikawarden --selftest <server> <email> <password>`)
-- Light **and** dark snapshots reviewed (`Chiikawarden --snapshot`)
+- In-app lifecycle self-test passes (`Triwarden --selftest <server> <email> <password>`)
+- Light **and** dark snapshots reviewed (`Triwarden --snapshot`)
 - All new strings translated in all five locales
 - No secrets in logs, UserDefaults or the repo; secrets in Keychain or memory only
 

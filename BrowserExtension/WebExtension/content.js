@@ -1,8 +1,8 @@
-// Chiikawarden content script: a key button in login fields (fill after Touch ID in the app) and an
+// Triwarden content script: a key button in login fields (fill after Touch ID in the app) and an
 // offer to save what you typed when the form is submitted. Passwords are never stored by the extension.
 (() => {
-  if (window.__chiikawarden) return;
-  window.__chiikawarden = true;
+  if (window.__triwarden) return;
+  window.__triwarden = true;
   const api = globalThis.browser ?? globalThis.chrome;
   const BRAND = "#0F74B3";
   const KEY_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14.5 3a6.5 6.5 0 0 0-6.2 8.5L3 16.8V21h4.2v-2.1h2.1v-2.1h2.1l1.1-1.1A6.5 6.5 0 1 0 14.5 3Zm1.6 3.6a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6Z"/></svg>`;
@@ -47,7 +47,7 @@
   }
 
   // ---- Overlay (shadow DOM, so page styles can't touch it) ----
-  const host = document.createElement("chiikawarden-overlay");
+  const host = document.createElement("triwarden-overlay");
   host.style.cssText = "position:absolute;top:0;left:0;width:0;height:0;z-index:2147483647;";
   const root = host.attachShadow({ mode: "closed" });
   root.innerHTML = `<style>
@@ -86,12 +86,12 @@
     menu.className = "menu";
     menu.style.left = `${r.left + scrollX}px`;
     menu.style.top = `${r.bottom + scrollY + 4}px`;
-    menu.innerHTML = `<div class="head">Chiikawarden</div><div class="note">Looking for logins…</div>`;
+    menu.innerHTML = `<div class="head">Triwarden</div><div class="note">Looking for logins…</div>`;
     root.appendChild(menu);
     const reply = await send({ command: "match" });
     if (!menu) return;
     const note = menu.querySelector(".note");
-    if (!reply?.ok) { note.textContent = reply?.error || "Chiikawarden isn't available."; return; }
+    if (!reply?.ok) { note.textContent = reply?.error || "Triwarden isn't available."; return; }
     if (!reply.rows?.length) { note.textContent = "No logins for this site."; return; }
     note.remove();
     for (const row of reply.rows) {
@@ -121,8 +121,8 @@
     const button = document.createElement("button");
     button.className = "key";
     button.type = "button";
-    button.title = "Fill with Chiikawarden";
-    button.setAttribute("aria-label", "Fill with Chiikawarden");
+    button.title = "Fill with Triwarden";
+    button.setAttribute("aria-label", "Fill with Triwarden");
     button.innerHTML = KEY_SVG;
     button.addEventListener("mousedown", (e) => e.preventDefault());
     button.addEventListener("click", () => openMenu(field, pw));

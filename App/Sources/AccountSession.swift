@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import Observation
 import VaultwardenAPI

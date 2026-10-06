@@ -3,7 +3,7 @@ import Testing
 @testable import SSHAgent
 
 @Suite(.serialized) struct SSHAgentTests {
-    static let dir = FileManager.default.temporaryDirectory.appending(path: "chiikawa-agent-\(getpid())")
+    static let dir = FileManager.default.temporaryDirectory.appending(path: "triwarden-agent-\(getpid())")
     static let keyTypes: [(String, [String])] = [
         ("ed25519", ["-t", "ed25519"]), ("ecdsa256", ["-t", "ecdsa", "-b", "256"]), ("ecdsa384", ["-t", "ecdsa", "-b", "384"]),
         ("ecdsa521", ["-t", "ecdsa", "-b", "521"]), ("rsa2048", ["-t", "rsa", "-b", "2048"]), ("rsa3072", ["-t", "rsa", "-b", "3072"]),

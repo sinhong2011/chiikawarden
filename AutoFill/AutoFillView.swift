@@ -1,6 +1,6 @@
 import AppKit
 import AuthenticationServices
-import ChiikawaCrypto
+import TriCrypto
 import Observation
 import SwiftUI
 import VaultwardenAPI
@@ -54,8 +54,8 @@ final class AutoFillState {
         case signedOut, vaultOutOfDate
         var errorDescription: String? {
             switch self {
-            case .signedOut: String(localized: "Open Chiikawarden and sign in to this account again.")
-            case .vaultOutOfDate: String(localized: "Open Chiikawarden once to refresh your vault.")
+            case .signedOut: String(localized: "Open Triwarden and sign in to this account again.")
+            case .vaultOutOfDate: String(localized: "Open Triwarden once to refresh your vault.")
             }
         }
     }
@@ -109,7 +109,7 @@ final class AutoFillState {
             AccountStore.loadCache(id).map { EquivalentDomains(syncData: $0).groups } ?? []
         })
         guard !vaults.isEmpty else {
-            error = String(localized: "Open Chiikawarden once to download your vault.")
+            error = String(localized: "Open Triwarden once to download your vault.")
             return
         }
         items = vaults.flatMap(\.items).filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
@@ -183,7 +183,7 @@ final class AutoFillState {
             completeRegistration(ASPasskeyRegistrationCredential(relyingParty: request.rpId, clientDataHash: request.clientDataHash,
                                                                  credentialID: reg.credentialID, attestationObject: reg.attestationObject))
         } catch Passkey.Failure.unsupportedAlgorithm {
-            error = String(localized: "This site needs a key type Chiikawarden can't create.")
+            error = String(localized: "This site needs a key type Triwarden can't create.")
         } catch {
             self.error = String(localized: "Couldn't save the passkey: \(error.localizedDescription)")
         }
@@ -255,7 +255,7 @@ struct AutoFillView: View {
                 IconTile(symbol: heading.symbol, size: 36)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(heading.title).font(.system(size: 14, weight: .semibold))
-                    Text(verbatim: state.passkeyRequest?.rpId ?? state.domains.first ?? "Chiikawarden")
+                    Text(verbatim: state.passkeyRequest?.rpId ?? state.domains.first ?? "Triwarden")
                         .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
@@ -268,7 +268,7 @@ struct AutoFillView: View {
             Group {
                 if !state.hasAccount {
                     ContentUnavailableView("Not signed in", systemImage: "person.crop.circle.badge.questionmark",
-                                           description: Text("Open Chiikawarden and log in first."))
+                                           description: Text("Open Triwarden and log in first."))
                 } else if state.unlocked && state.mode == .registration {
                     RegisterPane(state: state)
                 } else if state.unlocked && state.mode == .passkey {
@@ -283,19 +283,19 @@ struct AutoFillView: View {
         }
         .frame(width: 440, height: 520)
         .background(Palette.window)
-        .tint(Color(nsColor: .chiikawardenBrand))
+        .tint(Color(nsColor: .triwardenBrand))
     }
 }
 
 // MARK: - The app's look, for the extension (which can't use the app's own controls)
 
 private enum Palette {
-    static let brand = Color(nsColor: .chiikawardenBrand)
+    static let brand = Color(nsColor: .triwardenBrand)
     static let window = adaptive(light: NSColor(red: 0.945, green: 0.947, blue: 0.965, alpha: 1),
                                  dark: NSColor(red: 0.105, green: 0.108, blue: 0.125, alpha: 1))
     static let card = adaptive(light: NSColor.white.withAlphaComponent(0.85), dark: NSColor.white.withAlphaComponent(0.07))
     static let edge = adaptive(light: NSColor.white, dark: NSColor.white.withAlphaComponent(0.08))
-    static let selected = adaptive(light: NSColor.chiikawardenBrand.withAlphaComponent(0.1), dark: NSColor.chiikawardenBrand.withAlphaComponent(0.2))
+    static let selected = adaptive(light: NSColor.triwardenBrand.withAlphaComponent(0.1), dark: NSColor.triwardenBrand.withAlphaComponent(0.2))
 
     static func adaptive(light: NSColor, dark: NSColor) -> Color {
         Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light })
@@ -541,7 +541,7 @@ private struct PasskeyList: View {
             Card(padding: 6) {
                 if candidates.isEmpty {
                     ContentUnavailableView("No passkeys for this site", systemImage: "person.badge.key",
-                                           description: Text("Passkeys you save with Chiikawarden appear here."))
+                                           description: Text("Passkeys you save with Triwarden appear here."))
                         .frame(maxHeight: .infinity)
                 } else {
                     ScrollView {

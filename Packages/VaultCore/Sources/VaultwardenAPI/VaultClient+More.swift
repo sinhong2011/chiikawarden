@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 // Endpoints beyond the vault basics: organizations, bulk edits, account security, devices, two-step login,

@@ -1,7 +1,7 @@
 # Accessibility
 
-Chiikawarden should work fully with VoiceOver, with the keyboard alone, and for people with low vision.
-If something gets in your way, please [open an issue](https://github.com/sinhong2011/chiikawarden/issues)
+Triwarden should work fully with VoiceOver, with the keyboard alone, and for people with low vision.
+If something gets in your way, please [open an issue](https://github.com/sinhong2011/triwarden/issues)
 with the `accessibility` label.
 
 ## VoiceOver
@@ -60,6 +60,6 @@ The animated dial on the login screen stops when **Reduce Motion** is on.
 
 - Short UI transitions (list changes, the toast, sheet content) still animate with Reduce Motion on.
 - System `.borderedProminent` buttons (e.g. Save in sheets) draw white text on the accent; in dark mode that is
-  under AA on the tail sky. Chiikawarden's own primary buttons use navy text instead; the system ones are a follow-up.
+  under AA on the tail sky. Triwarden's own primary buttons use navy text instead; the system ones are a follow-up.
 - There is no automated accessibility test yet. Checks so far are code review plus snapshot review.
   A VoiceOver walkthrough on real hardware is tracked in the issues.

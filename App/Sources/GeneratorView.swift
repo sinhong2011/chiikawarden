@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import SwiftUI
 
 /// Passwords, passphrases and usernames. The full page (Sidebar › Generator) shows every option in cards;

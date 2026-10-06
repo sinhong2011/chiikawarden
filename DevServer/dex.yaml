@@ -10,7 +10,7 @@ enablePasswordDB: true
 staticClients:
   - id: vaultwarden
     name: Vaultwarden (dev)
-    secret: chiikawarden-dev-sso-secret
+    secret: triwarden-dev-sso-secret
     redirectURIs:
       - http://DEV_IP:18881/identity/connect/oidc-signin
 staticPasswords:

@@ -8,13 +8,13 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>FX3VR69P5K.io.github.sinhong2011.chiikawarden</string>
+		<string>FX3VR69P5K.io.github.sinhong2011.triwarden</string>
 	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)io.github.sinhong2011.chiikawarden.shared</string>
+		<string>$(AppIdentifierPrefix)io.github.sinhong2011.triwarden.shared</string>
 	</array>
 </dict>
 </plist>

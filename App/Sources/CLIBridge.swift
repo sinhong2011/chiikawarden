@@ -1,12 +1,12 @@
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import LocalAuthentication
 import Observation
 import SSHAgent
 import VaultwardenAPI
 
-/// Answers the `cw` command over a socket in the App Group container. Anything that reveals vault
+/// Answers the `tw` command over a socket in the App Group container. Anything that reveals vault
 /// data needs the vault unlocked plus an approval (Touch ID or the Mac password) naming the program.
 @MainActor @Observable
 final class CLIBridge {
@@ -16,7 +16,7 @@ final class CLIBridge {
     }
 
     /// Where the bundled tool lives, for the install command.
-    static var toolPath: String { Bundle.main.bundleURL.appending(path: "Contents/MacOS/cw").path }
+    static var toolPath: String { Bundle.main.bundleURL.appending(path: "Contents/MacOS/tw").path }
 
     private(set) var isRunning = false
     private(set) var lastError: String?
@@ -41,9 +41,9 @@ final class CLIBridge {
         let server = FramedSocketServer(socketURL: socket) { [weak self] request, peer in
             let response: CLIResponse
             if let decoded = try? JSONDecoder().decode(CLIRequest.self, from: request) {
-                response = await self?.handle(decoded, peer: peer) ?? .failure("Chiikawarden is quitting.")
+                response = await self?.handle(decoded, peer: peer) ?? .failure("Triwarden is quitting.")
             } else {
-                response = .failure("Unreadable request — is cw from the same version as the app?")
+                response = .failure("Unreadable request — is tw from the same version as the app?")
             }
             return (try? JSONEncoder().encode(response)) ?? Data()
         }
@@ -66,12 +66,12 @@ final class CLIBridge {
     func reset() { approvedUntil = [:] }
 
     private func handle(_ request: CLIRequest, peer: FramedSocketServer.Peer) async -> CLIResponse {
-        guard let model else { return .failure("Chiikawarden is quitting.") }
+        guard let model else { return .failure("Triwarden is quitting.") }
         let browserCommand = [.match, .fill, .save].contains(request.command)
         let enabled = UserDefaults.standard.bool(forKey: browserCommand ? Pref.browser : Pref.cli) || approveOverride != nil
         guard enabled else {
-            return .failure(browserCommand ? "Turn on the browser extension in Chiikawarden › Settings › Developer."
-                                           : "Turn on “Answer the cw command” in Chiikawarden › Settings › Developer.")
+            return .failure(browserCommand ? "Turn on the browser extension in Triwarden › Settings › Developer."
+                                           : "Turn on “Answer the tw command” in Triwarden › Settings › Developer.")
         }
         switch request.command {
         case .match:
@@ -105,7 +105,7 @@ final class CLIBridge {
                 return await model.updateItem(existing.id, edit: CipherEdit(password: password)) ? .success("updated") : .failure("Couldn't save.")
             }
             let label = username.isEmpty ? host : "\(username) · \(host)"
-            guard confirm(String(localized: "Save this login to Chiikawarden? \(label)")) else { return .success("skipped") }
+            guard confirm(String(localized: "Save this login to Triwarden? \(label)")) else { return .success("skipped") }
             let name = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
             let edit = CipherEdit(name: name, username: username, password: password, uri: "\(url.scheme ?? "https")://\(host)")
             return await model.createItem(.login, edit: edit) ? .success("saved") : .failure("Couldn't save.")
@@ -145,7 +145,7 @@ final class CLIBridge {
         }
     }
 
-    static let locked = "The vault is locked. Unlock Chiikawarden first."
+    static let locked = "The vault is locked. Unlock Triwarden first."
     static let denied = "Not approved."
 
     private func approve(_ action: String, peer: FramedSocketServer.Peer) async -> Bool {
@@ -172,13 +172,13 @@ final class CLIBridge {
         NSApp.activate()
         let alert = NSAlert()
         alert.messageText = message
-        alert.informativeText = String(localized: "Requested by the Chiikawarden browser extension.")
+        alert.informativeText = String(localized: "Requested by the Triwarden browser extension.")
         alert.addButton(withTitle: String(localized: "Save"))
         alert.addButton(withTitle: String(localized: "Not Now"))
         return alert.runModal() == .alertFirstButtonReturn
     }
 
-    /// Our Safari extension and the bundled `cw` (Chrome's native-messaging host) live inside the app.
+    /// Our Safari extension and the bundled `tw` (Chrome's native-messaging host) live inside the app.
     static func isOwnBinary(_ peer: FramedSocketServer.Peer) -> Bool {
         guard let path = peer.path else { return false }
         return URL(fileURLWithPath: path).resolvingSymlinksInPath().path.hasPrefix(Bundle.main.bundleURL.resolvingSymlinksInPath().path + "/")

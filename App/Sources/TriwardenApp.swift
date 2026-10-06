@@ -2,7 +2,7 @@ import SwiftUI
 import VaultwardenAPI
 
 @main
-struct ChiikawardenApp: App {
+struct TriwardenApp: App {
     @State private var model = AppModel()
     @AppStorage(Pref.appearance) private var appearance = AppearanceSetting.system
     @State private var quickSearch: QuickSearchController?

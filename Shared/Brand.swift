@@ -5,7 +5,7 @@ extension NSColor {
     /// Brand blue for text, links and icons. The mascot's tail is #80C5EF (see `Color.brandFill`); in light mode
     /// text needs a deeper vivid sky, #0F74B3 (4.5:1 on the window, 5.0:1 on white); in dark mode the tail colour
     /// itself works as text (8.9:1). Mirrors AccentColor in the app's asset catalog.
-    static let chiikawardenBrand = NSColor(name: nil) { appearance in
+    static let triwardenBrand = NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
             ? NSColor(srgbRed: 0x80 / 255, green: 0xC5 / 255, blue: 0xEF / 255, alpha: 1)
             : NSColor(srgbRed: 0x0F / 255, green: 0x74 / 255, blue: 0xB3 / 255, alpha: 1)

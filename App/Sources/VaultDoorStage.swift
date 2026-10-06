@@ -806,7 +806,7 @@ struct LoginDoorStage: View {
                     .frame(width: 96, height: 96)
                     .shadow(color: .black.opacity(dark ? 0.45 : 0.18), radius: 18, y: 10)
                     .padding(.bottom, 22)
-                Text(verbatim: "Chiikawarden")
+                Text(verbatim: "Triwarden")
                     .font(.system(size: 15, weight: .semibold)).foregroundStyle(ink.opacity(0.6))
                     .padding(.bottom, 6)
                 Text("Every login,\nbehind one door.")

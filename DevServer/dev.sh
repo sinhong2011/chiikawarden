@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Manage the Chiikawarden dev environment on the remote dev box.
+# Manage the Triwarden dev environment on the remote dev box.
 #   ./dev.sh up | seed | test | logs [service] | reset | status
 set -euo pipefail
 cd "$(dirname "$0")"
-REMOTE=${CHIIKAWARDEN_DEV_REMOTE:-m1pro}
-HOST=${CHIIKAWARDEN_DEV_HOST:-devbox.local}
-IP=${CHIIKAWARDEN_DEV_IP:-192.168.1.50}
-DIR=chiikawarden-dev
+REMOTE=${TRIWARDEN_DEV_REMOTE:-m1pro}
+HOST=${TRIWARDEN_DEV_HOST:-devbox.local}
+IP=${TRIWARDEN_DEV_IP:-192.168.1.50}
+DIR=triwarden-dev
 remote() { ssh -q "$REMOTE" "export PATH=/usr/local/bin:/opt/homebrew/bin:\$PATH; cd ~/$DIR && $*"; }
 
 case "${1:-status}" in
@@ -23,7 +23,7 @@ case "${1:-status}" in
     echo "== SSO :18881"; python3 seed.py "http://$IP:18881" ;;
   test)
     cd ../Packages/VaultCore
-    CHIIKAWARDEN_DEV_HOST=$HOST CHIIKAWARDEN_DEV_CA="$OLDPWD/data/root.crt" swift test ;;
+    TRIWARDEN_DEV_HOST=$HOST TRIWARDEN_DEV_CA="$OLDPWD/data/root.crt" swift test ;;
   logs)  remote "docker compose logs --tail 100 ${2:-}" ;;
   reset) remote "docker compose down && rm -rf data/latest data/legacy && docker compose up -d" ;;
   status) remote "docker compose ps --format 'table {{.Service}}\t{{.Image}}\t{{.Status}}'" ;;

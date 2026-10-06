@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import CryptoKit
 import Foundation
 import LocalAuthentication
@@ -48,7 +48,7 @@ struct SavedAccount: Codable, Equatable, Identifiable {
 /// `Accounts/<id>/{account,vault,biometric}.json`, refresh token in the Keychain.
 enum AccountStore {
     /// Team-prefixed group: no provisioning needed on macOS.
-    static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
+    static let appGroup = "FX3VR69P5K.io.github.sinhong2011.triwarden"
 
     /// Storage namespace. Tests switch to their own so they can never touch real accounts.
     nonisolated(unsafe) static var namespace = "Accounts"
@@ -118,7 +118,7 @@ enum AccountStore {
     // MARK: Refresh token (Keychain)
 
     private static func refreshService(_ id: String) -> String {
-        namespace == "Accounts" ? "io.github.sinhong2011.chiikawarden.refresh.\(id)" : "io.github.sinhong2011.chiikawarden.\(namespace).refresh.\(id)"
+        namespace == "Accounts" ? "io.github.sinhong2011.triwarden.refresh.\(id)" : "io.github.sinhong2011.triwarden.\(namespace).refresh.\(id)"
     }
     static func refreshToken(_ id: String) -> String? {
         Keychain.read(service: refreshService(id)).flatMap { String(data: $0, encoding: .utf8) }
@@ -187,7 +187,7 @@ enum AccountStore {
     }
 
     private static func wrapKey(_ shared: SharedSecret) -> SymmetricKey {
-        shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("chiikawarden-touchid".utf8),
+        shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("triwarden-touchid".utf8),
                                        sharedInfo: Data(), outputByteCount: 32)
     }
 
@@ -212,7 +212,7 @@ enum AccountStore {
             try? fm.moveItem(at: old, to: target)
             save(SavedAccount(id: id, email: legacy.email, serverKind: legacy.serverKind, serverURL: legacy.serverURL,
                               kdf: legacy.kdf, protectedUserKey: legacy.protectedUserKey))
-            let oldService = "io.github.sinhong2011.chiikawarden.refresh"
+            let oldService = "io.github.sinhong2011.triwarden.refresh"
             if let token = Keychain.read(service: oldService) {
                 Keychain.write(token, service: refreshService(id))
                 Keychain.delete(service: oldService)
@@ -226,7 +226,7 @@ enum AccountStore {
 /// moved over on first read.
 enum Keychain {
     /// Keychain Sharing group of the app and its AutoFill extension.
-    static let accessGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden.shared"
+    static let accessGroup = "FX3VR69P5K.io.github.sinhong2011.triwarden.shared"
 
     private static func base(_ service: String, shared: Bool) -> [String: Any] {
         var q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service]

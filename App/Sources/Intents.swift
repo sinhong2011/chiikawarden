@@ -1,6 +1,6 @@
 import AppIntents
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 
 // Shortcuts / Spotlight actions. Entities expose only names and usernames; secrets are copied or
 // returned only by an explicit action while the vault is unlocked.
@@ -18,7 +18,7 @@ enum IntentFailure: Error, CustomLocalizedStringResourceConvertible {
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case .locked: "Chiikawarden is locked. Unlock it first."
+        case .locked: "Triwarden is locked. Unlock it first."
         case .noPassword: "That item has no password."
         case .noCode: "That item has no one-time code."
         case .notFound: "That item is no longer in your vault."
@@ -81,7 +81,7 @@ private func unlockedItem(_ entity: VaultItemEntity) throws -> (AppModel, VaultI
 
 struct CopyPasswordIntent: AppIntent {
     static let title: LocalizedStringResource = "Copy Password"
-    static let description = IntentDescription("Copies an item's password. It's cleared from the clipboard after the delay set in Chiikawarden.")
+    static let description = IntentDescription("Copies an item's password. It's cleared from the clipboard after the delay set in Triwarden.")
 
     @Parameter(title: "Item") var item: VaultItemEntity
 
@@ -127,15 +127,15 @@ struct GeneratePasswordIntent: AppIntent {
 
 struct LockVaultIntent: AppIntent {
     static let title: LocalizedStringResource = "Lock Vault"
-    static let description = IntentDescription("Locks every account in Chiikawarden.")
+    static let description = IntentDescription("Locks every account in Triwarden.")
 
     @MainActor func perform() async throws -> some IntentResult & ProvidesDialog {
         AppModel.current?.lock()
-        return .result(dialog: "Chiikawarden is locked.")
+        return .result(dialog: "Triwarden is locked.")
     }
 }
 
-struct ChiikawardenShortcuts: AppShortcutsProvider {
+struct TriwardenShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: CopyPasswordIntent(), phrases: ["Copy a password with \(.applicationName)",
                                                             "Copy \(\.$item) password with \(.applicationName)"],

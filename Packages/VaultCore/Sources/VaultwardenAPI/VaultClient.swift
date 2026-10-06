@@ -1,5 +1,5 @@
 import CryptoKit
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 /// Minimal Bitwarden-protocol client (Vaultwarden or the official cloud): prelogin, password login, sync.
@@ -95,7 +95,7 @@ public actor VaultClient {
                 "client_id": Self.clientName,
                 "deviceType": "7", // macOS desktop
                 "deviceIdentifier": deviceIdentifier,
-                "deviceName": "chiikawarden",
+                "deviceName": "triwarden",
             ]
             if let twoFactor {
                 form["twoFactorProvider"] = twoFactor.provider
@@ -131,7 +131,7 @@ public actor VaultClient {
         let form = [
             "grant_type": "password", "username": KDF.normalizedEmail(email), "password": accessCode,
             "authRequest": requestId, "scope": "api offline_access", "client_id": Self.clientName,
-            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "chiikawarden",
+            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "triwarden",
         ]
         var request = try post(environment.identityURL, "connect/token", formBody: form)
         request.setValue(Data(KDF.normalizedEmail(email).utf8).base64URLEncoded, forHTTPHeaderField: "Auth-Email")
@@ -211,7 +211,7 @@ public actor VaultClient {
         let token: Token = try await send(post(environment.identityURL, "connect/token", formBody: [
             "grant_type": "authorization_code", "code": code, "code_verifier": start.verifier,
             "redirect_uri": Self.ssoRedirectURI, "client_id": Self.clientName, "scope": "api offline_access",
-            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "chiikawarden",
+            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "triwarden",
         ]))
         accessToken = token.access_token
         refreshToken = token.refresh_token
@@ -431,7 +431,7 @@ public actor VaultClient {
     private func multipart(_ base: URL, _ path: String, fileName: String, key: String?, data: Data) throws(APIError) -> URLRequest {
         var r = try request(base, path)
         r.httpMethod = "POST"
-        let boundary = "chiikawarden-\(UUID().uuidString)"
+        let boundary = "triwarden-\(UUID().uuidString)"
         r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var body = Data()
         if let key {
@@ -536,7 +536,7 @@ public actor VaultClient {
         request.setValue(Self.clientName, forHTTPHeaderField: "Bitwarden-Client-Name")
         request.setValue(Self.clientVersion, forHTTPHeaderField: "Bitwarden-Client-Version")
         request.setValue("7", forHTTPHeaderField: "Device-Type")
-        request.setValue("Chiikawarden/0.1 (macOS)", forHTTPHeaderField: "User-Agent")
+        request.setValue("Triwarden/0.1 (macOS)", forHTTPHeaderField: "User-Agent")
         for (k, v) in extraHeaders { request.setValue(v, forHTTPHeaderField: k) }
         return request
     }

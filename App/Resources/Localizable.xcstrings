@@ -1472,30 +1472,30 @@
         }
       }
     },
-    "A key the Chiikawarden SSH agent can sign with." : {
+    "A key the Triwarden SSH agent can sign with." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden の SSH エージェントが署名に使える鍵。"
+            "value" : "Triwarden の SSH エージェントが署名に使える鍵。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden SSH 代理可用于签名的密钥。"
+            "value" : "Triwarden SSH 代理可用于签名的密钥。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden SSH 代理程式可用來簽署的金鑰。"
+            "value" : "Triwarden SSH 代理程式可用來簽署的金鑰。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden SSH 代理程式可以用嚟簽署嘅金鑰。"
+            "value" : "Triwarden SSH 代理程式可以用嚟簽署嘅金鑰。"
           }
         }
       }
@@ -2802,30 +2802,30 @@
         }
       }
     },
-    "Answer the cw command" : {
+    "Answer the tw command" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw コマンドに応答"
+            "value" : "tw コマンドに応答"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "响应 cw 命令"
+            "value" : "响应 tw 命令"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "回應 cw 指令"
+            "value" : "回應 tw 指令"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "回應 cw 指令"
+            "value" : "回應 tw 指令"
           }
         }
       }
@@ -4809,144 +4809,144 @@
         }
       }
     },
-    "Chiikawarden %@ is up to date." : {
+    "Triwarden %@ is up to date." : {
       "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden %@ は最新です。"
+            "value" : "Triwarden %@ は最新です。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden %@ 已是最新版本。"
+            "value" : "Triwarden %@ 已是最新版本。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden %@ 已是最新版本。"
+            "value" : "Triwarden %@ 已是最新版本。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden %@ 已經係最新版本。"
+            "value" : "Triwarden %@ 已經係最新版本。"
           }
         }
       }
     },
-    "Chiikawarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語." : {
+    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語." : {
       "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。"
+            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
           }
         }
       }
     },
-    "Chiikawarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language." : {
+    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。自動入力パネルはシステムの言語に従います。"
+            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。自動入力パネルはシステムの言語に従います。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。自动填充面板跟随系统语言。"
+            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。自动填充面板跟随系统语言。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支援 English、繁體中文、繁體中文（香港）、简体中文與日本語。自動填寫面板會依照系統語言。"
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文與日本語。自動填寫面板會依照系統語言。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 支援 English、繁體中文、繁體中文（香港）、简体中文同日本語。自動填寫面板會跟系統語言。"
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文同日本語。自動填寫面板會跟系統語言。"
           }
         }
       }
     },
-    "Chiikawarden is locked." : {
+    "Triwarden is locked." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden をロックしました。"
+            "value" : "Triwarden をロックしました。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已锁定。"
+            "value" : "Triwarden 已锁定。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已鎖定。"
+            "value" : "Triwarden 已鎖定。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已鎖定。"
+            "value" : "Triwarden 已鎖定。"
           }
         }
       }
     },
-    "Chiikawarden is locked. Unlock it first." : {
+    "Triwarden is locked. Unlock it first." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden はロックされています。先にロックを解除してください。"
+            "value" : "Triwarden はロックされています。先にロックを解除してください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已锁定，请先解锁。"
+            "value" : "Triwarden 已锁定，请先解锁。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已鎖定，請先解鎖。"
+            "value" : "Triwarden 已鎖定，請先解鎖。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 已鎖定，請先解鎖。"
+            "value" : "Triwarden 已鎖定，請先解鎖。"
           }
         }
       }
@@ -5850,30 +5850,30 @@
         }
       }
     },
-    "Commands that make git sign commits with this key through the Chiikawarden SSH agent" : {
+    "Commands that make git sign commits with this key through the Triwarden SSH agent" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden SSH エージェント経由でこの鍵を使って git のコミットに署名するためのコマンド"
+            "value" : "Triwarden SSH エージェント経由でこの鍵を使って git のコミットに署名するためのコマンド"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "让 git 通过 Chiikawarden SSH 代理用此密钥签名提交的命令"
+            "value" : "让 git 通过 Triwarden SSH 代理用此密钥签名提交的命令"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "讓 git 透過 Chiikawarden SSH 代理程式以此金鑰簽署提交的指令"
+            "value" : "讓 git 透過 Triwarden SSH 代理程式以此金鑰簽署提交的指令"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "令 git 透過 Chiikawarden SSH 代理程式用此密鑰簽署提交的指令"
+            "value" : "令 git 透過 Triwarden SSH 代理程式用此密鑰簽署提交的指令"
           }
         }
       }
@@ -6298,30 +6298,30 @@
         }
       }
     },
-    "Copies an item's password. It's cleared from the clipboard after the delay set in Chiikawarden." : {
+    "Copies an item's password. It's cleared from the clipboard after the delay set in Triwarden." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "項目のパスワードをコピーします。Chiikawarden で設定した時間が経つとクリップボードから消去されます。"
+            "value" : "項目のパスワードをコピーします。Triwarden で設定した時間が経つとクリップボードから消去されます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制项目的密码，并在 Chiikawarden 设定的时间后从剪贴板清除。"
+            "value" : "复制项目的密码，并在 Triwarden 设定的时间后从剪贴板清除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "拷貝項目的密碼，並在 Chiikawarden 設定的時間後從剪貼板清除。"
+            "value" : "拷貝項目的密碼，並在 Triwarden 設定的時間後從剪貼板清除。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "複製項目的密碼，並喺 Chiikawarden 設定的時間後從剪貼簿清除。"
+            "value" : "複製項目的密碼，並喺 Triwarden 設定的時間後從剪貼簿清除。"
           }
         }
       }
@@ -7615,30 +7615,30 @@
         }
       }
     },
-    "cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password." : {
+    "tw get github · tw code github · tw list · tw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw get github · cw code github · cw list · cw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
+            "value" : "tw get github · tw code github · tw list · tw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw get github · cw code github · cw list · cw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
+            "value" : "tw get github · tw code github · tw list · tw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw get github · cw code github · cw list · cw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
           }
         }
       }
@@ -9132,30 +9132,30 @@
         }
       }
     },
-    "Encrypted with a password you choose. Recommended: Bitwarden and Chiikawarden can import it on any device." : {
+    "Encrypted with a password you choose. Recommended: Bitwarden and Triwarden can import it on any device." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選んだパスワードで暗号化します。おすすめ：Bitwarden と Chiikawarden ならどのデバイスでも読み込めます。"
+            "value" : "選んだパスワードで暗号化します。おすすめ：Bitwarden と Triwarden ならどのデバイスでも読み込めます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用你设定的密码加密。推荐：Bitwarden 和 Chiikawarden 在任何设备上都能导入。"
+            "value" : "使用你设定的密码加密。推荐：Bitwarden 和 Triwarden 在任何设备上都能导入。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以你設定的密碼加密。建議使用：Bitwarden 和 Chiikawarden 在任何裝置上都能匯入。"
+            "value" : "以你設定的密碼加密。建議使用：Bitwarden 和 Triwarden 在任何裝置上都能匯入。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用你揀嘅密碼加密。建議使用：Bitwarden 同 Chiikawarden 喺任何裝置都匯入到。"
+            "value" : "用你揀嘅密碼加密。建議使用：Bitwarden 同 Triwarden 喺任何裝置都匯入到。"
           }
         }
       }
@@ -10458,30 +10458,30 @@
         }
       }
     },
-    "Fill passwords and verification codes in Safari, Chrome and apps. Turn on Chiikawarden in System Settings › General › AutoFill & Passwords." : {
+    "Fill passwords and verification codes in Safari, Chrome and apps. Turn on Triwarden in System Settings › General › AutoFill & Passwords." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safari、Chrome、アプリでパスワードと確認コードを入力します。「システム設定 › 一般 › 自動入力とパスワード」で Chiikawarden をオンにしてください。"
+            "value" : "Safari、Chrome、アプリでパスワードと確認コードを入力します。「システム設定 › 一般 › 自動入力とパスワード」で Triwarden をオンにしてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Safari、Chrome 和 App 中填充密码和验证码。请在“系统设置 › 通用 › 自动填充与密码”中打开 Chiikawarden。"
+            "value" : "在 Safari、Chrome 和 App 中填充密码和验证码。请在“系统设置 › 通用 › 自动填充与密码”中打开 Triwarden。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Chiikawarden。"
+            "value" : "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Triwarden。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Chiikawarden。"
+            "value" : "在 Safari、Chrome 與 App 中填入密碼和驗證碼。請在「系統設定 › 一般 › 自動填寫與密碼」中開啟 Triwarden。"
           }
         }
       }
@@ -11974,30 +11974,30 @@
         }
       }
     },
-    "Install cw" : {
+    "Install tw" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "cw をインストール"
+            "value" : "tw をインストール"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装 cw"
+            "value" : "安装 tw"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安裝 cw"
+            "value" : "安裝 tw"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安裝 cw"
+            "value" : "安裝 tw"
           }
         }
       }
@@ -13075,30 +13075,30 @@
         }
       }
     },
-    "Locks every account in Chiikawarden." : {
+    "Locks every account in Triwarden." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden のすべてのアカウントをロックします。"
+            "value" : "Triwarden のすべてのアカウントをロックします。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "锁定 Chiikawarden 中的所有账户。"
+            "value" : "锁定 Triwarden 中的所有账户。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鎖定 Chiikawarden 中的所有帳號。"
+            "value" : "鎖定 Triwarden 中的所有帳號。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鎖定 Chiikawarden 中的所有帳戶。"
+            "value" : "鎖定 Triwarden 中的所有帳戶。"
           }
         }
       }
@@ -16335,171 +16335,171 @@
         }
       }
     },
-    "Open Chiikawarden" : {
+    "Open Triwarden" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden を開く"
+            "value" : "Triwarden を開く"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开 Chiikawarden"
+            "value" : "打开 Triwarden"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 Chiikawarden"
+            "value" : "打開 Triwarden"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 Chiikawarden"
+            "value" : "打開 Triwarden"
           }
         }
       }
     },
-    "Open Chiikawarden and log in first." : {
+    "Open Triwarden and log in first." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "まず Chiikawarden を開いてログインしてください。"
+            "value" : "まず Triwarden を開いてログインしてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先打开 Chiikawarden 并登录。"
+            "value" : "请先打开 Triwarden 并登录。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請先打開 Chiikawarden 並登入。"
+            "value" : "請先打開 Triwarden 並登入。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請先打開 Chiikawarden 並登入。"
+            "value" : "請先打開 Triwarden 並登入。"
           }
         }
       }
     },
-    "Open Chiikawarden and sign in to this account again." : {
+    "Open Triwarden and sign in to this account again." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden を開いて、このアカウントに再度サインインしてください。"
+            "value" : "Triwarden を開いて、このアカウントに再度サインインしてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请打开 Chiikawarden 并重新登录此账户。"
+            "value" : "请打开 Triwarden 并重新登录此账户。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請開啟 Chiikawarden 並重新登入此帳號。"
+            "value" : "請開啟 Triwarden 並重新登入此帳號。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請開啟 Chiikawarden 並重新登入此帳戶。"
+            "value" : "請開啟 Triwarden 並重新登入此帳戶。"
           }
         }
       }
     },
-    "Open Chiikawarden once to download your vault." : {
+    "Open Triwarden once to download your vault." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保管庫をダウンロードするため、一度 Chiikawarden を開いてください。"
+            "value" : "保管庫をダウンロードするため、一度 Triwarden を開いてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先打开 Chiikawarden 一次以下载密码库。"
+            "value" : "请先打开 Triwarden 一次以下载密码库。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請先打開 Chiikawarden 一次以下載保險庫。"
+            "value" : "請先打開 Triwarden 一次以下載保險庫。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請先打開 Chiikawarden 一次以下載保險庫。"
+            "value" : "請先打開 Triwarden 一次以下載保險庫。"
           }
         }
       }
     },
-    "Open Chiikawarden once to refresh your vault." : {
+    "Open Triwarden once to refresh your vault." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保管庫を更新するために Chiikawarden を一度開いてください。"
+            "value" : "保管庫を更新するために Triwarden を一度開いてください。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请打开 Chiikawarden 一次以刷新密码库。"
+            "value" : "请打开 Triwarden 一次以刷新密码库。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請開啟 Chiikawarden 一次以更新保險庫。"
+            "value" : "請開啟 Triwarden 一次以更新保險庫。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請開啟 Chiikawarden 一次以更新保險庫。"
+            "value" : "請開啟 Triwarden 一次以更新保險庫。"
           }
         }
       }
     },
-    "Open Chiikawarden to unlock" : {
+    "Open Triwarden to unlock" : {
       "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden を開いてロックを解除"
+            "value" : "Triwarden を開いてロックを解除"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开 Chiikawarden 以解锁"
+            "value" : "打开 Triwarden 以解锁"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 Chiikawarden 以解鎖"
+            "value" : "打開 Triwarden 以解鎖"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 Chiikawarden 以解鎖"
+            "value" : "打開 Triwarden 以解鎖"
           }
         }
       }
@@ -17242,30 +17242,30 @@
         }
       }
     },
-    "Passkeys you save with Chiikawarden appear here." : {
+    "Passkeys you save with Triwarden appear here." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden で保存したパスキーがここに表示されます。"
+            "value" : "Triwarden で保存したパスキーがここに表示されます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你用 Chiikawarden 保存的通行密钥会显示在这里。"
+            "value" : "你用 Triwarden 保存的通行密钥会显示在这里。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你用 Chiikawarden 儲存的通行密鑰會顯示在這裡。"
+            "value" : "你用 Triwarden 儲存的通行密鑰會顯示在這裡。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你用 Chiikawarden 儲存的通行密鑰會顯示喺呢度。"
+            "value" : "你用 Triwarden 儲存的通行密鑰會顯示喺呢度。"
           }
         }
       }
@@ -18518,30 +18518,30 @@
         }
       }
     },
-    "Requested by the Chiikawarden browser extension." : {
+    "Requested by the Triwarden browser extension." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden ブラウザ機能拡張からのリクエストです。"
+            "value" : "Triwarden ブラウザ機能拡張からのリクエストです。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 Chiikawarden 浏览器扩展请求。"
+            "value" : "由 Triwarden 浏览器扩展请求。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 Chiikawarden 瀏覽器延伸功能要求。"
+            "value" : "由 Triwarden 瀏覽器延伸功能要求。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 Chiikawarden 瀏覽器擴充功能要求。"
+            "value" : "由 Triwarden 瀏覽器擴充功能要求。"
           }
         }
       }
@@ -19078,30 +19078,30 @@
         }
       }
     },
-    "Safari: turn on Chiikawarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run cw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first." : {
+    "Safari: turn on Triwarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run tw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safari：Safari › 設定 › 機能拡張で Chiikawarden をオンにします。Chromium 系ブラウザ：フォルダを「パッケージ化されていない拡張機能」として読み込み、cw install-chrome <拡張機能 ID> を実行します。候補には名前だけが表示され、入力には Touch ID、保存の前には確認があります。"
+            "value" : "Safari：Safari › 設定 › 機能拡張で Triwarden をオンにします。Chromium 系ブラウザ：フォルダを「パッケージ化されていない拡張機能」として読み込み、tw install-chrome <拡張機能 ID> を実行します。候補には名前だけが表示され、入力には Touch ID、保存の前には確認があります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safari：在 Safari › 设置 › 扩展中启用 Chiikawarden。Chromium 浏览器：以“加载已解压的扩展程序”加载文件夹，然后运行 cw install-chrome <扩展 ID>。建议只显示名称；填充需要 Touch ID，保存前会先询问你。"
+            "value" : "Safari：在 Safari › 设置 › 扩展中启用 Triwarden。Chromium 浏览器：以“加载已解压的扩展程序”加载文件夹，然后运行 tw install-chrome <扩展 ID>。建议只显示名称；填充需要 Touch ID，保存前会先询问你。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safari：在 Safari › 設定 › 延伸功能中開啟 Chiikawarden。Chromium 瀏覽器：以「載入未封裝項目」載入資料夾，再執行 cw install-chrome <延伸功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先詢問你。"
+            "value" : "Safari：在 Safari › 設定 › 延伸功能中開啟 Triwarden。Chromium 瀏覽器：以「載入未封裝項目」載入資料夾，再執行 tw install-chrome <延伸功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先詢問你。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safari：喺 Safari › 設定 › 擴充功能開啟 Chiikawarden。Chromium 瀏覽器：用「載入未封裝擴充功能」載入資料夾，再執行 cw install-chrome <擴充功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先問你。"
+            "value" : "Safari：喺 Safari › 設定 › 擴充功能開啟 Triwarden。Chromium 瀏覽器：用「載入未封裝擴充功能」載入資料夾，再執行 tw install-chrome <擴充功能 ID>。建議只顯示名稱；填入需要 Touch ID，儲存前會先問你。"
           }
         }
       }
@@ -19274,30 +19274,30 @@
         }
       }
     },
-    "Save this login to Chiikawarden? %@" : {
+    "Save this login to Triwarden? %@" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このログインを Chiikawarden に保存しますか？%@"
+            "value" : "このログインを Triwarden に保存しますか？%@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要将此登录信息保存到 Chiikawarden 吗？%@"
+            "value" : "要将此登录信息保存到 Triwarden 吗？%@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要將這個登入資料儲存到 Chiikawarden 嗎？%@"
+            "value" : "要將這個登入資料儲存到 Triwarden 嗎？%@"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要將呢個登入資料儲存到 Chiikawarden 嗎？%@"
+            "value" : "要將呢個登入資料儲存到 Triwarden 嗎？%@"
           }
         }
       }
@@ -21635,30 +21635,30 @@
         }
       }
     },
-    "Stored with a key type Chiikawarden can't use" : {
+    "Stored with a key type Triwarden can't use" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden では使用できない鍵の種類です"
+            "value" : "Triwarden では使用できない鍵の種類です"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 无法使用此密钥类型"
+            "value" : "Triwarden 无法使用此密钥类型"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此金鑰類型 Chiikawarden 無法使用"
+            "value" : "此金鑰類型 Triwarden 無法使用"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此密鑰類型 Chiikawarden 無法使用"
+            "value" : "此密鑰類型 Triwarden 無法使用"
           }
         }
       }
@@ -22953,30 +22953,30 @@
         }
       }
     },
-    "This file isn't in a format Chiikawarden can import." : {
+    "This file isn't in a format Triwarden can import." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このファイル形式は Chiikawarden で読み込めません。"
+            "value" : "このファイル形式は Triwarden で読み込めません。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 无法导入这种格式的文件。"
+            "value" : "Triwarden 无法导入这种格式的文件。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 無法匯入這種格式的檔案。"
+            "value" : "Triwarden 無法匯入這種格式的檔案。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden 匯入唔到呢種格式嘅檔案。"
+            "value" : "Triwarden 匯入唔到呢種格式嘅檔案。"
           }
         }
       }
@@ -23178,30 +23178,30 @@
         }
       }
     },
-    "This site needs a key type Chiikawarden can't create." : {
+    "This site needs a key type Triwarden can't create." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このサイトには Chiikawarden で作成できない鍵の種類が必要です。"
+            "value" : "このサイトには Triwarden で作成できない鍵の種類が必要です。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此网站需要 Chiikawarden 无法创建的密钥类型。"
+            "value" : "此网站需要 Triwarden 无法创建的密钥类型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此網站需要 Chiikawarden 無法建立的金鑰類型。"
+            "value" : "此網站需要 Triwarden 無法建立的金鑰類型。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此網站需要 Chiikawarden 無法建立的密鑰類型。"
+            "value" : "此網站需要 Triwarden 無法建立的密鑰類型。"
           }
         }
       }
@@ -24419,30 +24419,30 @@
         }
       }
     },
-    "Updates come from this project's GitHub releases. Each one is signed; Chiikawarden checks the signature and Apple's notarization before installing, then relaunches." : {
+    "Updates come from this project's GitHub releases. Each one is signed; Triwarden checks the signature and Apple's notarization before installing, then relaunches." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アップデートはこのプロジェクトの GitHub リリースから届きます。それぞれ署名されており、Chiikawarden はインストール前に署名と Apple の公証を確認してから再起動します。"
+            "value" : "アップデートはこのプロジェクトの GitHub リリースから届きます。それぞれ署名されており、Triwarden はインストール前に署名と Apple の公証を確認してから再起動します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新来自本项目的 GitHub 发行版本。每个更新都经过签名；Chiikawarden 会在安装前检查签名和 Apple 公证，然后重新启动。"
+            "value" : "更新来自本项目的 GitHub 发行版本。每个更新都经过签名；Triwarden 会在安装前检查签名和 Apple 公证，然后重新启动。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新來自本專案的 GitHub 發行版本。每個更新都經過簽署；Chiikawarden 會在安裝前檢查簽章與 Apple 公證，然後重新啟動。"
+            "value" : "更新來自本專案的 GitHub 發行版本。每個更新都經過簽署；Triwarden 會在安裝前檢查簽章與 Apple 公證，然後重新啟動。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新來自呢個項目嘅 GitHub 發行版本。每個更新都有簽署；Chiikawarden 安裝前會檢查簽名同 Apple 公證，之後重新開啟。"
+            "value" : "更新來自呢個項目嘅 GitHub 發行版本。每個更新都有簽署；Triwarden 安裝前會檢查簽名同 Apple 公證，之後重新開啟。"
           }
         }
       }
@@ -24504,30 +24504,30 @@
         }
       }
     },
-    "Use Chiikawarden as SSH agent" : {
+    "Use Triwarden as SSH agent" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiikawarden を SSH エージェントとして使う"
+            "value" : "Triwarden を SSH エージェントとして使う"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Chiikawarden 作为 SSH 代理"
+            "value" : "使用 Triwarden 作为 SSH 代理"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Chiikawarden 作為 SSH 代理程式"
+            "value" : "使用 Triwarden 作為 SSH 代理程式"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Chiikawarden 作為 SSH 代理程式"
+            "value" : "使用 Triwarden 作為 SSH 代理程式"
           }
         }
       }
@@ -24896,30 +24896,30 @@
         }
       }
     },
-    "Vault locked: unlock Chiikawarden to search it" : {
+    "Vault locked: unlock Triwarden to search it" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保管庫はロックされています。検索するには Chiikawarden のロックを解除してください"
+            "value" : "保管庫はロックされています。検索するには Triwarden のロックを解除してください"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "密码库已锁定：请先解锁 Chiikawarden 再搜索"
+            "value" : "密码库已锁定：请先解锁 Triwarden 再搜索"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保險庫已鎖定：請先解鎖 Chiikawarden 再搜尋"
+            "value" : "保險庫已鎖定：請先解鎖 Triwarden 再搜尋"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保險庫已鎖定：請先解鎖 Chiikawarden 再搜尋"
+            "value" : "保險庫已鎖定：請先解鎖 Triwarden 再搜尋"
           }
         }
       }
@@ -25685,30 +25685,30 @@
         }
       }
     },
-    "Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window." : {
+    "Works in every app. A common shortcut like ⌘K is taken from other apps while Triwarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのアプリで使えます。Chiikawarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
+            "value" : "すべてのアプリで使えます。Triwarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在所有 App 中都可使用。Chiikawarden 运行时，⌘K 这类常用快捷键会被占用，其他 App 无法使用；如需在别处使用，请换一个。在密码库窗口内，⌘K 和 ⌘F 始终会打开命令面板。"
+            "value" : "在所有 App 中都可使用。Triwarden 运行时，⌘K 这类常用快捷键会被占用，其他 App 无法使用；如需在别处使用，请换一个。在密码库窗口内，⌘K 和 ⌘F 始终会打开命令面板。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在所有 App 中都可使用。Chiikawarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
+            "value" : "在所有 App 中都可使用。Triwarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "喺所有 App 都用得。Chiikawarden 運行時，⌘K 呢類常用快速鍵會被佔用，其他 App 用唔到；如果其他地方需要，就揀過另一個。喺保險庫視窗入面，⌘K 同 ⌘F 一定會打開指令面板。"
+            "value" : "喺所有 App 都用得。Triwarden 運行時，⌘K 呢類常用快速鍵會被佔用，其他 App 用唔到；如果其他地方需要，就揀過另一個。喺保險庫視窗入面，⌘K 同 ⌘F 一定會打開指令面板。"
           }
         }
       }

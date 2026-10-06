@@ -127,7 +127,7 @@ private struct GeneralSettings: View {
             } header: {
                 Text("Updates")
             } footer: {
-                Text("Updates come from this project's GitHub releases. Each one is signed; Chiikawarden checks the signature and Apple's notarization before installing, then relaunches.")
+                Text("Updates come from this project's GitHub releases. Each one is signed; Triwarden checks the signature and Apple's notarization before installing, then relaunches.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -136,7 +136,7 @@ private struct GeneralSettings: View {
             } header: {
                 Text("Shortcuts")
             } footer: {
-                Text("Works in every app. A common shortcut like ⌘K is taken from other apps while Chiikawarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.")
+                Text("Works in every app. A common shortcut like ⌘K is taken from other apps while Triwarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -153,7 +153,7 @@ private struct GeneralSettings: View {
                     }
                 }
             } footer: {
-                Text("Fill passwords and verification codes in Safari, Chrome and apps. Turn on Chiikawarden in System Settings › General › AutoFill & Passwords.")
+                Text("Fill passwords and verification codes in Safari, Chrome and apps. Turn on Triwarden in System Settings › General › AutoFill & Passwords.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .task {
@@ -179,7 +179,7 @@ private struct GeneralSettings: View {
             Section {
                 LanguagePicker()
             } footer: {
-                Text("Chiikawarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language.")
+                Text("Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -247,7 +247,7 @@ private struct DeveloperSettings: View {
     @AppStorage(Pref.cliApprovalSeconds) private var cliApprovalSeconds = 0
     @AppStorage(Pref.browser) private var browserEnabled = false
 
-    private var installCommand: String { "sudo ln -sf \"\(CLIBridge.toolPath)\" /usr/local/bin/cw" }
+    private var installCommand: String { "sudo ln -sf \"\(CLIBridge.toolPath)\" /usr/local/bin/tw" }
 
     private var configLine: String { "Host *\n  IdentityAgent \"\(model.sshAgent.socketPath)\"" }
 
@@ -255,7 +255,7 @@ private struct DeveloperSettings: View {
         let agent = model.sshAgent!
         Form {
             Section {
-                Toggle("Use Chiikawarden as SSH agent", isOn: $enabled)
+                Toggle("Use Triwarden as SSH agent", isOn: $enabled)
                     .onChange(of: enabled) { _, on in on ? agent.start() : agent.stop() }
                 Picker("Ask before signing", selection: $approvalSeconds) {
                     Text("Every time").tag(0)
@@ -287,14 +287,14 @@ private struct DeveloperSettings: View {
             }
 
             Section {
-                Toggle("Answer the cw command", isOn: $cliEnabled)
+                Toggle("Answer the tw command", isOn: $cliEnabled)
                     .onChange(of: cliEnabled) { model.cli.refreshRunning() }
                 Picker("Ask before revealing", selection: $cliApprovalSeconds) {
                     Text("Every time").tag(0)
                     Text("Once per minute, per app").tag(60)
                     Text("Once per 10 minutes, per app").tag(600)
                 }
-                LabeledContent("Install cw") {
+                LabeledContent("Install tw") {
                     Button("Copy Command") { model.copyPlain(installCommand) }
                 }
                 Text(verbatim: installCommand)
@@ -305,7 +305,7 @@ private struct DeveloperSettings: View {
             } header: {
                 Text("Command line")
             } footer: {
-                Text("cw get github · cw code github · cw list · cw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.")
+                Text("tw get github · tw code github · tw list · tw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -319,14 +319,14 @@ private struct DeveloperSettings: View {
                 }
                 LabeledContent("Chrome, Edge, Brave") {
                     Button("Show Extension Folder") {
-                        let folder = Bundle.main.bundleURL.appending(path: "Contents/PlugIns/ChiikawardenSafari.appex/Contents/Resources/manifest.json")
+                        let folder = Bundle.main.bundleURL.appending(path: "Contents/PlugIns/TriwardenSafari.appex/Contents/Resources/manifest.json")
                         NSWorkspace.shared.activateFileViewerSelecting([folder])
                     }
                 }
             } header: {
                 Text("Browser extension")
             } footer: {
-                Text("Safari: turn on Chiikawarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run cw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first.")
+                Text("Safari: turn on Triwarden in Safari › Settings › Extensions. Chromium browsers: load the folder as an unpacked extension, then run tw install-chrome <extension id>. Suggestions show names only; filling asks for Touch ID, saving asks you first.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -593,7 +593,7 @@ private struct AboutSettings: View {
         VStack(spacing: 10) {
             Image(nsImage: NSApplication.shared.applicationIconImage)
                 .resizable().frame(width: 96, height: 96)
-            Text(verbatim: "Chiikawarden").font(.system(size: 22, weight: .bold))
+            Text(verbatim: "Triwarden").font(.system(size: 22, weight: .bold))
             Text(verbatim: "Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""))")
                 .foregroundStyle(.secondary)
             Text("A native Mac client for Vaultwarden and Bitwarden.")
@@ -604,7 +604,7 @@ private struct AboutSettings: View {
                 .frame(maxWidth: 380)
                 .padding(.top, 8)
             HStack(spacing: 8) {
-                Link(destination: URL(string: "https://github.com/sinhong2011/chiikawarden")!) {
+                Link(destination: URL(string: "https://github.com/sinhong2011/triwarden")!) {
                     Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
                 .buttonStyle(.appSecondarySmall)

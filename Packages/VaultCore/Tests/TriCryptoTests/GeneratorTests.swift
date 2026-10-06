@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ChiikawaCrypto
+@testable import TriCrypto
 
 @Suite struct GeneratorTests {
     @Test func wordListIsTheEFFList() {

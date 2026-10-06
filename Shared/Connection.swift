@@ -43,7 +43,7 @@ struct CustomHeader: Codable, Hashable, Identifiable {
 
 /// Stores custom headers as one Keychain item, since values are often credentials.
 enum HeaderStore {
-    private static let service = "io.github.sinhong2011.chiikawarden.headers"
+    private static let service = "io.github.sinhong2011.triwarden.headers"
 
     static func load() -> [CustomHeader] {
         Keychain.read(service: service).flatMap { try? JSONDecoder().decode([CustomHeader].self, from: $0) } ?? []

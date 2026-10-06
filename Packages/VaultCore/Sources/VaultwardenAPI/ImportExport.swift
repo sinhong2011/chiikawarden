@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 // Import and export in the formats of Bitwarden's official clients, so files move freely between them:

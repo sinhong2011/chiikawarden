@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 /// What the user can change on an item. `nil` means "leave as is"; an empty string clears the field.

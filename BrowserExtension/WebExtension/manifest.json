@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Chiikawarden",
-  "description": "Fill and save logins from your Chiikawarden vault. Filling asks for Touch ID in the app.",
+  "name": "Triwarden",
+  "description": "Fill and save logins from your Triwarden vault. Filling asks for Touch ID in the app.",
   "version": "0.3.0",
   "icons": { "48": "icon-48.png", "96": "icon-96.png", "128": "icon-128.png" },
   "background": { "service_worker": "background.js" },

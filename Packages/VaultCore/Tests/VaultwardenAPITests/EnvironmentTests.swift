@@ -57,7 +57,7 @@ import Testing
     }
 
     /// Live call to api.pwnedpasswords.com (sends only 5-char hash prefixes).
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["CHIIKAWARDEN_NETWORK_TESTS"] != nil))
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["TRIWARDEN_NETWORK_TESTS"] != nil))
     func knownBreachedPassword() async throws {
         let random = UUID().uuidString + UUID().uuidString
         let result = try await PwnedPasswords.check(["password", random])

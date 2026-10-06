@@ -1,5 +1,5 @@
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 import QuickLook
 import SwiftUI
 import UniformTypeIdentifiers
@@ -1112,7 +1112,7 @@ struct ItemDetail: View {
                                 """)
                             }
                             .buttonStyle(.borderless)
-                            .help(Text("Commands that make git sign commits with this key through the Chiikawarden SSH agent"))
+                            .help(Text("Commands that make git sign commits with this key through the Triwarden SSH agent"))
                         }
                     }
                     if item.hasPasskey {
@@ -1127,7 +1127,7 @@ struct ItemDetail: View {
                                 }
                                 .foregroundStyle(.secondary)
                             } else {
-                                Text("Stored with a key type Chiikawarden can't use").foregroundStyle(.secondary)
+                                Text("Stored with a key type Triwarden can't use").foregroundStyle(.secondary)
                             }
                         }
                     }

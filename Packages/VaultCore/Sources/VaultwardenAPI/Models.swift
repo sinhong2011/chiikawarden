@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 public struct PreloginResponse: Decodable, Sendable {

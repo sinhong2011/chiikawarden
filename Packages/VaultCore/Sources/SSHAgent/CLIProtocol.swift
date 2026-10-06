@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-/// JSON messages between the `cw` command and the app (one frame each way per request).
+/// JSON messages between the `tw` command and the app (one frame each way per request).
 public struct CLIRequest: Codable, Sendable, Equatable {
     public enum Command: String, Codable, Sendable {
         case status, list, get, code, generate, lock
@@ -55,9 +55,9 @@ public enum CLISocket {
     public static let name = "cli.sock"
 }
 
-/// One request/response to the running app (used by `cw`, the Chrome host and the Safari extension).
+/// One request/response to the running app (used by `tw`, the Chrome host and the Safari extension).
 public enum BridgeClient {
-    public static let appGroup = "FX3VR69P5K.io.github.sinhong2011.chiikawarden"
+    public static let appGroup = "FX3VR69P5K.io.github.sinhong2011.triwarden"
 
     /// `~/Library/Group Containers/<group>/cli.sock`, resolved for sandboxed and unsandboxed callers alike.
     public static var defaultSocketPath: String {
@@ -70,13 +70,13 @@ public enum BridgeClient {
 
     public static func send(_ request: CLIRequest, socket: String = defaultSocketPath) -> CLIResponse {
         guard let fd = FramedSocketServer.connect(to: socket) else {
-            return .failure("Chiikawarden isn't running, or this connection is turned off in Settings › Developer.")
+            return .failure("Triwarden isn't running, or this connection is turned off in Settings › Developer.")
         }
         defer { close(fd) }
         guard let body = try? JSONEncoder().encode(request), FramedSocketServer.writeFrame(fd, body),
               let reply = FramedSocketServer.readFrame(fd, max: 8 * 1024 * 1024),
               let response = try? JSONDecoder().decode(CLIResponse.self, from: reply) else {
-            return .failure("No answer from Chiikawarden.")
+            return .failure("No answer from Triwarden.")
         }
         return response
     }

@@ -2,7 +2,7 @@
 """Seed a dev Vaultwarden server with test accounts and items.
 
 Does the client-side crypto itself (like a real Bitwarden client), so it also
-serves as an independent reference implementation for Chiikawarden's tests.
+serves as an independent reference implementation for Triwarden's tests.
 
     python3 seed.py https://m1pro.local:18843 --ca data/root.crt
 
@@ -28,7 +28,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
 
-PASSWORD = os.environ.get("CHIIKAWARDEN_DEV_PASSWORD", "chiikawa-dev-password")
+PASSWORD = os.environ.get("TRIWARDEN_DEV_PASSWORD", "chiikawa-dev-password")
 DEVICE_ID = str(uuid.uuid5(uuid.NAMESPACE_DNS, "seed.chiikawarden.test"))
 
 ACCOUNTS = [
@@ -98,8 +98,8 @@ class Server:
         self.s = requests.Session()
         self.s.verify = ca if ca else True
 
-    def post(self, path: str, **kw):
-        r = self.s.post(f"{self.base}/{path}", timeout=30, **kw)
+    def post(self, path: str, **tw):
+        r = self.s.post(f"{self.base}/{path}", timeout=30, **tw)
         return r
 
     def register(self, email: str, name: str, kdf: dict) -> bool:
@@ -125,7 +125,7 @@ class Server:
         form = {
             "grant_type": "password", "username": email, "password": password_hash(mk),
             "scope": "api offline_access", "client_id": "web", "deviceType": "9",
-            "deviceIdentifier": DEVICE_ID, "deviceName": "chiikawarden-seed",
+            "deviceIdentifier": DEVICE_ID, "deviceName": "triwarden-seed",
         }
         if code:
             form |= {"twoFactorProvider": "0", "twoFactorToken": code, "twoFactorRemember": "0"}
@@ -156,8 +156,8 @@ class Session:
         self.server, self.user_key, self.pw_hash = server, user_key, pw_hash
         self.h = {"Authorization": f"Bearer {token}"}
 
-    def req(self, method: str, path: str, **kw):
-        r = self.server.s.request(method, f"{self.server.base}/{path}", headers=self.h, timeout=30, **kw)
+    def req(self, method: str, path: str, **tw):
+        r = self.server.s.request(method, f"{self.server.base}/{path}", headers=self.h, timeout=30, **tw)
         if not r.ok:
             raise RuntimeError(f"{method} {path}: {r.status_code} {r.text[:300]}")
         return r.json() if r.content else None
@@ -202,7 +202,7 @@ class Session:
             self.req("POST", "api/ciphers", json={
                 "type": 5, "name": enc("homelab-ed25519", k), "favorite": False, "folderId": None, "organizationId": None,
                 "sshKey": {"privateKey": enc("-----BEGIN OPENSSH PRIVATE KEY-----\n(dev placeholder)\n-----END OPENSSH PRIVATE KEY-----", k),
-                           "publicKey": enc("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDevPlaceholder usagi@chiikawarden", k),
+                           "publicKey": enc("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDevPlaceholder usagi@triwarden", k),
                            "keyFingerprint": enc("SHA256:devplaceholder", k)}})
         except RuntimeError as e:
             print(f"    (ssh key item skipped: {str(e)[:80]})")

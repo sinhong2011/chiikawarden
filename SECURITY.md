@@ -1,13 +1,13 @@
 # Security
 
-Chiikawarden is a client for Vaultwarden and Bitwarden servers. It uses the same end-to-end encryption
+Triwarden is a client for Vaultwarden and Bitwarden servers. It uses the same end-to-end encryption
 as the official clients. The server only ever sees encrypted vault data, and your master password never
 leaves your Mac.
 
 ## Reporting a vulnerability
 
 Please **don't open a public issue**. Use **Security › Report a vulnerability** on
-[the GitHub repository](https://github.com/sinhong2011/chiikawarden/security/advisories/new) instead, and
+[the GitHub repository](https://github.com/sinhong2011/triwarden/security/advisories/new) instead, and
 include steps to reproduce. You should get an answer within a week. Fixes ship as a new release, with credit
 to you unless you'd rather stay anonymous.
 
@@ -23,7 +23,7 @@ Problems in Vaultwarden or Bitwarden themselves belong to those projects.
 | User key for Touch ID | `Accounts/<id>/biometric.json` | AES-GCM under a key from ECDH with a **Secure Enclave** P-256 key that requires `biometryCurrentSet`. Enrolling a new finger or removing Touch ID makes it unusable, and you then need the master password. |
 | Organization keys, per-item keys | Memory while unlocked | Arrive RSA-OAEP or AES encrypted in the sync payload. |
 | Vault cache | `Accounts/<id>/vault.json` | The sync payload exactly as the server sent it: every name, username, password, URI, note and field is still an EncString. Item ids, types, dates and folder/collection ids are visible. |
-| Refresh token | Keychain (Keychain Sharing group `…chiikawarden.shared`) | `AfterFirstUnlockThisDeviceOnly`, never synced to iCloud. Shared with the AutoFill extension so it can save new passkeys. |
+| Refresh token | Keychain (Keychain Sharing group `…triwarden.shared`) | `AfterFirstUnlockThisDeviceOnly`, never synced to iCloud. Shared with the AutoFill extension so it can save new passkeys. |
 | Custom request headers (e.g. Cloudflare Access tokens) | Same Keychain group | Same as above. |
 | Website-icon cache key | Same Keychain group | 256-bit random key. Icons are cached AES-GCM encrypted, under HMAC-SHA256 file names, so the cache doesn't reveal which sites you have. |
 | Attachments | On the server; decrypted copies only while previewed | Each file has its own 512-bit key (encrypted with the item key) and is uploaded as an encrypted buffer. Quick Look gets a decrypted copy in a private (0700) folder in the sandbox's temp directory. It is deleted when the preview closes, on lock and at launch. On APFS, deleting a file doesn't scrub the disk blocks, so don't preview files you need forensically erased. |
@@ -31,7 +31,7 @@ Problems in Vaultwarden or Bitwarden themselves belong to those projects.
 | Passkeys | Inside the login item (`login.fido2Credentials`) | Encrypted with the item's key like any other field, and synced to your server. |
 
 Files live in the App Group container
-`~/Library/Group Containers/FX3VR69P5K.io.github.sinhong2011.chiikawarden/`. They are written atomically
+`~/Library/Group Containers/FX3VR69P5K.io.github.sinhong2011.triwarden/`. They are written atomically
 with `completeUntilFirstUserAuthentication` file protection, and both the app and the extension are sandboxed.
 
 ## What the app does to limit exposure
@@ -47,11 +47,11 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
   signs; it never adds, removes or exports keys. Every signature asks for Touch ID or the Mac password, names
   the requesting program, and can optionally be remembered for 1 or 10 minutes per key and program. Keys
   are only available while their account is unlocked.
-- **`cw` command line** (off by default) talks to the app over a `0600` socket in the App Group container.
+- **`tw` command line** (off by default) talks to the app over a `0600` socket in the App Group container.
   Status, generate and lock work without approval. Listing or reading anything needs the vault unlocked and
   Touch ID or the Mac password, with a prompt that names the calling program. Secrets go to stdout only,
   never into arguments or environment variables.
-- **Browser extension** (off by default; Safari, and Chrome/Edge/Brave through `cw` as the native host)
+- **Browser extension** (off by default; Safari, and Chrome/Edge/Brave through `tw` as the native host)
   stores nothing and holds no keys. The page URL comes from the browser, not the page. Suggestions are names
   and usernames for that site only, and only our own bundled binaries may ask for them. Filling needs Touch ID
   and only fills a login on its own site. Saving or updating a login always asks you in the app first.
@@ -62,7 +62,7 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
 - **Leaked-password check** (Watchtower) uses the Have I Been Pwned k-anonymity range API with padding.
   Only the first 5 hex characters of each SHA-1 are sent.
 - **Self-hosted servers**: public `http://` servers are refused, while local-network `http://` is allowed for
-  home labs. You can trust a private CA inside Chiikawarden only, without adding it to the system keychain.
+  home labs. You can trust a private CA inside Triwarden only, without adding it to the system keychain.
 - **Edits** patch the server's own JSON and send `lastKnownRevisionDate`, so fields this app doesn't
   understand survive and concurrent edits are rejected rather than overwritten.
 
@@ -91,7 +91,7 @@ Formats match Bitwarden's official clients, so files move between them.
 - A compromised or malicious server, or anyone who reads the server's database. They get ciphertext only.
   A server could still withhold or roll back data, which no Bitwarden-protocol client can prevent.
 - Network attackers. TLS is required for anything not on the local network.
-- Someone with your unlocked Mac while Chiikawarden is **locked**. They need the master password or your
+- Someone with your unlocked Mac while Triwarden is **locked**. They need the master password or your
   fingerprint.
 - Other apps reading the vault files. The vault cache stays encrypted, and the sandbox keeps other apps out.
 

@@ -1,16 +1,16 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import Testing
 @testable import VaultwardenAPI
 
 /// Integration tests against the seeded dev servers (see DevServer/README.md).
 ///
-///     CHIIKAWARDEN_DEV_HOST=192.168.1.50 \
-///     CHIIKAWARDEN_DEV_CA=$PWD/../../DevServer/data/root.crt swift test
+///     TRIWARDEN_DEV_HOST=192.168.1.50 \
+///     TRIWARDEN_DEV_CA=$PWD/../../DevServer/data/root.crt swift test
 enum DevServer {
     static let env = ProcessInfo.processInfo.environment
-    static let host = env["CHIIKAWARDEN_DEV_HOST"]
-    static let password = env["CHIIKAWARDEN_DEV_PASSWORD"] ?? "chiikawa-dev-password"
+    static let host = env["TRIWARDEN_DEV_HOST"]
+    static let password = env["TRIWARDEN_DEV_PASSWORD"] ?? "chiikawa-dev-password"
     static let totpSecret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
     static var enabled: Bool { host != nil }
 
@@ -18,7 +18,7 @@ enum DevServer {
     static let ports = [18843, 18844]
 
     static func client(port: Int) throws -> VaultClient {
-        let ca = try env["CHIIKAWARDEN_DEV_CA"].map { try Data(contentsOf: URL(filePath: $0)) }
+        let ca = try env["TRIWARDEN_DEV_CA"].map { try Data(contentsOf: URL(filePath: $0)) }
         let trust = ServerTrust(certificates: ca.map { [$0] } ?? [])
         return VaultClient(environment: .selfHosted(URL(string: "https://\(host!):\(port)")!),
                                  deviceIdentifier: "6b0e4a3c-1d2e-4f50-8a6b-7c8d9e0f1a2b",
@@ -26,7 +26,7 @@ enum DevServer {
     }
 }
 
-@Suite(.enabled(if: DevServer.enabled, "set CHIIKAWARDEN_DEV_HOST to run"), .serialized)
+@Suite(.enabled(if: DevServer.enabled, "set TRIWARDEN_DEV_HOST to run"), .serialized)
 struct DevServerTests {
     @Test(arguments: DevServer.ports)
     func pbkdf2LoginAndSync(port: Int) async throws {
@@ -92,7 +92,7 @@ struct DevServerTests {
         let client = try DevServer.client(port: port)
         let userKey = try await client.login(email: "usagi@chiikawarden.test", password: DevServer.password)
         let token = try #require(await client.currentAccessToken)
-        let ca = try DevServer.env["CHIIKAWARDEN_DEV_CA"].map { try Data(contentsOf: URL(filePath: $0)) }
+        let ca = try DevServer.env["TRIWARDEN_DEV_CA"].map { try Data(contentsOf: URL(filePath: $0)) }
         let session = ServerTrust(certificates: ca.map { [$0] } ?? []).makeSession()
         let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
         let live = LiveSync(environment: .selfHosted(URL(string: "https://\(DevServer.host!):\(port)")!),

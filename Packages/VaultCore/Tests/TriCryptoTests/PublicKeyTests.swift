@@ -1,7 +1,7 @@
 import Foundation
 import Security
 import Testing
-@testable import ChiikawaCrypto
+@testable import TriCrypto
 
 @Suite struct PublicKeyTests {
     /// A fresh RSA key as PKCS#8, the way the profile stores it.

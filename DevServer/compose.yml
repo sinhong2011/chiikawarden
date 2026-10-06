@@ -1,6 +1,6 @@
-# Chiikawarden dev environment: two Vaultwarden versions behind Caddy (internal CA) + Mailpit.
+# Triwarden dev environment: two Vaultwarden versions behind Caddy (internal CA) + Mailpit.
 # Runs on the m1pro dev box; see DevServer/README.md.
-name: chiikawarden-dev
+name: triwarden-dev
 
 x-vw-env: &vw-env
   SIGNUPS_ALLOWED: "true"
@@ -47,7 +47,7 @@ services:
       SSO_ENABLED: "true"
       SSO_AUTHORITY: http://${DEV_IP}:18856/dex
       SSO_CLIENT_ID: vaultwarden
-      SSO_CLIENT_SECRET: chiikawarden-dev-sso-secret
+      SSO_CLIENT_SECRET: triwarden-dev-sso-secret
       SSO_SCOPES: "email profile"
       SSO_PKCE: "true"
       SSO_SIGNUPS_MATCH_EMAIL: "true"

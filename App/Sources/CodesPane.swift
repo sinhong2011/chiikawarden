@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import SwiftUI
 
 /// Sidebar › One-Time Codes: every code at once, live, click to copy.

@@ -26,7 +26,7 @@ final class IconStore {
 
     /// Random key in the Keychain; encrypts cached icons and keys their file names.
     private let key: SymmetricKey = {
-        let service = "io.github.sinhong2011.chiikawarden.iconcache"
+        let service = "io.github.sinhong2011.triwarden.iconcache"
         if let data = Keychain.read(service: service), data.count == 32 { return SymmetricKey(data: data) }
         let key = SymmetricKey(size: .bits256)
         Keychain.write(key.withUnsafeBytes { Data($0) }, service: service)
@@ -60,7 +60,7 @@ final class IconStore {
     }
 
     private func placeholderHash(for environment: ServerEnvironment?, session: URLSession) -> Task<Data?, Never> {
-        guard let probe = Self.url(for: "chiikawarden-no-icon.invalid", environment: environment) else { return Task { nil } }
+        guard let probe = Self.url(for: "triwarden-no-icon.invalid", environment: environment) else { return Task { nil } }
         let key = probe.host() ?? ""
         if let task = placeholders[key] { return task }
         let task = Task<Data?, Never> {

@@ -19,7 +19,7 @@ public enum PwnedPasswords {
                 group.addTask {
                     var request = URLRequest(url: endpoint.appending(path: prefix))
                     request.setValue("true", forHTTPHeaderField: "Add-Padding")
-                    request.setValue("Chiikawarden", forHTTPHeaderField: "User-Agent")
+                    request.setValue("Triwarden", forHTTPHeaderField: "User-Agent")
                     let (data, response) = try await session.data(for: request)
                     guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
                     let counts = parse(String(decoding: data, as: UTF8.self))

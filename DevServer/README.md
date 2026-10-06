@@ -1,6 +1,6 @@
 # Dev server
 
-A disposable Vaultwarden environment for developing and testing Chiikawarden. It runs on the
+A disposable Vaultwarden environment for developing and testing Triwarden. It runs on the
 `m1pro` dev box (OrbStack/Docker) and is driven from your Mac with `dev.sh`.
 
 | Endpoint | What |
@@ -11,7 +11,7 @@ A disposable Vaultwarden environment for developing and testing Chiikawarden. It
 | `http://<dev ip>:18881` | latest with SSO (OpenID Connect) against dex |
 | `http://<dev ip>:18856/dex` | dex identity provider; user `usagi@chiikawarden.test`, dev password |
 | `http://devbox.local:18826` | Mailpit — every email the servers send |
-| `…:18843/admin` | Admin panel; token is in `~/chiikawarden-dev/.env` on the dev box |
+| `…:18843/admin` | Admin panel; token is in `~/triwarden-dev/.env` on the dev box |
 
 ```bash
 ./dev.sh up      # deploy/start, fetch the Caddy root CA to data/root.crt
@@ -23,7 +23,7 @@ A disposable Vaultwarden environment for developing and testing Chiikawarden. It
 
 ## Test accounts
 
-All use the password `chiikawa-dev-password` (dev only — override with `CHIIKAWARDEN_DEV_PASSWORD`).
+All use the password `chiikawa-dev-password` (dev only — override with `TRIWARDEN_DEV_PASSWORD`).
 
 | Account | KDF | Notes |
 |---|---|---|
@@ -36,4 +36,4 @@ independent reference implementation for the Swift crypto.
 
 The dev box answers as `devbox.local` (its mDNS name) and also by IP `192.168.1.50`.
 
-Other machines: set `CHIIKAWARDEN_DEV_REMOTE` (ssh host) and `CHIIKAWARDEN_DEV_HOST` (address clients use).
+Other machines: set `TRIWARDEN_DEV_REMOTE` (ssh host) and `TRIWARDEN_DEV_HOST` (address clients use).

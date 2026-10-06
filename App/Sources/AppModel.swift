@@ -1,5 +1,5 @@
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 import LocalAuthentication
 import Foundation
 import Observation
@@ -30,7 +30,7 @@ final class AppModel {
     }
 
     enum ServerKind: String, CaseIterable, Identifiable {
-        // Self-hosted first: Chiikawarden is made for Vaultwarden.
+        // Self-hosted first: Triwarden is made for Vaultwarden.
         case selfHosted, bitwardenUS, bitwardenEU
         var id: Self { self }
         var label: LocalizedStringResource {

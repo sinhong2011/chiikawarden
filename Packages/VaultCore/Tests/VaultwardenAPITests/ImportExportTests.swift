@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import Testing
 @testable import VaultwardenAPI
@@ -77,7 +77,7 @@ import Testing
         // Plain parts of the file never contain the vault.
         #expect(!String(decoding: file, as: UTF8.self).contains("GitHub"))
         // For the independent check: `python3 DevServer/verify_export.py <file> file-pass`.
-        if let out = ProcessInfo.processInfo.environment["CHIIKAWARDEN_EXPORT_OUT"] {
+        if let out = ProcessInfo.processInfo.environment["TRIWARDEN_EXPORT_OUT"] {
             try file.write(to: URL(fileURLWithPath: out))
         }
     }

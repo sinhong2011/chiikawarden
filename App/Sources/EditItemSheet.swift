@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import SwiftUI
 import VaultwardenAPI
 
@@ -73,7 +73,7 @@ struct EditItemSheet: View {
         case .note: "Private text, encrypted like everything else."
         case .card: "A payment card, ready for AutoFill."
         case .identity: "Your details, for filling in forms."
-        case .sshKey: "A key the Chiikawarden SSH agent can sign with."
+        case .sshKey: "A key the Triwarden SSH agent can sign with."
         }
     }
 

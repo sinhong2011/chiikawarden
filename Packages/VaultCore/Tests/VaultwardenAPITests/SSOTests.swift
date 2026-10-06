@@ -1,4 +1,4 @@
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 import Testing
 @testable import VaultwardenAPI
@@ -6,7 +6,7 @@ import Testing
 /// Drives the whole OIDC flow headlessly against the dev stack's dex + SSO-enabled Vaultwarden
 /// (`DevServer/compose.yml`): browser redirects and dex's password form are played with URLSession.
 @Suite struct SSOTests {
-    static var ip: String? { ProcessInfo.processInfo.environment["CHIIKAWARDEN_DEV_IP"] }
+    static var ip: String? { ProcessInfo.processInfo.environment["TRIWARDEN_DEV_IP"] }
 
     /// Follows redirects like a browser but stops at the `bitwarden://` callback.
     final class Browser: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
@@ -21,9 +21,9 @@ import Testing
     }
 
     @Test func ssoThenMasterPassword() async throws {
-        guard let ip = Self.ip else { return } // set CHIIKAWARDEN_DEV_IP to run
+        guard let ip = Self.ip else { return } // set TRIWARDEN_DEV_IP to run
         let client = VaultClient(environment: .selfHosted(URL(string: "http://\(ip):18881")!), deviceIdentifier: UUID().uuidString)
-        let start = try await client.beginSSO(identifier: "chiikawarden")
+        let start = try await client.beginSSO(identifier: "triwarden")
         #expect(start.authorizeURL.absoluteString.contains("code_challenge_method=S256"))
 
         let browser = Browser()

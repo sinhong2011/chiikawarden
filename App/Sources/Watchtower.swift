@@ -250,7 +250,7 @@ enum TwoFactorDirectory {
     static let source = URL(string: "https://api.2fa.directory/v3/totp.json")!
 
     private static var cacheURL: URL {
-        let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appending(path: "Chiikawarden")
+        let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appending(path: "Triwarden")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appending(path: "2fa-directory.json")
     }

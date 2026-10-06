@@ -3,16 +3,16 @@ import AppIntents
 import AuthenticationServices
 #if DEBUG
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 import SwiftUI
 import VaultwardenAPI
 
-/// Debug-only: `Chiikawarden --snapshot` renders key screens offscreen in light and dark
+/// Debug-only: `Triwarden --snapshot` renders key screens offscreen in light and dark
 /// to PNGs, so UI can be reviewed without screen-recording permission. Exits when done.
 @MainActor
 enum Snapshot {
     /// `make snapshots ONLY=login,send`: render only screens whose file name contains one of these (all when empty).
-    static let only: [String] = (ProcessInfo.processInfo.environment["CHIIKAWARDEN_SNAPSHOT_ONLY"] ?? "")
+    static let only: [String] = (ProcessInfo.processInfo.environment["TRIWARDEN_SNAPSHOT_ONLY"] ?? "")
         .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
 
     static func wanted(_ url: URL) -> Bool {
@@ -372,7 +372,7 @@ enum Snapshot {
 #endif
 
 #if DEBUG
-/// Debug-only: `Chiikawarden --selftest <server> <email> <password>` runs the account lifecycle inside the
+/// Debug-only: `Triwarden --selftest <server> <email> <password>` runs the account lifecycle inside the
 /// real (signed, sandboxed) app: log in → lock → offline unlock from cache → resume session → wrong password → log out.
 @MainActor
 enum SelfTest {
@@ -399,7 +399,7 @@ enum SelfTest {
             check(model.isUnlocked && !model.items.isEmpty, "login + sync (\(model.items.count) items) \(model.errorMessage ?? "")")
             check(AccountStore.load(firstID) != nil && AccountStore.loadCache(firstID) != nil && AccountStore.refreshToken(firstID) != nil,
                   "account, encrypted cache and refresh token persisted")
-            check(Keychain.isShared(service: "io.github.sinhong2011.chiikawarden.SelfTestAccounts.refresh.\(firstID)"),
+            check(Keychain.isShared(service: "io.github.sinhong2011.triwarden.SelfTestAccounts.refresh.\(firstID)"),
                   "refresh token in the App Group keychain (AutoFill can save passkeys)")
             let count = model.items.count
             let org = model.organizations.first
@@ -641,7 +641,7 @@ enum SelfTest {
                     if let n = model.items.first(where: { $0.id == note.id }) { await model.deleteForever(n) }
                 }
 
-                // cw command line and App Intents.
+                // tw command line and App Intents.
                 var cliEdit = CipherEdit(name: "Selftest cli", username: "cli-user", password: "cli-secret-42", totp: "JBSWY3DPEHPK3PXP")
                 cliEdit.customFields = [CustomField(name: "PIN", value: "2468", kind: .hidden)]
                 _ = await model.createItem(.login, edit: cliEdit)
@@ -650,19 +650,19 @@ enum SelfTest {
                 var approvals: [String] = []
                 model.cli.approveOverride = { approvals.append($0); return true }
                 model.cli.start(at: cliSocket)
-                let cw = CLIBridge.toolPath, cwEnv = ["CW_SOCKET": cliSocket.path]
-                let status = await Snapshot.tool(cw, ["status"], env: cwEnv)
-                let cwPassword = await Snapshot.tool(cw, ["get", "selftest cli"], env: cwEnv)
-                let pin = await Snapshot.tool(cw, ["get", "Selftest cli", "--field", "PIN"], env: cwEnv)
-                let cwCode = await Snapshot.tool(cw, ["code", "Selftest cli"], env: cwEnv)
-                let generated = await Snapshot.tool(cw, ["generate", "--length", "32"], env: cwEnv)
-                let missing = await Snapshot.tool(cw, ["get", "no-such-item-xyz"], env: cwEnv)
+                let tw = CLIBridge.toolPath, cwEnv = ["TW_SOCKET": cliSocket.path]
+                let status = await Snapshot.tool(tw, ["status"], env: cwEnv)
+                let cwPassword = await Snapshot.tool(tw, ["get", "selftest cli"], env: cwEnv)
+                let pin = await Snapshot.tool(tw, ["get", "Selftest cli", "--field", "PIN"], env: cwEnv)
+                let cwCode = await Snapshot.tool(tw, ["code", "Selftest cli"], env: cwEnv)
+                let generated = await Snapshot.tool(tw, ["generate", "--length", "32"], env: cwEnv)
+                let missing = await Snapshot.tool(tw, ["get", "no-such-item-xyz"], env: cwEnv)
                 check(status.output.hasPrefix("unlocked") && cwPassword.output == "cli-secret-42" && pin.output == "2468"
                       && cwCode.output.count == 6 && generated.output.count == 32 && missing.status != 0
-                      && approvals.count == 3, "cw: status, get, custom field, code, generate, not found")
+                      && approvals.count == 3, "tw: status, get, custom field, code, generate, not found")
                 model.cli.approveOverride = { _ in false }
-                let refused = await Snapshot.tool(cw, ["get", "Selftest cli"], env: cwEnv)
-                check(refused.status != 0 && refused.output.contains("Not approved"), "cw: refused approval reveals nothing")
+                let refused = await Snapshot.tool(tw, ["get", "Selftest cli"], env: cwEnv)
+                check(refused.status != 0 && refused.output.contains("Not approved"), "tw: refused approval reveals nothing")
 
                 // Browser extension commands over the same socket (as Safari's handler / Chrome's host send them).
                 model.cli.approveOverride = { approvals.append($0); return true }
@@ -835,7 +835,7 @@ enum SelfTest {
 
                         // Steps that sign in again (another device, password and KDF changes) use up the server's login
                         // rate limit; they run with `make selftest-security`.
-                        let securityRun = ProcessInfo.processInfo.environment["CHIIKAWARDEN_SELFTEST_SECURITY"] == "1"
+                        let securityRun = ProcessInfo.processInfo.environment["TRIWARDEN_SELFTEST_SECURITY"] == "1"
                         if securityRun {
                         // Another device asks to sign in; this Mac approves; that device unwraps the same user key.
                         let asker = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString.lowercased())
@@ -1050,7 +1050,7 @@ enum SelfTest {
                 model.serverKind = .selfHosted
                 model.serverURL = ssoServer
                 model.ssoAuthenticator = { url in try await HeadlessIdP.signIn(url, login: email, password: password) }
-                await model.loginWithSSO(identifier: "chiikawarden")
+                await model.loginWithSSO(identifier: "triwarden")
                 check(model.phase.id == AppModel.Phase.ssoPassword.id && model.email == email,
                       "SSO: identity provider sign-in, then asks for the master password \(model.errorMessage ?? "")")
                 await model.completeSSO(password: "wrong")

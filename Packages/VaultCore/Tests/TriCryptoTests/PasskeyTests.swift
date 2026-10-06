@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import Testing
-@testable import ChiikawaCrypto
+@testable import TriCrypto
 
 @Suite struct PasskeyTests {
     let clientDataHash = Data(SHA256.hash(data: Data(#"{"type":"webauthn.create","challenge":"abc","origin":"https://example.com"}"#.utf8)))

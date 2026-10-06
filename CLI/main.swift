@@ -2,11 +2,11 @@ import Darwin
 import Foundation
 import SSHAgent
 
-// `cw` — talks to the running Chiikawarden app. Secrets need the vault unlocked and an approval
+// `tw` — talks to the running Triwarden app. Secrets need the vault unlocked and an approval
 // (Touch ID or the Mac password) in the app.
 
 let usage = """
-usage: cw <command> [arguments]
+usage: tw <command> [arguments]
 
   status                    whether the vault is unlocked
   list [query]              items (name, username/site); needs approval
@@ -14,18 +14,18 @@ usage: cw <command> [arguments]
   code <item>               print the current one-time code
   generate [--length N]     a new random password (works while locked)
   lock                      lock every account
-  install-chrome <id>       register cw as the native host for the Chrome/Edge/Brave extension
+  install-chrome <id>       register tw as the native host for the Chrome/Edge/Brave extension
 
 <item> is an item id, an exact name, or a unique part of a name, username or site.
 """
 
 func fail(_ message: String, code: Int32 = 1) -> Never {
-    FileHandle.standardError.write(Data("cw: \(message)\n".utf8))
+    FileHandle.standardError.write(Data("tw: \(message)\n".utf8))
     exit(code)
 }
 
-let socket = ProcessInfo.processInfo.environment["CW_SOCKET"] ?? BridgeClient.defaultSocketPath
-let chromeHost = "io.github.sinhong2011.chiikawarden"
+let socket = ProcessInfo.processInfo.environment["TW_SOCKET"] ?? BridgeClient.defaultSocketPath
+let chromeHost = "io.github.sinhong2011.triwarden"
 
 /// Chrome native messaging: Chrome starts us with the extension's origin; messages are
 /// 4-byte little-endian length + JSON on stdin/stdout.
@@ -48,14 +48,14 @@ func nativeMessagingLoop() -> Never {
     exit(0)
 }
 
-/// `cw install-chrome <extension-id>` registers this binary as Chrome's native-messaging host.
+/// `tw install-chrome <extension-id>` registers this binary as Chrome's native-messaging host.
 func installChromeHost(_ extensionID: String) -> Never {
     guard extensionID.range(of: "^[a-p]{32}$", options: .regularExpression) != nil else {
         fail("that doesn't look like a Chrome extension id (32 letters a–p, see chrome://extensions)", code: 64)
     }
     let me = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath().path
     let manifest: [String: Any] = [
-        "name": chromeHost, "description": "Chiikawarden", "path": me, "type": "stdio",
+        "name": chromeHost, "description": "Triwarden", "path": me, "type": "stdio",
         "allowed_origins": ["chrome-extension://\(extensionID)/"],
     ]
     let home = FileManager.default.homeDirectoryForCurrentUser
@@ -79,7 +79,7 @@ var args = Array(CommandLine.arguments.dropFirst())
 guard let first = args.first else { print(usage); exit(64) }
 if first == "-h" || first == "--help" || first == "help" { print(usage); exit(0) }
 if first == "install-chrome" {
-    guard args.count == 2 else { fail("usage: cw install-chrome <extension-id>", code: 64) }
+    guard args.count == 2 else { fail("usage: tw install-chrome <extension-id>", code: 64) }
     installChromeHost(args[1])
 }
 guard let command = CLIRequest.Command(rawValue: first) else { fail("unknown command “\(first)”\n\n" + usage, code: 64) }
@@ -104,6 +104,6 @@ if let rows = response.rows {
         print(row.name.padding(toLength: width, withPad: " ", startingAt: 0) + "  " + row.detail + "  " + row.id)
     }
 } else if let value = response.value {
-    // No trailing newline when piped, so `cw get x | pbcopy` copies exactly the secret.
+    // No trailing newline when piped, so `tw get x | pbcopy` copies exactly the secret.
     if isatty(STDOUT_FILENO) != 0 { print(value) } else { FileHandle.standardOutput.write(Data(value.utf8)) }
 }

@@ -1,4 +1,4 @@
-# Chiikawarden — everyday commands. `make` lists them.
+# Triwarden — everyday commands. `make` lists them.
 # Machine-specific values (dev box address) go in local.mk, which git ignores.
 -include local.mk
 
@@ -7,9 +7,9 @@ DEV_IP   ?= 192.168.1.50
 DEV_PASSWORD ?= chiikawa-dev-password
 REGION   ?= us
 
-APP     := build/Build/Products/Debug/Chiikawarden.app
-BIN     := $(APP)/Contents/MacOS/Chiikawarden
-XCB     := xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -allowProvisioningUpdates
+APP     := build/Build/Products/Debug/Triwarden.app
+BIN     := $(APP)/Contents/MacOS/Triwarden
+XCB     := xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDataPath build -allowProvisioningUpdates
 DEV_CA  := $(CURDIR)/DevServer/data/root.crt
 
 .DEFAULT_GOAL := help
@@ -31,7 +31,7 @@ test: ## VaultCore unit tests (dev-server tests skip themselves)
 	@cd Packages/VaultCore && swift test 2>&1 | grep -E "✘|Test run"
 
 test-dev: ## VaultCore tests including both dev Vaultwarden servers and SSO
-	@cd Packages/VaultCore && CHIIKAWARDEN_DEV_HOST=$(DEV_IP) CHIIKAWARDEN_DEV_IP=$(DEV_IP) CHIIKAWARDEN_DEV_CA=$(DEV_CA) \
+	@cd Packages/VaultCore && TRIWARDEN_DEV_HOST=$(DEV_IP) TRIWARDEN_DEV_IP=$(DEV_IP) TRIWARDEN_DEV_CA=$(DEV_CA) \
 		swift test 2>&1 | grep -E "✘|Test run"
 
 selftest: build ## In-app self-test against the dev server (isolated storage)
@@ -39,7 +39,7 @@ selftest: build ## In-app self-test against the dev server (isolated storage)
 		hachiware@chiikawarden.test $(DEV_PASSWORD) 2>/dev/null | grep -E "PASS|FAIL|SKIP|SELFTEST"
 
 selftest-security: build ## Self-test plus the steps that sign in again (sign-in approval, password and KDF changes)
-	@CHIIKAWARDEN_SELFTEST_SECURITY=1 "$(BIN)" --selftest http://$(DEV_IP):18880 usagi@chiikawarden.test $(DEV_PASSWORD) \
+	@TRIWARDEN_SELFTEST_SECURITY=1 "$(BIN)" --selftest http://$(DEV_IP):18880 usagi@chiikawarden.test $(DEV_PASSWORD) \
 		hachiware@chiikawarden.test $(DEV_PASSWORD) 2>/dev/null | grep -E "PASS|FAIL|SKIP|SELFTEST"
 
 selftest-cloud: build ## Self-test against Bitwarden cloud with the account in .env (REGION=us|eu)
@@ -54,27 +54,27 @@ sparkle-keys: build ## One-time: create the update-signing key (kept in your key
 	echo "Public key $$KEY written to project.yml — commit it."; \
 	echo "For CI, export the private key and store it as the SPARKLE_PRIVATE_KEY secret (see docs/RELEASING.md)."
 
-uitest: ## Click-through UI tests in --demo mode (quit any running Chiikawarden first)
-	@xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -allowProvisioningUpdates \
-		test -only-testing:ChiikawardenUITests 2>&1 | grep -E "\.swift:[0-9]+: error|' (passed|failed)|TEST (SUCCEEDED|FAILED)"
+uitest: ## Click-through UI tests in --demo mode (quit any running Triwarden first)
+	@xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDataPath build -allowProvisioningUpdates \
+		test -only-testing:TriwardenUITests 2>&1 | grep -E "\.swift:[0-9]+: error|' (passed|failed)|TEST (SUCCEEDED|FAILED)"
 
 snapshots: build ## Render UI snapshots (light + dark) into build/snapshots; ONLY=login,send renders just those
-	@dir=$$(CHIIKAWARDEN_SNAPSHOT_ONLY="$(ONLY)" "$(BIN)" --snapshot 2>/dev/null | tail -1); \
+	@dir=$$(TRIWARDEN_SNAPSHOT_ONLY="$(ONLY)" "$(BIN)" --snapshot 2>/dev/null | tail -1); \
 		mkdir -p build/snapshots; n=$$(find "$$dir" -name '*.png' -newer "$(BIN)" | wc -l | tr -d ' '); \
 		find "$$dir" -name '*.png' -newer "$(BIN)" -exec cp -f {} build/snapshots/ \; ; \
 		echo "$$n images rendered into build/snapshots$(if $(ONLY), (only: $(ONLY)),)"
 
 dev-up: ## Start the dev servers on the dev box (Vaultwarden ×2, SSO + dex, Mailpit)
-	@CHIIKAWARDEN_DEV_HOST=$(DEV_HOST) CHIIKAWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh up
+	@TRIWARDEN_DEV_HOST=$(DEV_HOST) TRIWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh up
 
 dev-seed: ## Seed test accounts and items
-	@CHIIKAWARDEN_DEV_HOST=$(DEV_HOST) CHIIKAWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh seed
+	@TRIWARDEN_DEV_HOST=$(DEV_HOST) TRIWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh seed
 
 dev-status: ## Dev server containers
-	@CHIIKAWARDEN_DEV_HOST=$(DEV_HOST) CHIIKAWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh status
+	@TRIWARDEN_DEV_HOST=$(DEV_HOST) TRIWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh status
 
 dev-logs: ## Dev server logs (SERVICE=vaultwarden|vaultwarden-sso|dex|…)
-	@CHIIKAWARDEN_DEV_HOST=$(DEV_HOST) CHIIKAWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh logs $(SERVICE)
+	@TRIWARDEN_DEV_HOST=$(DEV_HOST) TRIWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh logs $(SERVICE)
 
 release: ## Signed, notarized release: make release VERSION=0.3.0 [ARGS=--publish]
 	@test -n "$(VERSION)" || { echo "usage: make release VERSION=0.3.0 [ARGS=--publish]"; exit 64; }

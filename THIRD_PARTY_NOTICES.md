@@ -1,6 +1,6 @@
 # Third-party notices
 
-Chiikawarden is licensed under the GNU General Public License v3.0 (see `LICENSE`). It includes the following
+Triwarden is licensed under the GNU General Public License v3.0 (see `LICENSE`). It includes the following
 third-party work, each under its own license.
 
 ## Sparkle

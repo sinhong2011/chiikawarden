@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Chiikawarden</string>
+	<string>Triwarden</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,6 +28,6 @@
 		<string>$(PRODUCT_MODULE_NAME).SafariWebExtensionHandler</string>
 	</dict>
 	<key>NSHumanReadableDescription</key>
-	<string>Fill and save logins from your Chiikawarden vault.</string>
+	<string>Fill and save logins from your Triwarden vault.</string>
 </dict>
 </plist>

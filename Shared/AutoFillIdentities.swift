@@ -1,5 +1,5 @@
 import AuthenticationServices
-import ChiikawaCrypto
+import TriCrypto
 import Foundation
 
 /// Tells macOS which domains/usernames we can fill, so QuickType suggests them. Only identifiers are

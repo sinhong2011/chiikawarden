@@ -84,7 +84,7 @@ struct CommandPalette: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 if !model.isUnlocked {
-                    Label("Vault locked: unlock Chiikawarden to search it", systemImage: "lock.fill")
+                    Label("Vault locked: unlock Triwarden to search it", systemImage: "lock.fill")
                         .font(.system(size: 13)).foregroundStyle(.secondary).padding(12)
                 }
                 ForEach(Array(entries.enumerated()), id: \.element.id) { i, entry in

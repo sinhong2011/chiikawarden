@@ -1,5 +1,5 @@
 import AppKit
-import ChiikawaCrypto
+import TriCrypto
 import SwiftUI
 
 /// The menu bar panel: search right here, your favorites, codes and recent items one click from the clipboard,
@@ -94,7 +94,7 @@ struct MenuBarContent: View {
                 .disabled(model.isSyncing)
             }
             Spacer()
-            FooterButton(symbol: "macwindow", help: "Open Chiikawarden") { model.bringToFront() }
+            FooterButton(symbol: "macwindow", help: "Open Triwarden") { model.bringToFront() }
             FooterButton(symbol: "gearshape", help: "Settings…") { model.showSettings() }
         }
         .padding(.horizontal, 6)
@@ -517,7 +517,7 @@ enum MenuBarGlyph {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = "Chiikawarden"
+        image.accessibilityDescription = "Triwarden"
         return image
     }()
 }
