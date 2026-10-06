@@ -1087,32 +1087,42 @@ struct ItemRow: View {
                 if let username = item.username {
                     Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
+                // Marks in one row under the name, so the name keeps the full width.
+                let issue = item.passwordIssue(breaches: model.breachCounts)
+                if issue != nil || item.favorite || item.hasTOTP {
+                    HStack(spacing: 6) {
+                        if let issue {
+                            HStack(spacing: 3) {
+                                Image(systemName: issue.rowSymbol).font(.system(size: 9, weight: .bold))
+                                Text(issue.shortLabel).font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundStyle(issue.tint)
+                            .padding(.horizontal, 6).frame(height: 17)
+                            .background(issue.tint.opacity(0.14), in: .capsule)
+                            .help(Text(issue.rowLabel))
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(issue.rowLabel))
+                        }
+                        if item.favorite {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.yellow)
+                                .accessibilityLabel(Text("Favorite"))
+                        }
+                        if item.hasTOTP {
+                            Image(systemName: "clock.badge.checkmark")
+                                .font(.system(size: 11, weight: .medium))
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(.secondary)
+                                .help(Text("Has a one-time code"))
+                                .accessibilityLabel(Text("Has a one-time code"))
+                        }
+                    }
+                    .padding(.top, 4)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
             }
-            Spacer(minLength: 4)
-            if let issue = item.passwordIssue(breaches: model.breachCounts) {
-                Image(systemName: issue.rowSymbol)
-                    .font(.system(size: 12, weight: .semibold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(issue.tint)
-                    .help(Text(issue.rowLabel))
-                    .accessibilityLabel(Text(issue.rowLabel))
-                    .transition(.scale(scale: 0.3).combined(with: .opacity))
-            }
-            if item.favorite {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.yellow)
-                    .transition(.scale(scale: 0.3).combined(with: .opacity))
-                    .accessibilityLabel(Text("Favorite"))
-            }
-            if item.hasTOTP {
-                Image(systemName: "clock.badge.checkmark")
-                    .font(.system(size: 13, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
-                    .help(Text("Has a one-time code"))
-                    .accessibilityLabel(Text("Has a one-time code"))
-            }
+            Spacer(minLength: 0)
         }
         .padding(9)
         .background {
@@ -1322,13 +1332,16 @@ struct ItemDetail: View {
         }
     }
 
+    /// What Watchtower says about this password: the same checks as the list's mark.
     private var health: (text: LocalizedStringKey, tint: Color) {
-        guard let pw = item.password else { return ("", .secondary) }
-        if item.reuseCount > 0 { return ("Reused in \(item.reuseCount + 1) items", .orange) }
-        let classes = [pw.contains(where: \.isLowercase), pw.contains(where: \.isUppercase),
-                       pw.contains(where: \.isNumber), pw.contains { !$0.isLetter && !$0.isNumber }].filter { $0 }.count
-        if pw.count < 10 || classes < 3 { return ("Weak password", .red) }
-        return ("Strong · unique", .green)
+        guard item.password != nil else { return ("", .secondary) }
+        switch item.passwordIssue(breaches: model.breachCounts) {
+        case .breached?: return ("Seen in \(model.breachCounts?[item.id] ?? 0) data breaches", .red)
+        case .reused?: return ("Reused in \(item.reuseCount + 1) items", .orange)
+        case .weak?: return ("Weak password", .orange)
+        case .insecure?: return ("Sent unencrypted (http://)", .yellow)
+        default: return ("Strong · unique", .green)
+        }
     }
 
     private var actions: some View {
@@ -1930,15 +1943,26 @@ struct ItemHistoryCard: View {
         .sheet(isPresented: $showingPasswords) { PasswordHistorySheet(item: item) }
     }
 
+    /// "Tue, 6 Oct 2026 at 22:50:12", and under it how long ago (kept fresh).
     private func row(_ label: LocalizedStringKey, _ date: Date) -> some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
             Text(label).foregroundStyle(.secondary)
             Spacer(minLength: 12)
-            Text(date.formatted(date: .abbreviated, time: .shortened))
-                .help(Text(date.formatted(date: .complete, time: .standard)))
-                .textSelection(.enabled)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).year().hour().minute().second()))
+                    .monospacedDigit()
+                    .textSelection(.enabled)
+                TimelineView(.periodic(from: .now, by: 30)) { context in
+                    Text(Self.ago(date, now: context.date)).font(.system(size: 11)).foregroundStyle(.tertiary)
+                }
+            }
+            .help(Text(date.formatted(.dateTime.weekday(.wide).day().month(.wide).year().hour().minute().second().timeZone())))
         }
         .font(.system(size: 12))
+    }
+
+    private static func ago(_ date: Date, now: Date) -> String {
+        now.timeIntervalSince(date) < 60 ? String(localized: "Just now") : date.formatted(.relative(presentation: .named, unitsStyle: .wide))
     }
 }
 

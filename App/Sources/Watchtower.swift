@@ -53,6 +53,16 @@ struct WatchtowerReport {
             default: symbol
             }
         }
+        /// The word on the list's chip.
+        var shortLabel: LocalizedStringKey {
+            switch self {
+            case .breached: "Breached"
+            case .reused: "Reused"
+            case .weak: "Weak"
+            case .insecure: "Unencrypted"
+            default: title
+            }
+        }
         /// What that mark says, for its tooltip.
         var rowLabel: LocalizedStringKey {
             switch self {
