@@ -483,13 +483,16 @@ private struct SidebarAccountCard: View {
                         StackedAvatars(accounts: model.accounts)
                     }
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
-                            .contentTransition(.opacity)
+                        // The switcher's chevron rides with the name, leaving the card's right end to sync and lock.
+                        HStack(spacing: 4) {
+                            Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                                .contentTransition(.opacity)
+                            Image(systemName: "chevron.up.chevron.down").font(.system(size: 8, weight: .semibold)).foregroundStyle(.tertiary)
+                        }
                         SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                     }
-                    Spacer(minLength: 0)
-                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
@@ -499,8 +502,10 @@ private struct SidebarAccountCard: View {
                 AccountSwitcher(close: { switching = false })
             }
 
-            SyncFooterButton { sync() }
-            footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
+            HStack(spacing: 0) {
+                SyncFooterButton { sync() }
+                footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
+            }
         }
         .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
         .background {
