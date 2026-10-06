@@ -357,8 +357,6 @@ final class AppModel {
         }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items, equivalents: equivalentDomains)
-        // Names for the Focus filter's vault menu, which System Settings may ask for while the vault is locked.
-        if !sessions.isEmpty { UserDefaults.standard.set(organizations.map { [$0.id, $0.name] }, forKey: "focusOrganizations") }
         if sessions.isEmpty { signInWatch?.cancel(); signInWatch = nil } else { watchSignIns() }
     }
 

@@ -163,20 +163,25 @@ struct VaultChoiceEntity: AppEntity {
 
     var displayRepresentation: DisplayRepresentation { DisplayRepresentation(title: "\(name)") }
 
-    static var choices: [VaultChoiceEntity] {
-        let organizations = (UserDefaults.standard.array(forKey: "focusOrganizations") as? [[String]] ?? [])
-            .filter { $0.count == 2 }
-            .map { VaultChoiceEntity(id: "org:" + $0[0], name: $0[1]) }
+    /// Organizations are offered only while the vault is open: their names are kept nowhere else unencrypted.
+    @MainActor static var choices: [VaultChoiceEntity] {
+        let organizations = (AppModel.current?.isUnlocked == true ? AppModel.current?.organizations ?? [] : [])
+            .map { VaultChoiceEntity(id: "org:" + $0.id, name: $0.name) }
         return [VaultChoiceEntity(id: "all", name: String(localized: "All vaults")),
                 VaultChoiceEntity(id: "personal", name: String(localized: "My vault"))] + organizations
     }
 }
 
 struct VaultChoiceQuery: EntityQuery {
-    func entities(for identifiers: [String]) async throws -> [VaultChoiceEntity] {
-        VaultChoiceEntity.choices.filter { identifiers.contains($0.id) }
+    /// A Focus chosen for an organization still works while the vault is locked: the organization's name just isn't
+    /// known until it's open.
+    @MainActor func entities(for identifiers: [String]) async throws -> [VaultChoiceEntity] {
+        let known = VaultChoiceEntity.choices
+        return identifiers.map { id in
+            known.first { $0.id == id } ?? VaultChoiceEntity(id: id, name: String(localized: "Organization"))
+        }
     }
-    func suggestedEntities() async throws -> [VaultChoiceEntity] { VaultChoiceEntity.choices }
+    @MainActor func suggestedEntities() async throws -> [VaultChoiceEntity] { VaultChoiceEntity.choices }
 }
 
 /// Focus › Focus Filters › Triwarden: while a Focus is on, the vault shows just the vault chosen for it (a work
