@@ -215,8 +215,14 @@ enum Snapshot {
                 vault.rememberGenerated("k#9vR!2mWq$7zLp", kind: "password")
                 vault.rememberGenerated("usagi+k3x9q2ma@proton.me", kind: "username")
             }
-            render(desktop(ExportSheet().environment(vault).tint(.brand), dark: name == "dark"),
-                   size: CGSize(width: 500, height: 600), appearance: appearance, to: dir.appending(path: "export-\(name).png"))
+            // Each format, so the sheet's height can be checked to stay the same.
+            let savedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            for format in ["encryptedJSON", "json", "csv"] {
+                UserDefaults.standard.set(format, forKey: "exportFormat")
+                render(ExportSheet().environment(vault).tint(.brand).background(Color(nsColor: .windowBackgroundColor)),
+                       size: CGSize(width: 500, height: 600), appearance: appearance, to: dir.appending(path: "export-\(format)-\(name).png"))
+            }
+            UserDefaults.standard.set(savedFormat, forKey: "exportFormat")
             render(desktop(ImportSheet().environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 520, height: 420), appearance: appearance, to: dir.appending(path: "import-\(name).png"))
             for (label, size) in [("", CGSize(width: 1120, height: 760)), ("-narrow", CGSize(width: 680, height: 900))] {

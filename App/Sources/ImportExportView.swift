@@ -87,24 +87,48 @@ struct ExportSheet: View {
                 SheetLabel("Format")
                 AppSegmented(options: [(VaultExport.Format.encryptedJSON, LocalizedStringKey("Password-protected")),
                                        (.json, LocalizedStringKey("JSON")), (.csv, LocalizedStringKey("CSV"))],
-                             selection: Binding(get: { format }, set: { formatRaw = $0.rawValue; error = nil }))
-                Text(description).font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            }
-
-            if format == .encryptedJSON {
-                VStack(alignment: .leading, spacing: 8) {
-                    SheetLabel("File password")
-                    PasswordField(title: "File password", text: $filePassword)
-                    PasswordField(title: "Confirm file password", text: $confirmPassword, prompt: Text("Confirm file password"))
-                    if !confirmPassword.isEmpty, filePassword != confirmPassword {
-                        Text("The passwords don't match.").font(.system(size: 12)).foregroundStyle(.red)
+                             selection: Binding(get: { format }, set: { new in
+                                 withAnimation(.easeInOut(duration: 0.2)) { formatRaw = new.rawValue; error = nil }
+                             }))
+                // Every format's line laid over the others, so switching never changes the sheet's height (a height
+                // change mid-switch broke the segment's sliding thumb).
+                ZStack(alignment: .topLeading) {
+                    ForEach([VaultExport.Format.encryptedJSON, .json, .csv], id: \.self) { option in
+                        Text(Self.description(option)).font(.system(size: 12)).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .opacity(option == format ? 1 : 0)
+                            .accessibilityHidden(option != format)
                     }
                 }
-            } else {
-                Label("This file is not encrypted. Anyone who gets it can read every password in it. Delete it when you're done.",
-                      systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 12)).foregroundStyle(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // The file password for an encrypted file; for a plain one, the same space warns that it isn't.
+            VStack(alignment: .leading, spacing: 8) {
+                SheetLabel("File password")
+                PasswordField(title: "File password", text: $filePassword)
+                PasswordField(title: "Confirm file password", text: $confirmPassword, prompt: Text("Confirm file password"))
+                Text("The passwords don't match.").font(.system(size: 12)).foregroundStyle(.red)
+                    .opacity(!confirmPassword.isEmpty && filePassword != confirmPassword ? 1 : 0)
+            }
+            .opacity(format == .encryptedJSON ? 1 : 0)
+            .disabled(format != .encryptedJSON)
+            .accessibilityHidden(format != .encryptedJSON)
+            .overlay {
+                if format != .encryptedJSON {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Not encrypted", systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 13, weight: .semibold)).foregroundStyle(.orange)
+                        Text("Anyone who gets this file can read every password in it. Keep it off shared and synced folders, and delete it when you're done. To keep a backup, choose Password-protected.")
+                            .font(.system(size: 12)).foregroundStyle(.primary.opacity(0.85))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .background(Color.orange.opacity(0.1), in: .rect(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.orange.opacity(0.22)))
+                    .transition(.opacity)
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -129,7 +153,7 @@ struct ExportSheet: View {
         .onChange(of: accountId) { vaultId = nil }
     }
 
-    private var description: LocalizedStringKey {
+    private static func description(_ format: VaultExport.Format) -> LocalizedStringKey {
         switch format {
         case .encryptedJSON: "Encrypted with a password you choose. Recommended: Bitwarden and Triwarden can import it on any device."
         case .json: "Everything, readable by any app: logins, notes, cards, identities, SSH keys, passkeys and folders."

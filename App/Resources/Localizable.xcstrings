@@ -7,6 +7,34 @@
     " " : {
 
     },
+    "Anyone who gets this file can read every password in it. Keep it off shared and synced folders, and delete it when you're done. To keep a backup, choose Password-protected." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルを手に入れた人は誰でも、中のすべてのパスワードを読めます。共有・同期フォルダには置かず、使い終わったら削除してください。バックアップには「パスワード保護」を選んでください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何获得此文件的人都能读取其中所有密码。请勿放在共享或同步的文件夹，用完后删除。如需保留备份，请选择“密码保护”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何取得此檔案的人都能讀取其中所有密碼。請勿放在共享或同步的資料夾，用完後刪除。如要保留備份，請選擇「密碼保護」。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何攞到呢個檔案嘅人都可以睇到入面所有密碼。唔好放喺共享或者同步嘅資料夾，用完就刪除。想保留備份嘅話，請揀「密碼保護」。"
+          }
+        }
+      }
+    },
     "Bitwarden deletes items for good %lld days after they go to the Trash." : {
       "localizations" : {
         "ja" : {
@@ -227,6 +255,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "項目會一直留喺度，直到你刪除為止，除非伺服器管理員設定咗一段時間之後自動清空垃圾桶。"
+          }
+        }
+      }
+    },
+    "Not encrypted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暗号化されていません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未加密"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未加密"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "冇加密"
           }
         }
       }
@@ -26037,34 +26093,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "呢個檔案係用另一個帳戶嘅密鑰加密。請匯入去嗰個帳戶，或者用密碼保護格式重新匯出。"
-          }
-        }
-      }
-    },
-    "This file is not encrypted. Anyone who gets it can read every password in it. Delete it when you're done." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このファイルは暗号化されません。入手した人は誰でもすべてのパスワードを読めます。使い終わったら削除してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此文件未加密，任何拿到它的人都能读取其中所有密码。用完请删除。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這個檔案沒有加密，任何拿到它的人都能讀取其中所有密碼。用完請刪除。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "呢個檔案冇加密，任何人攞到都睇得到入面所有密碼。用完記得刪除。"
           }
         }
       }
