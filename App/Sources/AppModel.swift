@@ -89,9 +89,25 @@ final class AppModel {
         }
     }
 
-    /// Whether an item is in the vault the filter shows.
+    /// One account in focus (picked in the sidebar's account switcher), or nil for every open account together.
+    var accountFocus: String? = UserDefaults.standard.string(forKey: "accountFocus") {
+        didSet { UserDefaults.standard.set(accountFocus, forKey: "accountFocus") }
+    }
+    /// The focused account, while it still exists and there's more than one to choose from.
+    var focusedAccountID: String? {
+        guard accounts.count > 1, let id = accountFocus, accounts.contains(where: { $0.id == id }) else { return nil }
+        return id
+    }
+    /// The organizations of the account in focus (all of them when none is).
+    var visibleOrganizations: [Grouping] {
+        guard let id = focusedAccountID else { return organizations }
+        return session(for: id)?.organizations ?? []
+    }
+
+    /// Whether an item is in the vault the filter (and the account in focus) shows.
     func inVault(_ item: VaultItem) -> Bool {
-        switch vaultFilter {
+        if let focus = focusedAccountID, item.accountId != focus { return false }
+        return switch vaultFilter {
         case .all: true
         case .personal: item.organizationId == nil
         case .organization(let id): item.organizationId == id
@@ -102,7 +118,7 @@ final class AppModel {
     var equivalentDomains: EquivalentDomains { EquivalentDomains(groups: sessions.flatMap(\.equivalents.groups)) }
 
     /// The items in the chosen vault.
-    var vaultItems: [VaultItem] { vaultFilter == .all ? items : items.filter(inVault) }
+    var vaultItems: [VaultItem] { vaultFilter == .all && focusedAccountID == nil ? items : items.filter(inVault) }
     /// True while adding another account from an unlocked vault (login screen can be cancelled).
     var addingAccount = false
     var items: [VaultItem] = []

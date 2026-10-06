@@ -124,8 +124,9 @@ struct VaultView: View {
     }
 
     @ViewBuilder private var listPane: some View {
-        if case .account(let id) = section, !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
-            AccountUnlockPane(account: account)
+        if let id = model.focusedAccountID ?? { if case .account(let id) = section { id } else { nil } }(),
+           !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
+            AccountUnlockPane(account: account) // the account in focus is locked: unlock it right here
         } else {
             ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
                 model.selectedID = id
@@ -355,8 +356,7 @@ private struct Sidebar: View {
     private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
 
     private func row(_ s: VaultSection) -> some View {
-        SidebarLabel(s.title, symbol: s.symbol)
-            .badge(count(.section(s)))
+        SidebarLabel(s.title, symbol: s.symbol, tag: .section(s), count: count(.section(s)))
             .tag(SidebarSelection.section(s))
     }
 
@@ -383,48 +383,19 @@ private struct Sidebar: View {
             }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
-                SidebarLabel("Send", symbol: "paperplane")
-                    .badge(model.sends.count)
+                SidebarLabel("Send", symbol: "paperplane", tag: .sends, count: model.sends.count)
                     .tag(SidebarSelection.sends)
-                SidebarLabel("One-Time Codes", symbol: "clock.badge.checkmark")
-                    .badge(model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
+                SidebarLabel("One-Time Codes", symbol: "clock.badge.checkmark", tag: .codes,
+                             count: model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
                     .tag(SidebarSelection.codes)
-                SidebarLabel("Generator", symbol: "dice")
+                SidebarLabel("Generator", symbol: "dice", tag: .generator)
                     .tag(SidebarSelection.generator)
-                SidebarLabel("Watchtower", symbol: "checkmark.shield")
-                    .badge(model.watchtowerIssueCount)
+                SidebarLabel("Watchtower", symbol: "checkmark.shield", tag: .watchtower, count: model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
             }
-            if model.accounts.count > 1 {
-                Section("Accounts") {
-                    ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                        let unlocked = model.isUnlocked(account.id)
-                        HStack(spacing: 8) {
-                            Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
-                            Text(verbatim: account.email).lineLimit(1).truncationMode(.middle)
-                            Spacer(minLength: 4)
-                            if !unlocked { Image(systemName: "lock.fill").font(.system(size: 10)).foregroundStyle(.secondary) }
-                        }
-                        .badge(unlocked ? count(.account(account.id)) : 0)
-                        .help(Text(verbatim: account.serverSummary))
-                        .tag(SidebarSelection.account(account.id))
-                        .contextMenu {
-                            Group {
-                                if unlocked { Button("Lock", systemImage: "lock") { model.lock(account.id) } }
-                                Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) { model.confirmLogOut(account.id) }
-                            }
-                            .labelStyle(.titleAndIcon)
-                        }
-                    }
-                    Button { model.beginAddAccount() } label: { SidebarLabel("Add Account…", symbol: "plus") }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ForEach(model.organizations) { org in
+            ForEach(model.visibleOrganizations) { org in
                 Section(org.name) {
-                    SidebarLabel("All Items", symbol: "building.2")
-                        .badge(count(.organization(org.id)))
+                    SidebarLabel("All Items", symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
                         .tag(SidebarSelection.organization(org.id))
                         .contextMenu {
                             Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
@@ -435,105 +406,77 @@ private struct Sidebar: View {
                             .labelStyle(.titleAndIcon)
                         }
                     ForEach(org.children) { collection in
-                        SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack")
-                            .badge(count(.collection(collection.id)))
+                        SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack", tag: .collection(collection.id),
+                                     count: count(.collection(collection.id)))
                             .tag(SidebarSelection.collection(collection.id))
                     }
                 }
             }
         }
         .listStyle(.sidebar)
+        .environment(\.sidebarCurrent, section)
+        // Switching accounts or vaults: sections and counts move rather than jump.
+        .animation(.snappy(duration: 0.3), value: model.focusedAccountID)
+        .animation(.snappy(duration: 0.3), value: model.vaultFilter)
         .listItemTint(.monochrome) // icons in the text's own colour, not the brand blue
         // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
         .tint(Color.sidebarSelection)
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
         // The vault switcher above the list, as wide as the rows' selection.
         .safeAreaInset(edge: .top, spacing: 4) {
-            if !model.organizations.isEmpty {
+            if !model.visibleOrganizations.isEmpty {
                 VaultSwitcher().padding(.horizontal, 10).padding(.top, 4)
             }
         }
     }
 }
 
-/// Who's signed in, where, and how fresh the vault is — with sync and lock at hand and the rest in a menu.
+/// Who's signed in, where, and how fresh the vault is — with sync and lock at hand. A click opens the account
+/// switcher: every account (or all of them together), the locked ones a click from unlocking, and the rest.
 private struct SidebarAccountCard: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
     @State private var hovering = false
+    @State private var switching = false
 
-    private var email: String {
-        let name = model.sessions.count == 1 ? model.sessions[0].account.email : model.serverDisplayName
-        return name.isEmpty ? String(localized: "Vault") : name
+    /// The account the card stands for: the one in focus, the only one, or none (several together).
+    private var account: (index: Int, account: SavedAccount)? {
+        let id = model.focusedAccountID ?? (model.accounts.count == 1 ? model.accounts.first?.id : nil)
+        return model.accounts.enumerated().first { $0.element.id == id }.map { ($0.offset, $0.element) }
     }
-    private var host: String {
-        let hosts = Set(model.sessions.compactMap { $0.environment?.displayHost })
-        return hosts.count == 1 ? hosts.first! : model.serverDisplayName
-    }
-    private var webVault: URL? {
-        guard model.sessions.count == 1, let env = model.sessions[0].environment else { return nil }
-        return switch env {
-        case .bitwardenUS: URL(string: "https://vault.bitwarden.com")
-        case .bitwardenEU: URL(string: "https://vault.bitwarden.eu")
-        case .selfHosted(let base): base
-        case .custom(let urls): urls.webVault ?? urls.base
-        }
+
+    private var title: String {
+        if let account { return account.account.email }
+        let open = model.sessions.count
+        return open == 0 ? String(localized: "Vault") : String(localized: "All accounts")
     }
 
     var body: some View {
         let dark = scheme == .dark
         HStack(spacing: 10) {
-            Menu {
-                Group {
-                Section {
-                    Label { Text(verbatim: email) } icon: { Image(systemName: "person.crop.circle") }
-                    if !host.isEmpty { Label { Text(verbatim: host) } icon: { Image(systemName: "server.rack") } }
-                }
-                Button("Sync Now", systemImage: "arrow.triangle.2.circlepath") { sync() }
-                if let webVault {
-                    Button("Open Web Vault", systemImage: "safari") { NSWorkspace.shared.open(webVault) }
-                }
-                if !host.isEmpty {
-                    Button("Copy Server Address", systemImage: "doc.on.doc") { model.copy(host, label: String(localized: "Server")) }
-                }
-                Divider()
-                Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
-                Button("Export Vault…", systemImage: "square.and.arrow.up") { model.beginExport() }
-                Divider()
-                Button("Add Account…", systemImage: "person.badge.plus") { model.beginAddAccount() }
-                Button("Settings…", systemImage: "gearshape") { model.showSettings() }
-                Divider()
-                Button("Lock Vault", systemImage: "lock") { model.lock(animated: true) }
-                Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
-                    model.confirmLogOut(model.sessions.count == 1 ? model.sessions[0].account.id : nil)
-                }
-                }
-                .labelStyle(.titleAndIcon) // macOS menus drop icons unless asked
-            } label: {
+            Button { switching.toggle() } label: {
                 HStack(spacing: 10) {
-                    Monogram(name: email, size: 30)
-                        .overlay(alignment: .bottomTrailing) {
-                            Circle().fill(model.isSyncing ? Color.secondary : Color.brandFill)
-                                .frame(width: 9, height: 9)
-                                .overlay(Circle().strokeBorder(dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
-                                .offset(x: 2, y: 2)
-                        }
+                    if let account {
+                        AccountAvatar(email: account.account.email, index: account.index, size: 30)
+                    } else {
+                        StackedAvatars(accounts: model.accounts)
+                    }
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(verbatim: email).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                        Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                            .contentTransition(.opacity)
                         SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
                 }
                 .contentShape(.rect)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("Account"))
-                .accessibilityValue(Text(verbatim: email))
             }
-            .menuStyle(.button)
             .buttonStyle(.plain)
-            .menuIndicator(.hidden)
-            .help(Text(verbatim: host))
-            .accessibilityLabel(Text("Account"))
+            .accessibilityLabel(Text("Accounts"))
+            .accessibilityValue(Text(verbatim: title))
+            .popover(isPresented: $switching, arrowEdge: .top) {
+                AccountSwitcher(close: { switching = false })
+            }
 
             footerButton("arrow.triangle.2.circlepath", help: "Sync Now", spinning: model.isSyncing) { sync() }
             footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
@@ -541,10 +484,11 @@ private struct SidebarAccountCard: View {
         .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(dark ? Color.white.opacity(hovering ? 0.09 : 0.06) : Color.white.opacity(hovering ? 0.75 : 0.55))
+                .fill(dark ? Color.white.opacity(hovering || switching ? 0.09 : 0.06) : Color.white.opacity(hovering || switching ? 0.75 : 0.55))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
         }
         .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
+        .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
     }
 
     private func sync() { Task { try? await model.refresh() } }
@@ -562,6 +506,170 @@ private struct SidebarAccountCard: View {
         .disabled(spinning)
         .help(Text(help))
         .accessibilityLabel(Text(help))
+    }
+}
+
+/// An account's monogram with its colour dot.
+private struct AccountAvatar: View {
+    let email: String
+    let index: Int
+    var size: CGFloat = 28
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        Monogram(name: email, size: size)
+            .overlay(alignment: .bottomTrailing) {
+                Circle().fill(AccountColor.color(index))
+                    .frame(width: size * 0.32, height: size * 0.32)
+                    .overlay(Circle().strokeBorder(scheme == .dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
+                    .offset(x: 2, y: 2)
+            }
+    }
+}
+
+/// Several accounts at once: their monograms fanned out.
+private struct StackedAvatars: View {
+    let accounts: [SavedAccount]
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            ForEach(Array(accounts.prefix(3).enumerated().reversed()), id: \.element.id) { index, account in
+                Monogram(name: account.email, size: 24)
+                    .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5).padding(-0.75))
+                    .offset(x: CGFloat(index) * 8, y: CGFloat(index) * -3)
+            }
+        }
+        .frame(width: 30 + CGFloat(min(accounts.count, 3) - 1) * 4, height: 30, alignment: .leading)
+    }
+}
+
+/// The account switcher: all accounts together or one at a time (a locked one unlocks in the list), then the
+/// account actions.
+struct AccountSwitcher: View {
+    @Environment(AppModel.self) private var model
+    let close: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if model.accounts.count > 1 {
+                row(selected: model.focusedAccountID == nil, action: { focus(nil) }) {
+                    StackedAvatars(accounts: model.accounts)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("All accounts").font(.system(size: 13, weight: .semibold))
+                        Text("\(model.sessions.count) of \(model.accounts.count) unlocked")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
+                    }
+                }
+                Divider().padding(.vertical, 4).padding(.horizontal, 8)
+            }
+            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                let open = model.isUnlocked(account.id)
+                row(selected: model.focusedAccountID == account.id || model.accounts.count == 1, action: { focus(account.id) }) {
+                    AccountAvatar(email: account.email, index: index, size: 30)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                        HStack(spacing: 4) {
+                            if open {
+                                Text(verbatim: account.serverSummary)
+                                Text(verbatim: "·")
+                                Text("\(model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count) items")
+                            } else {
+                                Image(systemName: "lock.fill").font(.system(size: 9))
+                                Text("Locked · \(account.serverSummary)")
+                            }
+                        }
+                        .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+                .contextMenu {
+                    Group {
+                        if open { Button("Lock", systemImage: "lock") { model.lock(account.id) } }
+                        Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                            close(); model.confirmLogOut(account.id)
+                        }
+                    }
+                    .labelStyle(.titleAndIcon)
+                }
+            }
+            Divider().padding(.vertical, 4).padding(.horizontal, 8)
+            action("Add Account…", "person.badge.plus") { model.beginAddAccount() }
+            action("Sync Now", "arrow.triangle.2.circlepath") { Task { try? await model.refresh() } }
+            action("Import…", "square.and.arrow.down") { model.beginImport() }
+            action("Export Vault…", "square.and.arrow.up") { model.beginExport() }
+            action("Account Settings…", "gearshape") {
+                UserDefaults.standard.set("accounts", forKey: "settingsPane")
+                model.showSettings()
+            }
+            Divider().padding(.vertical, 4).padding(.horizontal, 8)
+            action("Lock Vault", "lock") { model.lock(animated: true) }
+            action("Log Out…", "rectangle.portrait.and.arrow.right", destructive: true) {
+                model.confirmLogOut(model.focusedAccountID ?? (model.sessions.count == 1 ? model.sessions[0].account.id : nil))
+            }
+        }
+        .padding(6)
+        .frame(width: 300)
+    }
+
+    private func focus(_ id: String?) {
+        withAnimation(.snappy(duration: 0.3)) {
+            model.accountFocus = id
+            model.vaultFilter = .all // an organization of another account wouldn't be there
+        }
+        close()
+    }
+
+    private func row<Content: View>(selected: Bool, action: @escaping () -> Void, @ViewBuilder content: () -> Content) -> some View {
+        SwitcherRow(selected: selected, action: action, content: content())
+    }
+
+    private func action(_ title: LocalizedStringKey, _ symbol: String, destructive: Bool = false, run: @escaping () -> Void) -> some View {
+        SwitcherAction(title: title, symbol: symbol, destructive: destructive) { close(); run() }
+    }
+}
+
+private struct SwitcherRow<Content: View>: View {
+    let selected: Bool
+    let action: () -> Void
+    let content: Content
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                content
+                Spacer(minLength: 6)
+                Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)
+                    .opacity(selected ? 1 : 0)
+            }
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.primary.opacity(hovering ? 0.07 : selected ? 0.04 : 0), in: .rect(cornerRadius: 9, style: .continuous))
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { h in withAnimation(.snappy(duration: 0.12)) { hovering = h } }
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+private struct SwitcherAction: View {
+    let title: LocalizedStringKey
+    let symbol: String
+    var destructive = false
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol)
+                .font(.system(size: 13))
+                .foregroundStyle(destructive ? Color.red : .primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8).frame(height: 28)
+                .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .rect(cornerRadius: 7, style: .continuous))
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { h in withAnimation(.snappy(duration: 0.12)) { hovering = h } }
     }
 }
 
@@ -630,8 +738,8 @@ private struct FolderRow: View {
     @State private var targeted = false
 
     var body: some View {
-        let label = SidebarLabel(verbatim: node.name, symbol: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
-            .badge(count(.folder(node.path)))
+        let label = SidebarLabel(verbatim: node.name, symbol: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder",
+                                 tag: .folder(node.path), count: count(.folder(node.path)))
             .tag(SidebarSelection.folder(node.path))
             .listRowBackground(targeted ? Color.brand.opacity(0.18).clipShape(.rect(cornerRadius: 6)) : nil)
             .dropDestination(for: String.self) { ids, _ in
@@ -1752,7 +1860,7 @@ private struct VaultSwitcher: View {
             choice(.all, "All vaults", "square.stack.3d.up")
             choice(.personal, "My vault", "person")
             Divider()
-            ForEach(model.organizations) { org in
+            ForEach(model.visibleOrganizations) { org in
                 Button {
                     withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .organization(org.id) }
                 } label: {
@@ -1946,16 +2054,50 @@ private struct SignInApprovalSheet: View {
 struct SidebarLabel: View {
     let title: Text
     let symbol: String
+    /// The row's own selection: its icon bounces when it becomes the selected one.
+    var tag: SidebarSelection?
+    /// A count at the end of the row that rolls to its new value (hidden at 0, like a badge).
+    var count: Int?
 
-    init(_ title: LocalizedStringKey, symbol: String) { self.title = Text(title); self.symbol = symbol }
+    @Environment(\.sidebarCurrent) private var current
+    @State private var pulse = 0
+
+    init(_ title: LocalizedStringKey, symbol: String, tag: SidebarSelection? = nil, count: Int? = nil) {
+        self.title = Text(title); self.symbol = symbol; self.tag = tag; self.count = count
+    }
     /// User data (folder and collection names), shown as is.
-    init<S: StringProtocol>(verbatim title: S, symbol: String) { self.title = Text(title); self.symbol = symbol }
+    init<S: StringProtocol>(verbatim title: S, symbol: String, tag: SidebarSelection? = nil, count: Int? = nil) {
+        self.title = Text(title); self.symbol = symbol; self.tag = tag; self.count = count
+    }
+
+    private var selected: Bool { tag != nil && tag == current }
 
     var body: some View {
-        Label { title } icon: {
+        Label {
+            HStack(spacing: 6) {
+                title
+                Spacer(minLength: 4)
+                if let count, count > 0 {
+                    Text(count, format: .number)
+                        .font(.system(size: 11, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .contentTransition(.numericText(value: Double(count)))
+                        .transition(.opacity.combined(with: .scale(scale: 0.6)))
+                }
+            }
+            .animation(.snappy(duration: 0.3), value: count)
+        } icon: {
             Image(systemName: symbol).foregroundStyle(.secondary)
+                .symbolEffect(.bounce.down, options: .speed(1.4), value: pulse)
         }
+        .onChange(of: selected) { _, now in if now { pulse += 1 } }
     }
+}
+
+extension EnvironmentValues {
+    /// The sidebar's selection, for its rows (their icons answer being picked).
+    @Entry var sidebarCurrent: SidebarSelection?
 }
 
 /// A toolbar icon that answers its click with its own motion: the star bounces as it fills, the archive box bounces

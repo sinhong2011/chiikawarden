@@ -22,7 +22,7 @@ enum Pref {
     static func register() {
         UserDefaults.standard.register(defaults: [
             appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
-            codeAfterPassword: true, hideFromCapture: true,
+            codeAfterPassword: true, hideFromCapture: false, // opt-in: some screen tools and recordings need the window
         ])
     }
 

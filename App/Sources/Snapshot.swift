@@ -308,6 +308,9 @@ enum Snapshot {
                 SavedAccount(id: "b", email: "hachiware@work.example", serverKind: "bitwardenEU", serverURL: "",
                              kdf: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4), protectedUserKey: ""),
             ])
+            render(AccountSwitcher(close: {}).environment(people).background(.regularMaterial),
+                   size: CGSize(width: 300, height: 420), appearance: appearance,
+                   to: dir.appending(path: "account-switcher-\(name).png"))
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
             for pane in ["general", "shortcuts", "server", "accounts", "security", "developer"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
