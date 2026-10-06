@@ -1265,9 +1265,15 @@ struct ItemDetail: View {
                     }
                     if item.password != nil {
                         DetailRow(symbol: "checkmark.shield", title: "Watchtower") {
-                            HStack(spacing: 7) {
-                                Circle().fill(health.tint).frame(width: 7, height: 7)
-                                Text(health.text)
+                            HStack(spacing: 10) {
+                                HStack(spacing: 7) {
+                                    Circle().fill(health.tint).frame(width: 7, height: 7)
+                                    Text(health.text)
+                                }
+                                if let issue = item.passwordIssue(breaches: model.breachCounts), issue != .insecure,
+                                   let host = item.host, !host.isEmpty, !item.isDeleted {
+                                    ChangeOnSiteButton(host: host)
+                                }
                             }
                         }
                     }

@@ -447,6 +447,7 @@ private struct AccountSettingsPage: View {
                     Text(!AccountStore.isTouchIDAvailable ? "Not available on this Mac."
                          : session != nil || model.isTouchIDEnabled(account.id) ? "One touch opens every account that has it."
                          : "Unlock this account once to turn it on.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
                 .disabled(!AccountStore.isTouchIDAvailable || (session == nil && !model.isTouchIDEnabled(account.id)))
                 Toggle(isOn: Binding(get: { model.isPINEnabled(account.id) }, set: { on in

@@ -292,6 +292,14 @@ private struct IssueCard: View {
                     } else if issue == .duplicate {
                         Button("Move to Trash") { model.trashWithUndo(item) }
                             .buttonStyle(.appSecondarySmall)
+                    } else if let host = item.host, !host.isEmpty, [.breached, .reused, .weak, .oldPassword].contains(issue) {
+                        // Change it where it lives, then save the new one here.
+                        ChangeOnSiteButton(host: host)
+                        Button { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } } label: {
+                            Image(systemName: "pencil").accessibilityLabel(Text("Edit"))
+                        }
+                        .buttonStyle(.borderless)
+                        .help(Text("Edit the item to save the new password"))
                     } else {
                         Button("Change Password") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                             .buttonStyle(.appSecondarySmall)
@@ -323,6 +331,76 @@ private struct IssueCard: View {
             [item.host, item.passwordSince.map { String(localized: "set \($0.formatted(.relative(presentation: .named)))") }]
                 .compactMap { $0 }.joined(separator: " · ")
         }
+    }
+}
+
+/// The page where a site lets you change your password: its `/.well-known/change-password` (RFC 8615, as Safari
+/// and Bitwarden use) when the site really has one, else the site itself. A site that answers 200 for any path
+/// would fake support, so a path that can't exist is tried too. Only the site is asked, and results are kept for
+/// the session.
+enum ChangePasswordLink {
+    @MainActor private static var known: [String: URL] = [:]
+
+    @MainActor static func url(for host: String) async -> URL? {
+        let host = host.lowercased()
+        if let url = known[host] { return url }
+        guard let site = URL(string: "https://\(host)"),
+              let wellKnown = URL(string: "https://\(host)/.well-known/change-password"),
+              let bogus = URL(string: "https://\(host)/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200")
+        else { return nil }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = 6
+        let session = URLSession(configuration: configuration)
+        // HEAD first; sites that refuse it (405, 501) get a GET. Returns the status and where it ended up.
+        func status(_ url: URL) async -> (code: Int, landed: URL?) {
+            for method in ["HEAD", "GET"] {
+                var request = URLRequest(url: url)
+                request.httpMethod = method
+                guard let (_, response) = try? await session.data(for: request), let http = response as? HTTPURLResponse else { return (0, nil) }
+                if method == "HEAD", [405, 501].contains(http.statusCode) { continue }
+                return (http.statusCode, http.url)
+            }
+            return (0, nil)
+        }
+        async let realCheck = status(wellKnown)
+        async let fakeCheck = status(bogus)
+        let (real, fake) = await (realCheck, fakeCheck)
+        // Supported when the address answers, and either a path that can't exist doesn't (no 2xx), or the two went
+        // to different places (Netflix: /password, and a "not found" page that says 200). A site answering 200 for
+        // everything without redirecting doesn't count.
+        let redirected = real.landed.map { $0.path() != wellKnown.path() } ?? false
+        let differs = real.landed?.path() != fake.landed?.path()
+        let supported = (200..<400).contains(real.code) && (!(200..<300).contains(fake.code) || (redirected && differs))
+        // The well-known address itself, not where it led here: without the browser's cookies it can end at a sign-in
+        // page, while in the browser it goes straight to the right one.
+        let url = supported ? wellKnown : site
+        known[host] = url
+        return url
+    }
+}
+
+/// "Change on Site": opens the site's change-password page (or the site), finding it first.
+struct ChangeOnSiteButton: View {
+    let host: String
+    @State private var finding = false
+
+    var body: some View {
+        Button {
+            finding = true
+            Task {
+                if let url = await ChangePasswordLink.url(for: host) { NSWorkspace.shared.open(url) }
+                finding = false
+            }
+        } label: {
+            HStack(spacing: 5) {
+                if finding { ProgressView().controlSize(.mini) }
+                Text("Change on Site")
+                Image(systemName: "arrow.up.right").font(.system(size: 9, weight: .bold))
+            }
+        }
+        .buttonStyle(.appSecondarySmall)
+        .disabled(finding)
+        .help(Text("Open \(host)'s page for changing the password"))
     }
 }
 

@@ -7,6 +7,146 @@
     " " : {
 
     },
+    "%lld minutes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分钟"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分鐘"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分鐘"
+          }
+        }
+      }
+    },
+    "A short PIN instead of the master password. Five wrong tries turn it off." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マスターパスワードの代わりに短い PIN を使います。5 回間違えるとオフになります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以简短的 PIN 码代替主密码。输错五次即会停用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以簡短的 PIN 碼代替主密碼。輸錯五次即會停用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用簡短嘅 PIN 碼代替主密碼。輸錯五次就會停用。"
+          }
+        }
+      }
+    },
+    "Again" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一度"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次输入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次輸入"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再輸入一次"
+          }
+        }
+      }
+    },
+    "Ask for the master password after a restart" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動後はマスターパスワードを求める"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动后要求输入主密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動後要求輸入主密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新開啟之後要求輸入主密碼"
+          }
+        }
+      }
+    },
+    "At least 4 characters" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 文字以上"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少 4 个字符"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少 4 個字元"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最少 4 個字元"
+          }
+        }
+      }
+    },
     "Breached" : {
       "localizations" : {
         "ja" : {
@@ -31,6 +171,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外洩咗"
+          }
+        }
+      }
+    },
+    "Change on Site" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイトで変更"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在网站上更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在網站上更改"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺網站更改"
           }
         }
       }
@@ -63,6 +231,34 @@
         }
       }
     },
+    "Couldn't set the PIN. Unlock the account and try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN を設定できませんでした。アカウントのロックを解除してもう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法设置 PIN 码。请解锁账户后再试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法設定 PIN 碼。請解鎖帳號後再試。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定唔到 PIN 碼。請解鎖帳戶之後再試。"
+          }
+        }
+      }
+    },
     "Current session" : {
       "localizations" : {
         "ja" : {
@@ -91,6 +287,34 @@
         }
       }
     },
+    "Default (%@)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルト（%@）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认（%@）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設（%@）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設（%@）"
+          }
+        }
+      }
+    },
     "Desktop" : {
       "localizations" : {
         "ja" : {
@@ -115,6 +339,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "桌面版"
+          }
+        }
+      }
+    },
+    "Edit the item to save the new password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目を編集して新しいパスワードを保存"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑项目以保存新密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯項目以儲存新密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯項目嚟儲存新密碼"
           }
         }
       }
@@ -175,6 +427,62 @@
         }
       }
     },
+    "Five wrong tries turn the PIN off; then the master password unlocks. Anyone who knows the PIN can open this account on this Mac." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 回間違えると PIN はオフになり、マスターパスワードでのロック解除が必要になります。PIN を知っている人は誰でもこの Mac でこのアカウントを開けます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输错五次会停用 PIN 码，之后须以主密码解锁。任何知道 PIN 码的人都能在这台 Mac 上打开此账户。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸錯五次會停用 PIN 碼，之後須以主密碼解鎖。任何知道 PIN 碼的人都能在這部 Mac 上開啟此帳號。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸錯五次會停用 PIN 碼，之後要用主密碼解鎖。任何知道 PIN 碼嘅人都可以喺呢部 Mac 開呢個帳戶。"
+          }
+        }
+      }
+    },
+    "For this account only; Default follows Settings › Security. Log out removes the account and its saved vault from this Mac." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアカウントのみに適用されます。「デフォルト」は 設定 › セキュリティ に従います。ログアウトすると、この Mac からアカウントと保存された保管庫が削除されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅适用于此账户；“默认”跟随“设置 › 安全性”。注销会从这台 Mac 移除账户及其保存的密码库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只適用於此帳號；「預設」會跟隨「設定 › 安全性」。登出會從這部 Mac 移除帳號及其儲存的保險庫。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只係適用於呢個帳戶；「預設」會跟「設定 › 安全」。登出會喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫。"
+          }
+        }
+      }
+    },
     "Just now" : {
       "localizations" : {
         "ja" : {
@@ -231,6 +539,34 @@
         }
       }
     },
+    "Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With the door animation off, the lock screen stays still and the vault opens and locks at once." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログアウトすると、この Mac からアカウントと保存された保管庫が削除されます。再びログインするにはマスターパスワード（と 2 段階ログイン）が必要です。各アカウントはそれぞれのページで独自のタイムアウトを設定できます。扉のアニメーションをオフにすると、ロック画面は静止し、保管庫はすぐに開閉します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注销会从这台 Mac 移除账户及其保存的密码库；再次登录需要主密码（及两步登录）。每个账户可在其页面设置自己的超时。关闭门的动画后，锁定界面保持静止，密码库会立即打开和锁定。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登出會從這部 Mac 移除帳號及其儲存的保險庫；再次登入需要主密碼（及兩步驟登入）。每個帳號可在其頁面設定自己的逾時。關閉門的動畫後，鎖定畫面會保持靜止，保險庫會立即開啟和鎖定。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登出會喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫；再登入要用主密碼（同兩步驟登入）。每個帳戶都可以喺佢嘅頁面設定自己嘅逾時。熄咗門嘅動畫之後，鎖定畫面會保持靜止，保險庫會即刻打開同鎖定。"
+          }
+        }
+      }
+    },
     "Mobile" : {
       "localizations" : {
         "ja" : {
@@ -283,6 +619,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搵唔到裝置。"
+          }
+        }
+      }
+    },
+    "Open %@'s page for changing the password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ のパスワード変更ページを開く"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 %@ 的更改密码页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟 %@ 的更改密碼頁面"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 %@ 嘅更改密碼頁面"
+          }
+        }
+      }
+    },
+    "PIN" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼"
+          }
+        }
+      }
+    },
+    "PIN unlock isn't set up any more. Use your master password." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN でのロック解除は設定されていません。マスターパスワードを使ってください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 码解锁已不再设置。请使用主密码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼解鎖已不再設定。請使用主密碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼解鎖已經冇設定。請用主密碼。"
           }
         }
       }
@@ -371,6 +791,118 @@
         }
       }
     },
+    "Set a PIN" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN を設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置 PIN 码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 PIN 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 PIN 碼"
+          }
+        }
+      }
+    },
+    "The PIN then works only until Triwarden quits, and is never written to disk." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN は Triwarden を終了するまでのみ有効で、ディスクには書き込まれません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 码仅在 Triwarden 退出前有效，且永不写入磁盘。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼只在 Triwarden 結束前有效，且永不寫入磁碟。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼只係喺 Triwarden 結束之前有效，而且永遠唔會寫入磁碟。"
+          }
+        }
+      }
+    },
+    "The same PIN again" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同じ PIN をもう一度"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次输入相同的 PIN 码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次輸入相同的 PIN 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再輸入一次同一個 PIN 碼"
+          }
+        }
+      }
+    },
+    "The two PINs don't match." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 つの PIN が一致しません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "两次输入的 PIN 码不一致。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "兩次輸入的 PIN 碼不一致。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "兩次輸入嘅 PIN 碼唔一樣。"
+          }
+        }
+      }
+    },
     "This account is offline." : {
       "localizations" : {
         "ja" : {
@@ -399,6 +931,34 @@
         }
       }
     },
+    "Timeout" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイムアウト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逾時"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逾時"
+          }
+        }
+      }
+    },
     "Today" : {
       "localizations" : {
         "ja" : {
@@ -423,6 +983,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今日"
+          }
+        }
+      }
+    },
+    "Too many wrong PINs, so the PIN is off. Use your master password." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN の誤入力が多すぎたため、PIN をオフにしました。マスターパスワードを使ってください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 码错误次数过多，已停用 PIN 码。请使用主密码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼錯誤次數過多，已停用 PIN 碼。請使用主密碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼錯得太多次，已經停用 PIN 碼。請用主密碼。"
           }
         }
       }
@@ -483,6 +1071,118 @@
         }
       }
     },
+    "Unlock this account once to set a PIN." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN を設定するには、このアカウントを一度ロック解除してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先解锁此账户一次才能设置 PIN 码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先解鎖此帳號一次才能設定 PIN 碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要先解鎖呢個帳戶一次先可以設定 PIN 碼。"
+          }
+        }
+      }
+    },
+    "Unlock with PIN" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN でロック解除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 PIN 码解锁"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 PIN 碼解鎖"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 PIN 碼解鎖"
+          }
+        }
+      }
+    },
+    "Use master password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マスターパスワードを使う"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用主密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用主密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用主密碼"
+          }
+        }
+      }
+    },
+    "Use PIN" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN を使う"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用 PIN 码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用 PIN 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改用 PIN 碼"
+          }
+        }
+      }
+    },
     "Web app" : {
       "localizations" : {
         "ja" : {
@@ -507,6 +1207,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網頁版"
+          }
+        }
+      }
+    },
+    "When it times out" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイムアウト時"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超时后"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逾時後"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間到之後"
+          }
+        }
+      }
+    },
+    "Wrong PIN. ^[%lld try](inflect: true) left." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN が違います。あと %lld 回試せます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 码错误，还可再试 %lld 次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼錯誤，還可再試 %lld 次。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN 碼唔啱，仲可以試多 %lld 次。"
           }
         }
       }
@@ -28546,34 +29302,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 嘅新功能"
-          }
-        }
-      }
-    },
-    "When off, the lock screen stays still and the vault opens and locks at once." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "オフにすると、ロック画面は静止し、保管庫はすぐに開閉します。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭后，锁定画面保持静止，保险库会立即打开和锁定。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關閉後，鎖定畫面保持靜止，保險庫會立即開啟和鎖定。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關閉後，鎖定畫面保持靜止，保險庫會即時開啟和鎖定。"
           }
         }
       }

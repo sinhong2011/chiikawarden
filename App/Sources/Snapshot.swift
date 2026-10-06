@@ -545,6 +545,14 @@ enum SelfTest {
                   && WatchtowerReport.guide(for: "example.invalid", in: directory) == nil,
                   "two-step login directory (\(directory.count) sites)")
 
+                // Change password links: a site with /.well-known/change-password gets it, one without falls back to itself.
+                let github = await ChangePasswordLink.url(for: "github.com")
+                let example = await ChangePasswordLink.url(for: "example.com")
+                let netflix = await ChangePasswordLink.url(for: "www.netflix.com")
+                check(github?.path() == "/.well-known/change-password" && example?.absoluteString == "https://example.com"
+                      && netflix?.path() == "/.well-known/change-password",
+                      "change password links: github.com and netflix (HEAD refused) have one, example.com falls back to the site [\(github?.absoluteString ?? "nil") | \(netflix?.absoluteString ?? "nil") | \(example?.absoluteString ?? "nil")]")
+
             // Item extras: password history, the master-password re-prompt flag, clone.
             _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest extras", username: "u", password: "first-pass"))
             if let extra = model.items.first(where: { $0.name == "Selftest extras" }) {
