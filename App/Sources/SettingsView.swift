@@ -177,16 +177,9 @@ private struct GeneralSettings: View {
             }
 
             Section {
-                LabeledContent("Language") {
-                    Button("Change in System Settings…") {
-                        // Per-app language lives in Language & Region › Applications.
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                }
+                LanguagePicker()
             } footer: {
-                Text("Chiikawarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語.")
+                Text("Chiikawarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -651,5 +644,55 @@ private struct ShortcutRecorder: View {
         problem = nil
         shortcut = new
         Shortcut.palette = new
+    }
+}
+
+/// The app's own language, chosen here: written to the app's `AppleLanguages` (read at launch), then a relaunch.
+private struct LanguagePicker: View {
+    /// "" follows the system.
+    static let choices: [(code: String, name: String)] = [
+        ("", String(localized: "System Default")), ("en", "English"), ("zh-Hant", "繁體中文"),
+        ("zh-HK", "繁體中文（香港）"), ("zh-Hans", "简体中文"), ("ja", "日本語"),
+    ]
+
+    /// What the app was launched with ("" = the system's choice).
+    private static let atLaunch: String = (UserDefaults.standard.persistentDomain(forName: Bundle.main.bundleIdentifier ?? "")?["AppleLanguages"]
+        as? [String])?.first ?? ""
+
+    @State private var chosen = Self.atLaunch
+
+    var body: some View {
+        LabeledContent("Language") {
+            HStack(spacing: 8) {
+                if chosen != Self.atLaunch {
+                    Button("Relaunch to Apply") { Self.relaunch() }
+                        .buttonStyle(.appPrimarySmall)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+                Picker("Language", selection: $chosen) {
+                    ForEach(Self.choices, id: \.code) { Text(verbatim: $0.name).tag($0.code) }
+                }
+                .labelsHidden()
+                .fixedSize()
+            }
+            .animation(.snappy(duration: 0.2), value: chosen)
+        }
+        .onChange(of: chosen) { _, code in
+            if code.isEmpty {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.set([code], forKey: "AppleLanguages")
+            }
+        }
+    }
+
+    /// Opens a fresh copy once this one has quit, so the new language loads.
+    static func relaunch() {
+        let path = Bundle.main.bundlePath
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "while kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do sleep 0.2; done; open \"$0\"", path]
+        try? task.run()
+        NSApp.terminate(nil)
     }
 }
