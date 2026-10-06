@@ -627,9 +627,10 @@ final class AppModel {
         unlockOpenedAt = .now
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         Task {
-            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock or login screen parts like a gate
-            // (RootView). Stays "opening" until the gate is gone, so its halves keep drawing the opened door.
-            try? await Task.sleep(for: .milliseconds(780))
+            // The door unlatches (~0.4 s: rings align, bolts draw back, latch turns; VaultDoorStage); then the lock or
+            // login screen parts like a gate (RootView). Stays "opening" until the gate is gone, so its halves keep
+            // drawing the unlatched door.
+            try? await Task.sleep(for: .milliseconds(450))
             phase = .vault
             try? await Task.sleep(for: .milliseconds(950))
             unlockOpening = false

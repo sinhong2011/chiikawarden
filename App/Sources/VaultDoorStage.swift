@@ -96,7 +96,8 @@ private struct Mechanism {
         var m = Mechanism()
         for k in 0..<4 {
             m.align[k] = Ease.inOut(seg(0.02 * Double(k), 0.18 + 0.02 * Double(k)))
-            m.parts[k] = Ease.machine(seg(0.3 + 0.08 * Double(k), 0.62 + 0.08 * Double(k)))
+            // The pieces stay put: no rings sliding outward (it read as a ripple). The gate opens instead.
+            m.parts[k] = 0
         }
         m.pins = Ease.out(seg(0, 0.14))
         m.bolts = Ease.inOut(seg(0.14, 0.28))
@@ -244,7 +245,8 @@ private struct VaultDoorArt: View, Animatable {
         let glow = p.glow(alert: alert)
         let breathe = 0.5 + 0.5 * sin(time * 1.1)
         // How bright the light inside is: breathing at rest, quicker while the key is derived, blazing as it opens.
-        let inner = min(1, 0.5 + 0.12 * breathe + busy * (0.18 + 0.12 * sin(time * 5)) + 0.5 * alert + 0.45 * m.light)
+        // (Opening only lifts it a little: no flare, no spreading wave as the pieces part.)
+        let inner = min(1, 0.5 + 0.12 * breathe + busy * (0.18 + 0.12 * sin(time * 5)) + 0.5 * alert + 0.15 * m.light)
 
         // Room: translucent, so the lock reads as a layer over the window.
         let full = Path(CGRect(origin: .zero, size: size))
@@ -259,14 +261,14 @@ private struct VaultDoorArt: View, Animatable {
 
         // A soft halo of light around the door.
         c.fill(circle(R * 1.4), with: .radialGradient(
-            Gradient(stops: [.init(color: glow(0), location: 0), .init(color: glow(0.2 + 0.25 * m.light), location: 0.45),
+            Gradient(stops: [.init(color: glow(0), location: 0), .init(color: glow(0.2), location: 0.45),
                              .init(color: glow(0), location: 1)]),
             center: .zero, startRadius: R * 1.0, endRadius: R * 1.4))
 
         // The light inside the vault: it shows through the seams and the tumbler's slots, then through the opening.
         let open = m.parts[0]
         c.fill(circle(1.0 * R), with: .radialGradient(
-            Gradient(colors: [Color.white.opacity(0.4 * inner + 0.5 * open), glow(inner), glow(inner * 0.75)]),
+            Gradient(colors: [Color.white.opacity(0.4 * inner + 0.12 * open), glow(inner), glow(inner * 0.75)]),
             center: .zero, startRadius: 0, endRadius: R))
 
         // Locking bolts: thrown into the frame; drawn back into the door as it unlocks.

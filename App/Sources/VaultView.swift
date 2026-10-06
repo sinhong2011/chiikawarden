@@ -1335,16 +1335,17 @@ struct Monogram: View {
     let size: CGFloat
     @Environment(\.colorScheme) private var scheme
 
-    /// One calm style for every initial (no per-name rainbow): a solid tile — pale sky with the brand's blue letter in
-    /// light mode, deep slate-blue with a light-sky letter in dark mode.
+    /// The same tile as a site's icon (white, hairline edge), with the initial in the app's sky blue, so letters and
+    /// logos sit together as one family.
     var body: some View {
         let dark = scheme == .dark
         Text(name.prefix(1).uppercased())
-            .font(.system(size: size * 0.42, weight: .semibold, design: .rounded))
-            .foregroundStyle(dark ? Color(red: 0.62, green: 0.83, blue: 0.96) : Color(red: 0.06, green: 0.45, blue: 0.70))
+            .font(.system(size: size * 0.44, weight: .semibold, design: .rounded))
+            .foregroundStyle(LinearGradient(colors: [Color(red: 0.36, green: 0.68, blue: 0.91), Color(red: 0.06, green: 0.45, blue: 0.70)],
+                                            startPoint: .top, endPoint: .bottom))
             .frame(width: size, height: size)
-            .background(dark ? Color(red: 0.14, green: 0.22, blue: 0.30) : Color(red: 0.86, green: 0.92, blue: 0.97),
-                        in: .rect(cornerRadius: size * 0.29, style: .continuous))
+            .background(dark ? Color(white: 0.96) : .white, in: .rect(cornerRadius: size * 0.29, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: size * 0.29, style: .continuous).strokeBorder(.black.opacity(0.08)))
             .accessibilityHidden(true) // decorative: the name is read next to it
     }
 }
