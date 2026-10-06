@@ -511,6 +511,12 @@ final class AppModel {
         let run: @MainActor () -> Void
     }
     var toastAction: ToastAction?
+    /// Goes up with every copy, so the control that asked for it can tick (see CopyTick).
+    var copyCount = 0
+    /// When the clipboard empties itself (Settings › Security), while a copied secret is still waiting there.
+    var clipboardClearsAt: Date?
+    /// The item just created, for its row to pop as it lands in the list.
+    var arrivedID: String?
     private var toastTask: Task<Void, Never>?
     private var clearTask: Task<Void, Never>?
 
@@ -708,13 +714,18 @@ final class AppModel {
         let change = pb.changeCount
         let seconds = UserDefaults.standard.integer(forKey: Pref.clipboardSeconds)
         clearTask?.cancel()
+        copyCount += 1
         if seconds > 0 {
+            clipboardClearsAt = .now.addingTimeInterval(TimeInterval(seconds))
             clearTask = Task {
                 try? await Task.sleep(for: .seconds(seconds))
-                if !Task.isCancelled, pb.changeCount == change { pb.clearContents() }
+                guard !Task.isCancelled else { return }
+                if pb.changeCount == change { pb.clearContents() }
+                clipboardClearsAt = nil
             }
             toast = String(localized: "\(label) copied · clears in \(seconds) s")
         } else {
+            clipboardClearsAt = nil
             toast = String(localized: "\(label) copied")
         }
         toastAction = nil
@@ -1149,6 +1160,11 @@ final class AppModel {
         do {
             let id = try await session.create(kind.editorKind, edit: edit)
             selectedID = id
+            arrivedID = id
+            Task {
+                try? await Task.sleep(for: .seconds(1.5))
+                if arrivedID == id { arrivedID = nil }
+            }
             flash(String(localized: "Item created"))
             return true
         } catch { return failed(error) }

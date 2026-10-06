@@ -87,7 +87,9 @@ enum Snapshot {
             ("o9-core", .init(time: 13, opened: 0.92, typed: 9)),
             ("c1-runes-in", .init(time: 12.2, opened: nil, closed: 0.2)),
             ("c2-hub-in", .init(time: 12.5, opened: nil, closed: 0.6)),
-            ("c3-sealed", .init(time: 12.8, opened: nil, closed: 1.1)),
+            ("c3-keyway", .init(time: 12.9, opened: nil, closed: 0.78)),
+            ("c4-scramble", .init(time: 13.1, opened: nil, closed: 0.98)),
+            ("c5-sealed", .init(time: 13.4, opened: nil, closed: 1.3)),
         ]
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             for (frame, moment) in doorFrames {

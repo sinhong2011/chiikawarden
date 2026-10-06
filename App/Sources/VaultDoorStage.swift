@@ -162,16 +162,23 @@ private struct Mechanism {
         return m
     }
 
-    /// Locking, `e` seconds in (~1.4 s): the pieces cascade in from the frame, outside in, the hub turns back and
-    /// locks, the bolts are thrown, the pins go dark one by one, and the seal ripples out.
+    /// Locking, `e` seconds in (~1.5 s), the opening played backwards: the pieces cascade in from the frame, outside
+    /// in, with the three notches still in line and light down the keyway; the hub turns back and locks, the bolts are
+    /// thrown, then the rings turn away from each other, inside out, scrambling the combination, the pins go dark one
+    /// by one and the seal ripples out.
     static func closing(_ e: Double) -> Mechanism {
         func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
         var m = Mechanism()
         m.closeT = e
         for k in 0..<4 {
-            m.align[k] = 1
             m.parts[k] = m.piece(k, 0)
+            // Pins, tumbler, runes in turn, each spinning off past its rest and settling back (like the dials of a
+            // safe given a twist once it's shut).
+            let s = 0.84 + 0.07 * Double(k - 1)
+            m.align[k] = k == 0 ? 1 : 1 - Ease.backOut(seg(s, s + 0.34))
         }
+        // The keyway lights as the last pieces land, and goes dark as the rings leave.
+        m.keyway = Ease.out(seg(0.5, 0.62)) * (1 - Ease.inOut(seg(0.84, 0.94)))
         m.twist = 30 * (1 - Ease.backOut(seg(0.68, 0.8)))
         m.latch = 1 - Ease.inOut(seg(0.76, 0.84))
         m.bolts = 1 - Ease.backOut(seg(0.8, 0.92))
@@ -375,8 +382,14 @@ private struct VaultDoorArt: View, Animatable {
 
     private func angle(_ k: Int, _ m: Mechanism) -> Double {
         guard k > 0 else { return 0 }
-        guard let e = opened else { return idle(k, at: time) }
-        let a0 = idle(k, at: time - e)
+        let a0: Double
+        if let e = opened {
+            a0 = idle(k, at: time - e)
+        } else if closed != nil {
+            a0 = idle(k, at: time) // turning away from the keyway, back to where it rests
+        } else {
+            return idle(k, at: time)
+        }
         // The shorter way round to bring the notch to the top.
         var d = (-90 - Self.notch[k] - a0).truncatingRemainder(dividingBy: 360)
         if d > 180 { d -= 360 } else if d <= -180 { d += 360 }

@@ -10,13 +10,12 @@ struct OTPCode: View {
     var body: some View {
         let split = code.count / 2
         HStack(spacing: size * 0.3) {
-            half(String(code.prefix(split)))
+            half(String(code.prefix(split)), from: 0)
             BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .brand)
                 .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
-            half(String(code.suffix(code.count - split)))
+            half(String(code.suffix(code.count - split)), from: split)
         }
         .font(.system(size: size, weight: .semibold, design: .monospaced))
-        .animation(.snappy, value: code)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: code))
     }
@@ -24,12 +23,20 @@ struct OTPCode: View {
 
 extension OTPCode {
     /// Each half keeps the width of its digit count, so the dot never shifts while digits roll over.
-    fileprivate func half(_ digits: String) -> some View {
+    /// A new code rolls in digit by digit, left to right, like a flip clock (`from`: the first digit's place in the code).
+    fileprivate func half(_ digits: String, from start: Int) -> some View {
         Text(verbatim: String(repeating: "0", count: digits.count))
             .fixedSize() // never squeezed narrower than the digits drawn over it
             .hidden()
             .overlay(alignment: .leading) {
-                Text(verbatim: digits).contentTransition(.numericText()).fixedSize()
+                HStack(spacing: 0) {
+                    ForEach(Array(digits.enumerated()), id: \.offset) { index, digit in
+                        Text(verbatim: String(digit))
+                            .contentTransition(.numericText())
+                            .animation(.spring(duration: 0.45, bounce: 0.2).delay(Double(start + index) * 0.04), value: digit)
+                    }
+                }
+                .fixedSize()
             }
     }
 }
@@ -65,10 +72,14 @@ struct BreathingDot: View {
 }
 
 /// Seconds left in the code's period, as a ring that drains clockwise with the number inside.
+/// It pops when a new code starts the ring again, and ticks with a smaller pop through the last five seconds.
 struct CountdownRing: View {
     let fraction: Double
     let seconds: Int
     var size: CGFloat = 38
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var beat = 0
+    @State private var beatScale = 1.0
 
     var body: some View {
         let urgent = seconds <= 5
@@ -86,6 +97,19 @@ struct CountdownRing: View {
         }
         .frame(width: size, height: size)
         .animation(.snappy, value: seconds)
+        .keyframeAnimator(initialValue: 1.0, trigger: beat) { ring, scale in
+            ring.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(beatScale, duration: 0.1)
+                SpringKeyframe(1, duration: 0.45, spring: .bouncy)
+            }
+        }
+        .onChange(of: seconds) { old, new in
+            guard !reduceMotion else { return }
+            if new > old { beatScale = 1.16; beat += 1 }           // a new code
+            else if new <= 5 { beatScale = 1.07; beat += 1 }       // the last seconds
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("\(seconds) seconds left"))
     }

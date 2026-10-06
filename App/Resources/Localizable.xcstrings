@@ -30233,6 +30233,34 @@
           }
         }
       }
+    },
+    "Clipboard clears in %lld s" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードは %lld 秒後に消去"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板将在 %lld 秒后清除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪貼簿將在 %lld 秒後清除"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪貼簿 %lld 秒後清除"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

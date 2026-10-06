@@ -473,6 +473,7 @@ private struct SidebarAccountCard: View {
                         Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                             .contentTransition(.opacity)
                         SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                            .animation(.snappy(duration: 0.3), value: model.clipboardClearsAt)
                     }
                     Spacer(minLength: 0)
                     Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
@@ -690,7 +691,17 @@ private struct SyncStatusText: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        if model.isSyncing {
+        if let clears = model.clipboardClearsAt {
+            // A copied secret waits on the clipboard: count it down.
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let left = max(0, Int(clears.timeIntervalSince(context.date).rounded(.up)))
+                Text("Clipboard clears in \(left) s")
+                    .monospacedDigit()
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.snappy, value: left)
+            }
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+        } else if model.isSyncing {
             Text("Syncing…")
         } else if let date = model.lastSynced {
             TimelineView(.periodic(from: .now, by: 30)) { context in
@@ -1027,6 +1038,7 @@ private struct ItemColumn: View {
                         Section {
                             ForEach(group.items) { item in
                                 ItemRow(item: item, isSelected: picked(item), highlight: query)
+                                    .modifier(ArrivalPop(arrived: model.arrivedID == item.id))
                                     .onTapGesture { click(item, ordered: ItemSort.sections(items, by: order).flatMap(\.items)) }
                                     .accessibilityElement(children: .combine)
                                     .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
@@ -1430,24 +1442,30 @@ extension HeroCard {
     @ViewBuilder func tiles(_ style: HeroStyle) -> some View {
                 if let password = item.password {
                     Tile(style: style) {
+                        passwordArmed = model.copyCount
                         model.copyPassword(item)
                     } content: {
                         let strength = StrengthMeter(password: password).level
                         HStack {
-                            Text("Password · click to copy").lineLimit(1)
+                            CopyCaption(copied: passwordCopied) { Text("Password · click to copy") }
                             Spacer(minLength: 6)
                             Text(strength.1)
                         }
                         .font(.system(size: 12)).foregroundStyle(style.muted)
-                        Text(verbatim: reveal ? password : String(repeating: "•", count: 12))
-                            .font(.system(size: reveal ? 16 : 20, weight: .semibold, design: .monospaced))
-                            .tracking(reveal ? 0.5 : 2)
+                        Group {
+                            if reveal {
+                                DecodingText(password).font(.system(size: 16, weight: .semibold, design: .monospaced)).tracking(0.5)
+                            } else {
+                                Text(verbatim: String(repeating: "•", count: 12))
+                                    .font(.system(size: 20, weight: .semibold, design: .monospaced)).tracking(2)
+                            }
+                        }
                             .lineLimit(1)
                             .frame(height: 24, alignment: .leading)
-                            .contentTransition(.opacity)
                         // Same place and size as the code's countdown bar, so the tiles line up.
                         LevelBar(level: strength.0, color: strength.0 <= 1 ? .red : strength.0 == 2 ? .orange : .green)
                     }
+                    .copyTick(armed: $passwordArmed, copied: $passwordCopied)
                     .contextMenu {
                         Button("Copy Password", systemImage: "doc.on.doc") { model.copyPassword(item) }
                         Button("Show in Large Type", systemImage: "textformat.size") { model.showLargeType(item) }
@@ -1460,9 +1478,10 @@ extension HeroCard {
                         let period = Double(totp.period)
                         let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
                         Tile(style: style) {
+                            codeArmed = model.copyCount
                             model.guarded(item) { model.copy(code, label: String(localized: "Code")) }
                         } content: {
-                            Text("One-time code")
+                            CopyCaption(copied: codeCopied) { Text("One-time code") }
                                 .font(.system(size: 12)).foregroundStyle(style.muted)
                             HStack(alignment: .center) {
                                 OTPCode(code: code, size: 22, urgent: left <= 5)
@@ -1472,6 +1491,7 @@ extension HeroCard {
                         }
                         .animation(.snappy, value: code)
                     }
+                    .copyTick(armed: $codeArmed, copied: $codeCopied)
                 }
                 }
 }
@@ -1495,6 +1515,10 @@ private struct HeroCard: View {
     @Environment(\.colorScheme) private var scheme
     let item: VaultItem
     @Binding var reveal: Bool
+    @State var passwordArmed: Int?
+    @State var passwordCopied = false
+    @State var codeArmed: Int?
+    @State var codeCopied = false
 
     var body: some View {
         let style = HeroStyle(dark: scheme == .dark)
@@ -1552,6 +1576,24 @@ private struct Tile<Content: View>: View {
     }
 }
 
+/// A tile's caption that reads "Copied" with a tick for a moment after its copy.
+private struct CopyCaption<Label: View>: View {
+    let copied: Bool
+    @ViewBuilder let label: Label
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            label.lineLimit(1).opacity(copied ? 0 : 1).offset(y: copied ? -6 : 0)
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark").fontWeight(.bold)
+                    .symbolEffect(.bounce, value: copied)
+                Text("Copied")
+            }
+            .opacity(copied ? 1 : 0).offset(y: copied ? 0 : 6)
+        }
+    }
+}
+
 private struct PressScale: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -1566,23 +1608,41 @@ private struct FieldLine: View {
     let item: VaultItem
     let field: ItemField
     let reveal: Bool
+    @State private var armed: Int?
+    @State private var copied = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(verbatim: field.label)
                 .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                 .frame(width: 110, alignment: .leading)
-            Text(verbatim: field.secret && !reveal ? String(repeating: "•", count: 10) : field.value)
+            Group {
+                if field.secret && !reveal {
+                    Text(verbatim: String(repeating: "•", count: 10))
+                } else if field.secret {
+                    DecodingText(field.value)
+                } else {
+                    Text(verbatim: field.value)
+                }
+            }
                 .font(.system(size: 13, design: field.monospaced ? .monospaced : .default))
                 .lineLimit(field.monospaced ? 3 : 2)
                 .truncationMode(.middle)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentTransition(.opacity)
-            Button { if field.secret { model.guarded(item) { model.copy(field.value, label: field.label) } } else { model.copy(field.value, label: field.label) } } label: { Image(systemName: "doc.on.doc").accessibilityLabel(Text("Copy \(field.label)")) }
+            Button {
+                armed = model.copyCount
+                if field.secret { model.guarded(item) { model.copy(field.value, label: field.label) } } else { model.copy(field.value, label: field.label) }
+            } label: {
+                Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                    .contentTransition(.symbolEffect(.replace))
+                    .accessibilityLabel(Text("Copy \(field.label)"))
+            }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
                 .help(Text("Copy"))
+                .copyTick(armed: $armed, copied: $copied)
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
     }
@@ -1614,7 +1674,11 @@ struct ToastView: View {
         ZStack {
             if let toast = model.toast {
                 HStack(spacing: 14) {
-                    Label(toast, systemImage: "checkmark.circle.fill")
+                    Label {
+                        Text(toast).contentTransition(.opacity)
+                    } icon: {
+                        Image(systemName: "checkmark.circle.fill").symbolEffect(.bounce, options: .speed(1.3), value: toast)
+                    }
                     if let action = model.toastAction {
                         Button(action.title) { action.run() }
                             .buttonStyle(.plain)
@@ -2249,6 +2313,8 @@ struct SidebarLabel: View {
                 .symbolEffect(.bounce.down, options: .speed(1.4), value: pulse)
         }
         .onChange(of: selected) { _, now in if now { pulse += 1 } }
+        // Something landed here (trashed, archived, starred…): a jump of one or two, not a whole sync arriving.
+        .onChange(of: count ?? 0) { old, new in if new > old, new - old <= 2, old > 0 || new == 1 { pulse += 1 } }
     }
 }
 
