@@ -4,90 +4,6 @@
     "" : {
       "shouldTranslate" : false
     },
-    "One-time codes, one click away" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ワンタイムコードをワンクリックで"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一次性验证码，一点即得"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一次性驗證碼，一按即得"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一次性驗證碼，㩒一下就有"
-          }
-        }
-      }
-    },
-    "Passwords and passkeys, filled in anywhere" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワードとパスキーを、どこでも自動入力"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密码与通行密钥，随处自动填充"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼與通行密鑰，隨處自動填入"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼同通行密鑰，去到邊都自動填"
-          }
-        }
-      }
-    },
-    "SSH keys that sign without leaving the vault" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SSH キーは保管庫から出ずに署名"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SSH 密钥直接签名，不离开保险库"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SSH 金鑰直接簽署，不離開保險庫"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SSH 金鑰直接簽署，唔使離開保險庫"
-          }
-        }
-      }
-    },
     "· in use" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16024,6 +15940,34 @@
         }
       }
     },
+    "One-time codes, one click away" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ワンタイムコードをワンクリックで"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次性验证码，一点即得"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次性驗證碼，一按即得"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次性驗證碼，㩒一下就有"
+          }
+        }
+      }
+    },
     "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -17412,7 +17356,36 @@
         }
       }
     },
+    "Passwords and passkeys, filled in anywhere" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードとパスキーを、どこでも自動入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码与通行密钥，随处自动填充"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼與通行密鑰，隨處自動填入"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼同通行密鑰，去到邊都自動填"
+          }
+        }
+      }
+    },
     "Passwords, passkeys, codes and SSH keys — native on your Mac." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -21349,6 +21322,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SSH 金鑰"
+          }
+        }
+      }
+    },
+    "SSH keys that sign without leaving the vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH キーは保管庫から出ずに署名"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH 密钥直接签名，不离开保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH 金鑰直接簽署，不離開保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH 金鑰直接簽署，唔使離開保險庫"
           }
         }
       }

@@ -35,9 +35,10 @@ struct ChiikawardenApp: App {
 
     var body: some Scene {
         WindowGroup {
+            // No window-wide tint: a tint colours menu icons, and a highlighted row would then hide its own icon.
+            // System controls take the neutral global accent (ControlAccent); the app's switches set their own.
             RootView()
                 .environment(model)
-                .tint(.controlTint)
                 .preferredColorScheme(appearance.scheme)
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
@@ -63,7 +64,6 @@ struct ChiikawardenApp: App {
         MenuBarExtra {
             MenuBarContent()
                 .environment(model)
-                .tint(.controlTint)
         } label: {
             Image(nsImage: MenuBarGlyph.image)
                 .opacity(model.isUnlocked ? 1 : 0.55)
@@ -73,7 +73,6 @@ struct ChiikawardenApp: App {
         Settings {
             SettingsView()
                 .environment(model)
-                .tint(.controlTint)
                 .preferredColorScheme(appearance.scheme)
         }
         .defaultSize(width: 820, height: 640)

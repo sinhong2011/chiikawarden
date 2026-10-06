@@ -152,8 +152,7 @@ final class QuickSearchController {
             MainActor.assumeIsolated { self?.close() }
         }
         panel.contentView = NSHostingView(rootView: CommandPalette(close: { [weak self] in self?.close() })
-            .environment(model)
-            .tint(.controlTint))
+            .environment(model))
         return panel
     }
 }
