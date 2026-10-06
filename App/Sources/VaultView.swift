@@ -362,11 +362,6 @@ private struct Sidebar: View {
 
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
-            if !model.organizations.isEmpty {
-                VaultSwitcher()
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
-            }
             Section("Vault") {
                 // All Items, with its narrower views folded under it: favorites, each type, then the folders.
                 DisclosureGroup(isExpanded: $typesExpanded) {
@@ -452,6 +447,12 @@ private struct Sidebar: View {
         // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
         .tint(Color.sidebarSelection)
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
+        // The vault switcher above the list, as wide as the rows' selection.
+        .safeAreaInset(edge: .top, spacing: 4) {
+            if !model.organizations.isEmpty {
+                VaultSwitcher().padding(.horizontal, 10).padding(.top, 4)
+            }
+        }
     }
 }
 
