@@ -258,7 +258,8 @@ private struct VaultDoorArt: View, Animatable {
     }
 
     private var mechanism: Mechanism {
-        if let opened { return .opening(opened) }
+        // The opening plays half again as fast as its timeline is written (~0.7 s), so unlocking doesn't keep you waiting.
+        if let opened { return .opening(opened * 1.5) }
         if let closed { return .closing(closed) }
         return Mechanism()
     }

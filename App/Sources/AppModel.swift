@@ -628,9 +628,9 @@ final class AppModel {
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         let fromLock = phase.id == Phase.locked.id
         Task {
-            // The door transforms open (~1 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
+            // The door transforms open (~0.7 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
             // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out over the core.
-            try? await Task.sleep(for: .milliseconds(1050))
+            try? await Task.sleep(for: .milliseconds(700))
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
                 // under them, and the plates part over the vault (GatePlates).
@@ -639,13 +639,13 @@ final class AppModel {
                 try? await Task.sleep(for: .milliseconds(30))
                 phase = .vault
                 await Task.yield()
-                withAnimation(.easeInOut(duration: 0.75)) { gateApart = true }
-                try? await Task.sleep(for: .milliseconds(800))
+                withAnimation(.easeInOut(duration: 0.5)) { gateApart = true }
+                try? await Task.sleep(for: .milliseconds(550))
                 gate = nil
             } else {
                 // Login: its screen parts like a gate (RootView's transition).
                 phase = .vault
-                try? await Task.sleep(for: .milliseconds(950))
+                try? await Task.sleep(for: .milliseconds(650))
             }
             unlockOpening = false
             unlockOpenedAt = nil

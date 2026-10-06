@@ -160,7 +160,7 @@ struct RootView: View {
 
     /// Into the vault: the gate's heavy ease. Locking: the gate closing. Elsewhere: smooth, nothing wobbles into place.
     private var phaseAnimation: Animation {
-        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.75) }
+        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.55) }
         return .smooth(duration: 0.45)
     }
 
