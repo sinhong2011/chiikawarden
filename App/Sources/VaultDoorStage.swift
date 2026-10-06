@@ -250,6 +250,9 @@ private struct VaultDoorArt: View, Animatable {
         set { steps = newValue.first; busy = newValue.second }
     }
 
+    /// ♈︎ … ♓︎ around the tumbler.
+    private static let zodiac = Array("♈♉♊♋♌♍♎♏♐♑♒♓")
+
     /// The twelve pins, one Elder Futhark rune each.
     private static let runes = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛉ")
 
@@ -561,9 +564,20 @@ private struct VaultDoorArt: View, Animatable {
     private func drawTumbler(_ r: inout GraphicsContext, p: DoorPalette, glow: RGB, inner: Double, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.tumbler.inner * R, outer: DoorGeometry.tumbler.outer * R, colors: p.metal, turn: turn)
+        // The twelve signs of the zodiac, engraved upright to the centre around the tumbler.
         for i in 0..<12 {
             let t = (Double(i) * 30 + 15) * .pi / 180
-            r.fill(circle(R * 0.007, at: CGPoint(x: cos(t) * R * 0.7725, y: sin(t) * R * 0.7725)), with: .color(p.engrave.opacity(0.6)))
+            var g = r
+            g.translateBy(x: cos(t) * R * 0.7725, y: sin(t) * R * 0.7725)
+            g.rotate(by: .radians(t + .pi / 2))
+            // U+FE0E asks for the text form, not the emoji.
+            let sign = String(Self.zodiac[i]) + "\u{FE0E}"
+            func glyph(_ color: Color) -> GraphicsContext.ResolvedText {
+                g.resolve(Text(sign).font(.custom("Apple Symbols", size: R * 0.062)).foregroundColor(color))
+            }
+            g.draw(glyph(p.engraveLip), at: CGPoint(x: 0, y: 0.7), anchor: .center)
+            g.draw(glyph(p.engrave.opacity(0.8)), at: .zero, anchor: .center)
+            if inner > 0.75 { g.draw(glyph(glow((inner - 0.75) * 2)), at: .zero, anchor: .center) }
         }
     }
 
