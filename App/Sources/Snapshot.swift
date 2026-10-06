@@ -728,12 +728,26 @@ enum SelfTest {
                         func identical(_ a: VaultItem, _ b: VaultItem) -> Bool {
                             guard a.name == b.name, a.kind == b.kind, a.username == b.username, a.password == b.password else { return false }
                             guard a.notes == b.notes, a.totp?.code() == b.totp?.code() else { return false }
+                            // The easy-to-lose parts: favorite, folder, website, passkeys.
+                            guard a.favorite == b.favorite, a.folderName == b.folderName, a.uri == b.uri,
+                                  a.passkeys.map(\.credentialId) == b.passkeys.map(\.credentialId) else { return false }
                             return a.customFields == b.customFields && a.properties == b.properties
                         }
                         let same = imported.count == mine.count && imported.allSatisfy { copy in mine.contains { identical($0, copy) } }
                         check(same, "export → import round trip: \(imported.count) of \(mine.count) items identical")
                         for item in imported { await model.deleteForever(item) }
                         for folder in s2.folders where !beforeFolders.contains(folder.id) { try? await s2.deleteFolder(folder.id) }
+
+                        // Plain JSON the same way.
+                        let plainPreview = try s2.previewImport(try s1.export(.json).data, password: nil)
+                        let beforePlain = Set(model.items.filter { $0.accountId == id2 }.map(\.id))
+                        let beforePlainFolders = Set(s2.folders.map(\.id))
+                        try await s2.importItems(plainPreview.items, folders: plainPreview.folders)
+                        let importedPlain = model.items.filter { $0.accountId == id2 && !beforePlain.contains($0.id) }
+                        check(importedPlain.count == mine.count && importedPlain.allSatisfy { copy in mine.contains { identical($0, copy) } },
+                              "plain JSON export → import: \(importedPlain.count) of \(mine.count) items identical")
+                        for item in importedPlain { await model.deleteForever(item) }
+                        for folder in s2.folders where !beforePlainFolders.contains(folder.id) { try? await s2.deleteFolder(folder.id) }
 
                         // Organization vault: export, read back, import a copy into the organization, clean up.
                         if let org = s1.transferVaults().first(where: { $0.id != nil }), let orgId = org.id {

@@ -20,6 +20,7 @@ struct AppButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: small ? 12 : large ? 14 : 13, weight: .semibold))
             .lineLimit(1)
+            .fixedSize(horizontal: !large, vertical: false) // a label never truncates; neighbours give way instead
             .padding(.horizontal, small ? 12 : 16)
             .frame(maxWidth: large ? .infinity : nil)
             .frame(height: small ? 28 : large ? 40 : 36)

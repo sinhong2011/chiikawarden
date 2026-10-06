@@ -14,10 +14,8 @@ private struct AccountPicker: View {
         if model.sessions.count > 1 {
             VStack(alignment: .leading, spacing: 6) {
                 SheetLabel("Account")
-                Picker("Account", selection: $accountId) {
-                    ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag($0.id) }
-                }
-                .labelsHidden()
+                SoftMenu(options: model.sessions.map { ($0.id, $0.account.email) }, selection: $accountId,
+                         accessibilityLabel: "Account")
             }
         }
     }
@@ -33,12 +31,7 @@ private struct VaultPicker: View {
         if vaults.count > 1 {
             VStack(alignment: .leading, spacing: 6) {
                 SheetLabel(label)
-                Picker(label, selection: $selection) {
-                    ForEach(vaults, id: \.id) { vault in
-                        Label(vault.name, systemImage: vault.id == nil ? "person" : "building.2").tag(vault.id)
-                    }
-                }
-                .labelsHidden()
+                SoftMenu(options: vaults.map { ($0.id, $0.name) }, selection: $selection, accessibilityLabel: label)
             }
         }
     }
@@ -50,24 +43,13 @@ private struct SheetLabel: View {
     var body: some View { Text(text).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary) }
 }
 
-/// Title row shared by both sheets.
+/// Title row shared by both sheets: the app's form header.
 private struct SheetHeader: View {
     let symbol: String
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey
 
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold)).foregroundStyle(Color.brand)
-                .frame(width: 38, height: 38)
-                .background(Color.brandFill.opacity(0.22), in: .circle)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 17, weight: .semibold))
-                Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary)
-            }
-        }
-    }
+    var body: some View { FormHeader(symbol: symbol, title: title, subtitle: subtitle).padding(.horizontal, -4) }
 }
 
 // MARK: - Export

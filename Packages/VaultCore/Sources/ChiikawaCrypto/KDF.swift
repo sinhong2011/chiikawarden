@@ -10,14 +10,17 @@ public enum KDFConfig: Sendable, Equatable, Codable {
 
     // Bounds guard against a malicious or misconfigured server downgrading the KDF.
     static let pbkdf2Iterations = 600_000...2_000_000
+    /// Password-protected export files: whatever Bitwarden's clients write, including accounts from before the
+    /// 600,000 default (100,000 was the old one). There's no server to downgrade anything; the user chose the password.
+    static let filePBKDF2Iterations = 5_000...2_000_000
     static let argon2Iterations = 2...10
     static let argon2MemoryMiB = 16...1024
     static let argon2Parallelism = 1...16
 
-    public func validate() throws(CryptoError) {
+    public func validate(forFile: Bool = false) throws(CryptoError) {
         switch self {
         case .pbkdf2(let iterations):
-            guard Self.pbkdf2Iterations.contains(iterations) else {
+            guard (forFile ? Self.filePBKDF2Iterations : Self.pbkdf2Iterations).contains(iterations) else {
                 throw .kdfOutOfBounds("PBKDF2 iterations \(iterations)")
             }
         case .argon2id(let iterations, let memory, let parallelism):
@@ -50,7 +53,7 @@ public enum KDF {
     /// A key from a password and a salt used exactly as given (no email normalisation), stretched for
     /// encryption — Bitwarden's password-protected export key (`makePinKey(password, salt, kdf)`).
     public static func passwordKey(password: String, salt: String, config: KDFConfig) throws(CryptoError) -> SymmetricKeyPair {
-        try config.validate()
+        try config.validate(forFile: true)
         let raw: Data
         switch config {
         case .pbkdf2(let iterations):
