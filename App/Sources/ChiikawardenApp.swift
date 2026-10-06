@@ -143,6 +143,13 @@ struct ChiikawardenApp: App {
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The login and lock screens leave like a vault's inner gate: split along the middle, halves retracting up and down.
+    private var gate: AnyTransition {
+        reduceMotion ? .opacity : .asymmetric(insertion: .opacity,
+                                              removal: .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0)))
+    }
 
     var body: some View {
         @Bindable var model = model
@@ -151,16 +158,17 @@ struct RootView: View {
             case .login, .twoFactor, .deviceVerification, .ssoPassword:
                 LoginView()
                     .frame(minWidth: 380, idealWidth: 920, maxWidth: .infinity, minHeight: 560, idealHeight: 640, maxHeight: .infinity)
-                    .transition(.asymmetric(insertion: .opacity, removal: .scale(scale: 1.04).combined(with: .opacity)))
+                    .transition(gate)
+                    .zIndex(1) // the gate opens over the vault
             case .locked, .vault:
                 // Signed in: the vault is always the window; while locked, the lock lies over it as one layer.
                 VaultView()
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
                     // No blur or scaling of its own behind the lock (the lock's frosted layer blurs it): a blur would lay
                     // it out under the title bar, and it would jump into place on unlock.
-                    .transition(.asymmetric(insertion: .modifier(active: SceneFade(scale: 0.96, blur: 8, opacity: 0),
-                                                                 identity: SceneFade(scale: 1, blur: 0, opacity: 1)),
-                                            removal: .opacity))
+                    // From login it's simply already there under the gate: no fade (a gap would show) and no blur or scale.
+                    .transition(.asymmetric(insertion: .identity, removal: .opacity))
+                    .zIndex(0)
             }
         }
         // The lock lies over the window as an overlay (not a sibling): it reaches under the title bar without
@@ -168,13 +176,13 @@ struct RootView: View {
         .overlay {
             if model.phase.id == AppModel.Phase.locked.id {
                 UnlockView()
-                    // Fades in over the vault while the door assembles itself; on unlock it dissolves.
-                    .transition(.asymmetric(insertion: .opacity,
-                                            removal: .modifier(active: SceneFade(scale: 1.06, blur: 12, opacity: 0),
-                                                               identity: SceneFade(scale: 1, blur: 0, opacity: 1))))
+                    // Fades in over the vault while the door assembles itself; on unlock it parts like a gate.
+                    .transition(gate)
             }
         }
-        .animation(.smooth(duration: 0.45), value: model.phase.id) // no overshoot: nothing wobbles into place
+        // Into the vault: the gate's heavy ease. Elsewhere: smooth, no overshoot, so nothing wobbles into place.
+        .animation(model.phase.id == AppModel.Phase.vault.id ? .easeInOut(duration: 0.75) : .smooth(duration: 0.45),
+                   value: model.phase.id)
         .onAppear { model.openSettingsAction = { openSettings() } }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
@@ -192,15 +200,48 @@ extension Color {
     static let brand = Color("AccentColor")
 }
 
-/// Scale + blur + opacity, for the lock screen ⇄ vault hand-off.
-private struct SceneFade: ViewModifier {
-    let scale: CGFloat
-    let blur: CGFloat
-    let opacity: Double
+/// The gate: while opening, the screen is drawn as two halves, the top one sliding up and the bottom one down, each
+/// casting a shadow from its edge. Closed, it's just the screen. Animatable, so the halves move every frame.
+struct GateSplit: ViewModifier, Animatable {
+    var progress: CGFloat
+    nonisolated var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
     func body(content: Content) -> some View {
-        content.scaleEffect(scale).blur(radius: blur).opacity(opacity)
+        if progress <= 0.001 {
+            content
+        } else {
+            GeometryReader { geo in
+                let travel = geo.size.height / 2 + 60
+                ZStack {
+                    half(content, top: true, height: geo.size.height)
+                        .offset(y: -progress * travel)
+                    half(content, top: false, height: geo.size.height)
+                        .offset(y: progress * travel)
+                }
+            }
+            .allowsHitTesting(false)
+        }
+    }
+
+    private func half(_ content: Content, top: Bool, height: CGFloat) -> some View {
+        content
+            .mask(alignment: top ? .top : .bottom) { Rectangle().frame(height: height / 2) }
+            .overlay(alignment: .top) {
+                // The gate's edge: a dark seam with a thin highlight inside, so the halves read as heavy plates.
+                VStack(spacing: 0) {
+                    if !top { Rectangle().fill(.black.opacity(0.22)).frame(height: 2) }
+                    Rectangle().fill(.white.opacity(0.4)).frame(height: 1)
+                    if top { Rectangle().fill(.black.opacity(0.22)).frame(height: 2) }
+                }
+                .offset(y: top ? height / 2 - 3 : height / 2)
+            }
+            .shadow(color: .black.opacity(0.35 * Double(min(progress * 3, 1))), radius: 22, y: top ? 14 : -14)
     }
 }
+
 
 /// Wrapper so @AppStorage can drive preferredColorScheme.
 enum AppearanceSetting: String {

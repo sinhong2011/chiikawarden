@@ -624,18 +624,23 @@ final class AppModel {
             phase = .vault
             return
         }
+        unlockOpenedAt = .now
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         Task {
-            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock or login screen gives way to the vault.
+            // The door takes itself apart (~0.8 s, VaultDoorStage); then the lock or login screen parts like a gate
+            // (RootView). Stays "opening" until the gate is gone, so its halves keep drawing the opened door.
             try? await Task.sleep(for: .milliseconds(780))
             phase = .vault
-            try? await Task.sleep(for: .milliseconds(400))
+            try? await Task.sleep(for: .milliseconds(950))
             unlockOpening = false
+            unlockOpenedAt = nil
         }
     }
 
     /// True for the moment between a successful unlock and the vault appearing (the lock-opening animation).
     var unlockOpening = false
+    /// When the door started opening. Shared, so every copy of the door (the gate's two halves) runs the same moment.
+    var unlockOpenedAt: Date?
 
     func setTouchID(_ enabled: Bool, for accountId: String) {
         guard let session = session(for: accountId) else { return }

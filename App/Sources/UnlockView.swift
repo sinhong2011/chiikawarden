@@ -11,7 +11,6 @@ struct UnlockView: View {
     @State private var password = ""
     @State private var turns = 0
     @State private var errorAt: Date?
-    @State private var openedAt: Date?
     @State private var closedAt: Date?
     /// While the door assembles itself after a lock, the hub's controls wait.
     @State private var assembling = false
@@ -33,7 +32,7 @@ struct UnlockView: View {
                 Rectangle().fill(.ultraThinMaterial)
 
                 VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
-                               busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: openedAt, closedAt: closedAt)
+                               busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: closedAt)
 
                 DoorCore(password: $password, focused: $focused, submit: submit)
                     .frame(width: radius * DoorGeometry.core * 2 * 0.84)
@@ -68,7 +67,6 @@ struct UnlockView: View {
                 }
             }
         }
-        .onChange(of: model.unlockOpening) { _, now in openedAt = now ? .now : nil }
         .onChange(of: model.errorMessage) { _, message in
             // A wrong password: the light warms to red and the tumblers rewind to an empty field.
             guard message != nil else { return }

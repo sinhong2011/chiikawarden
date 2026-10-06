@@ -613,7 +613,6 @@ private struct VaultDoorArt: View, Animatable {
 struct LoginDoorStage: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
-    @State private var openedAt: Date?
 
     var body: some View {
         let dark = scheme == .dark
@@ -623,7 +622,7 @@ struct LoginDoorStage: View {
             let radius = min(size.width * 0.34, size.height * 0.27, 200)
             ZStack {
                 VaultDoorStage(radius: radius, center: CGPoint(x: size.width / 2, y: size.height * 0.40), typed: 0, turns: 0,
-                               busy: model.isBusy, errorAt: nil, openedAt: openedAt, closedAt: nil)
+                               busy: model.isBusy, errorAt: nil, openedAt: model.unlockOpenedAt, closedAt: nil)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: "Chiikawarden")
                         .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
@@ -637,14 +636,13 @@ struct LoginDoorStage: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .padding(36)
-                .opacity(openedAt == nil ? 1 : 0)
-                .animation(.easeIn(duration: 0.25), value: openedAt == nil)
+                .opacity(model.unlockOpenedAt == nil ? 1 : 0)
+                .animation(.easeIn(duration: 0.25), value: model.unlockOpenedAt == nil)
             }
         }
         // Fades out on the right so the stage melts into the form's side (no hard seam).
         .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.78),
                                      .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
-        .onChange(of: model.unlockOpening) { _, now in openedAt = now ? .now : nil }
         .accessibilityHidden(true)
     }
 }
