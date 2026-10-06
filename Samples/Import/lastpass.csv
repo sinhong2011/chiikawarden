@@ -1,0 +1,3 @@
+url,username,password,totp,extra,name,grouping,fav
+https://www.dropbox.com/login,usagi@example.com,Db#7qT!2vR@9wLz,JBSWY3DPEHPK3PXP,a note,Dropbox,Work,1
+http://sn,,,,"Wi-Fi: pochi-net, password correct-horse",Wi-Fi (secure note),Personal,0

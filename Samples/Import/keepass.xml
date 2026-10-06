@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<KeePassFile><Root><Group><Name>Database</Name>
+  <Group><Name>Work</Name>
+    <Entry>
+      <String><Key>Title</Key><Value>Jira</Value></String>
+      <String><Key>UserName</Key><Value>usagi@example.com</Value></String>
+      <String><Key>Password</Key><Value Protected="True">Ji#7qT!2vR@9wLz</Value></String>
+      <String><Key>URL</Key><Value>https://example.atlassian.net</Value></String>
+      <String><Key>PIN</Key><Value Protected="True">0420</Value></String>
+      <String><Key>otp</Key><Value>otpauth://totp/Jira?secret=JBSWY3DPEHPK3PXP</Value></String>
+      <History><Entry><String><Key>Password</Key><Value>old-jira-pw</Value></String></Entry></History>
+    </Entry>
+  </Group>
+  <Entry><String><Key>Title</Key><Value>Note only</Value></String><String><Key>Notes</Key><Value>Just a note from KeePass.</Value></String></Entry>
+</Group></Root></KeePassFile>

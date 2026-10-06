@@ -1,0 +1,646 @@
+{
+  "encrypted": false,
+  "folders": [
+    {
+      "id": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "name": "Work"
+    },
+    {
+      "id": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "name": "Work/Servers"
+    },
+    {
+      "id": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "name": "Personal"
+    },
+    {
+      "id": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "name": "Finance"
+    },
+    {
+      "id": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "name": "家族"
+    }
+  ],
+  "items": [
+    {
+      "id": "77764a59-d60a-4db4-b35c-8b8abdaf8c7b",
+      "organizationId": null,
+      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "type": 1,
+      "reprompt": 0,
+      "name": "GitHub",
+      "notes": "Recovery codes are in the “GitHub recovery” note.",
+      "favorite": true,
+      "fields": [
+        {
+          "name": "Org",
+          "value": "chiikawa-dev",
+          "type": 0
+        },
+        {
+          "name": "Recovery PIN",
+          "value": "0420",
+          "type": 1
+        },
+        {
+          "name": "SSO enforced",
+          "value": "true",
+          "type": 2
+        }
+      ],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://github.com/login"
+          },
+          {
+            "match": null,
+            "uri": "https://gist.github.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "m7Kq#vR2!tLp9wZe$Hu4",
+        "totp": "JBSWY3DPEHPK3PXP",
+        "passwordRevisionDate": "2026-09-24T14:36:41.000Z"
+      },
+      "passwordHistory": [
+        {
+          "lastUsedDate": "2026-09-24T14:36:41.000Z",
+          "password": "7m4Gv%Y6A56NAMPBz#aoTX"
+        },
+        {
+          "lastUsedDate": "2025-09-01T14:36:41.000Z",
+          "password": "OldGitHub!2023"
+        }
+      ],
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "6775120d-a8a8-47a3-b332-743a0a8e9a51",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Google",
+      "notes": null,
+      "favorite": true,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://accounts.google.com"
+          }
+        ],
+        "username": "usagi.test@example.com",
+        "password": "q9!Rk2#Vw7@Lp4$Tz8",
+        "totp": "JBSWY3DPEHPK3PXP",
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "8817f2e5-218c-4292-8290-0d2917d6bb0c",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "YouTube (shares Google's sign-in)",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://www.youtube.com"
+          }
+        ],
+        "username": "usagi.test@example.com",
+        "password": "q9!Rk2#Vw7@Lp4$Tz8-yt",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "d52af24f-2936-45ab-956c-e083dd579ce5",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Discord",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://discord.com/login"
+          }
+        ],
+        "username": "usagi#0420",
+        "password": "Dc$7mQ!x2Lp#9vWz",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "105503e6-43d8-4a4f-a5ed-4d5accd56b72",
+      "organizationId": null,
+      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Cloudflare",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://dash.cloudflare.com"
+          }
+        ],
+        "username": "ops@example.com",
+        "password": "Cf@8nT!q3Zr#6wLm$2",
+        "totp": "JBSWY3DPEHPK3PXP",
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "f1d16522-8e2a-4d36-aeef-bab6ec5c4cb8",
+      "organizationId": null,
+      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Tailscale",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://login.tailscale.com"
+          }
+        ],
+        "username": "ops@example.com",
+        "password": "Ts!4xR#9mQ@2vLz$7k",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "c1ce65c1-8fe4-442a-a22f-6ba747d76457",
+      "organizationId": null,
+      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Synology NAS (LAN, http is fine)",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "http://192.168.1.20:5000"
+          }
+        ],
+        "username": "admin",
+        "password": "Nas#5tQ!8wRz@3mLp",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "5863103c-829b-4b9c-b588-679793c14c57",
+      "organizationId": null,
+      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "type": 1,
+      "reprompt": 1,
+      "name": "Proxmox",
+      "notes": "Ask for the master password before showing this one.",
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://pve.home.arpa:8006"
+          }
+        ],
+        "username": "root@pam",
+        "password": "Px!9vT#3qR@7wLz$5m",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "a292c8e7-2140-4260-bc9a-fd7f34b5939f",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Old forum (http://, unencrypted)",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "http://forum.example.org/login"
+          }
+        ],
+        "username": "usagi",
+        "password": "Fx#8qL!2vR@6tZm$4w",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "0789ffcb-0e2c-4c9e-a18c-f24be4281e9f",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Weak: pizza shop",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://pizza.example.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "pizza123",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "29825e2b-3908-47a5-9287-34798067b96a",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Reused: Netflix",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://www.netflix.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "Summer2024!",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "956a8369-73fd-4baa-b86c-265d6673544a",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Reused: Spotify",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://open.spotify.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "Summer2024!",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "98ce2f44-b871-4595-bd1c-1b838ca4bbb2",
+      "organizationId": null,
+      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Duplicate: Amazon",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://www.amazon.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "Am$7qT!2vR#9wLz@4",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "59cdc8a2-6e98-43a1-a92b-2f25dcbbd739",
+      "organizationId": null,
+      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Duplicate: Amazon (older copy)",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://amazon.com"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "Am$7qT!2vR#9wLz@4-old",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2025-05-24T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "6f3fe41f-eec4-48bb-b7a6-2acd5024398c",
+      "organizationId": null,
+      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "type": 1,
+      "reprompt": 0,
+      "name": "Not changed in years: bank",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://bank.example.com"
+          }
+        ],
+        "username": "88123456",
+        "password": "Bk#6vQ!9tR@2wLz$8m",
+        "totp": null,
+        "passwordRevisionDate": "2022-08-28T14:36:41.000Z"
+      },
+      "passwordHistory": null,
+      "creationDate": "2022-05-20T14:36:41.000Z",
+      "revisionDate": "2022-08-28T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "672d27de-2735-4163-811f-919052f54f33",
+      "organizationId": null,
+      "folderId": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "type": 1,
+      "reprompt": 0,
+      "name": "樂天市場 🛍️",
+      "notes": "日本語のメモ，中文備註，and a line with \"quotes\", commas, and\nsecond line.",
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://www.rakuten.co.jp"
+          }
+        ],
+        "username": "usagi@example.com",
+        "password": "楽天!Rk#7qT@2vLz$9",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "bc4b13d3-6e2e-4f2d-a567-3fffa6787e35",
+      "organizationId": null,
+      "folderId": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "type": 1,
+      "reprompt": 0,
+      "name": "ちいかわ ショップ",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "match": null,
+            "uri": "https://chiikawamarket.jp"
+          }
+        ],
+        "username": "usagi",
+        "password": "日本語パスワード🍓-R7#q",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "passwordHistory": null,
+      "creationDate": "2025-09-01T14:36:41.000Z",
+      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "collectionIds": null
+    },
+    {
+      "id": "8e1124d5-96b7-4ded-ad0c-b4f7ad111e46",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 2,
+      "reprompt": 0,
+      "name": "Wi-Fi at home",
+      "notes": "SSID: pochi-net\nPassword: correct-horse-battery-staple",
+      "favorite": false,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "60cad0ae-4281-4bbc-868d-e02712d2d9a8",
+      "organizationId": null,
+      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "type": 2,
+      "reprompt": 0,
+      "name": "GitHub recovery",
+      "notes": "a1b2-c3d4\ne5f6-g7h8\ni9j0-k1l2",
+      "favorite": false,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "f7e2e17c-d2a5-4ec2-9e18-fc9c33f82a65",
+      "organizationId": null,
+      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "type": 3,
+      "reprompt": 0,
+      "name": "Visa (expiring soon)",
+      "notes": null,
+      "favorite": true,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "card": {
+        "cardholderName": "Usagi Test",
+        "brand": "Visa",
+        "number": "4111111111111111",
+        "expMonth": "11",
+        "expYear": "2026",
+        "code": "123"
+      }
+    },
+    {
+      "id": "7140331b-c6c1-4698-b68d-2e424b4e722a",
+      "organizationId": null,
+      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "type": 3,
+      "reprompt": 0,
+      "name": "Mastercard",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "card": {
+        "cardholderName": "Usagi Test",
+        "brand": "Mastercard",
+        "number": "5555555555554444",
+        "expMonth": "12",
+        "expYear": "2029",
+        "code": "456"
+      }
+    },
+    {
+      "id": "7208c932-11f6-4cf8-9349-bbcb46ee4058",
+      "organizationId": null,
+      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "type": 4,
+      "reprompt": 0,
+      "name": "Me",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "identity": {
+        "title": "Ms",
+        "firstName": "Usagi",
+        "middleName": null,
+        "lastName": "Test",
+        "address1": "1-2-3 Shibuya",
+        "address2": null,
+        "address3": null,
+        "city": "Tokyo",
+        "state": "Tokyo",
+        "postalCode": "150-0002",
+        "country": "JP",
+        "company": "Chiikawa Ltd.",
+        "email": "usagi@example.com",
+        "phone": "+81 90 1234 5678",
+        "ssn": null,
+        "username": "usagi",
+        "passportNumber": null,
+        "licenseNumber": null
+      }
+    },
+    {
+      "id": "8a63a0b9-6bab-45ac-b4fb-e0a154e53bd8",
+      "organizationId": null,
+      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "type": 5,
+      "reprompt": 0,
+      "name": "Sample SSH key (Ed25519)",
+      "notes": "Made by generate.py; safe to delete.",
+      "favorite": false,
+      "fields": [],
+      "creationDate": "2026-03-20T14:36:41.000Z",
+      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "collectionIds": null,
+      "sshKey": {
+        "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACA0i+M3C9CclxlDxK//m261jYzgPve90jGGxOIQAA6gqwAAAJjWihZd1ooW\nXQAAAAtzc2gtZWQyNTUxOQAAACA0i+M3C9CclxlDxK//m261jYzgPve90jGGxOIQAA6gqw\nAAAEDJCABk6Fp6LPQJXfXZQPH12frAM+e6MH1v2Bjizm0YnDSL4zcL0JyXGUPEr/+bbrWN\njOA+973SMYbE4hAADqCrAAAAFXNhbXBsZUB0cml3YXJkZW4udGVzdA==\n-----END OPENSSH PRIVATE KEY-----\n",
+        "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDSL4zcL0JyXGUPEr/+bbrWNjOA+973SMYbE4hAADqCr sample@triwarden.test",
+        "keyFingerprint": "SHA256:oUnWPZVPOZHoQwNqvehTKLvbX/ZbNhM2gEN6TYFQvYk"
+      }
+    }
+  ]
+}

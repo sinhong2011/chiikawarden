@@ -1,0 +1,4 @@
+folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+Work,1,login,GitLab,,Team: platform,0,https://gitlab.com,usagi@example.com,Gl#7qT!2vR@9wLz,JBSWY3DPEHPK3PXP
+Personal,,login,Reddit,,,0,https://www.reddit.com,usagi_test,Rd!4xQ#8mT@2vLz,
+,,note,Locker code,4-2-0-6,,0,,,,

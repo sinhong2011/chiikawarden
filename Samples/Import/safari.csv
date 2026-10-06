@@ -1,0 +1,3 @@
+Title,URL,Username,Password,Notes,OTPAuth
+Apple Developer,https://developer.apple.com,usagi@example.com,Ap#7qT!2vR@9wLz,,otpauth://totp/Apple:usagi?secret=JBSWY3DPEHPK3PXP&issuer=Apple
+Figma,https://www.figma.com,usagi@example.com,Fg!4xQ#8mT@2vLz,design,
