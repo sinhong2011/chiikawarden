@@ -81,6 +81,8 @@ struct SettingsView: View {
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
+            // Settings always shows its sidebar, like System Settings: no button to fold it away.
+            .toolbar(removing: .sidebarToggle)
         } detail: {
             Group {
                 switch selection.wrappedValue ?? .pane(.general) {
