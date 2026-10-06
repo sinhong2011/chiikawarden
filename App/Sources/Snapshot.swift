@@ -51,12 +51,17 @@ enum Snapshot {
             ("1-typing", .init(time: 12, opened: nil, typed: 5)),
             ("2-busy", .init(time: 12.2, opened: nil, typed: 9, busy: true)),
             ("3-wrong", .init(time: 12, opened: nil, alert: 0.9)),
-            ("4-unlatch", .init(time: 12.3, opened: 0.32, typed: 9)),
-            ("5-hub", .init(time: 12.45, opened: 0.45, typed: 9)),
-            ("6-louvres", .init(time: 12.58, opened: 0.58, typed: 9)),
-            ("7-runes", .init(time: 12.7, opened: 0.7, typed: 9)),
-            ("8-assemble", .init(time: 12.2, opened: nil, closed: 0.2)),
-            ("9-sealed", .init(time: 12.8, opened: nil, closed: 0.8)),
+            ("o1-power", .init(time: 12.1, opened: 0.18, typed: 9)),
+            ("o2-ratchet", .init(time: 12.3, opened: 0.3, typed: 9)),
+            ("o3-unlatch", .init(time: 12.4, opened: 0.44, typed: 9)),
+            ("o4-hub", .init(time: 12.55, opened: 0.6, typed: 9)),
+            ("o5-pins", .init(time: 12.7, opened: 0.72, typed: 9)),
+            ("o6-louvres", .init(time: 12.8, opened: 0.84, typed: 9)),
+            ("o7-runes", .init(time: 12.9, opened: 0.94, typed: 9)),
+            ("o8-core", .init(time: 13, opened: 1.04, typed: 9)),
+            ("c1-runes-in", .init(time: 12.2, opened: nil, closed: 0.2)),
+            ("c2-hub-in", .init(time: 12.5, opened: nil, closed: 0.6)),
+            ("c3-sealed", .init(time: 12.8, opened: nil, closed: 1.1)),
         ]
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             for (frame, moment) in doorFrames {
@@ -125,7 +130,7 @@ enum Snapshot {
             let gateModel = AppModel()
             gateModel.setPreviewAccounts(multi.accounts.prefix(1).map { $0 })
             gateModel.gate = .opening
-            gateModel.unlockOpenedAt = .now.addingTimeInterval(-0.78)
+            gateModel.unlockOpenedAt = .now.addingTimeInterval(-1.05)
             for p in [0.0, 0.3, 0.7] {
                 render(ZStack {
                     desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")

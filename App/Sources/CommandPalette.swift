@@ -257,14 +257,13 @@ private struct ItemLine: View {
 
     var body: some View {
         // The code and its ring sit at the row's centre, beside both the name and the hints below it.
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: 12) {
+            // Icon, text and code all centre on the whole row (hints included).
+            ItemIcon(item: item, size: 32)
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 12) {
-                    ItemIcon(item: item, size: 32)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(item.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
-                        Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
-                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
+                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 if selected, item.password != nil || item.totp != nil || item.host != nil {
                     HStack(spacing: 14) {
@@ -272,7 +271,6 @@ private struct ItemLine: View {
                         if item.totp != nil { hint("⌥↵", "Copy code") }
                         if item.host != nil { hint("⇧↵", "Open website") }
                     }
-                    .padding(.leading, 44)
                     .transition(.opacity)
                 }
             }

@@ -1238,7 +1238,7 @@ private struct HeroCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             // Plain surface, no colour wash.
-            (style.dark ? Color.hero : Color.panelStrong)
+            Color.panelStrong // the same surface as every other card, in both modes
             .clipShape(.rect(cornerRadius: 24, style: .continuous))
         }
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)

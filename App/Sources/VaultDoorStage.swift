@@ -77,52 +77,92 @@ struct VaultDoorStage: View {
 /// (4 arcs), the tumbler (12 louvres) and the rune ring (6 segments). Unlocking takes it apart from the inside out,
 /// like a transforming machine; locking assembles it from the outside in.
 private struct Mechanism {
-    /// Per ring (0 hub, 1 pins, 2 tumbler, 3 runes): how far it has turned to its aligned stop, 0…1.
+    /// Per ring (0 hub, 1 pins, 2 tumbler, 3 runes): how far it has turned to its aligned stop (may overshoot).
     var align = [0.0, 0, 0, 0]
-    /// Per ring: 0 assembled … 1 retracted out of sight.
+    /// Per ring: the furthest any of its pieces has gone, 0 assembled … 1 retracted (see `piece`).
     var parts = [0.0, 0, 0, 0]
-    /// The pieces crack apart along their seams, 0…1.
+    /// The pieces crack apart along their seams, 0…1 (with a small jolt).
     var latch = 0.0
     /// Bolts drawn back into the door, 0 thrown … 1 drawn.
     var bolts = 0.0
-    /// Every pin lit, 0…1.
-    var pins = 0.0
+    /// The pins, lit one after another (index 0…11), 0…1 each.
+    var pinLight = Array(repeating: 0.0, count: 12)
+    var pins: Double { pinLight.max() ?? 0 }
     /// The light inside burning brighter, 0…1.
     var light = 0.0
     /// The sealing ripple after a lock, 0…1 (0 or 1 = not showing).
     var seal = 0.0
+    /// The hub turning as one before it splits, degrees.
+    var twist = 0.0
+    /// The geared core under the hub plates: 1 in place … 0 retracted into the light.
+    var core = 1.0
+    /// An arc of energy running along the seams: its angle (degrees) and strength.
+    var sweep = 0.0
+    var sweepStrength = 0.0
 
-    /// Unlocking, `e` seconds in (~0.85 s; AppModel dissolves the lock layer at 0.8 s).
-    static func opening(_ e: Double) -> Mechanism {
-        func seg(_ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
-        var m = Mechanism()
-        for k in 0..<4 {
-            m.align[k] = Ease.inOut(seg(0.02 * Double(k), 0.18 + 0.02 * Double(k)))
-            // The pieces spread apart, inside out (the light stays calm: no flare or growing halo behind them).
-            m.parts[k] = Ease.machine(seg(0.3 + 0.08 * Double(k), 0.62 + 0.08 * Double(k)))
+    /// Opening or closing time, for the pieces' own staggered progress.
+    private var openT: Double?
+    private var closeT: Double?
+
+    static let pieceCount = [4, 8, 12, 6]
+
+    /// Piece `i` of ring `k`: each ring starts on its own beat and its pieces follow one another (a cascade).
+    func piece(_ k: Int, _ i: Int) -> Double {
+        let n = Double(Self.pieceCount[k])
+        if let e = openT {
+            let start = [0.46, 0.56, 0.64, 0.72][k] + Double(i) / n * 0.12
+            return Ease.machine(Self.seg(e, start, start + 0.3))
         }
-        m.pins = Ease.out(seg(0, 0.14))
-        m.bolts = Ease.inOut(seg(0.14, 0.28))
-        m.latch = Ease.inOut(seg(0.26, 0.36))
+        if let e = closeT {
+            let start = [0.42, 0.3, 0.16, 0.02][k] + Double(i) / n * 0.1
+            return 1 - Ease.machine(Self.seg(e, start, start + 0.28))
+        }
+        return 0
+    }
+
+    static func seg(_ e: Double, _ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
+
+    /// Unlocking, `e` seconds in (~1.1 s; AppModel hands over to the gate at 1.05 s).
+    static func opening(_ e: Double) -> Mechanism {
+        func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
+        var m = Mechanism()
+        m.openT = e
+        // Power-up: pins light one after another, energy runs along the seams.
+        for i in 0..<12 { m.pinLight[i] = Ease.out(seg(0.012 * Double(i), 0.012 * Double(i) + 0.08)) }
+        m.sweep = Ease.inOut(seg(0, 0.42)) * 540 - 90
+        m.sweepStrength = sin(.pi * seg(0, 0.42))
+        // Ratchet: each ring turns to its stop with a small overshoot, staggered.
+        for k in 0..<4 { m.align[k] = Ease.backOut(seg(0.08 + 0.04 * Double(k), 0.3 + 0.04 * Double(k))) }
+        // Unlatch: bolts snap back, seams crack with a jolt, the hub turns a little as one.
+        m.bolts = Ease.inOut(seg(0.26, 0.38))
+        m.latch = Ease.backOut(seg(0.34, 0.44))
+        m.twist = 30 * Ease.backOut(seg(0.36, 0.5))
+        // Transform: pieces cascade out (see `piece`); the core spins up, then retracts into the light.
+        for k in 0..<4 { m.parts[k] = m.piece(k, pieceCount[k] - 1) > 0 ? m.piece(k, 0) : 0 }
+        m.core = 1 - Ease.inOut(seg(0.86, 1.06))
         m.light = Ease.out(seg(0.05, 0.6))
         return m
     }
 
-    /// Locking, `e` seconds in (~1.2 s): the pieces come in from the frame and lock together, the bolts are thrown,
-    /// the pins go dark, and the seal ripples out.
+    /// Locking, `e` seconds in (~1.4 s): the pieces cascade in from the frame, outside in, the hub turns back and
+    /// locks, the bolts are thrown, the pins go dark one by one, and the seal ripples out.
     static func closing(_ e: Double) -> Mechanism {
-        func seg(_ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
+        func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
         var m = Mechanism()
+        m.closeT = e
         for k in 0..<4 {
             m.align[k] = 1
-            let start = 0.02 + 0.08 * Double(3 - k)
-            m.parts[k] = 1 - Ease.machine(seg(start, start + 0.32))
+            m.parts[k] = m.piece(k, 0)
         }
-        m.latch = 1 - Ease.inOut(seg(0.5, 0.6))
-        m.bolts = 1 - Ease.inOut(seg(0.56, 0.7))
-        m.pins = 1 - Ease.inOut(seg(0.66, 0.95))
+        m.core = Ease.inOut(seg(0.0, 0.2))
+        m.twist = 30 * (1 - Ease.backOut(seg(0.68, 0.8)))
+        m.latch = 1 - Ease.inOut(seg(0.76, 0.84))
+        m.bolts = 1 - Ease.backOut(seg(0.8, 0.92))
+        for i in 0..<12 { m.pinLight[i] = 1 - Ease.inOut(seg(0.9 + 0.012 * Double(i), 0.98 + 0.012 * Double(i))) }
         m.light = m.pins
-        m.seal = seg(0.66, 1.2)
+        m.sweep = Ease.inOut(seg(0.84, 1.2)) * -540 - 90
+        m.sweepStrength = sin(.pi * seg(0.84, 1.2)) * 0.7
+        m.seal = seg(0.98, 1.5)
         return m
     }
 }
@@ -132,6 +172,11 @@ private enum Ease {
     static func out(_ x: Double) -> Double { 1 - pow(1 - x, 3) }
     /// Heavy mechanical travel: eases away, glides, settles firmly (no overshoot).
     static func machine(_ x: Double) -> Double { x < 0.5 ? 8 * pow(x, 4) : 1 - pow(-2 * x + 2, 4) / 2 }
+    /// Arrives with a small overshoot and settles back: a part clicking into place.
+    static func backOut(_ x: Double) -> Double {
+        let c1 = 1.4, c3 = c1 + 1
+        return x <= 0 ? 0 : 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2)
+    }
 }
 
 // MARK: - Palette
@@ -254,18 +299,14 @@ private struct VaultDoorArt: View, Animatable {
         let full = Path(CGRect(origin: .zero, size: size))
         ctx.fill(full, with: .linearGradient(Gradient(colors: [p.backTop.opacity(0.86), p.backBottom.opacity(0.9)]),
                                              startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
-        ctx.fill(full, with: .radialGradient(Gradient(colors: [glow(dark ? 0.16 : 0.14), glow(0)]), center: center,
-                                             startRadius: 0, endRadius: R * 1.9))
-        drawMotes(&ctx, glow: glow)
 
         var c = ctx
         c.translateBy(x: center.x, y: center.y)
 
-        // A soft halo of light around the door.
-        c.fill(circle(R * 1.4), with: .radialGradient(
-            Gradient(stops: [.init(color: glow(0), location: 0), .init(color: glow(0.2), location: 0.45),
-                             .init(color: glow(0), location: 1)]),
-            center: .zero, startRadius: R * 1.0, endRadius: R * 1.4))
+        // A neutral contact shadow under the door, no coloured halo.
+        c.fill(circle(R * 1.24), with: .radialGradient(
+            Gradient(stops: [.init(color: .black.opacity(dark ? 0.35 : 0.1), location: 0), .init(color: .clear, location: 1)]),
+            center: .zero, startRadius: R * DoorGeometry.frameOuter * 0.97, endRadius: R * 1.24))
 
         // The light inside the vault: it shows through the seams and the tumbler's slots, then through the opening.
         let open = m.parts[0]
@@ -286,11 +327,14 @@ private struct VaultDoorArt: View, Animatable {
             b.stroke(shape, with: .color(p.edge), lineWidth: 0.8)
         }
 
+        // Under the hub plates: the geared core and the pistons that push the plates out.
+        drawMechanism(c, m: m, p: p, glow: glow)
+
         // The pieces, inside out, so each slides out under the next; the rune segments retract into the frame.
         c.clip(to: circle(1.0 * R))
         let turn = (0..<4).map { angle($0, m) }
         pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow) }
-        pieces(c, ring: 1, m: m, p: p, count: 4, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
+        pieces(c, ring: 1, m: m, p: p, count: 8, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
             drawPins(&$0, p: p, m: m, glow: glow, turn: turn[1])
         }
         pieces(c, ring: 2, m: m, p: p, count: 12, cut: 15, inner: DoorGeometry.tumbler.inner, outer: DoorGeometry.tumbler.outer) {
@@ -311,10 +355,26 @@ private struct VaultDoorArt: View, Animatable {
             }
         }
 
+        // Energy running along the seams (power-up when opening, power-down when closing).
+        if m.sweepStrength > 0.01 {
+            var e = c
+            if dark { e.blendMode = .plusLighter }
+            for (n, f) in [DoorGeometry.core, DoorGeometry.pins.outer, DoorGeometry.tumbler.outer, DoorGeometry.runes.outer].enumerated() {
+                let head = m.sweep + Double(n) * 22 * (n % 2 == 0 ? 1 : -1)
+                var arc = Path()
+                arc.addArc(center: .zero, radius: R * f, startAngle: .degrees(head - 46), endAngle: .degrees(head), clockwise: false)
+                e.stroke(arc, with: .color(glow(0.22 * m.sweepStrength)), style: StrokeStyle(lineWidth: R * 0.03, lineCap: .round))
+                e.stroke(arc, with: .color(glow(0.95 * m.sweepStrength)), style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
+                let tip = CGPoint(x: cos(head * .pi / 180) * R * f, y: sin(head * .pi / 180) * R * f)
+                e.fill(circle(R * 0.012, at: tip), with: .color(.white.opacity(0.9 * m.sweepStrength)))
+            }
+        }
+
         // The frame the door sits in.
         c = ctx
         c.translateBy(x: center.x, y: center.y)
         fillBand(&c, inner: 1.0 * R, outer: DoorGeometry.frameOuter * R, colors: p.frame, turn: 0)
+        braid(&c, inner: 1.0 * R + 3, outer: DoorGeometry.frameOuter * R - 3, count: 120, p: p)
         c.stroke(circle(DoorGeometry.frameOuter * R), with: .color(p.shine), lineWidth: 1)
         c.stroke(circle(1.1 * R), with: .color(p.engrave), lineWidth: 0.8)
         for i in 0..<24 {
@@ -341,28 +401,31 @@ private struct VaultDoorArt: View, Animatable {
                         inner: CGFloat, outer: CGFloat, draw: (inout GraphicsContext) -> Void) {
         let R = radius
         var base = c
-        base.rotate(by: .degrees(angle(k, m)))
-        let u = m.parts[k]
-        guard m.latch > 0 || u > 0 else { draw(&base); return }
-        guard u < 1 else { return }
+        base.rotate(by: .degrees(angle(k, m) + (k == 0 ? m.twist : 0)))
+        let progress = (0..<count).map { m.piece(k, $0) }
+        guard m.latch > 0 || (progress.max() ?? 0) > 0 else { draw(&base); return }
         let span = 360 / Double(count)
         for i in 0..<count {
+            let u = progress[i]
+            guard u < 1 else { continue }
             let mid = cut + (Double(i) + 0.5) * span
             let rad = mid * .pi / 180
             let dir = CGPoint(x: cos(rad), y: sin(rad))
             var l = base
             // Every piece first cracks a hair away from the centre…
             var push = R * 0.02 * m.latch
-            // …then each ring moves its own way.
+            // …then each ring transforms its own way.
             switch k {
-            case 0: // hub plates slide out diagonally, under the rings
-                push += R * 0.6 * u
-                l.opacity = 1 - max(0, (u - 0.5) / 0.5)
-            case 1: // pin arcs turn as they slide away
-                l.rotate(by: .degrees(28 * u))
+            case 0: // hub plates: each turns a little and rides its piston out diagonally
+                l.rotate(by: .degrees(18 * u * (i % 2 == 0 ? 1 : -1)))
+                push += R * 0.62 * u
+                l.opacity = 1 - max(0, (u - 0.6) / 0.4)
+            case 1: // pin arcs lift (grow a touch), turn away and slide out
+                l.scaleBy(x: 1 + 0.07 * sin(u * .pi), y: 1 + 0.07 * sin(u * .pi))
+                l.rotate(by: .degrees(32 * u * (i % 2 == 0 ? 1 : -1)))
                 push += R * 0.36 * u
                 l.opacity = 1 - max(0, (u - 0.55) / 0.45)
-            case 2: // tumbler louvres turn edge-on
+            case 2: // tumbler louvres flip edge-on, one after another
                 push += R * 0.1 * u
                 let mr = R * (inner + outer) / 2
                 let pivot = CGPoint(x: dir.x * mr, y: dir.y * mr)
@@ -374,9 +437,10 @@ private struct VaultDoorArt: View, Animatable {
                 l.rotate(by: .degrees(-mid))
                 l.translateBy(x: -pivot.x, y: -pivot.y)
                 l.opacity = 1 - max(0, (u - 0.6) / 0.4)
-            default: // rune segments retract into the frame
+            default: // rune segments telescope into the frame: a short step, a beat, then the rest of the way
+                let step = u < 0.45 ? 0.35 * Ease.out(u / 0.45) : 0.35 + 0.65 * Ease.inOut((u - 0.45) / 0.55)
                 l.rotate(by: .degrees(-10 * u))
-                push += R * 0.3 * u
+                push += R * 0.3 * step
             }
             l.translateBy(x: dir.x * push, y: dir.y * push)
             let shape = sector(inner == 0 ? 0 : R * inner - 1, R * outer + 1, mid - span / 2, mid + span / 2)
@@ -399,6 +463,58 @@ private struct VaultDoorArt: View, Animatable {
                          lineWidth: 1.2)
             }
         }
+    }
+
+    /// Under the hub: a geared core with four struts, and a piston behind each hub plate. Hidden while the door is
+    /// whole; revealed as the plates ride out, spinning up, then drawn back into the light.
+    private func drawMechanism(_ c: GraphicsContext, m: Mechanism, p: DoorPalette, glow: RGB) {
+        let hub = (0..<4).map { m.piece(0, $0) }
+        guard (hub.max() ?? 0) > 0 || m.latch > 0, m.core > 0.01 else { return }
+        let R = radius
+        var g = c
+        g.rotate(by: .degrees(m.twist))
+        let k = m.core
+        // Pistons: a rod from the core to each plate (it follows the plate's travel), with a lit collar.
+        for i in 0..<4 {
+            let a = (Double(i) + 0.5) * 90 * .pi / 180
+            let reach = R * (0.12 + 0.62 * hub[i]) * k
+            guard reach > R * 0.13 else { continue }
+            var rod = Path()
+            rod.move(to: CGPoint(x: cos(a) * R * 0.1, y: sin(a) * R * 0.1))
+            rod.addLine(to: CGPoint(x: cos(a) * reach, y: sin(a) * reach))
+            g.stroke(rod, with: .color(.black.opacity(dark ? 0.5 : 0.2)), style: StrokeStyle(lineWidth: R * 0.05, lineCap: .round))
+            g.stroke(rod, with: .linearGradient(Gradient(colors: p.bolt), startPoint: CGPoint(x: -R * 0.02, y: -R * 0.3),
+                                                endPoint: CGPoint(x: R * 0.02, y: R * 0.3)),
+                     style: StrokeStyle(lineWidth: R * 0.034, lineCap: .round))
+            let collar = CGPoint(x: cos(a) * R * 0.2 * k, y: sin(a) * R * 0.2 * k)
+            g.fill(circle(R * 0.024, at: collar), with: .color(glow(0.9)))
+        }
+        // The core: a toothed wheel and hub that spin up as the plates leave.
+        var w = g
+        w.scaleBy(x: k, y: k)
+        w.rotate(by: .degrees(m.twist * 4 + (hub.max() ?? 0) * 220))
+        var teeth = Path()
+        for i in 0..<16 {
+            let a0 = Double(i) / 16 * 2 * .pi
+            let a1 = a0 + .pi / 16
+            teeth.move(to: CGPoint(x: cos(a0) * R * 0.17, y: sin(a0) * R * 0.17))
+            teeth.addLine(to: CGPoint(x: cos(a0) * R * 0.205, y: sin(a0) * R * 0.205))
+            teeth.addLine(to: CGPoint(x: cos(a1) * R * 0.205, y: sin(a1) * R * 0.205))
+            teeth.addLine(to: CGPoint(x: cos(a1) * R * 0.17, y: sin(a1) * R * 0.17))
+        }
+        w.fill(teeth, with: .linearGradient(Gradient(colors: p.metal), startPoint: CGPoint(x: 0, y: -R * 0.2), endPoint: CGPoint(x: 0, y: R * 0.2)))
+        w.fill(circle(R * 0.175), with: .linearGradient(Gradient(colors: p.metal), startPoint: CGPoint(x: 0, y: -R * 0.18),
+                                                       endPoint: CGPoint(x: 0, y: R * 0.18)))
+        w.stroke(circle(R * 0.175), with: .color(p.edge), lineWidth: 1)
+        for i in 0..<6 {
+            var spoke = Path()
+            let a = Double(i) / 6 * 2 * .pi
+            spoke.move(to: CGPoint(x: cos(a) * R * 0.05, y: sin(a) * R * 0.05))
+            spoke.addLine(to: CGPoint(x: cos(a) * R * 0.15, y: sin(a) * R * 0.15))
+            w.stroke(spoke, with: .color(p.engrave), lineWidth: 1.2)
+        }
+        w.fill(circle(R * 0.06), with: .color(glow(0.85)))
+        w.fill(circle(R * 0.025), with: .color(.white.opacity(0.9)))
     }
 
     private func sector(_ r0: CGFloat, _ r1: CGFloat, _ a0: Double, _ a1: Double) -> Path {
@@ -426,6 +542,7 @@ private struct VaultDoorArt: View, Animatable {
             tick.addLine(to: CGPoint(x: cos(t) * R * 0.97, y: sin(t) * R * 0.97))
             engrave(&r, tick, p: p, width: long ? 1.1 : 0.7)
         }
+        runeText(&r, radius: R * 0.893, size: R * 0.042, glow: glow, amount: max(dark ? 0.35 : 0.25, m.light * 0.6), p: p)
         for i in 0..<6 {
             let local = Double(i) * 60
             let shimmer = 0.5 + 0.5 * sin(time * 0.9 + Double(i) * 1.7)
@@ -467,20 +584,7 @@ private struct VaultDoorArt: View, Animatable {
     private func drawTumbler(_ r: inout GraphicsContext, p: DoorPalette, glow: RGB, inner: Double, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.tumbler.inner * R, outer: DoorGeometry.tumbler.outer * R, colors: p.metal, turn: turn)
-        for i in 0..<12 {
-            var s = r
-            s.rotate(by: .degrees(Double(i) * 30))
-            // A slot through the tumbler: the vault's light shows through it.
-            let slot = CGRect(x: R * 0.738, y: -R * 0.014, width: R * 0.07, height: R * 0.028)
-            let path = Path(roundedRect: slot, cornerRadius: R * 0.014)
-            s.fill(path, with: .color(glow(0.55 + 0.45 * inner)))
-            s.fill(path, with: .color(.white.opacity(0.3 * inner)))
-            // The slot's walls: shadowed on the lit side, a lip of light on the other.
-            s.stroke(path, with: .color(p.edge), lineWidth: 1.2)
-            s.stroke(path.offsetBy(dx: 0, dy: 0.6), with: .color(p.engraveLip.opacity(0.6)), lineWidth: 0.5)
-            s.rotate(by: .degrees(15))
-            s.fill(circle(R * 0.009, at: CGPoint(x: R * 0.7725, y: 0)), with: .color(p.engrave))
-        }
+        braid(&r, inner: DoorGeometry.tumbler.inner * R + 2, outer: DoorGeometry.tumbler.outer * R - 2, count: 84, p: p)
     }
 
     private func drawPins(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glow: RGB, turn: Double) {
@@ -488,6 +592,7 @@ private struct VaultDoorArt: View, Animatable {
         // While the key is derived, a light chases around the pins.
         let head = (time * 1.6).truncatingRemainder(dividingBy: 1) * 12
         fillBand(&r, inner: DoorGeometry.pins.inner * R, outer: DoorGeometry.pins.outer * R, colors: p.metal, turn: turn)
+        braid(&r, inner: DoorGeometry.pins.inner * R + 2, outer: R * 0.612, count: 72, p: p)
         for i in 0..<60 {
             let long = i % 5 == 0
             let t = Double(i) / 60 * 2 * .pi
@@ -504,13 +609,11 @@ private struct VaultDoorArt: View, Animatable {
             d = min(d, 12 - d)
             let chase = busy * max(0, 1 - d / 2.2)
             let typedLit = lit > i ? (lit > 12 ? 1 : (i == lit - 1 ? 1 : 0.75)) : 0
-            let on = min(1, max(typedLit, chase, m.pins))
+            let on = min(1, max(typedLit, chase, m.pinLight[i]))
             // A drilled socket: dark, with a lip of light along its lower edge.
             r.fill(circle(R * 0.02, at: pt), with: .color(p.edge))
             r.stroke(circle(R * 0.02, at: CGPoint(x: pt.x, y: pt.y + 0.6)), with: .color(p.engraveLip.opacity(0.5)), lineWidth: 0.5)
             if on > 0 {
-                r.fill(circle(R * 0.05, at: pt), with: .radialGradient(Gradient(colors: [glow(on * 0.55), glow(0)]),
-                                                                       center: pt, startRadius: 0, endRadius: R * 0.05))
                 r.fill(circle(R * 0.014, at: pt), with: .color(glow(on)))
                 r.fill(circle(R * 0.006, at: pt), with: .color(.white.opacity(on * 0.9)))
             }
@@ -543,24 +646,6 @@ private struct VaultDoorArt: View, Animatable {
     }
 
     // MARK: Motes
-
-    private func drawMotes(_ ctx: inout GraphicsContext, glow: RGB) {
-        let R = radius
-        func rnd(_ i: Int, _ salt: Double) -> Double {
-            let v = sin(Double(i) * 12.9898 + salt * 78.233) * 43758.5453
-            return v - floor(v)
-        }
-        for i in 0..<44 {
-            let a = rnd(i, 1) * 2 * .pi + time * (rnd(i, 2) - 0.5) * 0.06
-            let dist = R * (1.08 + rnd(i, 3) * 1.25)
-            let bob = sin(time * (0.3 + rnd(i, 5) * 0.4) + Double(i)) * R * 0.03
-            let pt = CGPoint(x: center.x + cos(a) * dist, y: center.y + sin(a) * dist + bob)
-            let twinkle = 0.5 + 0.5 * sin(time * (0.6 + rnd(i, 6)) + Double(i) * 2.1)
-            let alpha = (0.12 + 0.4 * twinkle) * (dark ? 1 : 0.8)
-            let r = 0.8 + rnd(i, 7) * 1.6
-            ctx.fill(circle(r, at: pt), with: .color(glow(alpha)))
-        }
-    }
 
     // MARK: Helpers
 
@@ -601,6 +686,56 @@ private struct VaultDoorArt: View, Animatable {
                                                              startPoint: lit(0, -outer), endPoint: lit(0, outer)), lineWidth: 1.5)
         c.stroke(circle(inner + 0.75), with: .linearGradient(Gradient(colors: [p.edge, p.shine.opacity(0.7)]),
                                                              startPoint: lit(0, -inner), endPoint: lit(0, inner)), lineWidth: 1.5)
+    }
+
+    /// A braided band, like the woven rings of an old vault door: rows of chevrons cut into the steel, alternating in
+    /// direction so they read as a twisted rope.
+    private func braid(_ c: inout GraphicsContext, inner: CGFloat, outer: CGFloat, count: Int, p: DoorPalette) {
+        let rows = 2
+        let height = (outer - inner) / CGFloat(rows)
+        let step = 2 * .pi / Double(count)
+        var cut = Path()
+        for row in 0..<rows {
+            let r0 = inner + height * CGFloat(row) + height * 0.15
+            let r1 = inner + height * CGFloat(row + 1) - height * 0.15
+            let lean = (row % 2 == 0 ? 1.0 : -1.0) * step * 0.55
+            for i in 0..<count {
+                let a = Double(i) * step + (row % 2 == 0 ? 0 : step / 2)
+                cut.move(to: CGPoint(x: cos(a) * r0, y: sin(a) * r0))
+                cut.addLine(to: CGPoint(x: cos(a + lean) * r1, y: sin(a + lean) * r1))
+            }
+        }
+        engrave(&c, cut, p: p, width: 0.8)
+        // The divide between the strands.
+        for row in 1..<rows {
+            let r = inner + height * CGFloat(row)
+            c.stroke(circle(r), with: .color(p.engrave.opacity(0.7)), lineWidth: 0.6)
+        }
+    }
+
+    /// Runic letters engraved around a ring at `radius`, skipping the gaps where the inlaid icons sit.
+    private func runeText(_ c: inout GraphicsContext, radius r: CGFloat, size: CGFloat, glow: RGB, amount: Double,
+                          p: DoorPalette) {
+        let futhark = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ")
+        var cache: [Character: GraphicsContext.ResolvedText] = [:]
+        func glyph(_ ch: Character, _ color: Color) -> GraphicsContext.ResolvedText {
+            c.resolve(Text(String(ch)).font(.custom("Apple Symbols", size: size)).foregroundColor(color))
+        }
+        var n = 0
+        for slot in 0..<6 {
+            for j in 1...6 { // six letters between each pair of icons
+                let a = (Double(slot) * 60 + Double(j) * 60 / 7) * .pi / 180
+                let ch = futhark[n % futhark.count]
+                n += 1
+                var g = c
+                g.translateBy(x: cos(a) * r, y: sin(a) * r)
+                g.rotate(by: .radians(a + .pi / 2))
+                g.draw(glyph(ch, p.engraveLip), at: CGPoint(x: 0, y: 0.6), anchor: .center)
+                g.draw(glyph(ch, p.engrave), at: .zero, anchor: .center)
+                g.draw(glyph(ch, glow(amount)), at: .zero, anchor: .center)
+                _ = cache
+            }
+        }
     }
 
     /// An engraved line: the cut, with a lip of light along its lower edge.

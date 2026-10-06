@@ -628,9 +628,9 @@ final class AppModel {
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
         let fromLock = phase.id == Phase.locked.id
         Task {
-            // The door unlatches and its pieces spread apart (~0.8 s: rings align, bolts draw back, latch turns, the
-            // hub, pins, tumbler and runes part; VaultDoorStage).
-            try? await Task.sleep(for: .milliseconds(780))
+            // The door transforms open (~1 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
+            // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out over the core.
+            try? await Task.sleep(for: .milliseconds(1050))
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
                 // under them, and the plates part over the vault (GatePlates).
