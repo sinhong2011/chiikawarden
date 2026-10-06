@@ -163,3 +163,92 @@ extension FormFooter where Note == EmptyView {
         self.init(action: action, busy: busy, disabled: disabled, cancel: cancel, submit: submit) { EmptyView() }
     }
 }
+
+/// Choosing a folder when folders nest ("Work/Dev"): each level opens as a submenu (a cascader), a parent can be
+/// chosen itself from the top of its submenu, and the field shows the path as a breadcrumb.
+struct FolderCascader: View {
+    let folders: [Grouping]
+    @Binding var selection: String?
+
+    private var path: String? {
+        selection.flatMap { id in folders.first { $0.id == id }?.name }
+    }
+
+    var body: some View {
+        Menu {
+            Button { selection = nil } label: { check(selection == nil, "No Folder") }
+            Divider()
+            FolderLevel(nodes: FolderNode.tree(folders), selection: $selection)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: selection == nil ? "tray" : "folder")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                if let path {
+                    // Work › Dev: the parents quiet, the folder itself in full.
+                    let parts = path.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
+                    (parts.dropLast().reduce(Text(verbatim: "")) { $0 + Text(verbatim: "\($1) › ").foregroundStyle(.secondary) }
+                        + Text(verbatim: parts.last ?? path).foregroundStyle(.primary))
+                        .lineLimit(1).truncationMode(.head)
+                } else {
+                    Text("No Folder").foregroundStyle(.primary)
+                }
+                Spacer(minLength: 4)
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+            }
+            .font(.system(size: 13))
+            .padding(.horizontal, 12)
+            .frame(height: 38)
+            .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+            .contentShape(.rect)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .accessibilityLabel(Text("Folder"))
+        .accessibilityValue(Text(verbatim: path ?? String(localized: "No Folder")))
+    }
+}
+
+/// One level of the folder tree: leaves are choices, parents open a submenu.
+private struct FolderLevel: View {
+    let nodes: [FolderNode]
+    @Binding var selection: String?
+
+    var body: some View {
+        ForEach(nodes) { node in
+            if node.children.isEmpty {
+                if let id = node.folderIds.first {
+                    Button { selection = id } label: { check(node.folderIds.contains(selection ?? ""), node.name, symbol: "folder") }
+                }
+            } else {
+                Menu {
+                    // The parent itself, when it's a real folder (not just a prefix of its children's names).
+                    if let id = node.folderIds.first {
+                        Button { selection = id } label: { check(node.folderIds.contains(selection ?? ""), node.name, symbol: "folder") }
+                        Divider()
+                    }
+                    FolderLevel(nodes: node.children, selection: $selection)
+                } label: {
+                    // A tick on the way to the chosen folder.
+                    check(contains(node, selection), node.name, symbol: "folder")
+                }
+            }
+        }
+    }
+
+    private func contains(_ node: FolderNode, _ id: String?) -> Bool {
+        guard let id else { return false }
+        return node.folderIds.contains(id) || node.children.contains { contains($0, id) }
+    }
+}
+
+@ViewBuilder
+private func check(_ on: Bool, _ title: LocalizedStringKey) -> some View {
+    if on { Label(title, systemImage: "checkmark") } else { Text(title) }
+}
+
+@ViewBuilder
+private func check(_ on: Bool, _ title: String, symbol: String) -> some View {
+    Label { Text(verbatim: title) } icon: { Image(systemName: on ? "checkmark" : symbol) }
+}

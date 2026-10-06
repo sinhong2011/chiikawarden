@@ -97,8 +97,7 @@ struct EditItemSheet: View {
                         }
                         if !accountFolders.isEmpty {
                             FormField(label: "Folder") {
-                                SoftMenu(options: [(String?.none, String(localized: "No Folder"))] + accountFolders.map { (String?.some($0.id), $0.name) },
-                                         selection: $folderId, accessibilityLabel: "Folder")
+                                FolderCascader(folders: accountFolders, selection: $folderId)
                             }
                         }
                     }
