@@ -12,6 +12,8 @@ struct EmergencyAccessSections: View {
     @State private var loading = false
     @State private var error: String?
     @State private var sheet: Sheet?
+    /// A trusted contact about to be removed, waiting for "Are you sure?".
+    @State private var removing: EmergencyContact?
 
     enum Sheet: Identifiable {
         case add, accept, confirm(EmergencyContact), view(EmergencyContact), takeover(EmergencyContact)
@@ -46,6 +48,13 @@ struct EmergencyAccessSections: View {
             }
         }
         .task(id: session.id) { await load() }
+        .confirmationDialog("Remove \(removing?.email ?? "")?", isPresented: Binding(
+            get: { removing != nil }, set: { if !$0 { removing = nil } }), presenting: removing) { c in
+            Button("Remove", role: .destructive) { act("delete", c, session) }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("They can no longer ask for access to your vault. You can invite them again later.")
+        }
         .sheet(item: $sheet) { sheet in
             switch sheet {
             case .add: AddEmergencyContactSheet(session: session) { Task { await load() } }
@@ -116,7 +125,7 @@ struct EmergencyAccessSections: View {
             case .recoveryApproved: Button("Revoke") { act("reject", c, session) }
             case .confirmed: EmptyView()
             }
-            Button(role: .destructive) { act("delete", c, session) } label: { Image(systemName: "trash") }
+            Button(role: .destructive) { removing = c } label: { Image(systemName: "trash") }
                 .buttonStyle(.borderless).help(Text("Remove"))
         }
     }

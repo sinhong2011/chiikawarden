@@ -309,7 +309,7 @@ private struct IssueCard: View {
                         Button("Update Card") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                             .buttonStyle(.appSecondarySmall)
                     } else if issue == .duplicate {
-                        Button("Move to Trash") { model.trashWithUndo(item) }
+                        Button("Move to Trash…") { model.confirmTrash(item) }
                             .buttonStyle(.appSecondarySmall)
                     } else if let host = item.host, !host.isEmpty, [.breached, .reused, .weak, .oldPassword].contains(issue) {
                         // Change it where it lives, then save the new one here.

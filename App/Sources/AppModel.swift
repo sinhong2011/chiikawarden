@@ -447,9 +447,12 @@ final class AppModel {
         confirming = ConfirmRequest(title: title, message: message, action: action, run: run)
     }
 
-    /// Moves the item to Trash without asking: the toast and ⌘Z take it back.
-    func trashWithUndo(_ item: VaultItem) {
-        Task { await trash(item) }
+    /// Asks, then moves the item to Trash (the toast and ⌘Z can still take it back). Every delete asks first.
+    func confirmTrash(_ item: VaultItem) {
+        let message = isCloud(item.accountId) ? String(localized: "You can restore it from Trash for \(Self.cloudTrashDays) days.")
+                                    : String(localized: "You can restore it from Trash later.")
+        confirm(String(localized: "Move “\(item.name)” to Trash?"), message: message,
+                action: String(localized: "Move to Trash")) { [weak self] in await self?.trash(item) }
     }
 
     /// Asks, then deletes a trashed item for good.

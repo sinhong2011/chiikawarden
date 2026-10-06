@@ -588,6 +588,9 @@ private struct ServerSettings: View {
     @State private var cas: [Data] = Connection.trustedCAs
     @State private var importing = false
     @State private var importError: String?
+    /// A certificate or header about to be removed, waiting for "Are you sure?".
+    @State private var removingCA: Int?
+    @State private var removingHeader: CustomHeader.ID?
 
     var body: some View {
         Form {
@@ -600,7 +603,7 @@ private struct ServerSettings: View {
                         Image(systemName: "checkmark.seal").foregroundStyle(.green)
                         Text(verbatim: certificateName(data))
                         Spacer()
-                        Button(role: .destructive) { cas.remove(at: index); saveCAs() } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
+                        Button(role: .destructive) { removingCA = index } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                             .buttonStyle(.borderless)
                             .help(Text("Remove"))
                     }
@@ -622,7 +625,10 @@ private struct ServerSettings: View {
                     HStack {
                         TextField("Name", text: $header.name, prompt: Text(verbatim: "CF-Access-Client-Id"))
                         PasswordField(title: "Value", text: $header.value, look: .plain, prompt: Text("Value"))
-                        Button(role: .destructive) { headers.removeAll { $0.id == header.id } } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
+                        Button(role: .destructive) {
+                            // A blank row just goes; one with something in it asks first.
+                            if header.name.isEmpty && header.value.isEmpty { headers.removeAll { $0.id == header.id } } else { removingHeader = header.id }
+                        } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
                             .buttonStyle(.borderless)
                             .help(Text("Remove"))
                     }
@@ -641,6 +647,20 @@ private struct ServerSettings: View {
         }
         .formStyle(.grouped)
         .onChange(of: headers) { _, new in HeaderStore.save(new); model.resetClient() }
+        .confirmationDialog("Remove this certificate?", isPresented: Binding(
+            get: { removingCA != nil }, set: { if !$0 { removingCA = nil } }), presenting: removingCA) { index in
+            Button("Remove", role: .destructive) { if cas.indices.contains(index) { cas.remove(at: index); saveCAs() } }
+            Button("Cancel", role: .cancel) {}
+        } message: { index in
+            Text("“\(cas.indices.contains(index) ? certificateName(cas[index]) : "")” is no longer trusted; a server that relies on it stops connecting.")
+        }
+        .confirmationDialog("Remove this header?", isPresented: Binding(
+            get: { removingHeader != nil }, set: { if !$0 { removingHeader = nil } }), presenting: removingHeader) { id in
+            Button("Remove", role: .destructive) { headers.removeAll { $0.id == id } }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("It's no longer sent, and its value is deleted from your Keychain.")
+        }
         .fileImporter(isPresented: $importing,
                       allowedContentTypes: [.x509Certificate, UTType(filenameExtension: "pem") ?? .data, .data]) { result in
             do {

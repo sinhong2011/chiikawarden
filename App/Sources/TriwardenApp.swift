@@ -128,7 +128,7 @@ struct TriwardenApp: App {
                 }
                 .keyboardShortcut("a", modifiers: [.command, .option])
                 .disabled(item == nil || item?.isDeleted == true)
-                Button("Move to Trash") { if let item { model.trashWithUndo(item) } }
+                Button("Move to Trash…") { if let item { model.confirmTrash(item) } }
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }

@@ -45,7 +45,7 @@ struct ItemContextMenu: View {
                     Button("Move to Organization…", systemImage: "building.2") { model.organizationSheet = .share([item.id]) }
                 }
                 Divider()
-                Button("Move to Trash", systemImage: "trash", role: .destructive) { model.trashWithUndo(item) }
+                Button("Move to Trash…", systemImage: "trash", role: .destructive) { model.confirmTrash(item) }
             }
         }
         .labelStyle(.titleAndIcon)
