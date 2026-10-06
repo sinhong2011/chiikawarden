@@ -1216,6 +1216,8 @@ extension EnvironmentValues {
 }
 
 struct ItemDetail: View {
+    /// The cards' inset from the detail pane's sides; the header's item actions use it too.
+    static let detailInset: CGFloat = 18
     @Environment(\.showsDetailToolbar) private var showsToolbar
     @Environment(AppModel.self) private var model
     let item: VaultItem
@@ -1374,7 +1376,7 @@ struct ItemDetail: View {
                     ItemHistoryCard(item: item)
                 }
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, Self.detailInset)
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
         }
@@ -1404,7 +1406,8 @@ struct ItemDetail: View {
             // under the lock layer.
             if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
                 ToolbarSpacer(.flexible)
-                ToolbarItem { actions }
+                // Inset by the detail's own side padding, so the pill's edge lines up with the cards below.
+                ToolbarItem { actions.padding(.trailing, Self.detailInset) }
                     .sharedBackgroundVisibility(.hidden)
             }
         }
