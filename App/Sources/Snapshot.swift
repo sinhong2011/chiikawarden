@@ -239,12 +239,28 @@ enum Snapshot {
                    appearance: appearance, to: dir.appending(path: "autofill-passkey-\(name).png"))
         }
         vault.breachCounts = ["4": 1203]
+        // The reminders too: a card about to expire, a login saved twice, a password from years ago.
+        let demoVault = vault.items
+        var expiring = demoItems.first { $0.kind == .card }!
+        let soon = Calendar.current.dateComponents([.month, .year], from: .now.addingTimeInterval(30 * 86_400))
+        expiring.properties = ["expMonth": "\(soon.month!)", "expYear": "\(soon.year!)"]
+        var twice = demoItems[2]
+        twice = VaultItem(id: "dup", accountId: twice.accountId, name: twice.name, username: twice.username, host: twice.host,
+                          password: twice.password, totp: nil, notes: nil, favorite: false)
+        var old = demoItems[0]
+        old.created = Calendar.current.date(byAdding: .year, value: -4, to: .now)
+        vault.items = vault.items.map { $0.id == expiring.id ? expiring : $0.id == old.id ? old : $0 } + [twice]
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(WatchtowerView(onOpen: { _ in }).environment(vault).tint(.brand), dark: name == "dark"),
-                   size: CGSize(width: 820, height: 760), appearance: appearance,
+                   size: CGSize(width: 820, height: 1400), appearance: appearance,
                    to: dir.appending(path: "watchtower-\(name).png"))
         }
+        vault.items = demoVault
         vault.breachCounts = nil
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(LargeTypeView(text: "m7Kq#vR2!tLp 0O1lI|"), size: CGSize(width: 1000, height: 420), appearance: appearance,
+                   to: dir.appending(path: "largetype-\(name).png"))
+        }
         render(desktop(VaultView(initialSelection: "7").environment(vault).tint(.brand), dark: false),
                size: CGSize(width: 1180, height: 760), appearance: .aqua, to: dir.appending(path: "vault-card-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {

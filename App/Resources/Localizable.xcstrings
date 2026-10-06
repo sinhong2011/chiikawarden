@@ -4,6 +4,1238 @@
     "" : {
       "shouldTranslate" : false
     },
+    "%lld characters · Esc or click to close" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 文字 · Esc キーかクリックで閉じる"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个字符 · 按 Esc 或点按关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個字元 · 按 Esc 或按一下關閉"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個字元 · 按 Esc 或者撳一下關閉"
+          }
+        }
+      }
+    },
+    "Archived “%@”" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”をアーカイブしました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已归档“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已封存「%@」"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已封存「%@」"
+          }
+        }
+      }
+    },
+    "bar" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "縦線"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "竖线"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直線"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直線"
+          }
+        }
+      }
+    },
+    "capital" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大文字"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大寫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大楷"
+          }
+        }
+      }
+    },
+    "Caps Lock is on" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caps Lock がオンです"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大写锁定已打开"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大寫鎖定已開啟"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大楷鎖定開咗"
+          }
+        }
+      }
+    },
+    "Cards expiring" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "期限切れ間近のカード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即将过期的卡"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即將到期的卡片"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就快到期嘅卡"
+          }
+        }
+      }
+    },
+    "Copied secrets are marked as concealed, so clipboard managers skip them. Paste a login's password, and its one-time code is ready to paste next." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピーした秘密情報は非表示として扱われ、クリップボード管理アプリには残りません。ログインのパスワードを貼り付けると、次はその確認コードを貼り付けられます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝的机密内容会标记为隐藏，剪贴板管理工具不会记录。粘贴登录项的密码后，接着就能粘贴它的一次性验证码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝的機密內容會標記為隱藏，剪貼簿管理工具不會記錄。貼上登入項目的密碼後，接著就能貼上它的一次性驗證碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製嘅機密內容會標記為隱藏，剪貼簿管理工具唔會記錄。貼上登入項目嘅密碼之後，跟住就可以貼上佢嘅一次性驗證碼。"
+          }
+        }
+      }
+    },
+    "Copy Code" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードをコピー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製驗證碼"
+          }
+        }
+      }
+    },
+    "Copy the one-time code after the password is pasted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードを貼り付けたら確認コードをコピー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴密码后拷贝一次性验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上密碼後拷貝一次性驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上密碼後複製一次性驗證碼"
+          }
+        }
+      }
+    },
+    "Couldn't look at that window." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "そのウインドウを読み取れませんでした。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取那个窗口。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法讀取那個視窗。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀唔到嗰個視窗。"
+          }
+        }
+      }
+    },
+    "digit" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数字"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數字"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數字"
+          }
+        }
+      }
+    },
+    "Discard Changes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更を破棄"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放棄變更"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放棄更改"
+          }
+        }
+      }
+    },
+    "Discard your changes?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更を破棄しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃更改吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要放棄變更嗎？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要放棄更改嗎？"
+          }
+        }
+      }
+    },
+    "Duplicate logins" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複したログイン"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重复的登录项"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複的登入項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複嘅登入項目"
+          }
+        }
+      }
+    },
+    "edited %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@に編集"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@編輯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@編輯"
+          }
+        }
+      }
+    },
+    "Expired %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ に期限切れ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已于 %@ 过期"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已於 %@ 到期"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已經到期"
+          }
+        }
+      }
+    },
+    "Expired, or expiring in the next two months. Put the new card's dates in once it arrives." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "期限切れ、または2か月以内に期限切れになります。新しいカードが届いたら有効期限を更新してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已过期，或将在两个月内过期。新卡寄到后，填入新的有效期。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已到期，或將在兩個月內到期。新卡寄到後，填入新的有效期限。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已經到期，或者兩個月內到期。新卡寄到之後，填返新嘅有效期。"
+          }
+        }
+      }
+    },
+    "Expires %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ に期限切れ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 过期"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 到期"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 到期"
+          }
+        }
+      }
+    },
+    "From the site's two-factor setup: scan its QR code, or paste the otpauth:// link or the key under it." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイトの2ステップ認証の設定画面から：QR コードを読み取るか、otpauth:// リンクやその下のキーを貼り付けます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自网站的两步验证设置：扫描它的二维码，或粘贴 otpauth:// 链接或二维码下方的密钥。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來自網站的兩步驟驗證設定：掃描它的 QR 碼，或貼上 otpauth:// 連結或 QR 碼下方的金鑰。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "嚟自網站嘅兩步驟驗證設定：掃描佢個 QR 碼，或者貼上 otpauth:// 連結或者 QR 碼下面嘅金鑰。"
+          }
+        }
+      }
+    },
+    "Hide Triwarden from screen sharing and screenshots" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面共有とスクリーンショットに Triwarden を映さない"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在屏幕共享和截屏中隐藏 Triwarden"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在螢幕分享和截圖中隱藏 Triwarden"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺螢幕分享同截圖入面隱藏 Triwarden"
+          }
+        }
+      }
+    },
+    "Keep Editing" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編集を続ける"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續編輯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續編輯"
+          }
+        }
+      }
+    },
+    "Meeting apps, recordings and screenshots show an empty space where Triwarden's windows are, so a password on screen doesn't go out with the call." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会議アプリや録画、スクリーンショットでは Triwarden のウインドウが空白になるので、画面上のパスワードが通話で流れません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会议应用、录屏和截屏中，Triwarden 的窗口会显示为空白，屏幕上的密码不会随通话外泄。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會議 App、錄影和截圖中，Triwarden 的視窗會顯示為空白，螢幕上的密碼不會隨通話外洩。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開會 App、錄影同截圖入面，Triwarden 嘅視窗會變成空白，螢幕上面嘅密碼唔會跟住通話傳出去。"
+          }
+        }
+      }
+    },
+    "Moved %lld item(s) out of the archive" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件をアーカイブから戻しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消归档 %lld 个项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消封存 %lld 個項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消封存 %lld 個項目"
+          }
+        }
+      }
+    },
+    "Moved “%@” to Trash" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”をゴミ箱に入れました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已将“%@”移到废纸篓"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已將「%@」移到垃圾桶"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已將「%@」移到垃圾桶"
+          }
+        }
+      }
+    },
+    "No QR code found there. Make it larger on screen and try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR コードが見つかりません。画面上で大きく表示してもう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有找到二维码。在屏幕上放大后再试一次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到 QR 碼。在螢幕上放大後再試一次。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搵唔到 QR 碼。喺螢幕上面放大啲再試多次。"
+          }
+        }
+      }
+    },
+    "Password copied · the code follows once you paste" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードをコピーしました · 貼り付けると次は確認コード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷贝密码 · 粘贴后接着是验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷貝密碼 · 貼上後接著是驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已複製密碼 · 貼上之後就輪到驗證碼"
+          }
+        }
+      }
+    },
+    "Passwords not changed in years" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "何年も変更していないパスワード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多年未更改的密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多年未更改的密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好多年冇改過嘅密碼"
+          }
+        }
+      }
+    },
+    "Privacy" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱私"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私隱"
+          }
+        }
+      }
+    },
+    "Scan QR code" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR コードを読み取る"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描二维码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "掃描 QR 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "掃描 QR 碼"
+          }
+        }
+      }
+    },
+    "Scan the QR code from a window on screen, or from a copied image" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面上のウインドウ、またはコピーした画像から QR コードを読み取る"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从屏幕上的窗口或拷贝的图像扫描二维码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從螢幕上的視窗或拷貝的影像掃描 QR 碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由螢幕上面嘅視窗或者複製咗嘅圖片掃描 QR 碼"
+          }
+        }
+      }
+    },
+    "set %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@に設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@設定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@設定"
+          }
+        }
+      }
+    },
+    "Show in Large Type" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大きく表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以大字体显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以大字顯示"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用大字顯示"
+          }
+        }
+      }
+    },
+    "Show just one vault while this Focus is on, like your work organization." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この集中モードの間は、仕事の組織など1つの保管庫だけを表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此专注模式开启时只显示一个保险库，例如工作组织。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此專注模式開啟時只顯示一個保險庫，例如工作組織。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個專注模式開咗嘅時候只顯示一個保險庫，例如公司嘅組織。"
+          }
+        }
+      }
+    },
+    "Show One Vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1つの保管庫を表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只显示一个保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只顯示一個保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只顯示一個保險庫"
+          }
+        }
+      }
+    },
+    "Show Password in Large Type" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードを大きく表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以大字体显示密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以大字顯示密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用大字顯示密碼"
+          }
+        }
+      }
+    },
+    "small" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小文字"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小写"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小寫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "細楷"
+          }
+        }
+      }
+    },
+    "space" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スペース"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空格"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空格"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空格"
+          }
+        }
+      }
+    },
+    "That QR code isn't a two-step login code." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その QR コードは2ステップ認証のものではありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个二维码不是两步验证码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個 QR 碼不是兩步驟驗證碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個 QR 碼唔係兩步驟驗證碼。"
+          }
+        }
+      }
+    },
+    "That's a Google Authenticator export. Show the site's own QR code instead." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これは Google Authenticator のエクスポートです。代わりにサイト自身の QR コードを表示してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是 Google Authenticator 的导出内容。请改为显示网站自己的二维码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這是 Google Authenticator 的匯出內容。請改為顯示網站本身的 QR 碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個係 Google Authenticator 嘅匯出內容。請改為顯示網站自己嘅 QR 碼。"
+          }
+        }
+      }
+    },
+    "The same username for the same site, saved more than once. Keep the one that's right and move the rest to Trash." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同じサイトの同じユーザ名が複数保存されています。正しいものを残し、残りはゴミ箱へ。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同一网站的同一用户名保存了不止一次。保留正确的那个，其余移到废纸篓。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同一網站的同一使用者名稱儲存了不止一次。保留正確的那個，其餘移到垃圾桶。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同一個網站嘅同一個用戶名存咗唔止一次。留低啱嗰個，其餘移去垃圾桶。"
+          }
+        }
+      }
+    },
+    "Unchanged for three years or more. No need to change a strong, unique one; worth it for an account that matters." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3年以上変更されていません。強力で使い回していないものは変える必要はありませんが、大切なアカウントは見直す価値があります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三年或以上未更改。强而独一无二的密码不必更改；重要的账户值得换一个。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三年或以上未更改。強而獨一無二的密碼不必更改；重要的帳號值得換一個。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三年或以上冇改過。夠強又獨一無二嘅密碼唔使改；重要嘅帳戶就值得換一個。"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取り消す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原"
+          }
+        }
+      }
+    },
+    "Update Card" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カードを更新"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新卡片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新卡片"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新卡"
+          }
+        }
+      }
+    },
+    "What you've typed here isn't saved yet." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここで入力した内容はまだ保存されていません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你在这里输入的内容尚未保存。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你在這裡輸入的內容尚未儲存。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你喺度打嘅嘢仲未儲存。"
+          }
+        }
+      }
+    },
     "· in use" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10707,7 +11939,8 @@
             "value" : "嚟自網站嘅雙重驗證設定：otpauth:// 連結，或者 QR 碼下面嘅金鑰。"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "General" : {
       "localizations" : {
@@ -13691,7 +14924,8 @@
             "value" : "要將「%@」移去垃圾桶嗎？"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Move %lld item(s) to Trash?" : {
       "localizations" : {
@@ -25933,7 +27167,8 @@
             "value" : "之後可以喺垃圾桶還原。"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "You can restore them from Trash later." : {
       "localizations" : {

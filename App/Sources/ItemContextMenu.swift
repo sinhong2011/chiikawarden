@@ -12,7 +12,8 @@ struct ItemContextMenu: View {
                 Button("Copy Username", systemImage: "person") { model.copy(username, label: String(localized: "Username")) }
             }
             if let password = item.password, !password.isEmpty {
-                Button("Copy Password", systemImage: "key") { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
+                Button("Copy Password", systemImage: "key") { model.copyPassword(item) }
+                Button("Show Password in Large Type", systemImage: "textformat.size") { model.showLargeType(item) }
             }
             if let totp = item.totp {
                 Button("Copy One-Time Code", systemImage: "clock") { model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) } }
@@ -44,7 +45,7 @@ struct ItemContextMenu: View {
                     Button("Move to Organization…", systemImage: "building.2") { model.organizationSheet = .share([item.id]) }
                 }
                 Divider()
-                Button("Move to Trash…", systemImage: "trash", role: .destructive) { model.confirmTrash(item) }
+                Button("Move to Trash", systemImage: "trash", role: .destructive) { model.trashWithUndo(item) }
             }
         }
         .labelStyle(.titleAndIcon)

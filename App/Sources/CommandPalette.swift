@@ -169,7 +169,7 @@ struct CommandPalette: View {
             } else if modifiers.contains(.option), let totp = item.totp {
                 model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) }
             } else if modifiers.contains(.command), let password = item.password {
-                model.guarded(item) { model.copy(password, label: String(localized: "Password")) }
+                model.copyPassword(item)
             } else {
                 model.showItem(item.id)
             }

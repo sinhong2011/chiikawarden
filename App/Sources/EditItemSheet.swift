@@ -32,6 +32,30 @@ struct EditItemSheet: View {
     @State private var showGenerator = false
     @State private var saving = false
     @FocusState private var focus: Field?
+    /// The form as it was opened, to tell whether closing it would lose anything.
+    @State private var original: Draft?
+    @State private var confirmingDiscard = false
+    @State private var scanning = false
+    @State private var scanProblem: String?
+
+    private struct Draft: Equatable {
+        var name, username, password, totp, uri, notes: String
+        var folderId: String?
+        var props: [String: String]
+        var customFields: [CustomField]
+        var reprompt: Bool
+    }
+
+    private var draft: Draft {
+        Draft(name: name, username: username, password: password, totp: totp, uri: uri, notes: notes, folderId: folderId,
+              props: props.filter { !$0.value.isEmpty }, customFields: customFields, reprompt: reprompt)
+    }
+
+    private var hasChanges: Bool { original.map { $0 != draft } ?? false }
+
+    private func cancel() {
+        if hasChanges { confirmingDiscard = true } else { dismiss() }
+    }
 
     enum Field { case name }
 
@@ -135,7 +159,7 @@ struct EditItemSheet: View {
             .thinScroller()
 
             FormFooter(action: "Save", busy: saving, disabled: name.trimmingCharacters(in: .whitespaces).isEmpty,
-                       cancel: { dismiss() }, submit: { Task { await save() } }) {
+                       cancel: cancel, submit: { Task { await save() } }) {
                 if hasHiddenValues {
                     Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.switch).controlSize(.mini).font(.system(size: 12))
                 }
@@ -145,6 +169,13 @@ struct EditItemSheet: View {
         .background(Color.windowBase)
         .navigationTitle(title)
         .onAppear(perform: load)
+        .interactiveDismissDisabled(hasChanges)
+        .confirmationDialog("Discard your changes?", isPresented: $confirmingDiscard) {
+            Button("Discard Changes", role: .destructive) { dismiss() }
+            Button("Keep Editing", role: .cancel) {}
+        } message: {
+            Text("What you've typed here isn't saved yet.")
+        }
     }
 
     // MARK: Sections
@@ -184,10 +215,30 @@ struct EditItemSheet: View {
                     .textFieldStyle(SoftFieldStyle())
                     .textContentType(.URL)
             }
-            FormField(label: "One-time code secret", note: "From the site's two-factor setup: an otpauth:// link or the key under the QR code.") {
-                TextField("One-time code secret", text: $totp, prompt: Text("otpauth://… or base32 key"))
-                    .textFieldStyle(SoftFieldStyle())
-                    .font(.system(size: 13, design: .monospaced))
+            FormField(label: "One-time code secret", note: "From the site's two-factor setup: scan its QR code, or paste the otpauth:// link or the key under it.") {
+                HStack(spacing: 8) {
+                    TextField("One-time code secret", text: $totp, prompt: Text("otpauth://… or base32 key"))
+                        .textFieldStyle(SoftFieldStyle())
+                        .font(.system(size: 13, design: .monospaced))
+                    Button { Task { await scanQRCode() } } label: {
+                        Group {
+                            if scanning { ProgressView().controlSize(.small) } else { Image(systemName: "qrcode.viewfinder") }
+                        }
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 38, height: 38)
+                        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+                        .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(scanning)
+                    .help(Text("Scan the QR code from a window on screen, or from a copied image"))
+                    .accessibilityLabel(Text("Scan QR code"))
+                }
+                if let scanProblem {
+                    Label(scanProblem, systemImage: "qrcode")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
                 if !totp.isEmpty, TOTP(totp) == nil {
                     Label("That doesn't look like a valid one-time code secret.", systemImage: "exclamationmark.triangle")
                         .font(.system(size: 11)).foregroundStyle(.orange)
@@ -332,9 +383,29 @@ struct EditItemSheet: View {
         }
     }
 
+    /// Fills the code secret from a QR code, and the name and username too when they're still empty.
+    private func scanQRCode() async {
+        scanning = true
+        scanProblem = nil
+        defer { scanning = false }
+        do {
+            guard let link = try await QRScanner.scan() else { return }
+            totp = link
+            let details = QRScanner.details(of: link)
+            if name.trimmingCharacters(in: .whitespaces).isEmpty, let issuer = details.issuer { name = issuer }
+            if username.isEmpty, let account = details.account { username = account }
+        } catch {
+            scanProblem = error.localizedDescription
+        }
+    }
+
     // MARK: Load / save
 
     private func load() {
+        defer {
+            // After the fields have settled (pickers tidy their values on appear).
+            DispatchQueue.main.async { original = draft }
+        }
         focus = .name
         accountId = model.defaultAccountId
         let source: VaultItem

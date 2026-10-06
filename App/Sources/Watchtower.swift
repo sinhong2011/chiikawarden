@@ -4,10 +4,10 @@ import VaultwardenAPI
 /// Local password health checks; breach lookups only on request (k-anonymity, see `PwnedPasswords`).
 struct WatchtowerReport {
     enum Issue: CaseIterable, Hashable {
-        case breached, reused, weak, insecure, twoFactor
+        case breached, reused, weak, insecure, twoFactor, cardExpiring, duplicate, oldPassword
 
         /// Advice, not a problem: doesn't count against the score.
-        var isAdvisory: Bool { self == .twoFactor }
+        var isAdvisory: Bool { [.twoFactor, .cardExpiring, .duplicate, .oldPassword].contains(self) }
 
         var title: LocalizedStringKey {
             switch self {
@@ -16,6 +16,9 @@ struct WatchtowerReport {
             case .weak: "Weak passwords"
             case .insecure: "Unsecured websites"
             case .twoFactor: "Two-step login available"
+            case .cardExpiring: "Cards expiring"
+            case .duplicate: "Duplicate logins"
+            case .oldPassword: "Passwords not changed in years"
             }
         }
         var symbol: String {
@@ -25,6 +28,9 @@ struct WatchtowerReport {
             case .weak: "lock.open"
             case .insecure: "network.slash"
             case .twoFactor: "person.badge.shield.checkmark"
+            case .cardExpiring: "creditcard"
+            case .duplicate: "square.on.square"
+            case .oldPassword: "calendar.badge.clock"
             }
         }
         var tint: Color {
@@ -33,6 +39,8 @@ struct WatchtowerReport {
             case .reused, .weak: .orange
             case .insecure: .yellow
             case .twoFactor: .blue
+            case .cardExpiring: .orange
+            case .duplicate, .oldPassword: .secondary
             }
         }
         var advice: LocalizedStringKey {
@@ -42,6 +50,9 @@ struct WatchtowerReport {
             case .weak: "Short or simple passwords are easy to guess. Generate a longer one."
             case .insecure: "These sites are saved with http://, so the password travels unencrypted."
             case .twoFactor: "These sites offer one-time codes. Turn two-step login on there, then save the code here."
+            case .cardExpiring: "Expired, or expiring in the next two months. Put the new card's dates in once it arrives."
+            case .duplicate: "The same username for the same site, saved more than once. Keep the one that's right and move the rest to Trash."
+            case .oldPassword: "Unchanged for three years or more. No need to change a strong, unique one; worth it for an account that matters."
             }
         }
     }
@@ -63,7 +74,34 @@ struct WatchtowerReport {
                 issues[.twoFactor, default: []].append(item)
             }
         }
+        let cards = items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .card }
+        let expiring = cards.filter { $0.cardExpiry.map { $0 < Self.expiryHorizon } ?? false }
+            .sorted { ($0.cardExpiry ?? .distantPast) < ($1.cardExpiry ?? .distantPast) }
+        if !expiring.isEmpty { issues[.cardExpiring] = expiring }
+        let old = logins.filter { $0.passwordSince.map { $0 < Self.oldPasswordDate } ?? false }
+            .sorted { ($0.passwordSince ?? .distantPast) < ($1.passwordSince ?? .distantPast) }
+        if !old.isEmpty { issues[.oldPassword] = old }
+        let duplicates = Self.duplicateGroups(logins).flatMap { $0 }
+        if !duplicates.isEmpty { issues[.duplicate] = duplicates }
         self.issues = issues
+    }
+
+    /// Cards that expire before this are worth a word.
+    static var expiryHorizon: Date { Calendar.current.date(byAdding: .day, value: 60, to: .now) ?? .now }
+    static var oldPasswordDate: Date { Calendar.current.date(byAdding: .year, value: -3, to: .now) ?? .distantPast }
+
+    /// Logins saved more than once: the same site and username in the same vault, newest first in each group.
+    static func duplicateGroups(_ logins: [VaultItem]) -> [[VaultItem]] {
+        let keyed = Dictionary(grouping: logins.filter { !$0.isArchived }) { item -> String? in
+            guard let host = item.host?.lowercased(), let user = item.username?.lowercased(), !user.isEmpty else { return nil }
+            let site = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+            return [item.organizationId ?? item.accountId, site, user].joined(separator: "\u{1F}")
+        }
+        return keyed.compactMap { key, group in
+            key == nil || group.count < 2 ? nil
+                : group.sorted { ($0.revised ?? .distantPast) > ($1.revised ?? .distantPast) }
+        }
+        .sorted { $0[0].name.localizedStandardCompare($1[0].name) == .orderedAscending }
     }
 
     var problemCount: Int { Set(issues.filter { !$0.key.isAdvisory }.values.flatMap { $0.map(\.id) }).count }
@@ -218,6 +256,12 @@ private struct IssueCard: View {
                             .buttonStyle(.appSecondarySmall)
                         Button("Add Code") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                             .buttonStyle(.appSecondarySmall)
+                    } else if issue == .cardExpiring {
+                        Button("Update Card") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                            .buttonStyle(.appSecondarySmall)
+                    } else if issue == .duplicate {
+                        Button("Move to Trash") { model.trashWithUndo(item) }
+                            .buttonStyle(.appSecondarySmall)
                     } else {
                         Button("Change Password") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                             .buttonStyle(.appSecondarySmall)
@@ -240,6 +284,14 @@ private struct IssueCard: View {
         case .weak: [item.username, item.host].compactMap { $0 }.joined(separator: " · ")
         case .insecure: item.uri ?? ""
         case .twoFactor: [item.username, item.host].compactMap { $0 }.joined(separator: " · ")
+        case .cardExpiring:
+            [item.username, item.cardExpiryText].compactMap { $0 }.joined(separator: " · ")
+        case .duplicate:
+            [item.username, item.host, item.revised.map { String(localized: "edited \($0.formatted(.relative(presentation: .named)))") }]
+                .compactMap { $0 }.joined(separator: " · ")
+        case .oldPassword:
+            [item.host, item.passwordSince.map { String(localized: "set \($0.formatted(.relative(presentation: .named)))") }]
+                .compactMap { $0 }.joined(separator: " · ")
         }
     }
 }
@@ -276,5 +328,33 @@ enum TwoFactorDirectory {
             for d in [domain] + (info["additional-domains"] as? [String] ?? []) { out[d.lowercased()] = guide }
         }
         return out
+    }
+}
+
+extension VaultItem {
+    /// The last day a card works (the end of its expiry month), if it has a month and year.
+    var cardExpiry: Date? {
+        guard kind == .card, let m = properties["expMonth"].flatMap({ Int($0.trimmingCharacters(in: .whitespaces)) }),
+              var y = properties["expYear"].flatMap({ Int($0.trimmingCharacters(in: .whitespaces)) }), (1...12).contains(m) else { return nil }
+        if y < 100 { y += 2000 }
+        let calendar = Calendar.current
+        guard let first = calendar.date(from: DateComponents(year: y, month: m, day: 1)),
+              let next = calendar.date(byAdding: .month, value: 1, to: first) else { return nil }
+        return next.addingTimeInterval(-1)
+    }
+
+    var isCardExpired: Bool { cardExpiry.map { $0 < .now } ?? false }
+
+    /// "Expired 03/2025" or "Expires 11/2026".
+    var cardExpiryText: String? {
+        guard let expiry = cardExpiry else { return nil }
+        let date = expiry.formatted(.dateTime.month(.twoDigits).year())
+        return expiry < .now ? String(localized: "Expired \(date)") : String(localized: "Expires \(date)")
+    }
+
+    /// Roughly when the current password was set: when the one before it was replaced, or when the item was made.
+    var passwordSince: Date? {
+        guard password != nil else { return nil }
+        return passwordHistory.compactMap(\.date).max() ?? created
     }
 }

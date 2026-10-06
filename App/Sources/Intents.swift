@@ -150,6 +150,58 @@ struct TriwardenShortcuts: AppShortcutsProvider {
     }
 }
 
+// MARK: Focus filter
+
+/// A vault to show: all of them, your own items, or one organization.
+struct VaultChoiceEntity: AppEntity {
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Vault"
+    static let defaultQuery = VaultChoiceQuery()
+
+    /// `AppModel.VaultFilter.raw`, with "all" for every vault.
+    let id: String
+    let name: String
+
+    var displayRepresentation: DisplayRepresentation { DisplayRepresentation(title: "\(name)") }
+
+    static var choices: [VaultChoiceEntity] {
+        let organizations = (UserDefaults.standard.array(forKey: "focusOrganizations") as? [[String]] ?? [])
+            .filter { $0.count == 2 }
+            .map { VaultChoiceEntity(id: "org:" + $0[0], name: $0[1]) }
+        return [VaultChoiceEntity(id: "all", name: String(localized: "All vaults")),
+                VaultChoiceEntity(id: "personal", name: String(localized: "My vault"))] + organizations
+    }
+}
+
+struct VaultChoiceQuery: EntityQuery {
+    func entities(for identifiers: [String]) async throws -> [VaultChoiceEntity] {
+        VaultChoiceEntity.choices.filter { identifiers.contains($0.id) }
+    }
+    func suggestedEntities() async throws -> [VaultChoiceEntity] { VaultChoiceEntity.choices }
+}
+
+/// Focus › Focus Filters › Triwarden: while a Focus is on, the vault shows just the vault chosen for it (a work
+/// organization during Work, your own items at home). When it ends, the vault you had before comes back.
+struct VaultFocusFilter: SetFocusFilterIntent {
+    static let title: LocalizedStringResource = "Show One Vault"
+    static let description = IntentDescription("Show just one vault while this Focus is on, like your work organization.")
+
+    @Parameter(title: "Vault") var vault: VaultChoiceEntity?
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(vault?.name ?? String(localized: "All vaults"))")
+    }
+
+    @MainActor func perform() async throws -> some IntentResult {
+        // A Focus ending runs this with no vault.
+        if let model = AppModel.current {
+            model.applyFocusVault(vault?.id)
+        } else if let vault {
+            UserDefaults.standard.set(AppModel.VaultFilter(raw: vault.id).raw, forKey: "vaultFilter")
+        }
+        return .result()
+    }
+}
+
 /// Services menu: "Generate Password" inserts a fresh password into the focused text field of any app.
 final class ServicesProvider: NSObject {
     @objc func generatePassword(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {

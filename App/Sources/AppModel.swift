@@ -56,17 +56,36 @@ final class AppModel {
     /// Which vault the lists show, like Bitwarden's vault filter: everything, your own items, or one organization.
     enum VaultFilter: Hashable {
         case all, personal, organization(String)
-    }
-    var vaultFilter: VaultFilter = {
-        switch UserDefaults.standard.string(forKey: "vaultFilter") {
-        case "personal": .personal
-        case let id? where id.hasPrefix("org:"): .organization(String(id.dropFirst(4)))
-        default: .all
+
+        /// "personal", "org:<id>", or nil for all: how it's saved, and how the Focus filter names it.
+        init(raw: String?) {
+            switch raw {
+            case "personal": self = .personal
+            case let id? where id.hasPrefix("org:"): self = .organization(String(id.dropFirst(4)))
+            default: self = .all
+            }
         }
-    }() {
-        didSet {
-            let raw: String? = switch vaultFilter { case .all: nil; case .personal: "personal"; case .organization(let id): "org:" + id }
-            UserDefaults.standard.set(raw, forKey: "vaultFilter")
+        var raw: String? {
+            switch self { case .all: nil; case .personal: "personal"; case .organization(let id): "org:" + id }
+        }
+    }
+    var vaultFilter = VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) {
+        didSet { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") }
+    }
+
+    /// The vault a Focus asked for (Focus filter), and the one chosen before it, to go back to when the Focus ends.
+    private var focusVault: String?
+    private var vaultBeforeFocus: VaultFilter?
+
+    func applyFocusVault(_ raw: String?) {
+        if let raw {
+            if focusVault == nil { vaultBeforeFocus = vaultFilter }
+            focusVault = raw
+            vaultFilter = VaultFilter(raw: raw)
+        } else if focusVault != nil {
+            vaultFilter = vaultBeforeFocus ?? .all
+            focusVault = nil
+            vaultBeforeFocus = nil
         }
     }
 
@@ -338,6 +357,8 @@ final class AppModel {
         }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items, equivalents: equivalentDomains)
+        // Names for the Focus filter's vault menu, which System Settings may ask for while the vault is locked.
+        if !sessions.isEmpty { UserDefaults.standard.set(organizations.map { [$0.id, $0.name] }, forKey: "focusOrganizations") }
         if sessions.isEmpty { signInWatch?.cancel(); signInWatch = nil } else { watchSignIns() }
     }
 
@@ -379,10 +400,9 @@ final class AppModel {
         confirming = ConfirmRequest(title: title, message: message, action: action, run: run)
     }
 
-    /// Asks, then moves the item to Trash.
-    func confirmTrash(_ item: VaultItem) {
-        confirm(String(localized: "Move “\(item.name)” to Trash?"), message: String(localized: "You can restore it from Trash later."),
-                action: String(localized: "Move to Trash")) { [weak self] in await self?.trash(item) }
+    /// Moves the item to Trash without asking: the toast and ⌘Z take it back.
+    func trashWithUndo(_ item: VaultItem) {
+        Task { await trash(item) }
     }
 
     /// Asks, then deletes a trashed item for good.
@@ -438,6 +458,12 @@ final class AppModel {
 
     /// Transient confirmation shown after copying.
     var toast: String?
+    /// A button on the toast: Undo, or Copy Code after a password.
+    struct ToastAction {
+        let title: String
+        let run: @MainActor () -> Void
+    }
+    var toastAction: ToastAction?
     private var toastTask: Task<Void, Never>?
     private var clearTask: Task<Void, Never>?
 
@@ -602,11 +628,30 @@ final class AppModel {
         flash(String(localized: "Copied"))
     }
 
-    func copy(_ value: String, label: String) {
+    /// - Parameter afterPaste: runs once the value has been pasted somewhere (the clipboard hands it out lazily, so
+    ///   Triwarden hears when another app reads it).
+    func copy(_ value: String, label: String, afterPaste: (@MainActor () -> Void)? = nil) {
         let pb = NSPasteboard.general
         pb.clearContents()
-        pb.setString(value, forType: .string)
-        pb.setString("", forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+        let concealed = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
+        if let afterPaste {
+            let item = NSPasteboardItem()
+            let promise = PastePromise(value: value) {
+                // Let the paste finish before the clipboard changes under it.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(400))
+                    afterPaste()
+                }
+            }
+            pastePromise = promise
+            item.setDataProvider(promise, forTypes: [.string])
+            item.setString("", forType: concealed)
+            pb.writeObjects([item])
+        } else {
+            pastePromise = nil
+            pb.setString(value, forType: .string)
+            pb.setString("", forType: concealed)
+        }
         let change = pb.changeCount
         let seconds = UserDefaults.standard.integer(forKey: Pref.clipboardSeconds)
         clearTask?.cancel()
@@ -619,11 +664,49 @@ final class AppModel {
         } else {
             toast = String(localized: "\(label) copied")
         }
+        toastAction = nil
         noteActivity()
         toastTask?.cancel()
         toastTask = Task {
             try? await Task.sleep(for: .seconds(1.8))
-            if !Task.isCancelled { toast = nil }
+            if !Task.isCancelled { toast = nil; toastAction = nil }
+        }
+    }
+
+    /// Shows an item's password in big letters, to type it on another device.
+    func showLargeType(_ item: VaultItem) {
+        guard let password = item.password, !password.isEmpty else { return }
+        guarded(item) {
+            LargeType.show(password)
+            self.noteActivity()
+        }
+    }
+
+    /// Hands the copied password to the app that pastes it, then tells Triwarden it went.
+    @ObservationIgnored private var pastePromise: PastePromise?
+
+    /// Copies an item's password (asking for the master password first if the item wants it). When the login has a
+    /// one-time code too, the code follows: the clipboard switches to it once the password is pasted (Settings ›
+    /// Security), and the toast offers it as a button.
+    func copyPassword(_ item: VaultItem) {
+        guard let password = item.password else { return }
+        guarded(item) { [weak self] in
+            guard let self else { return }
+            let label = String(localized: "Password")
+            guard let totp = item.totp else { copy(password, label: label); return }
+            let copyCode: @MainActor () -> Void = { [weak self] in self?.copy(totp.code(), label: String(localized: "Code")) }
+            if UserDefaults.standard.bool(forKey: Pref.codeAfterPassword) {
+                copy(password, label: label, afterPaste: copyCode)
+                toast = String(localized: "Password copied · the code follows once you paste")
+            } else {
+                copy(password, label: label)
+            }
+            toastAction = ToastAction(title: String(localized: "Copy Code"), run: copyCode)
+            toastTask?.cancel()
+            toastTask = Task {
+                try? await Task.sleep(for: .seconds(4))
+                if !Task.isCancelled { toast = nil; toastAction = nil }
+            }
         }
     }
 
@@ -981,14 +1064,18 @@ final class AppModel {
 
     /// Moves items into a folder. A folder belongs to one account, so only that account's items move.
     func move(itemIDs: [String], toFolderIn folderIds: [String]) async {
-        var moved = 0
+        var moved: [VaultItem] = []
         for id in itemIDs {
             guard let item = items.first(where: { $0.id == id }), let session = session(for: item),
                   let folderId = folderIds.first(where: { fid in session.folders.contains { $0.id == fid } }),
                   item.folderId != folderId else { continue }
-            do { try await session.update(id, edit: CipherEdit(folderId: .some(folderId))); moved += 1 } catch { _ = failed(error); return }
+            do { try await session.update(id, edit: CipherEdit(folderId: .some(folderId))); moved.append(item) } catch { _ = failed(error); return }
         }
-        if moved > 0 { flash(String(localized: "Moved \(moved) item(s)")) }
+        if !moved.isEmpty {
+            offerUndo(String(localized: "Moved \(moved.count) item(s)"), actionName: String(localized: "Move")) { [weak self] in
+                await self?.moveBack(moved)
+            }
+        }
     }
 
     // MARK: Organizations and bulk edits
@@ -1026,7 +1113,7 @@ final class AppModel {
     }
 
     /// The same action on many items, one request per account; shown at once and rolled back if it fails.
-    func bulk(_ action: AccountSession.Bulk, _ itemIDs: [String]) async {
+    func bulk(_ action: AccountSession.Bulk, _ itemIDs: [String], undoable: Bool = true) async {
         let chosen = items.filter { itemIDs.contains($0.id) }
         withAnimation(.snappy(duration: 0.3)) {
             switch action {
@@ -1054,15 +1141,44 @@ final class AppModel {
                 }
             }
             let n = chosen.count
+            let ids = chosen.map(\.id)
             switch action {
+            case .trash where undoable:
+                offerUndo(String(localized: "Moved \(n) item(s) to Trash"), actionName: String(localized: "Move to Trash")) { [weak self] in
+                    await self?.bulk(.restore, ids, undoable: false)
+                }
             case .trash: flash(String(localized: "Moved \(n) item(s) to Trash"))
             case .restore: flash(String(localized: "Restored \(n) item(s)"))
             case .delete: flash(String(localized: "Deleted \(n) item(s) permanently"))
+            case .archive where undoable:
+                offerUndo(String(localized: "Archived \(n) item(s)"), actionName: String(localized: "Archive")) { [weak self] in
+                    await self?.unarchive(chosen)
+                }
             case .archive: flash(String(localized: "Archived \(n) item(s)"))
+            case .move where undoable:
+                offerUndo(String(localized: "Moved \(n) item(s)"), actionName: String(localized: "Move")) { [weak self] in
+                    await self?.moveBack(chosen)
+                }
             case .move: flash(String(localized: "Moved \(n) item(s)"))
             }
         } catch {
             revert(); _ = failed(error)
+        }
+    }
+
+    /// Takes items out of the archive (undoing a bulk archive; the server has no bulk unarchive).
+    private func unarchive(_ chosen: [VaultItem]) async {
+        for item in chosen { optimistic(item.id) { $0.archived = nil } }
+        do {
+            for item in chosen { try await session(for: item)?.unarchive(item.id) }
+            flash(String(localized: "Moved \(chosen.count) item(s) out of the archive"))
+        } catch { revert(); _ = failed(error) }
+    }
+
+    /// Puts moved items back in the folders they came from.
+    private func moveBack(_ chosen: [VaultItem]) async {
+        for (folderId, group) in Dictionary(grouping: chosen, by: \.folderId) {
+            await bulk(.move(folderId: folderId), group.map(\.id), undoable: false)
         }
     }
 
@@ -1217,11 +1333,20 @@ final class AppModel {
     }
 
     func trash(_ item: VaultItem) async {
+        if sessions.isEmpty, previewUnlocked { // demo vault: no server
+            optimistic(item.id) { $0.isDeleted = true }
+            offerUndo(String(localized: "Moved “\(item.name)” to Trash"), actionName: String(localized: "Move to Trash")) { [weak self] in
+                self?.optimistic(item.id) { $0.isDeleted = false }
+            }
+            return
+        }
         guard let session = session(for: item) else { _ = offline(); return }
         optimistic(item.id) { $0.isDeleted = true }
         do {
             try await session.trash(item.id)
-            flash(String(localized: "Moved to Trash"))
+            offerUndo(String(localized: "Moved “\(item.name)” to Trash"), actionName: String(localized: "Move to Trash")) { [weak self] in
+                await self?.restore(item)
+            }
         } catch { revert(); _ = failed(error) }
     }
 
@@ -1247,7 +1372,13 @@ final class AppModel {
         optimistic(item.id) { $0.archived = archived ? .now : nil }
         do {
             if archived { try await session.archive(item.id) } else { try await session.unarchive(item.id) }
-            flash(archived ? String(localized: "Archived") : String(localized: "Moved out of the archive"))
+            if archived {
+                offerUndo(String(localized: "Archived “\(item.name)”"), actionName: String(localized: "Archive")) { [weak self] in
+                    await self?.setArchived(item, false)
+                }
+            } else {
+                flash(String(localized: "Moved out of the archive"))
+            }
         } catch {
             // Older servers (Vaultwarden before 1.36) don't know the endpoint; Bitwarden's cloud needs a paid plan.
             revert()
@@ -1283,13 +1414,47 @@ final class AppModel {
         return false
     }
 
-    func flash(_ message: String) {
+    func flash(_ message: String, action: ToastAction? = nil) {
         toast = message
+        toastAction = action
         toastTask?.cancel()
         toastTask = Task {
-            try? await Task.sleep(for: .seconds(2.2))
-            if !Task.isCancelled { toast = nil }
+            // Long enough to reach the button.
+            try? await Task.sleep(for: .seconds(action == nil ? 2.2 : 5))
+            if !Task.isCancelled { toast = nil; toastAction = nil }
         }
+    }
+
+    // MARK: Undo
+
+    /// The last change that can be taken back. One at a time, like the toast that offers it.
+    @ObservationIgnored private var pendingUndo: (@MainActor () async -> Void)?
+    private var undoManager: UndoManager? { NSApp.windows.first { $0.canBecomeMain }?.undoManager }
+
+    /// Offers to take a change back: a button on the toast, and Edit › Undo (⌘Z).
+    private func offerUndo(_ message: String, actionName: String, undo: @escaping @MainActor () async -> Void) {
+        pendingUndo = undo
+        if let manager = undoManager {
+            manager.registerUndo(withTarget: self) { model in MainActor.assumeIsolated { model.performUndo() } }
+            manager.setActionName(actionName)
+        }
+        flash(message, action: ToastAction(title: String(localized: "Undo")) { [weak self] in
+            guard let self else { return }
+            if let manager = undoManager, manager.canUndo, manager.undoActionName == actionName { manager.undo() } else { performUndo() }
+        })
+    }
+
+    private func performUndo() {
+        guard let undo = pendingUndo else { return }
+        pendingUndo = nil
+        toast = nil
+        toastAction = nil
+        Task { await undo() }
+    }
+
+    private func forgetUndo() {
+        pendingUndo = nil
+        undoManager?.removeAllActions(withTarget: self)
     }
 
     // MARK: Auto-lock
@@ -1339,6 +1504,8 @@ final class AppModel {
     /// on screen a moment longer, so the door can close over them before they're cleared.
     func lock(animated: Bool = false) {
         previewURL = nil
+        forgetUndo()
+        LargeType.close()
         generatorHistory = []
         AttachmentFiles.wipe()
         sshAgent?.reset()
@@ -1435,5 +1602,23 @@ final class AppModel {
         default:
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+/// A clipboard value handed out on request, so Triwarden learns when it's pasted (`AppModel.copyPassword`).
+final class PastePromise: NSObject, NSPasteboardItemDataProvider {
+    private let value: String
+    private var onPaste: (() -> Void)?
+
+    init(value: String, onPaste: @escaping () -> Void) {
+        self.value = value
+        self.onPaste = onPaste
+    }
+
+    func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType) {
+        item.setString(value, forType: type)
+        let run = onPaste
+        onPaste = nil
+        run?()
     }
 }
