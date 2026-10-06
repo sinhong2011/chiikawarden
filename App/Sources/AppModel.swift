@@ -219,6 +219,12 @@ final class AppModel {
         if !tooling, UserDefaults.standard.bool(forKey: Pref.sshAgent) { sshAgent.start() }
         cli = CLIBridge(model: self)
         if !tooling { cli.refreshRunning() }
+        if !tooling {
+            trackForegroundApps()
+            // The palette and its global shortcut from launch, not from when a window first appears (the app may
+            // start in the menu bar only).
+            DispatchQueue.main.async { [weak self] in self?.installPalette() }
+        }
         IconStore.shared.makeSession = { [weak self] in self?.makeSession() ?? .shared }
         refreshAccounts()
         if !accounts.isEmpty { phase = .locked }
@@ -351,6 +357,25 @@ final class AppModel {
 
     /// Bumped each time Quick Search opens, so the panel resets and focuses.
     var quickSearchNonce = 0
+    /// Where the palette or the menu bar panel was called from (see ForegroundContext).
+    var foreground: ForegroundContext?
+    /// The last app the user was in other than Triwarden.
+    @ObservationIgnored var lastOtherApp: NSRunningApplication?
+    /// Snapshots: keep the context they set instead of reading the real front app.
+    @ObservationIgnored var foregroundPinned = false
+    @ObservationIgnored private var palette: QuickSearchController?
+    @ObservationIgnored private var paletteKey: GlobalHotKey?
+
+    /// The floating palette and the system-wide shortcut that toggles it.
+    func installPalette() {
+        guard palette == nil else { return }
+        let controller = QuickSearchController(model: self)
+        palette = controller
+        openPalette = { controller.show() }
+        let key = GlobalHotKey(Shortcut.palette) { controller.toggle() }
+        paletteKey = key
+        GlobalHotKey.palette = key
+    }
     /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
     /// SwiftUI's `openSettings`, captured by the main window (it only exists inside a scene).

@@ -10,8 +10,9 @@ struct Shortcut: Codable, Equatable {
     var modifiers: UInt32
     var key: String
 
-    /// ⌘K by default.
-    static let paletteDefault = Shortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey), key: "K")
+    /// ⇧⌘Space by default: free in macOS and most apps (a global ⌘K would take ⌘K from every app). In Triwarden's
+    /// own window ⌘K opens the palette too.
+    static let paletteDefault = Shortcut(keyCode: UInt32(kVK_Space), modifiers: UInt32(cmdKey | shiftKey), key: "Space")
 
     var display: String {
         var s = ""
@@ -110,6 +111,9 @@ final class QuickSearchController {
     }
 
     func show() {
+        // Called from another app: note it (and its page) before we take focus. From our own window there is no
+        // detour to return from.
+        if NSApp.isActive, NSApp.keyWindow?.canBecomeMain == true { model.foreground = nil } else { model.captureForeground() }
         let panel = self.panel ?? makePanel()
         self.panel = panel
         // Follow the app's Appearance setting, not just the system's.

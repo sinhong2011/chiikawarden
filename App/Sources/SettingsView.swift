@@ -136,7 +136,7 @@ private struct GeneralSettings: View {
             } header: {
                 Text("Shortcuts")
             } footer: {
-                Text("Works in every app. A common shortcut like ⌘K is taken from other apps while Triwarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.")
+                Text("Works in every app. In a browser, the palette puts the page's logins first; ↵ copies the password and takes you back. ⌘K and ⌘F also open the palette inside the vault window.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -670,8 +670,8 @@ private struct ShortcutRecorder: View {
             if shortcut != .paletteDefault {
                 Button { apply(.paletteDefault) } label: { Image(systemName: "arrow.uturn.backward") }
                     .buttonStyle(.borderless)
-                    .help(Text("Reset to ⌘K"))
-                    .accessibilityLabel(Text("Reset to ⌘K"))
+                    .help(Text("Reset to ⇧⌘Space"))
+                    .accessibilityLabel(Text("Reset to ⇧⌘Space"))
             }
         }
         .onDisappear(perform: stop)

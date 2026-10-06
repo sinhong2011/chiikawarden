@@ -36,7 +36,9 @@
 - Works offline from the encrypted cache; edits go straight to the server.
 
 **Fast to reach**
-- A command palette (⌘K, or a global shortcut you choose) to find any item or run any command.
+- A command palette from anywhere (⇧⌘Space, or a shortcut you choose; ⌘K in the window) to find any item or run any
+  command. Called over a browser, it puts that page's logins first, and ↵ copies the password and takes you back;
+  the menu bar panel does the same.
 - A menu bar panel with the item you need, one-time codes and the generator.
 - Two-finger swipes between sidebar, list and item on narrow windows.
 

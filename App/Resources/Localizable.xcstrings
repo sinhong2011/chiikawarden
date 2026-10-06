@@ -4,6 +4,90 @@
     "" : {
       "shouldTranslate" : false
     },
+    "Copy and go back" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピーして戻る"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制并返回"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製並返回"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製再返回"
+          }
+        }
+      }
+    },
+    "For %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の項目"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 嘅項目"
+          }
+        }
+      }
+    },
+    "On %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の項目"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 嘅項目"
+          }
+        }
+      }
+    },
     "Quit Triwarden" : {
       "localizations" : {
         "ja" : {
@@ -28,6 +112,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "結束 Triwarden"
+          }
+        }
+      }
+    },
+    "Reset to ⇧⌘Space" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧⌘Space に戻す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置为 ⇧⌘Space"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重設為 ⇧⌘Space"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重設為 ⇧⌘Space"
+          }
+        }
+      }
+    },
+    "Works in every app. In a browser, the palette puts the page's logins first; ↵ copies the password and takes you back. ⌘K and ⌘F also open the palette inside the vault window." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どのアプリでも使えます。ブラウザでは、そのページのログインが先頭に表示され、↵ でパスワードをコピーして元のアプリに戻ります。保管庫ウインドウでは ⌘K と ⌘F でもパレットを開けます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何 App 中都能使用。在浏览器中，命令面板会先列出该网页的登录信息；按 ↵ 会复制密码并返回原处。在密码库窗口内，⌘K 和 ⌘F 也能打开命令面板。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何 App 中都能使用。在瀏覽器中，命令面板會先列出該網頁的登入資料；按 ↵ 會複製密碼並返回原處。在保險庫視窗內，⌘K 和 ⌘F 也能開啟命令面板。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺任何 App 都用得。喺瀏覽器入面，指令面板會先列出嗰個網頁嘅登入資料；撳 ↵ 會複製密碼再返回原處。喺保險庫視窗入面，⌘K 同 ⌘F 都可以開指令面板。"
           }
         }
       }

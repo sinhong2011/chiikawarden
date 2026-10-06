@@ -162,6 +162,21 @@ enum Snapshot {
                    size: CGSize(width: 380, height: 760), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
+        // Called over a browser on github.com: that site's login first, in the palette and the menu bar panel.
+        let browser = NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == "com.apple.finder" }
+        vault.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: browser?.processIdentifier ?? 0,
+                                             host: "github.com")
+        vault.foregroundPinned = true
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 760, height: 620), appearance: appearance,
+                   to: dir.appending(path: "palette-site-\(name).png"))
+            render(MenuBarContent().environment(vault).tint(.brand).background(.regularMaterial),
+                   size: CGSize(width: 380, height: 860), appearance: appearance,
+                   to: dir.appending(path: "menubar-site-\(name).png"))
+        }
+        vault.foreground = nil
+        vault.foregroundPinned = false
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(EditItemSheet(mode: .edit(demoItems[1])).environment(vault).tint(.brand),
                    size: CGSize(width: 580, height: 700), appearance: appearance,

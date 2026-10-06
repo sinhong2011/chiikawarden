@@ -40,14 +40,21 @@ struct CommandPalette: View {
 
     private var q: String { query.trimmingCharacters(in: .whitespaces) }
 
+    /// Called from another app: the page's (or app's) logins, which go first; ↵ copies and returns there.
+    private var context: ForegroundContext? { model.foreground }
+    private var siteItems: [VaultItem] {
+        guard model.isUnlocked, let context else { return [] }
+        let site = context.items(in: model)
+        return q.isEmpty ? site : site.filter { CLIBridge.matches($0, q) }
+    }
+
     private var items: [VaultItem] {
         guard model.isUnlocked else { return [] }
-        let live = model.items.filter { !$0.isDeleted && !$0.isArchived }
-        if q.isEmpty { return Array((live.filter(\.favorite) + live.filter { !$0.favorite }).prefix(4)) }
-        return Array(live.filter {
-            $0.name.localizedCaseInsensitiveContains(q) || ($0.username?.localizedCaseInsensitiveContains(q) ?? false)
-                || ($0.host?.localizedCaseInsensitiveContains(q) ?? false)
-        }.prefix(6))
+        let site = siteItems
+        let ids = Set(site.map(\.id))
+        let live = model.items.filter { !$0.isDeleted && !$0.isArchived && !ids.contains($0.id) }
+        if q.isEmpty { return site + Array((live.filter(\.favorite) + live.filter { !$0.favorite }).prefix(site.isEmpty ? 4 : 2)) }
+        return site + Array(live.filter { CLIBridge.matches($0, q) }.prefix(max(2, 6 - site.count)))
     }
 
     private var commands: [PaletteCommand] {
@@ -71,7 +78,9 @@ struct CommandPalette: View {
                     .onKeyPress(.upArrow) { move(-1); return .handled }
                     .onKeyPress(.escape) { close(); return .handled }
                     .onKeyPress(.return, phases: .down) { press in run(press.modifiers); return .handled }
-                if model.sessions.count > 1 {
+                if let context {
+                    ContextChip(context: context)
+                } else if model.sessions.count > 1 {
                     Text("\(model.sessions.count) accounts")
                         .font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                         .padding(.horizontal, 10).frame(height: 26)
@@ -88,12 +97,14 @@ struct CommandPalette: View {
                         .font(.system(size: 13)).foregroundStyle(.secondary).padding(12)
                 }
                 ForEach(Array(entries.enumerated()), id: \.element.id) { i, entry in
-                    if i == 0, !items.isEmpty { sectionLabel(q.isEmpty ? "Suggestions" : "Items", first: true) }
+                    let siteCount = siteItems.count
+                    if i == 0, siteCount > 0, let context { sectionLabel(context.host != nil ? "On \(context.label)" : "For \(context.label)", first: true) }
+                    if i == siteCount, i < items.count { sectionLabel(q.isEmpty ? "Suggestions" : "Items", first: i == 0) }
                     if i == items.count, !commands.isEmpty { sectionLabel("Commands", first: i == 0) }
                     Group {
                         switch entry {
                         case .item(let item):
-                            ItemLine(item: item, selected: i == index)
+                            ItemLine(item: item, selected: i == index, returning: context != nil)
                         case .command(let command):
                             CommandLine(command: command, selected: i == index)
                         }
@@ -115,7 +126,7 @@ struct CommandPalette: View {
             Divider().opacity(0.6)
             HStack(spacing: 16) {
                 footerHint("↑↓", "Navigate")
-                footerHint("↵", "Open")
+                footerHint("↵", context != nil ? "Copy and go back" : "Open")
                 Spacer()
                 footerHint("esc", "Close")
             }
@@ -164,6 +175,29 @@ struct CommandPalette: View {
             close()
             command.run()
         case .item(let item):
+            // Called from another app: copy for it and go back there (the palette was only a detour).
+            if context != nil, !modifiers.contains(.shift) {
+                let value: (String, String)? = if modifiers.contains(.control) {
+                    item.username.map { ($0, String(localized: "Username")) }
+                } else if modifiers.contains(.option) {
+                    item.totp.map { ($0.code(), String(localized: "Code")) }
+                } else {
+                    item.password.map { ($0, String(localized: "Password")) }
+                }
+                if let (text, label) = value {
+                    close()
+                    if label == String(localized: "Username") {
+                        model.copy(text, label: label)
+                        model.returnToForeground()
+                    } else {
+                        model.guarded(item) {
+                            model.copy(text, label: label)
+                            model.returnToForeground()
+                        }
+                    }
+                    return
+                }
+            }
             if modifiers.contains(.shift), let host = item.host, let url = URL(string: "https://\(host)") {
                 NSWorkspace.shared.open(url)
             } else if modifiers.contains(.option), let totp = item.totp {
@@ -254,6 +288,8 @@ struct Keycap: View {
 private struct ItemLine: View {
     let item: VaultItem
     let selected: Bool
+    /// Called from another app: ↵ copies the password and returns there.
+    var returning = false
 
     var body: some View {
         // The code and its ring sit at the row's centre, beside both the name and the hints below it.
@@ -267,9 +303,15 @@ private struct ItemLine: View {
                 }
                 if selected, item.password != nil || item.totp != nil || item.host != nil {
                     HStack(spacing: 14) {
-                        if item.password != nil { hint("⌘↵", "Copy password") }
-                        if item.totp != nil { hint("⌥↵", "Copy code") }
-                        if item.host != nil { hint("⇧↵", "Open website") }
+                        if returning {
+                            if item.password != nil { hint("↵", "Password") }
+                            if item.username != nil { hint("⌃↵", "Username") }
+                            if item.totp != nil { hint("⌥↵", "Code") }
+                        } else {
+                            if item.password != nil { hint("⌘↵", "Copy password") }
+                            if item.totp != nil { hint("⌥↵", "Copy code") }
+                            if item.host != nil { hint("⇧↵", "Open website") }
+                        }
                     }
                     .transition(.opacity)
                 }
@@ -315,5 +357,23 @@ private struct CommandLine: View {
         }
         .padding(.horizontal, 10).frame(height: 36)
         .modifier(RowHighlight(selected: selected))
+    }
+}
+
+/// Where the palette was called from: the app's icon, and the page's site once the browser has said.
+private struct ContextChip: View {
+    let context: ForegroundContext
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let icon = NSRunningApplication(processIdentifier: context.pid)?.icon {
+                Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+            }
+            Text(verbatim: context.label).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary).lineLimit(1)
+        }
+        .padding(.horizontal, 10).frame(height: 26)
+        .background(Color.primary.opacity(0.06), in: .capsule)
+        .animation(.snappy(duration: 0.2), value: context.host)
+        .help(Text(verbatim: context.host.map { "\(context.app) · \($0)" } ?? context.app))
     }
 }

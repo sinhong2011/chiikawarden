@@ -64,10 +64,27 @@ targets:
         com.apple.security.temporary-exception.mach-lookup.global-name:
           - $(PRODUCT_BUNDLE_IDENTIFIER)-spks
           - $(PRODUCT_BUNDLE_IDENTIFIER)-spki
+        # The palette and the menu bar ask the front browser for its tab's address (only that), to put the
+        # site's logins first. Keep in step with ForegroundContext.browsers.
+        com.apple.security.automation.apple-events: true
+        com.apple.security.temporary-exception.apple-events:
+          - com.apple.Safari
+          - com.apple.SafariTechnologyPreview
+          - com.google.Chrome
+          - com.google.Chrome.beta
+          - com.google.Chrome.canary
+          - com.brave.Browser
+          - com.microsoft.edgemac
+          - company.thebrowser.Browser
+          - company.thebrowser.dia
+          - com.vivaldi.Vivaldi
+          - org.chromium.Chromium
+          - com.operasoftware.Opera
     info:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: Triwarden
+        NSAppleEventsUsageDescription: Triwarden reads the address of your browser's front tab, so the logins for that site come first. It never changes anything in the browser.
         LSApplicationCategoryType: public.app-category.productivity
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, zh-Hant, zh-HK, zh-Hans, ja]
