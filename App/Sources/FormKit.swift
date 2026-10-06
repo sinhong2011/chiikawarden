@@ -12,13 +12,19 @@ struct FormHeader: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        let tint = scheme == .dark ? Color.brandFill : Color.brand
         HStack(spacing: 12) {
+            // A solid tile in the brand's blue, like the primary buttons: white symbol, a soft light from the top.
             Image(systemName: symbol)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(tint)
+                .foregroundStyle(.white)
                 .frame(width: 40, height: 40)
-                .background(tint.opacity(scheme == .dark ? 0.18 : 0.12), in: .rect(cornerRadius: 11, style: .continuous))
+                .background {
+                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        .fill(LinearGradient(colors: [Color.brandFill, Color.brandButton], startPoint: .top, endPoint: .bottom))
+                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .strokeBorder(.white.opacity(scheme == .dark ? 0.18 : 0.35), lineWidth: 0.5))
+                        .shadow(color: Color.brandButton.opacity(scheme == .dark ? 0.35 : 0.25), radius: 6, y: 3)
+                }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 20, weight: .bold)).tracking(-0.3)
                 if let subtitle { Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary) }

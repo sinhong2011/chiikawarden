@@ -366,7 +366,7 @@ private struct NumberRow: View {
                     Slider(value: Binding(get: { Double(value) }, set: { value = Int($0.rounded()) }),
                            in: Double(range.lowerBound)...Double(range.upperBound), step: 1)
                         .labelsHidden()
-                        .tint(.brand)
+                        .tint(.controlTint)
                 }
                 NumberStepper(value: $value, range: range)
             }

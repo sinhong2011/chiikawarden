@@ -70,7 +70,7 @@ struct TrailingSwitchStyle: ToggleStyle {
             Toggle("", isOn: configuration.$isOn)
                 .toggleStyle(.switch)
                 .controlSize(size)
-                .tint(.brand)
+                .tint(.controlTint)
                 .labelsHidden()
         }
         .contentShape(.rect)

@@ -37,7 +37,7 @@ struct ChiikawardenApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
-                .tint(.brand)
+                .tint(.controlTint)
                 .preferredColorScheme(appearance.scheme)
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
@@ -63,7 +63,7 @@ struct ChiikawardenApp: App {
         MenuBarExtra {
             MenuBarContent()
                 .environment(model)
-                .tint(.brand)
+                .tint(.controlTint)
         } label: {
             Image(nsImage: MenuBarGlyph.image)
                 .opacity(model.isUnlocked ? 1 : 0.55)
@@ -73,7 +73,7 @@ struct ChiikawardenApp: App {
         Settings {
             SettingsView()
                 .environment(model)
-                .tint(.brand)
+                .tint(.controlTint)
                 .preferredColorScheme(appearance.scheme)
         }
         .defaultSize(width: 820, height: 640)
@@ -213,6 +213,9 @@ struct RootView: View {
 extension Color {
     /// Brand blue, shared with the app icon (Assets: AccentColor, adapts to dark mode).
     static let brand = Color("AccentColor")
+    /// What system controls are tinted with — menu highlights, switches, sliders, links: the brand blue, deeper in
+    /// dark mode so white text reads on it (Assets: ControlAccent). `brand` stays the lighter sky for text and icons.
+    static let controlTint = Color("ControlAccent")
 }
 
 extension EnvironmentValues {

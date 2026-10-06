@@ -153,7 +153,7 @@ final class QuickSearchController {
         }
         panel.contentView = NSHostingView(rootView: CommandPalette(close: { [weak self] in self?.close() })
             .environment(model)
-            .tint(.brand))
+            .tint(.controlTint))
         return panel
     }
 }
