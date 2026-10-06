@@ -84,6 +84,27 @@ extension ToggleStyle where Self == TrailingSwitchStyle {
     static var trailingSwitch: TrailingSwitchStyle { TrailingSwitchStyle() }
 }
 
+/// A form row with its label and its control centred on each other. The grouped form lines a label up with the
+/// top of a control taller than one line (a capsule button), so the label sat high; here they share a centre.
+/// A second line in the label (a description) is set smaller and secondary, as the form does.
+struct CenteredRowStyle: LabeledContentStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                configuration.label
+            }
+            .labelStyle(.titleAndIcon)
+            Spacer(minLength: 8)
+            configuration.content
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+extension LabeledContentStyle where Self == CenteredRowStyle {
+    static var centeredRow: CenteredRowStyle { CenteredRowStyle() }
+}
+
 /// The system switch, filled with the brand colour when on (for forms, where rows lay it out themselves).
 struct BrandSwitchStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {

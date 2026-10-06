@@ -187,25 +187,73 @@ struct AccountSecuritySections: View {
             } else if devices.isEmpty {
                 Text(devicesLoading ? "Loading devices…" : "No devices found.").foregroundStyle(.secondary)
             }
-            ForEach(devices) { device in
-                HStack(spacing: 10) {
-                    Image(systemName: symbol(device)).foregroundStyle(.secondary).frame(width: 20)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(verbatim: device.name.isEmpty ? String(localized: "Unknown device") : device.name)
-                        if let last = device.lastActive.flatMap(VaultDecoder.date) {
-                            Text("Last active \(last.formatted(.relative(presentation: .named)))").font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    Spacer()
-                }
-            }
+            ForEach(devices) { device in deviceRow(device) }
             HStack {
                 Spacer()
                 Button("Sign Out Everywhere…", role: .destructive) { sheet = .signOutEverywhere }
             }
         } header: {
             HStack { Text("Devices"); if devicesLoading && !devices.isEmpty { ProgressView().controlSize(.mini) } }
+        } footer: {
+            Text("Your account is signed in on each of these. Sign out everywhere if one isn't yours; this Mac signs straight back in.")
+                .font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    /// "Desktop - macOS", when it first signed in (to the second), and how recently it was active; this Mac is
+    /// marked as the current session.
+    private func deviceRow(_ device: DeviceInfo) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol(device))
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .frame(width: 32, height: 32)
+                .background(Color.primary.opacity(0.06), in: .rect(cornerRadius: 8, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: Self.title(device)).font(.system(size: 13, weight: .medium))
+                if let first = device.created.flatMap(VaultDecoder.date) {
+                    Text("First login \(first.formatted(.dateTime.day().month(.abbreviated).year().hour().minute().second()))")
+                        .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                        .help(Text(first.formatted(.dateTime.weekday(.wide).day().month(.wide).year().hour().minute().second().timeZone())))
+                }
+            }
+            Spacer(minLength: 8)
+            if device.isCurrent {
+                HStack(spacing: 5) {
+                    Circle().fill(Color.green).frame(width: 6, height: 6)
+                    Text("Current session")
+                }
+                .font(.system(size: 11, weight: .semibold))
+                .padding(.horizontal, 9).frame(height: 22)
+                .background(Color.primary.opacity(0.07), in: .capsule)
+            } else if let last = device.lastActive.flatMap(VaultDecoder.date) {
+                Text(Self.recently(last)).font(.system(size: 12)).foregroundStyle(.secondary)
+                    .help(Text(last.formatted(date: .complete, time: .standard)))
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// The device's kind in the app's language, its platform as named: "桌面 - macOS".
+    private static func title(_ device: DeviceInfo) -> String {
+        let parts = device.title.components(separatedBy: " - ")
+        let kind: String = switch parts[0] {
+        case "Mobile": String(localized: "Mobile")
+        case "Extension": String(localized: "Extension")
+        case "Desktop": String(localized: "Desktop")
+        case "Web app": String(localized: "Web app")
+        case "Unknown device": String(localized: "Unknown device")
+        default: parts[0]
+        }
+        return parts.count == 2 ? "\(kind) - \(parts[1])" : kind
+    }
+
+    /// "Today", "Yesterday", else "3 days ago".
+    private static func recently(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) { return String(localized: "Today") }
+        if calendar.isDateInYesterday(date) { return String(localized: "Yesterday") }
+        return date.formatted(.relative(presentation: .named))
     }
 
     private func symbol(_ device: DeviceInfo) -> String {

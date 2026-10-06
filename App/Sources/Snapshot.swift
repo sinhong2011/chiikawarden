@@ -917,7 +917,8 @@ enum SelfTest {
                         check(serverKey == spki.base64EncodedString() && s2.fingerprint().count == 5,
                               "fingerprint phrase from the account's public key (\(s2.fingerprint().joined(separator: "-")))")
                         let devices = try await s2.devices()
-                        check(!devices.isEmpty, "devices signed in (\(devices.count))")
+                        check(!devices.isEmpty && devices.first?.isCurrent == true,
+                              "devices signed in (\(devices.count)), this Mac first as the current session (\(devices.first?.title ?? ""))")
 
                         // Steps that sign in again (another device, password and KDF changes) use up the server's login
                         // rate limit; they run with `make selftest-security`.

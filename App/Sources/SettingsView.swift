@@ -109,6 +109,8 @@ struct SettingsView: View {
             .buttonStyle(.appSecondarySmall)
             // …and every switch in the brand colour when on.
             .toggleStyle(.brandSwitch)
+            // …and every row's label centred on its control.
+            .labeledContentStyle(.centeredRow)
         }
         // Opens roomy and resizes freely; forms scroll when the window is shorter than their content.
         .frame(minWidth: 680, idealWidth: 820, maxWidth: .infinity, minHeight: 460, idealHeight: 640, maxHeight: .infinity)
@@ -491,6 +493,7 @@ private struct AccountSettingsPage: View {
                 } label: {
                     Text("Log out")
                     Text("Removes the account and its saved vault from this Mac. Your data stays on the server.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             } header: {
                 Text("Account")
@@ -674,13 +677,15 @@ private struct AboutSettings: View {
                         .disabled(!updates.canCheck)
                 } label: {
                     Label {
-                        Text("Version \(updates.current)")
-                        if !updates.isConfigured {
-                            Text("Updates are off in development builds.")
-                        } else if let checked = updates.lastChecked {
-                            Text("Last checked \(checked, format: .relative(presentation: .named))")
-                        } else {
-                            Text("Not checked yet")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Version \(updates.current)")
+                            if !updates.isConfigured {
+                                Text("Updates are off in development builds.").font(.caption).foregroundStyle(.secondary)
+                            } else if let checked = updates.lastChecked {
+                                Text("Last checked \(checked, format: .relative(presentation: .named))").font(.caption).foregroundStyle(.secondary)
+                            } else {
+                                Text("Not checked yet").font(.caption).foregroundStyle(.secondary)
+                            }
                         }
                     } icon: {
                         Image(systemName: "arrow.triangle.2.circlepath.circle").foregroundStyle(.secondary)
@@ -863,7 +868,7 @@ private struct ShortcutsSettings: View {
                         ShortcutRecorder(action: action)
                     } label: {
                         Text(action.title)
-                        Text(action.detail)
+                        Text(action.detail).font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 LabeledContent("Type into other apps") { AutoTypePermission() }

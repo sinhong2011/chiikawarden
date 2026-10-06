@@ -71,7 +71,11 @@ extension VaultClient {
     /// Devices signed in to the account.
     public func devices() async throws(APIError) -> [DeviceInfo] {
         let list = try await callJSON("GET", "devices")
-        return ((list["data"] ?? list["Data"]) as? [[String: Any]] ?? []).compactMap(DeviceInfo.init)
+        let devices = ((list["data"] ?? list["Data"]) as? [[String: Any]] ?? []).compactMap { DeviceInfo($0, current: deviceIdentifier) }
+        // This Mac first, then the most recently active.
+        return devices.sorted { a, b in
+            a.isCurrent != b.isCurrent ? a.isCurrent : (a.lastActive ?? a.created ?? "") > (b.lastActive ?? b.created ?? "")
+        }
     }
 
     /// Signs out every session (this one too).
@@ -273,8 +277,10 @@ public struct DeviceInfo: Sendable, Identifiable, Hashable {
     public let identifier: String
     public let created: String?
     public let lastActive: String?
+    /// This app's own sign-in (the device identifier it logs in with).
+    public let isCurrent: Bool
 
-    init?(_ d: [String: Any]) {
+    init?(_ d: [String: Any], current: String = "") {
         guard let id = (d["id"] ?? d["Id"]).map({ "\($0)" }), !id.isEmpty else { return nil }
         self.id = id
         name = d["name"] as? String ?? ""
@@ -282,6 +288,40 @@ public struct DeviceInfo: Sendable, Identifiable, Hashable {
         identifier = d["identifier"] as? String ?? ""
         created = d["creationDate"] as? String
         lastActive = (d["lastActivityDate"] ?? d["revisionDate"]) as? String
+        isCurrent = !current.isEmpty && identifier.caseInsensitiveCompare(current) == .orderedSame
+    }
+
+    /// What it is, the way Bitwarden's web vault says it: "Desktop - macOS", "Web app - Chrome", "Extension - Safari".
+    public var title: String {
+        switch type {
+        case 0: "Mobile - Android"
+        case 1: "Mobile - iOS"
+        case 15: "Mobile - Android (Amazon)"
+        case 2: "Extension - Chrome"
+        case 3: "Extension - Firefox"
+        case 4: "Extension - Opera"
+        case 5: "Extension - Edge"
+        case 19: "Extension - Vivaldi"
+        case 20: "Extension - Safari"
+        case 6: "Desktop - Windows"
+        case 7: "Desktop - macOS"
+        case 8: "Desktop - Linux"
+        case 16: "Desktop - Windows (UWP)"
+        case 9: "Web app - Chrome"
+        case 10: "Web app - Firefox"
+        case 11: "Web app - Opera"
+        case 12: "Web app - Edge"
+        case 13: "Web app - Internet Explorer"
+        case 14: "Web app"
+        case 17: "Web app - Safari"
+        case 18: "Web app - Vivaldi"
+        case 21: "SDK"
+        case 22: "Server"
+        case 23: "CLI - Windows"
+        case 24: "CLI - macOS"
+        case 25: "CLI - Linux"
+        default: name.isEmpty ? "Unknown device" : name
+        }
     }
 
     /// A short kind, for an icon and a label.
@@ -289,9 +329,9 @@ public struct DeviceInfo: Sendable, Identifiable, Hashable {
         switch type {
         case 0, 15: "android"
         case 1: "ios"
-        case 5, 6, 7, 16: "desktop"
-        case 2, 3, 4, 19, 20: "extension"
-        case 8, 9, 10, 11, 12, 13, 14, 17, 18: "browser"
+        case 6, 7, 8, 16: "desktop"
+        case 2, 3, 4, 5, 19, 20: "extension"
+        case 9, 10, 11, 12, 13, 14, 17, 18: "browser"
         case 21...25: "cli"
         default: "other"
         }
