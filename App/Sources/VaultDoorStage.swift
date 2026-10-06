@@ -250,6 +250,9 @@ private struct VaultDoorArt: View, Animatable {
         set { steps = newValue.first; busy = newValue.second }
     }
 
+    /// The twelve pins, one Elder Futhark rune each.
+    private static let runes = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛉ")
+
     private static let runeSymbols = ["key.fill", "person.badge.key.fill", "terminal.fill",
                                       "creditcard.fill", "envelope.fill", "note.text"]
 
@@ -578,12 +581,18 @@ private struct VaultDoorArt: View, Animatable {
             let chase = busy * max(0, 1 - d / 2.2)
             let typedLit = lit > i ? (lit > 12 ? 1 : (i == lit - 1 ? 1 : 0.75)) : 0
             let on = min(1, max(typedLit, chase, m.pinLight[i]))
-            // A drilled socket: dark, with a lip of light along its lower edge.
-            r.fill(circle(R * 0.02, at: pt), with: .color(p.edge))
-            r.stroke(circle(R * 0.02, at: CGPoint(x: pt.x, y: pt.y + 0.6)), with: .color(p.engraveLip.opacity(0.5)), lineWidth: 0.5)
+            // Each pin is a rune cut into the ring, upright to the centre; typing fills it with light.
+            var g = r
+            g.translateBy(x: pt.x, y: pt.y)
+            g.rotate(by: .radians(t + .pi / 2))
+            let rune = String(Self.runes[i])
+            func glyph(_ color: Color) -> GraphicsContext.ResolvedText {
+                g.resolve(Text(rune).font(.custom("Apple Symbols", size: R * 0.062)).foregroundColor(color))
+            }
+            g.draw(glyph(p.engraveLip), at: CGPoint(x: 0, y: 0.7), anchor: .center)
+            g.draw(glyph(p.engrave.opacity(0.8)), at: .zero, anchor: .center)
             if on > 0 {
-                r.fill(circle(R * 0.014, at: pt), with: .color(glow(on)))
-                r.fill(circle(R * 0.006, at: pt), with: .color(.white.opacity(on * 0.9)))
+                g.draw(glyph(glow(on)), at: .zero, anchor: .center)
             }
         }
     }
