@@ -516,6 +516,19 @@ public actor VaultClient {
 
     // MARK: Sync
 
+    /// One item as the sync payload lists it (with its folder, favorite and collections for this user).
+    /// Throws 404 once it's gone, or no longer shared with this account.
+    public func cipherData(id: String) async throws(APIError) -> Data {
+        try await sendRaw(authorized(request(environment.apiURL, "ciphers/\(id)/details")))
+    }
+
+    /// When the account's vault last changed (milliseconds since 1970, as the server counts them). A cheap way to
+    /// tell whether a full sync would bring anything new.
+    public func revisionDate() async throws(APIError) -> String {
+        let data = try await sendRaw(authorized(request(environment.apiURL, "accounts/revision-date")))
+        return String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     public func sync() async throws(APIError) -> SyncResponse {
         try SyncResponse.decode(await syncData())
     }

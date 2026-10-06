@@ -11,6 +11,8 @@ struct DecodedVault {
     var keyring: Keyring
     var rawCiphers: [String: Data]
     var sends: [SendItem] = []
+    /// The payload as parsed, still encrypted.
+    var sync: SyncResponse
 }
 
 enum VaultDecoder {
@@ -24,11 +26,15 @@ enum VaultDecoder {
         return try? Date(s, strategy: .iso8601)
     }
 
-    static func decode(_ data: Data, userKey: SymmetricKeyPair, accountId: String = "") throws -> DecodedVault {
+    /// - Parameter unchanged: items known to be the same as in `data` (after a one-item update); they're kept as they
+    ///   are instead of being decrypted again. Reuse counts and folder names are worked out afresh either way.
+    static func decode(_ data: Data, userKey: SymmetricKeyPair, accountId: String = "",
+                       unchanged: [String: VaultItem] = [:]) throws -> DecodedVault {
         let sync = try SyncResponse.decode(data)
         let keyring = Keyring(userKey: userKey, profile: sync.profile)
         var hidden = 0
         var items: [VaultItem] = sync.ciphers.compactMap { cipher in
+            if let kept = unchanged[cipher.id] { return kept }
             guard let key = keyring.key(for: cipher) else { hidden += 1; return nil }
             func dec(_ s: String?) -> String? {
                 s.flatMap { try? EncString($0).decryptString(with: key) }.flatMap { $0.isEmpty ? nil : $0 }
@@ -158,7 +164,7 @@ enum VaultDecoder {
         for i in items.indices { items[i].folderName = items[i].folderId.flatMap { folderNames[$0] } }
         return DecodedVault(items: items, folders: folders, organizations: organizations, hiddenCount: hidden,
                             keyring: keyring, rawCiphers: CipherEditor.rawCiphers(fromSync: data),
-                            sends: decodeSends(data, userKey: userKey, accountId: accountId))
+                            sends: decodeSends(data, userKey: userKey, accountId: accountId), sync: sync)
     }
 
     static func decodeSends(_ data: Data, userKey: SymmetricKeyPair, accountId: String) -> [SendItem] {
