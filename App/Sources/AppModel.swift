@@ -248,6 +248,26 @@ final class AppModel {
                 action: String(localized: "Move to Trash")) { [weak self] in await self?.trash(item) }
     }
 
+    /// Asks, then deletes a trashed item for good.
+    func confirmDeleteForever(_ item: VaultItem) {
+        confirm(String(localized: "Delete “\(item.name)” forever?"), message: String(localized: "This can't be undone."),
+                action: String(localized: "Delete Forever")) { [weak self] in await self?.deleteForever(item) }
+    }
+
+    /// Asks, then deletes a Send (its link stops working).
+    func confirmDeleteSend(_ send: SendItem) {
+        confirm(String(localized: "Delete “\(send.name)”?"), message: String(localized: "Its link stops working right away."),
+                action: String(localized: "Delete")) { [weak self] in await self?.deleteSend(send) }
+    }
+
+    /// Asks, then deletes a folder; its items stay, with no folder.
+    func confirmDeleteFolder(name: String, ids: [String]) {
+        confirm(String(localized: "Delete the folder “\(name)”?"), message: String(localized: "Its items aren't deleted; they move out of the folder."),
+                action: String(localized: "Delete Folder")) { [weak self] in
+            for id in ids { await self?.deleteFolder(id) }
+        }
+    }
+
     /// Asks, then logs the account out (removing it from this Mac).
     func confirmLogOut(_ accountId: String?) {
         let email = accountId.flatMap { id in accounts.first { $0.id == id }?.email } ?? ""

@@ -32,6 +32,7 @@ struct CodesPane: View {
                                             if copiedID == item.id { withAnimation(.snappy) { copiedID = nil } }
                                         }
                                     }
+                                    .contextMenu { ItemContextMenu(item: item) }
                                 }
                             }
                         }

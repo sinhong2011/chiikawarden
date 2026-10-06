@@ -24,6 +24,17 @@ struct SendsPane: View {
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(send.id == model.selectedSendID ? [.isButton, .isSelected] : .isButton)
                                 .accessibilityAction { model.composingSend = false; model.selectedSendID = send.id }
+                                .contextMenu {
+                                    Group {
+                                        if let link = model.sendLink(send) {
+                                            Button("Copy Link", systemImage: "link") { model.copyPlain(link.absoluteString) }
+                                            Button("Open Link", systemImage: "safari") { NSWorkspace.shared.open(link) }
+                                            Divider()
+                                        }
+                                        Button("Delete…", systemImage: "trash", role: .destructive) { model.confirmDeleteSend(send) }
+                                    }
+                                    .labelStyle(.titleAndIcon)
+                                }
                         }
                     }
                     .padding(6)

@@ -597,6 +597,14 @@ private struct FolderRow: View {
                 Task { await model.move(itemIDs: ids, toFolderIn: node.folderIds) }
                 return true
             } isTargeted: { targeted = $0 }
+            .contextMenu {
+                if !node.folderIds.isEmpty {
+                    Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
+                        model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
+                    }
+                    .labelStyle(.titleAndIcon)
+                }
+            }
         if node.children.isEmpty {
             label
         } else {
@@ -831,6 +839,7 @@ private struct ItemColumn: View {
                                     .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
                                     .accessibilityAction { selection = item.id }
                                     .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
+                                    .contextMenu { ItemContextMenu(item: item) }
                             }
                         } header: {
                             SectionHeader(title: group.title)
