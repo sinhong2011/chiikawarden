@@ -488,32 +488,36 @@ private struct LockedCard: View {
     }
 }
 
-/// Menu bar glyph: the icon's vault handle (ring, crossed spokes with knobs, hub), as a template image.
+/// Menu bar glyph: a combination dial — the door's rim, two rings with their notches turned apart (a lock
+/// mid-turn; notches lined up under one another read as a podcast mark at this size) and the keyhole.
+/// A template image.
 enum MenuBarGlyph {
     static let image: NSImage = {
-        let size = NSSize(width: 18, height: 18)
-        let image = NSImage(size: size, flipped: false) { rect in
+        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
             let c = NSPoint(x: rect.midX, y: rect.midY)
-            NSColor.black.setStroke()
-            NSColor.black.setFill()
-            let ring = NSBezierPath(ovalIn: NSRect(x: c.x - 4.6, y: c.y - 4.6, width: 9.2, height: 9.2))
-            ring.lineWidth = 1.6
-            ring.stroke()
-            let reach: CGFloat = 6.6
-            for a in [45.0, 135.0] {
-                let r = a * .pi / 180
-                let p = NSBezierPath()
-                p.move(to: NSPoint(x: c.x + cos(r) * reach, y: c.y + sin(r) * reach))
-                p.line(to: NSPoint(x: c.x - cos(r) * reach, y: c.y - sin(r) * reach))
-                p.lineWidth = 1.7
-                p.lineCapStyle = .round
-                p.stroke()
+            NSColor.black.set()
+            let rim = NSBezierPath(ovalIn: NSRect(x: c.x - 8.1, y: c.y - 8.1, width: 16.2, height: 16.2))
+            rim.lineWidth = 1.5
+            rim.stroke()
+            // Each ring's notch is centred on `notch` degrees (AppKit: 0° is right, counter-clockwise); round caps.
+            let width: CGFloat = 1.25, gap: CGFloat = 1.8
+            for (r, notch): (CGFloat, CGFloat) in [(5.6, 135), (3.35, 315)] {
+                let half = asin((gap + width) / 2 / r) * 180 / .pi
+                let ring = NSBezierPath()
+                ring.appendArc(withCenter: c, radius: r, startAngle: notch + half, endAngle: notch + 360 - half)
+                ring.lineWidth = width
+                ring.lineCapStyle = .round
+                ring.stroke()
             }
-            for a in [45.0, 135.0, 225.0, 315.0] {
-                let r = a * .pi / 180
-                NSBezierPath(ovalIn: NSRect(x: c.x + cos(r) * reach - 1.6, y: c.y + sin(r) * reach - 1.6, width: 3.2, height: 3.2)).fill()
-            }
-            NSBezierPath(ovalIn: NSRect(x: c.x - 2.6, y: c.y - 2.6, width: 5.2, height: 5.2)).fill()
+            // The keyhole: a round head and a slot widening downwards.
+            NSBezierPath(ovalIn: NSRect(x: c.x - 1.05, y: c.y + 0.45 - 1.05, width: 2.1, height: 2.1)).fill()
+            let slot = NSBezierPath()
+            slot.move(to: NSPoint(x: c.x - 0.425, y: c.y + 0.45))
+            slot.line(to: NSPoint(x: c.x + 0.425, y: c.y + 0.45))
+            slot.line(to: NSPoint(x: c.x + 0.675, y: c.y - 1.7))
+            slot.line(to: NSPoint(x: c.x - 0.675, y: c.y - 1.7))
+            slot.close()
+            slot.fill()
             return true
         }
         image.isTemplate = true
