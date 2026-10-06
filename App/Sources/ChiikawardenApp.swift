@@ -10,6 +10,8 @@ struct ChiikawardenApp: App {
 
     init() {
         Pref.register()
+        // One window with its own toolbar: no system tab bar (and no View › Show Tab Bar to turn it on).
+        NSWindow.allowsAutomaticWindowTabbing = false
         #if DEBUG
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
