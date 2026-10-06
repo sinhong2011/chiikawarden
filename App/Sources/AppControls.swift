@@ -114,6 +114,9 @@ struct AppSegmented<Value: Hashable>: View {
         }
         .padding(3)
         .background(dark ? Color.white.opacity(0.06) : Color.black.opacity(0.05), in: .capsule)
+        // The thumb slides whenever the selection changes, even when it arrives outside an animation (a binding
+        // backed by @AppStorage updates a moment later, which made it jump).
+        .animation(.spring(duration: 0.3, bounce: 0.15), value: selection)
     }
 }
 
