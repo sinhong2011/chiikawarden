@@ -36,7 +36,12 @@
 - Works offline from the encrypted cache; edits go straight to the server.
 
 **Fast to reach**
-- A command palette (⌘K, or a global shortcut you choose) to find any item or run any command.
+- A command palette from anywhere (⇧⌘Space, or a shortcut you choose; ⌘K in the window) to find any item or run any
+  command. Called over a browser or an app, it puts that page's (or app's) logins first, and ↵ types the username
+  and password in, like KeePass auto-type (⌃↵ username, ⌥↵ password, ⇧ also submits). The menu bar panel shows the
+  page's logins too.
+- Global shortcuts you set in Settings › Shortcuts: the palette, fill the page or app you're in (⌥⌘\\ types its
+  only login), show the window, copy a new password, lock. Menu shortcuts change in System Settings like any app's.
 - A menu bar panel with the item you need, one-time codes and the generator.
 - Two-finger swipes between sidebar, list and item on narrow windows.
 
@@ -78,10 +83,11 @@
 </table>
 
 The lock is a vault door over the vault. You type the master password at its hub; each character lights one of the
-pins' runes and turns the rings (the tumbler carries the twelve signs of the zodiac). On unlock the door takes itself
-apart, then the screen parts like a vault's inner gate:
+pins' runes and turns the rings (the tumbler carries the twelve signs of the zodiac). Each of the three rings has a
+notch. On unlock they turn, outside in, until the notches line up into one keyway and light runs down it to the hub;
+only then does the door take itself apart, and the screen parts like a vault's inner gate:
 
-<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door: at rest, typing, powering up, the rings ratcheting, the hub unlatching"></p>
+<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door: typing, the rings turning, the notches lined up into a keyway, unlatching, coming apart"></p>
 <p align="center"><img src="docs/images/gate.jpg" width="820" alt="The lock screen in light and dark"></p>
 
 ## Install

@@ -7,11 +7,12 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, accounts, accountSecurity, emergency, security, developer, server, about
+        case general, shortcuts, accounts, accountSecurity, emergency, security, developer, server, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
             case .general: "General"
+            case .shortcuts: "Shortcuts"
             case .accounts: "Accounts"
             case .accountSecurity: "Account Security"
             case .emergency: "Emergency Access"
@@ -24,6 +25,7 @@ struct SettingsView: View {
         var symbol: String {
             switch self {
             case .general: "gearshape"
+            case .shortcuts: "keyboard"
             case .accounts: "person.2"
             case .accountSecurity: "person.badge.shield.checkmark"
             case .emergency: "cross.case"
@@ -53,6 +55,7 @@ struct SettingsView: View {
             Group {
                 switch pane.wrappedValue ?? .general {
                 case .general: GeneralSettings()
+                case .shortcuts: ShortcutsSettings()
                 case .accounts: AccountsSettings()
                 case .accountSecurity: AccountSecuritySettings()
                 case .emergency: EmergencyAccessSettings()
@@ -128,15 +131,6 @@ private struct GeneralSettings: View {
                 Text("Updates")
             } footer: {
                 Text("Updates come from this project's GitHub releases. Each one is signed; Triwarden checks the signature and Apple's notarization before installing, then relaunches.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section {
-                LabeledContent("Command palette") { ShortcutRecorder() }
-            } header: {
-                Text("Shortcuts")
-            } footer: {
-                Text("Works in every app. A common shortcut like ⌘K is taken from other apps while Triwarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -664,28 +658,43 @@ private struct NoticesSheet: View {
 }
 
 /// Click, then press the new key combination (needs ⌘, ⌥ or ⌃). Esc cancels.
+/// Records a system-wide shortcut for one action; ✕ turns it off, ↺ goes back to the default.
 private struct ShortcutRecorder: View {
-    @State private var shortcut = Shortcut.palette
+    let action: GlobalAction
+    @State private var shortcut: Shortcut?
     @State private var recording = false
     @State private var monitor: Any?
     @State private var problem: String?
 
+    init(action: GlobalAction) {
+        self.action = action
+        _shortcut = State(initialValue: Shortcut.current(for: action))
+    }
+
     var body: some View {
-        HStack(spacing: 8) {
-            if let problem { Text(verbatim: problem).font(.caption).foregroundStyle(.orange) }
+        HStack(spacing: 6) {
+            if let problem { Text(verbatim: problem).font(.caption).foregroundStyle(.orange).lineLimit(2) }
             Button { recording ? stop() : start() } label: {
-                Text(recording ? String(localized: "Type shortcut…") : shortcut.display)
-                    .font(.system(size: 12, weight: .semibold, design: recording ? .default : .rounded))
+                Text(recording ? String(localized: "Type shortcut…") : shortcut?.display ?? String(localized: "None"))
+                    .font(.system(size: 12, weight: .semibold, design: recording || shortcut == nil ? .default : .rounded))
+                    .foregroundStyle(recording || shortcut == nil ? Color.secondary : .primary)
                     .frame(minWidth: 96)
             }
             .buttonStyle(.appSecondarySmall)
-            .foregroundStyle(recording ? Color.secondary : .primary)
-            if shortcut != .paletteDefault {
-                Button { apply(.paletteDefault) } label: { Image(systemName: "arrow.uturn.backward") }
-                    .buttonStyle(.borderless)
-                    .help(Text("Reset to ⌘K"))
-                    .accessibilityLabel(Text("Reset to ⌘K"))
-            }
+            // Fixed slots, so every row's button lines up whether or not these show.
+            Button { apply(nil) } label: { Image(systemName: "xmark.circle.fill") }
+                .buttonStyle(.borderless).foregroundStyle(.tertiary)
+                .help(Text("Turn off"))
+                .accessibilityLabel(Text("Turn off"))
+                .frame(width: 16)
+                .opacity(shortcut == nil ? 0 : 1).disabled(shortcut == nil)
+            let initial = action.defaultShortcut
+            Button { apply(initial) } label: { Image(systemName: "arrow.uturn.backward") }
+                .buttonStyle(.borderless)
+                .help(Text("Reset to \(initial?.display ?? "")"))
+                .accessibilityLabel(Text("Reset to \(initial?.display ?? "")"))
+                .frame(width: 16)
+                .opacity(initial == nil || shortcut == initial ? 0 : 1).disabled(initial == nil || shortcut == initial)
         }
         .onDisappear(perform: stop)
     }
@@ -693,30 +702,86 @@ private struct ShortcutRecorder: View {
     private func start() {
         problem = nil
         recording = true
-        GlobalHotKey.palette?.pause() // or pressing the current shortcut would open the palette
+        HotKeys.shared.pause() // or pressing a current shortcut would run it
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == 53 { stop(); return nil } // Esc
-            if let new = Shortcut(event: event) { apply(new); stop() } else { problem = String(localized: "Include ⌘, ⌥ or ⌃") }
+            if let new = Shortcut(event: event) { stop(); apply(new) } else { problem = String(localized: "Include ⌘, ⌥ or ⌃") }
             return nil
         }
     }
 
     private func stop() {
-        if recording, monitor != nil { GlobalHotKey.palette?.register(shortcut) }
+        if recording { HotKeys.shared.resume() }
         recording = false
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
     }
 
-    private func apply(_ new: Shortcut) {
-        if GlobalHotKey.palette?.register(new) == false {
-            problem = String(localized: "Another app uses \(new.display)")
-            GlobalHotKey.palette?.register(shortcut)
+    private func apply(_ new: Shortcut?) {
+        if let new, let other = HotKeys.shared.owner(of: new), other != action {
+            problem = String(localized: "\(new.display) is already used here")
+            return
+        }
+        guard HotKeys.shared.bind(new, to: action) else {
+            problem = new.map { String(localized: "Another app uses \($0.display)") }
             return
         }
         problem = nil
         shortcut = new
-        Shortcut.palette = new
+        Shortcut.set(new, for: action)
+    }
+}
+
+// MARK: Shortcuts
+
+/// System-wide shortcuts (set here), and the ones inside the app (changed in System Settings, like any app's).
+private struct ShortcutsSettings: View {
+    /// The menu commands and their keys, as the app's menus define them.
+    private static let inApp: [(LocalizedStringKey, String)] = [
+        ("Command Palette", "⌘K  ⌘F"), ("New Login", "⌘N"), ("New Secure Note", "⇧⌘N"), ("New Folder…", "⌥⌘N"),
+        ("Edit", "⌘E"), ("Copy Username", "⇧⌘C"), ("Copy Password", "⌥⌘C"), ("Copy One-Time Code", "⌃⌘C"),
+        ("Toggle Favorite", "⌘D"), ("Archive", "⌥⌘A"), ("Move to Trash…", "⌘⌫"), ("Generator", "⌘G"),
+        ("Lock Vault", "⇧⌘L"), ("Settings…", "⌘,"),
+    ]
+
+    var body: some View {
+        Form {
+            Section {
+                ForEach(GlobalAction.allCases) { action in
+                    LabeledContent {
+                        ShortcutRecorder(action: action)
+                    } label: {
+                        Text(action.title)
+                        Text(action.detail)
+                    }
+                }
+                LabeledContent("Type into other apps") { AutoTypePermission() }
+            } header: {
+                Text("Anywhere")
+            } footer: {
+                Text("Works in every app. Called over a browser or an app, the palette puts its logins first, and ↵ types the username and password in (⌃↵ username, ⌥↵ password, ⇧ also submits). Typing needs Accessibility for “Triwarden Auto-Type”, a small helper inside the app, so Triwarden itself stays sandboxed. ⌘K and ⌘F also open the palette inside the vault window.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                ForEach(Array(Self.inApp.enumerated()), id: \.offset) { _, entry in
+                    LabeledContent(entry.0) { Keycap(keys: entry.1) }
+                }
+            } header: {
+                Text("In Triwarden")
+            } footer: {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("To change one, add Triwarden in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts and type the menu item's name exactly.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("Open Keyboard Settings") {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
     }
 }
 
@@ -767,5 +832,39 @@ private struct LanguagePicker: View {
         task.arguments = ["-c", "while kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do sleep 0.2; done; open \"$0\"", path]
         try? task.run()
         NSApp.terminate(nil)
+    }
+}
+
+/// Whether the auto-type helper may type (Accessibility), with a button to ask macOS for it.
+private struct AutoTypePermission: View {
+    @State private var allowed: Bool?
+    @State private var checked = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            switch checked ? allowed : nil {
+            case .some(true):
+                Label("Allowed", systemImage: "checkmark.circle.fill").labelStyle(.titleAndIcon)
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            case .some(false):
+                Button("Allow…") { Task { await AutoType.askPermission() } }
+                    .buttonStyle(.appSecondarySmall)
+            case nil:
+                if checked {
+                    Text("Unavailable").font(.system(size: 12)).foregroundStyle(.secondary)
+                } else {
+                    ProgressView().controlSize(.small)
+                }
+            }
+        }
+        .task { await check() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await check() }
+        }
+    }
+
+    private func check() async {
+        allowed = await AutoType.isAllowed()
+        checked = true
     }
 }

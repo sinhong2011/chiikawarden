@@ -59,14 +59,15 @@ enum Snapshot {
             ("1-typing", .init(time: 12, opened: nil, typed: 5)),
             ("2-busy", .init(time: 12.2, opened: nil, typed: 9, busy: true)),
             ("3-wrong", .init(time: 12, opened: nil, alert: 0.9)),
-            ("o1-power", .init(time: 12.1, opened: 0.18, typed: 9)),
-            ("o2-ratchet", .init(time: 12.3, opened: 0.3, typed: 9)),
-            ("o3-unlatch", .init(time: 12.4, opened: 0.44, typed: 9)),
-            ("o4-hub", .init(time: 12.55, opened: 0.6, typed: 9)),
-            ("o5-pins", .init(time: 12.7, opened: 0.72, typed: 9)),
-            ("o6-louvres", .init(time: 12.8, opened: 0.84, typed: 9)),
-            ("o7-runes", .init(time: 12.9, opened: 0.94, typed: 9)),
-            ("o8-core", .init(time: 13, opened: 1.04, typed: 9)),
+            ("o1-power", .init(time: 12.1, opened: 0.12, typed: 9)),
+            ("o2-heaven", .init(time: 12.2, opened: 0.2, typed: 9)),
+            ("o3-person", .init(time: 12.3, opened: 0.27, typed: 9)),
+            ("o4-keyway", .init(time: 12.4, opened: 0.4, typed: 9)),
+            ("o5-unlatch", .init(time: 12.5, opened: 0.46, typed: 9)),
+            ("o6-hub", .init(time: 12.6, opened: 0.58, typed: 9)),
+            ("o7-pins", .init(time: 12.7, opened: 0.7, typed: 9)),
+            ("o8-louvres", .init(time: 12.8, opened: 0.8, typed: 9)),
+            ("o9-core", .init(time: 13, opened: 0.92, typed: 9)),
             ("c1-runes-in", .init(time: 12.2, opened: nil, closed: 0.2)),
             ("c2-hub-in", .init(time: 12.5, opened: nil, closed: 0.6)),
             ("c3-sealed", .init(time: 12.8, opened: nil, closed: 1.1)),
@@ -161,6 +162,21 @@ enum Snapshot {
                    size: CGSize(width: 380, height: 760), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
+        // Called over a browser on github.com: that site's login first, in the palette and the menu bar panel.
+        let browser = NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == "com.apple.finder" }
+        vault.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: browser?.processIdentifier ?? 0,
+                                             host: "github.com")
+        vault.foregroundPinned = true
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 760, height: 620), appearance: appearance,
+                   to: dir.appending(path: "palette-site-\(name).png"))
+            render(MenuBarContent().environment(vault).tint(.brand).background(.regularMaterial),
+                   size: CGSize(width: 380, height: 860), appearance: appearance,
+                   to: dir.appending(path: "menubar-site-\(name).png"))
+        }
+        vault.foreground = nil
+        vault.foregroundPinned = false
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(EditItemSheet(mode: .edit(demoItems[1])).environment(vault).tint(.brand),
                    size: CGSize(width: 580, height: 700), appearance: appearance,
@@ -269,7 +285,7 @@ enum Snapshot {
                    to: dir.appending(path: "settings-\(name).png"))
             // Each pane, so its controls can be checked.
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["general", "server", "accounts", "security", "developer"] {
+            for pane in ["general", "shortcuts", "server", "accounts", "security", "developer"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(model).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
@@ -794,6 +810,22 @@ enum SelfTest {
                       && info["SUEnableInstallerLauncherService"] as? Bool == true
                       && info["SUEnableAutomaticChecks"] as? Bool == false,
                       "updates: Sparkle embedded, appcast feed, installer service, checks opt-in")
+
+                // Auto-type: the bundled helper starts, answers Triwarden over its socket, and reports whether it
+                // may type (Accessibility is the user's to grant, so either answer passes).
+                let typing = await AutoType.isAllowed()
+                var me: SecCode?
+                var staticMe: SecStaticCode?
+                var signing: CFDictionary?
+                let teamSigned = SecCodeCopySelf([], &me) == errSecSuccess && me.map { SecCodeCopyStaticCode($0, [], &staticMe) } == errSecSuccess
+                    && staticMe.map { SecCodeCopySigningInformation($0, SecCSFlags(rawValue: kSecCSSigningInformation), &signing) } == errSecSuccess
+                    && (signing as? [String: Any])?[kSecCodeInfoTeamIdentifier as String] != nil
+                if typing == nil, !teamSigned {
+                    // Unsigned, the helper has no App Group entitlement, so macOS won't let it open its socket.
+                    print("SKIP auto-type helper (unsigned build: start it by hand to test)")
+                } else {
+                    check(typing != nil, "auto-type helper answers the app (Accessibility \(typing == true ? "allowed" : "not allowed yet"))")
+                }
 
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()

@@ -5,8 +5,6 @@ import VaultwardenAPI
 struct TriwardenApp: App {
     @State private var model = AppModel()
     @AppStorage(Pref.appearance) private var appearance = AppearanceSetting.system
-    @State private var quickSearch: QuickSearchController?
-    @State private var hotKey: GlobalHotKey?
 
     init() {
         Pref.register()
@@ -48,14 +46,6 @@ struct TriwardenApp: App {
                     NSUpdateDynamicServices()
                     model.startAutoLock()
                     CaptureShield.start()
-                    if hotKey == nil {
-                        let controller = QuickSearchController(model: model)
-                        quickSearch = controller
-                        model.openPalette = { controller.show() }
-                        let key = GlobalHotKey(Shortcut.palette) { controller.toggle() }
-                        hotKey = key
-                        GlobalHotKey.palette = key
-                    }
                 }
                 // Soft pastel wash from the Liquid design under every screen.
                 .containerBackground(for: .window) { WindowBackdrop() }
@@ -141,7 +131,7 @@ struct TriwardenApp: App {
                     .disabled(item == nil || item?.isDeleted == true)
             }
             CommandGroup(after: .appSettings) {
-                Button("Command Palette") { quickSearch?.show() } // its shortcut is the global one from Settings
+                Button("Command Palette") { model.openPalette() } // its shortcut is the global one from Settings
                 Button("Lock Vault") { model.lock(animated: true) }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)

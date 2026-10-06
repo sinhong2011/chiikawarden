@@ -12,7 +12,8 @@ Releases are automatic once the one-time setup is done:
    - archive a Release build (build number = commit count);
    - Developer ID export, signature check, notarize and staple the app and the DMG;
    - sign the zip for Sparkle and write `appcast.xml`;
-   - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`triwarden.rb`) to the release.
+   - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`triwarden.rb`) to the release;
+   - push the cask to `Casks/triwarden.rb` in `sinhong2011/homebrew-tap`.
 4. Installed copies with automatic checks on find the update through
    `https://github.com/sinhong2011/triwarden/releases/latest/download/appcast.xml`. They verify the EdDSA
    signature and the notarization, install, and relaunch. Everyone else gets it from **Check for Updates…**.
@@ -46,6 +47,7 @@ Create an environment named `release` (Settings › Environments) and add the se
 | `ASC_KEY_P8` | An App Store Connect API key (Users and Access › Integrations; role *Admin* — creating Developer ID provisioning profiles needs it), the .p8 contents |
 | `ASC_KEY_ID`, `ASC_ISSUER_ID` | That key's ID and the issuer ID |
 | `SPARKLE_PRIVATE_KEY` | The contents of `sparkle-private-key.txt` from step 1 (then delete that file) |
+| `HOMEBREW_TAP_DEPLOY_KEY` | The private half of a write deploy key on `sinhong2011/homebrew-tap` (see [Homebrew](#homebrew)) |
 
 For example:
 
@@ -71,6 +73,9 @@ build without notarizing or publishing: `ALLOW_DIRTY=1 scripts/release.sh 0.3.0 
 
 ## Homebrew
 
-Copy `triwarden.rb` from the release to `Casks/triwarden.rb` in `sinhong2011/homebrew-tap`. Users run
-`brew install sinhong2011/tap/triwarden`. The cask also links `tw` onto the PATH. Homebrew users can update
+Each release pushes its cask to `Casks/triwarden.rb` in
+[sinhong2011/homebrew-tap](https://github.com/sinhong2011/homebrew-tap), using the `HOMEBREW_TAP_DEPLOY_KEY` secret
+in the `release` environment: the private half of a deploy key that can write to that repository only. To replace
+it, make a new key pair, add the public key to the tap under Settings › Deploy keys with write access, and store the
+private key as that secret. Users run `brew install sinhong2011/tap/triwarden`. The cask also links `tw` onto the PATH. Homebrew users can update
 with `brew upgrade` or in the app; both work.

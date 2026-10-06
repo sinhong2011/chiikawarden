@@ -14,6 +14,7 @@ struct MenuBarContent: View {
             topRow
             if model.isUnlocked {
                 if query.trimmingCharacters(in: .whitespaces).isEmpty {
+                    SiteCard()
                     ShelfCard()
                     QuickActions()
                     GeneratorCard()
@@ -28,6 +29,7 @@ struct MenuBarContent: View {
         }
         .padding(10)
         .frame(width: 380)
+        .onAppear { model.captureForeground() } // the page or app the panel was opened over
         .animation(.snappy(duration: 0.22), value: query.isEmpty)
     }
 
@@ -49,7 +51,7 @@ struct MenuBarContent: View {
                         NSApp.keyWindow?.orderOut(nil) // the palette takes the panel's place
                         DispatchQueue.main.async { model.openPalette() }
                     } label: {
-                        Text(verbatim: Shortcut.palette.display).font(.system(size: 10, weight: .medium, design: .monospaced))
+                        Text(verbatim: Shortcut.current(for: .palette)?.display ?? "⌘K").font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundStyle(.tertiary)
                     }
                     .buttonStyle(.plain)
@@ -96,6 +98,8 @@ struct MenuBarContent: View {
             Spacer()
             FooterButton(symbol: "macwindow", help: "Open Triwarden") { model.bringToFront() }
             FooterButton(symbol: "gearshape", help: "Settings…") { model.showSettings() }
+            FooterButton(symbol: "power", help: "Quit Triwarden") { NSApp.terminate(nil) }
+                .keyboardShortcut("q")
         }
         .padding(.horizontal, 6)
     }
@@ -196,6 +200,42 @@ private func codeFraction(_ totp: TOTP, _ date: Date) -> Double {
     return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
 }
 
+/// The logins for the page (or app) the panel was opened over; a click copies the password and goes back there.
+private struct SiteCard: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        if let context = model.foreground {
+            let items = context.items(in: model)
+            if !items.isEmpty {
+                PanelCard(padding: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            if let icon = NSRunningApplication(processIdentifier: context.pid)?.icon {
+                                Image(nsImage: icon).resizable().frame(width: 14, height: 14)
+                            }
+                            Text(context.host != nil ? "On \(context.label)" : "For \(context.label)")
+                                .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 8).padding(.top, 2)
+                        TimelineView(.animation(minimumInterval: 1 / 30, paused: !items.contains { $0.totp != nil })) { time in
+                            VStack(spacing: 0) {
+                                ForEach(items) { item in
+                                    QuickRow(item: item, date: time.date) {
+                                        NSApp.keyWindow?.orderOut(nil)
+                                        model.returnToForeground()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+}
+
 /// Favorites, codes and recently changed items, a tab each; a click copies, hover shows the rest.
 private struct ShelfCard: View {
     enum Tab: Hashable { case favorites, codes, recent }
@@ -247,6 +287,8 @@ private struct QuickRow: View {
     let item: VaultItem
     let date: Date
     var preferCode = false
+    /// After a click copies: e.g. close the panel and go back to the page it was opened over.
+    var afterCopy: (() -> Void)?
     @State private var hovering = false
 
     var body: some View {
@@ -292,6 +334,7 @@ private struct QuickRow: View {
         .contentShape(.rect)
         .onTapGesture {
             if preferCode, let totp = item.totp { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } } else { QuickCopy.primary(item, model) }
+            afterCopy?()
         }
         .onHover { inside in withAnimation(.snappy(duration: 0.15)) { hovering = inside } }
         .contextMenu { ItemContextMenu(item: item) }

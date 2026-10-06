@@ -2,7 +2,8 @@ name: Release
 
 # Conventional commits on main → release-please keeps a release PR up to date (version + CHANGELOG).
 # Merging that PR tags vX.Y.Z and creates the GitHub release; the build job then signs, notarizes and uploads
-# the DMG, the zip, the Sparkle appcast (what the in-app updater reads) and the Homebrew cask.
+# the DMG, the zip, the Sparkle appcast (what the in-app updater reads) and the Homebrew cask, then pushes the cask to
+# sinhong2011/homebrew-tap (with a deploy key that can write to that repo only).
 
 on:
   push:
@@ -71,6 +72,24 @@ jobs:
           SPARKLE_KEY_FILE: ${{ runner.temp }}/sparkle.key
         run: scripts/release.sh "$VERSION" --publish
 
+      - name: Update the Homebrew tap
+        env:
+          TAP_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$TAP_KEY" > "$RUNNER_TEMP/tap.key"
+          # GitHub's published host key, pinned, so the push can't be redirected.
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "$RUNNER_TEMP/known_hosts"
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/tap.key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts"
+          git clone --depth 1 git@github.com:sinhong2011/homebrew-tap.git "$RUNNER_TEMP/tap"
+          cp "dist/$VERSION/triwarden.rb" "$RUNNER_TEMP/tap/Casks/triwarden.rb"
+          cd "$RUNNER_TEMP/tap"
+          git add Casks/triwarden.rb
+          git diff --cached --quiet && { echo "cask unchanged"; exit 0; }
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "triwarden $VERSION"
+          git push origin HEAD:main
+
       - name: Clean up keys
         if: always()
-        run: rm -f "$RUNNER_TEMP/asc.p8" "$RUNNER_TEMP/sparkle.key"
+        run: rm -f "$RUNNER_TEMP/asc.p8" "$RUNNER_TEMP/sparkle.key" "$RUNNER_TEMP/tap.key"

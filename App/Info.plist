@@ -35,6 +35,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Triwarden reads the address of your browser's front tab, so the logins for that site come first. It never changes anything in the browser.</string>
 	<key>NSServices</key>
 	<array>
 		<dict>
