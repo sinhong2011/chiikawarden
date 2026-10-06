@@ -491,16 +491,17 @@ private struct SidebarAccountCard: View {
                         StackedAvatars(accounts: model.accounts)
                     }
                     VStack(alignment: .leading, spacing: 1) {
-                        // The switcher's chevron rides with the name, leaving the card's right end to sync and lock.
-                        HStack(spacing: 4) {
-                            Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
-                                .contentTransition(.opacity)
-                            Image(systemName: "chevron.up.chevron.down").font(.system(size: 8, weight: .semibold)).foregroundStyle(.tertiary)
-                        }
+                        Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                            .contentTransition(.opacity)
                         SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                     }
+                    Spacer(minLength: 6)
+                    // The switcher's pop-up mark, centred on the card's right end.
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 18)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
