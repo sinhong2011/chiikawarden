@@ -253,7 +253,7 @@ enum Snapshot {
                    to: dir.appending(path: "settings-\(name).png"))
             // Each pane, so its controls can be checked.
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["server", "accounts", "security"] {
+            for pane in ["general", "server", "accounts", "security", "developer"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(model).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,

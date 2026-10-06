@@ -213,8 +213,9 @@ struct RootView: View {
 extension Color {
     /// Brand blue, shared with the app icon (Assets: AccentColor, adapts to dark mode).
     static let brand = Color("AccentColor")
-    /// What system controls are tinted with — menu highlights, switches, sliders, links: the brand blue, deeper in
-    /// dark mode so white text reads on it (Assets: ControlAccent). `brand` stays the lighter sky for text and icons.
+    /// What system controls are tinted with — menu highlights and icons, pickers, switches, sliders, the Settings
+    /// sidebar: a neutral graphite (Assets: ControlAccent), so no icon or label turns blue. The brand blue is only ever
+    /// a fill the app draws on purpose: primary buttons, the vault's selection, header tiles.
     static let controlTint = Color("ControlAccent")
 }
 

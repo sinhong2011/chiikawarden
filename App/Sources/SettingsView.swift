@@ -415,11 +415,12 @@ private struct AccountCard: View {
                     Text(verbatim: "\(account.serverSummary) · \(kdf)").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 8)
-                Label(unlocked ? "Unlocked" : "Locked", systemImage: unlocked ? "lock.open.fill" : "lock.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(unlocked ? Color.green : .secondary)
-                    .padding(.horizontal, 9).frame(height: 22)
-                    .background((unlocked ? Color.green : Color.primary).opacity(0.12), in: .capsule)
+                // Status, quietly: a dot and a word.
+                HStack(spacing: 6) {
+                    Circle().fill(unlocked ? Color.green : Color.secondary.opacity(0.6)).frame(width: 7, height: 7)
+                    Text(unlocked ? "Unlocked" : "Locked")
+                }
+                .font(.system(size: 12)).foregroundStyle(.secondary)
                 Menu {
                     if unlocked {
                         Button("Export Vault…", systemImage: "square.and.arrow.up") { model.beginExport(accountId: account.id) }
@@ -428,10 +429,10 @@ private struct AccountCard: View {
                     Divider()
                     Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: logOut)
                 } label: {
-                    Image(systemName: "ellipsis").font(.system(size: 13, weight: .semibold))
+                    Image(systemName: "ellipsis.circle").font(.system(size: 16))
+                        .foregroundStyle(.secondary)
                         .frame(width: 28, height: 28)
-                        .background(Color.primary.opacity(0.07), in: .circle)
-                        .contentShape(.circle)
+                        .contentShape(.rect)
                 }
                 .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
                 .help(Text("More"))

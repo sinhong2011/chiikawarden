@@ -92,7 +92,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.sinhong2011.chiikawarden
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: ControlAccent # system controls and the sidebar selection; Color.brand stays AccentColor
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: ControlAccent # neutral graphite for system controls (menus, pickers, switches); Color.brand stays AccentColor
         ENABLE_PREVIEWS: YES # Xcode canvas: see App/Sources/Previews.swift
         SPARKLE_PUBLIC_KEY: "" # sparkle-public-key (written by `make sparkle-keys`; the private key never enters the repo)
     scheme:
