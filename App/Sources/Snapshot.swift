@@ -125,7 +125,7 @@ enum Snapshot {
             let gateModel = AppModel()
             gateModel.setPreviewAccounts(multi.accounts.prefix(1).map { $0 })
             gateModel.gate = .opening
-            gateModel.unlockOpenedAt = .now.addingTimeInterval(-0.45)
+            gateModel.unlockOpenedAt = .now.addingTimeInterval(-0.78)
             for p in [0.0, 0.3, 0.7] {
                 render(ZStack {
                     desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")

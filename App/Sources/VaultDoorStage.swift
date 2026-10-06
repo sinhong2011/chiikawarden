@@ -98,8 +98,8 @@ private struct Mechanism {
         var m = Mechanism()
         for k in 0..<4 {
             m.align[k] = Ease.inOut(seg(0.02 * Double(k), 0.18 + 0.02 * Double(k)))
-            // The pieces stay put: no rings sliding outward (it read as a ripple). The gate opens instead.
-            m.parts[k] = 0
+            // The pieces spread apart, inside out (the light stays calm: no flare or growing halo behind them).
+            m.parts[k] = Ease.machine(seg(0.3 + 0.08 * Double(k), 0.62 + 0.08 * Double(k)))
         }
         m.pins = Ease.out(seg(0, 0.14))
         m.bolts = Ease.inOut(seg(0.14, 0.28))
