@@ -119,19 +119,22 @@ enum Snapshot {
                 renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: CGFloat(w), height: 760),
                              appearance: appearance, to: dir.appending(path: "window-\(w)-\(name).png"))
             }
-            // The gate opening over the vault, frozen part-way.
+            // The gate over the vault, frozen part-way, and the lock screen it hands over to.
             let gateModel = AppModel()
             gateModel.setPreviewAccounts(multi.accounts.prefix(1).map { $0 })
-            gateModel.unlockOpening = true
-            gateModel.unlockOpenedAt = .now.addingTimeInterval(-0.8) // the door already taken apart
-            for p in [0.25, 0.55, 0.85] {
+            gateModel.gate = .opening
+            gateModel.unlockOpenedAt = .now.addingTimeInterval(-0.45)
+            for p in [0.0, 0.3, 0.7] {
                 render(ZStack {
                     desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
-                    desktop(UnlockView().environment(gateModel).tint(.brand), dark: name == "dark")
-                        .modifier(GateSplit(progress: p))
+                    GatePlates(progress: p).environment(gateModel)
                 }, size: CGSize(width: 1100, height: 700), appearance: appearance,
                    to: dir.appending(path: "gate-\(Int(p * 100))-\(name).png"))
             }
+            render(ZStack {
+                desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
+                UnlockView().environment(gateModel)
+            }, size: CGSize(width: 1100, height: 700), appearance: appearance, to: dir.appending(path: "gate-lockscreen-\(name).png"))
             renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
                          appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
         }

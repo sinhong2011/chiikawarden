@@ -6,6 +6,14 @@ import SwiftUI
 /// Signed in, vault locked: a vault door fills the window, the master password goes in at its hub, and Touch ID
 /// waits below. Works offline.
 struct UnlockView: View {
+    /// Where the door sits in a window of this size (shared with the gate's plates, so they match it exactly).
+    static func doorLayout(_ size: CGSize, touchID: Bool) -> (radius: CGFloat, center: CGPoint) {
+        let top: CGFloat = 40
+        let bottom: CGFloat = touchID ? 124 : 74
+        let outer = max(130, min((size.width - 32) / 2, (size.height - top - bottom) / 2))
+        return (outer / DoorGeometry.frameOuter, CGPoint(x: size.width / 2, y: top + (size.height - top - bottom) / 2))
+    }
+
     @Environment(AppModel.self) private var model
     @Environment(\.vaultDoorFrozen) private var frozen
     @State private var password = ""
@@ -18,11 +26,7 @@ struct UnlockView: View {
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
-            let top: CGFloat = 40
-            let bottom: CGFloat = model.touchIDEnabled ? 124 : 74
-            let outer = max(130, min((size.width - 32) / 2, (size.height - top - bottom) / 2))
-            let radius = outer / DoorGeometry.frameOuter
-            let center = CGPoint(x: size.width / 2, y: top + (size.height - top - bottom) / 2)
+            let (radius, center) = Self.doorLayout(size, touchID: model.touchIDEnabled)
             let opening = model.unlockOpening || frozen?.opened != nil
             let hubHidden = opening || assembling || (frozen?.closed ?? 1) < 0.5
 

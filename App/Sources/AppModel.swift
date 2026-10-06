@@ -626,13 +626,26 @@ final class AppModel {
         }
         unlockOpenedAt = .now
         withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
+        let fromLock = phase.id == Phase.locked.id
         Task {
-            // The door unlatches (~0.4 s: rings align, bolts draw back, latch turns; VaultDoorStage); then the lock or
-            // login screen parts like a gate (RootView). Stays "opening" until the gate is gone, so its halves keep
-            // drawing the unlatched door.
+            // The door unlatches (~0.4 s: rings align, bolts draw back, latch turns; VaultDoorStage).
             try? await Task.sleep(for: .milliseconds(450))
-            phase = .vault
-            try? await Task.sleep(for: .milliseconds(950))
+            if fromLock {
+                // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
+                // under them, and the plates part over the vault (GatePlates).
+                gateApart = false
+                gate = .opening
+                try? await Task.sleep(for: .milliseconds(30))
+                phase = .vault
+                await Task.yield()
+                withAnimation(.easeInOut(duration: 0.75)) { gateApart = true }
+                try? await Task.sleep(for: .milliseconds(800))
+                gate = nil
+            } else {
+                // Login: its screen parts like a gate (RootView's transition).
+                phase = .vault
+                try? await Task.sleep(for: .milliseconds(950))
+            }
             unlockOpening = false
             unlockOpenedAt = nil
         }
@@ -952,13 +965,24 @@ final class AppModel {
         addingAccount = false
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
         let closing = animated && phase.id == Phase.vault.id && !accounts.isEmpty && !tooling && Self.doorAnimates
-        phase = accounts.isEmpty ? .login : .locked
-        guard closing else { clearVaultContents(); return }
-        // The gate closes over the vault first (RootView, ~0.6 s), then the door assembles inside it (~1.2 s).
+        guard closing else {
+            phase = accounts.isEmpty ? .login : .locked
+            clearVaultContents()
+            return
+        }
+        // The gate's plates slide in over the vault (GatePlates, ~0.6 s). Once they meet, the lock screen is put in
+        // place underneath, the plates go, and the door assembles (~1.2 s, from lockClosedAt).
         lockClosedAt = .now.addingTimeInterval(Self.gateClose)
         lockClosing = true
+        gateApart = true
+        gate = .closing
         Task {
-            try? await Task.sleep(for: .seconds(Self.gateClose + 0.05))
+            await Task.yield() // the plates are drawn apart first, then close
+            withAnimation(.easeInOut(duration: Self.gateClose)) { gateApart = false }
+            try? await Task.sleep(for: .seconds(Self.gateClose))
+            phase = .locked
+            try? await Task.sleep(for: .milliseconds(60)) // the lock screen draws under the plates before they go
+            gate = nil
             if sessions.isEmpty { clearVaultContents() } // covered now; unless Touch ID already opened it again
             try? await Task.sleep(for: .seconds(1.3))
             lockClosing = false
@@ -973,6 +997,12 @@ final class AppModel {
 
     /// True while the lock layer closes over the vault (an animated lock).
     var lockClosing = false
+
+    /// The gate between the vault and the lock screen: two plates over everything while they move.
+    enum GateMotion { case closing, opening }
+    var gate: GateMotion?
+    /// The plates' position: apart (off the window) or meeting in the middle. Animated.
+    var gateApart = false
     /// When the door starts assembling (just after the gate has closed). Shared by every copy of the door.
     var lockClosedAt: Date?
     /// How long the gate takes to close over the vault when locking.

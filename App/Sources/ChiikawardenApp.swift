@@ -156,15 +156,9 @@ struct RootView: View {
                                               removal: .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0)))
     }
 
-    /// Closes when it appears, parts when it leaves.
-    private var gateBothWays: AnyTransition {
-        .modifier(active: GateSplit(progress: 1), identity: GateSplit(progress: 0))
-    }
-
     /// Into the vault: the gate's heavy ease. Locking: the gate closing. Elsewhere: smooth, nothing wobbles into place.
     private var phaseAnimation: Animation {
         if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.75) }
-        if model.phase.id == AppModel.Phase.locked.id, model.lockClosing { return .easeInOut(duration: AppModel.gateClose) }
         return .smooth(duration: 0.45)
     }
 
@@ -193,10 +187,13 @@ struct RootView: View {
         .overlay {
             if model.phase.id == AppModel.Phase.locked.id {
                 UnlockView()
-                    // Locking: the gate closes over the vault, then the door assembles inside it. Unlocking: it parts.
-                    // (Auto-lock and lock-on-sleep just appear.)
-                    .transition(model.lockClosing && !reduceMotion ? gateBothWays : gate)
+                    // Appears and leaves at once: when animated, the gate's plates cover it while it does.
+                    .transition(reduceMotion ? .opacity : .identity)
             }
+        }
+        // The gate: plates over everything, only while they move (locking and unlocking).
+        .overlay {
+            if model.gate != nil { GatePlates() }
         }
         .animation(phaseAnimation, value: model.phase.id)
         .onAppear { model.openSettingsAction = { openSettings() } }
