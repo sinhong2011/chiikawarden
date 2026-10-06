@@ -42,7 +42,8 @@ struct CodesPane: View {
                     }
                 }
             }
-            .padding(24)
+            .padding(.horizontal, VaultView.pageInset)
+            .padding(.vertical, 24)
         }
         .scrollIndicators(.never)
     }

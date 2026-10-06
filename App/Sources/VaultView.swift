@@ -31,6 +31,9 @@ extension Color {
 }
 
 struct VaultView: View {
+    /// A full-page section's side inset inside the pane: the same as the item list panel's, so its left edge sits under
+    /// the header's search field.
+    static let pageInset: CGFloat = 6
     var initialSelection: VaultItem.ID?
     /// The section to open on (snapshots).
     var initialSection: SidebarSelection?
@@ -61,6 +64,8 @@ struct VaultView: View {
         guard !compact else { return (width < 560 ? 150 : 228, 0) }
         return (Self.listWidth - 12 - 40, 6)
     }
+    /// An item's detail is showing, with its actions in the header.
+    private var detailHasActions: Bool { isItemSection && model.selectedItem != nil && (!compact || depth == 2) }
     private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
     private var maxDepth: Int { isItemSection ? (model.selectedItem == nil ? 1 : 2) : 1 }
 
@@ -213,6 +218,12 @@ struct VaultView: View {
                     .accessibilityHidden(!vaultOpen)
                 }
                 .sharedBackgroundVisibility(.hidden)
+                // A copied secret's countdown: top right, its edge on the page's (an item shows it beside its actions).
+                if model.clipboardClearsAt != nil, vaultOpen, !detailHasActions {
+                    ToolbarSpacer(.flexible)
+                    ToolbarItem { ClipboardCountdown().padding(.trailing, Self.pageInset) }
+                        .sharedBackgroundVisibility(.hidden)
+                }
             }
             .background {
                 // Keyboard: ⌘K / ⌘F open the command palette, ⌘G the generator.
@@ -274,7 +285,6 @@ struct VaultView: View {
         }
         .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
         .overlay(alignment: .bottom) { ToastView() }
-        .overlay(alignment: .bottomTrailing) { ClipboardCountdown() }
         .onAppear {
             if let initialSection { section = initialSection }
             selectFirst()
@@ -894,9 +904,10 @@ private struct GeneratorPane: View {
         GeometryReader { geo in
             ScrollView {
                 GeneratorView()
-                    .padding(28)
+                    .padding(.horizontal, VaultView.pageInset)
+                    .padding(.vertical, 24)
                     .frame(maxWidth: 1180)
-                    .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
+                    .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .topLeading)
             }
             .thinScroller()
         }
@@ -1407,7 +1418,13 @@ struct ItemDetail: View {
             if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
                 ToolbarSpacer(.flexible)
                 // Inset by the detail's own side padding, so the pill's edge lines up with the cards below.
-                ToolbarItem { actions.padding(.trailing, Self.detailInset) }
+                ToolbarItem {
+                    HStack(spacing: 10) {
+                        ClipboardCountdown()
+                        actions
+                    }
+                    .padding(.trailing, Self.detailInset)
+                }
                     .sharedBackgroundVisibility(.hidden)
             }
         }
@@ -1741,7 +1758,7 @@ struct ToastView: View {
     }
 }
 
-/// Bottom right while a copied secret waits on the clipboard: a ring draining to the moment it's cleared, the seconds
+/// In the header while a copied secret waits on the clipboard: a ring draining to the moment it's cleared, the seconds
 /// counting down. Clicking clears it now.
 private struct ClipboardCountdown: View {
     @Environment(AppModel.self) private var model
@@ -1777,7 +1794,7 @@ private struct ClipboardCountdown: View {
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10).frame(height: 26)
+                    .padding(.horizontal, 12).frame(height: 32)
                     .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
                     .contentShape(.capsule)
                 }
@@ -1786,7 +1803,6 @@ private struct ClipboardCountdown: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)))
             }
         }
-        .padding(.trailing, 18).padding(.bottom, 16)
         .animation(.spring(duration: 0.35, bounce: 0.25), value: model.clipboardClearsAt)
     }
 }

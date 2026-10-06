@@ -143,6 +143,16 @@ enum Snapshot {
                    size: CGSize(width: 900, height: 560), appearance: appearance, to: dir.appending(path: "codes-\(name).png"))
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-\(name).png"))
+            // A page (left edge under the search field) with the clipboard countdown in the header.
+            vault.clipboardClearsAt = .now.addingTimeInterval(22)
+            vault.clipboardHoldSeconds = 30
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "window-page-item-\(name).png"))
+            for page in [SidebarSelection.codes, .generator] {
+                renderWindow(VaultView(initialSection: page).environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                             appearance: appearance, to: dir.appending(path: "window-page-\(page == .codes ? "codes" : "generator")-\(name).png"))
+            }
+            vault.clipboardClearsAt = nil
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 430, height: 760),
                          resizeFrom: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-resized-\(name).png"))
