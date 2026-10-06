@@ -24,6 +24,7 @@ struct SendsPane: View {
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(send.id == model.selectedSendID ? [.isButton, .isSelected] : .isButton)
                                 .accessibilityAction { model.composingSend = false; model.selectedSendID = send.id }
+                                .transition(.opacity.combined(with: .scale(scale: 0.96)))
                                 .contextMenu {
                                     Group {
                                         if let link = model.sendLink(send) {
@@ -302,13 +303,13 @@ struct SendComposer: View {
                     }
 
                     card(title: "Availability") {
-                        HStack {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Delete after").font(.system(size: 13))
-                            Spacer()
-                            Picker("Delete after", selection: $deleteAfterDays) {
-                                ForEach([1, 2, 3, 7, 14, 30], id: \.self) { Text("\($0) days").tag($0) }
-                            }
-                            .labelsHidden().fixedSize()
+                            // The same sliding segments as Text / File, not a pop-up menu.
+                            AppSegmented(options: [1, 2, 3, 7, 14, 30].map { days in
+                                (days, days == 1 ? LocalizedStringKey("1 day") : LocalizedStringKey("\(days) days"))
+                            }, selection: $deleteAfterDays)
+                            .accessibilityLabel(Text("Delete after"))
                         }
                         Toggle("Expire earlier", isOn: $expires).toggleStyle(.trailingSwitch)
                         if expires {

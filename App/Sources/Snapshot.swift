@@ -639,6 +639,29 @@ enum SelfTest {
                 if let mySend { await model.deleteSend(mySend) }
                 check(!model.sends.contains { $0.name == "Selftest send" }, "Send: delete")
 
+                // A file Send: upload, then download and decrypt it as a recipient with no password.
+                let fileBytes = Data("file from hachiware \(UUID().uuidString)".utf8)
+                let fileDraft = SendDraft(name: "Selftest file send", content: .file(name: "note.txt", contents: fileBytes),
+                                          deletionDate: .now.addingTimeInterval(3_600))
+                let fileCreated = await model.createSend(fileDraft, accountId: firstID)
+                let fileLink = NSPasteboard.general.string(forType: .string) ?? ""
+                let fileSend = model.sends.first { $0.name == "Selftest file send" }
+                var downloaded: Data?
+                var downloadedName = ""
+                if let fileSend, let fragment = fileLink.split(separator: "/").last, let material = Data(base64URL: String(fragment)),
+                   let key = try? SendCrypto.key(from: material) {
+                    let stranger = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString)
+                    if let response = try? await stranger.accessSend(accessId: fileSend.accessId), let fileId = response.file?.id,
+                       let blob = try? await stranger.accessSendFile(sendId: response.id, fileId: fileId) {
+                        downloaded = try? EncArrayBuffer.decrypt(blob, with: key)
+                        downloadedName = response.file?.fileName.flatMap { try? EncString($0).decryptString(with: key) } ?? ""
+                    }
+                }
+                check(fileCreated && downloaded == fileBytes && downloadedName == "note.txt",
+                      "Send: file upload, download and decrypt as recipient")
+                if let fileSend { await model.deleteSend(fileSend) }
+                check(!model.sends.contains { $0.name == "Selftest file send" }, "Send: delete file Send")
+
                 // Updates: Sparkle is embedded with its installer service and pointed at the release appcast.
                 let info = Bundle.main.infoDictionary ?? [:]
                 let sparkle = Bundle.main.privateFrameworksURL?.appending(path: "Sparkle.framework")

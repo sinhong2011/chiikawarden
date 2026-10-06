@@ -840,6 +840,9 @@ private struct ItemColumn: View {
                                     .accessibilityAction { selection = item.id }
                                     .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
                                     .contextMenu { ItemContextMenu(item: item) }
+                                    // Trashed, archived or deleted: the row slips out; restored ones fade back in.
+                                    .transition(.asymmetric(insertion: .opacity,
+                                                            removal: .opacity.combined(with: .scale(scale: 0.96)).combined(with: .move(edge: .leading))))
                             }
                         } header: {
                             SectionHeader(title: group.title)
@@ -897,6 +900,13 @@ struct ItemRow: View {
                 }
             }
             Spacer(minLength: 4)
+            if item.favorite {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.yellow)
+                    .transition(.scale(scale: 0.3).combined(with: .opacity))
+                    .accessibilityLabel(Text("Favorite"))
+            }
             if item.hasTOTP {
                 Image(systemName: "clock.badge.checkmark")
                     .font(.system(size: 13, weight: .medium))
@@ -1144,6 +1154,7 @@ struct ItemDetail: View {
                                action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 13, weight: .medium)).frame(width: 30, height: 26).contentShape(.rect)
+                .contentTransition(.symbolEffect(.replace)) // star ↔ star.fill, archive ↔ unarchive
         }
         .buttonStyle(HeaderIconStyle())
         .help(Text(help))

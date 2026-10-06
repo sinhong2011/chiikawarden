@@ -782,10 +782,14 @@ final class AppModel {
 
     func deleteSend(_ send: SendItem) async {
         guard let session = session(for: send.accountId) else { _ = offline(); return }
+        withAnimation(.snappy(duration: 0.3)) {
+            sends.removeAll { $0.id == send.id }
+            if selectedSendID == send.id { selectedSendID = nil }
+        }
         do {
             try await session.deleteSend(send.id)
             flash(String(localized: "Deleted “\(send.name)”"))
-        } catch { _ = failed(error) }
+        } catch { revert(); _ = failed(error) }
     }
 
     // MARK: Attachments
@@ -849,43 +853,62 @@ final class AppModel {
         } catch { _ = failed(error) }
     }
 
-    func toggleFavorite(_ item: VaultItem) async {
-        // `--demo` / previews have no server: apply it here so the UI (and its tests) still work.
-        if sessions.isEmpty, previewUnlocked, let i = items.firstIndex(where: { $0.id == item.id }) {
-            items[i].favorite.toggle()
-            return
+    /// Shows a change at once, with animation, while the server catches up; the next rebuild (after the server's
+    /// answer) replaces it with the real state, or puts it back if the write failed.
+    private func optimistic(_ id: String, _ change: (inout VaultItem) -> Void) {
+        guard let i = items.firstIndex(where: { $0.id == id }) else { return }
+        withAnimation(.snappy(duration: 0.3)) { change(&items[i]) }
+    }
+
+    private func optimisticRemove(_ id: String) {
+        withAnimation(.snappy(duration: 0.3)) {
+            items.removeAll { $0.id == id }
+            if selectedID == id { selectedID = nil }
         }
-        await updateItem(item.id, edit: CipherEdit(favorite: !item.favorite))
+    }
+
+    func toggleFavorite(_ item: VaultItem) async {
+        optimistic(item.id) { $0.favorite.toggle() }
+        // `--demo` / previews have no server: the change above is all there is.
+        if sessions.isEmpty, previewUnlocked { return }
+        if !(await updateItem(item.id, edit: CipherEdit(favorite: !item.favorite))) { revert() }
     }
 
     func trash(_ item: VaultItem) async {
         guard let session = session(for: item) else { _ = offline(); return }
+        optimistic(item.id) { $0.isDeleted = true }
         do {
             try await session.trash(item.id)
             flash(String(localized: "Moved to Trash"))
-        } catch { _ = failed(error) }
+        } catch { revert(); _ = failed(error) }
     }
 
     func restore(_ item: VaultItem) async {
         guard let session = session(for: item) else { _ = offline(); return }
+        optimistic(item.id) { $0.isDeleted = false }
         do {
             try await session.restore(item.id)
             flash(String(localized: "Restored"))
-        } catch { _ = failed(error) }
+        } catch { revert(); _ = failed(error) }
     }
+
+    /// Back to what the accounts hold, after a write that didn't go through.
+    private func revert() { withAnimation(.snappy(duration: 0.3)) { rebuild() } }
 
     /// Archive: keep the item, but out of the lists, search and AutoFill. Unarchive brings it back.
     func setArchived(_ item: VaultItem, _ archived: Bool) async {
         if sessions.isEmpty, previewUnlocked, let i = items.firstIndex(where: { $0.id == item.id }) {
-            items[i].archived = archived ? .now : nil // demo vault: no server
+            withAnimation(.snappy(duration: 0.3)) { items[i].archived = archived ? .now : nil } // demo vault: no server
             return
         }
         guard let session = session(for: item) else { _ = offline(); return }
+        optimistic(item.id) { $0.archived = archived ? .now : nil }
         do {
             if archived { try await session.archive(item.id) } else { try await session.unarchive(item.id) }
             flash(archived ? String(localized: "Archived") : String(localized: "Moved out of the archive"))
         } catch {
             // Older servers (Vaultwarden before 1.36) don't know the endpoint; Bitwarden's cloud needs a paid plan.
+            revert()
             if case APIError.http(let status, _)? = error as? APIError, status == 404 || status == 405 {
                 flash(String(localized: "This server doesn't support archiving yet."))
             } else {
@@ -896,11 +919,11 @@ final class AppModel {
 
     func deleteForever(_ item: VaultItem) async {
         guard let session = session(for: item) else { _ = offline(); return }
+        optimisticRemove(item.id)
         do {
             try await session.deleteForever(item.id)
-            if selectedID == item.id { selectedID = nil }
             flash(String(localized: "Deleted permanently"))
-        } catch { _ = failed(error) }
+        } catch { revert(); _ = failed(error) }
     }
 
     private func offline() -> Bool {
