@@ -15,6 +15,10 @@ extension Color {
         })
     }
 
+    /// Sidebar selection: the tail sky deepened so white text reads on it (light: like the primary buttons).
+    static let sidebarSelection = adaptive(light: Color(red: 0x2E / 255, green: 0x8F / 255, blue: 0xD3 / 255),
+                                           dark: Color(red: 0x2C / 255, green: 0x6E / 255, blue: 0x9E / 255))
+
     /// Window base under all panels.
     static let windowBase = adaptive(light: Color(red: 0.945, green: 0.947, blue: 0.965), dark: Color(red: 0.105, green: 0.108, blue: 0.125))
 
@@ -34,35 +38,39 @@ struct VaultView: View {
     @State private var newFolderName = ""
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
-    @State private var chip: Chip = .all
+    @AppStorage("itemSort") private var sortRaw = ItemSort.title.rawValue
+    @AppStorage("itemSortAscending") private var ascending = true
     /// Window width, to adapt from three columns down to a single phone-width column.
     @State private var width: CGFloat = 1120
     @State private var columns = NavigationSplitViewVisibility.all
     /// Narrow windows: which pane of the strip is in view (0 sidebar, 1 list or page, 2 detail).
     @State private var depth = 1
 
+
     /// Below this width the sidebar, list and detail become one sliding strip (Reeder-style).
     private var compact: Bool { width < 900 }
+
+    /// Search and + span exactly the list panel below. On wide windows the header's slot starts at the list column
+    /// (300 pt, its panel 6 pt in), so: 6 pt in, and the panel's width less + and its gap. Narrow layouts have the
+    /// window buttons above the list, so they keep a plain width.
+    private var searchLayout: (width: CGFloat, inset: CGFloat) {
+        guard !compact else { return (width < 560 ? 150 : 228, 0) }
+        return (300 - 12 - 40, 6)
+    }
     private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
     private var maxDepth: Int { isItemSection ? (model.selectedItem == nil ? 1 : 2) : 1 }
 
-    enum Chip: CaseIterable { case all, twoFactor, favorites
-        var title: LocalizedStringKey {
-            switch self { case .all: "All"; case .twoFactor: "2FA"; case .favorites: "Favorites" }
-        }
-    }
+    private var sort: ItemSort { ItemSort(rawValue: sortRaw) ?? .title }
 
     private var filtered: [VaultItem] {
-        model.items
+        let matching = model.items
             .filter(section.includes)
-            .filter { item in
-                switch chip { case .all: true; case .twoFactor: item.hasTOTP; case .favorites: item.favorite }
-            }
             .filter { item in
                 query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
                     || (item.username?.localizedCaseInsensitiveContains(query) ?? false)
                     || (item.host?.localizedCaseInsensitiveContains(query) ?? false)
             }
+        return ItemSort.sorted(matching, by: sort, ascending: ascending)
     }
 
     var body: some View {
@@ -123,7 +131,8 @@ struct VaultView: View {
             ItemColumn(items: filtered, selection: Binding(get: { model.selectedID }, set: { id in
                 model.selectedID = id
                 if compact, id != nil { depth = 2 } // tapping an item slides to it
-            }), query: $query, chip: $chip)
+            }), query: $query, sort: $sortRaw, ascending: $ascending)
+
         }
     }
 
@@ -182,7 +191,11 @@ struct VaultView: View {
                         }
                         // On a phone-width detail, the header belongs to the item's actions (search and + are the list's).
                         if !(compact && width < PaneStrip.pairWidth && depth == 2) {
-                            PaletteTrigger().frame(width: width < 560 ? 150 : 228)
+                            let layout = searchLayout
+                            PaletteTrigger()
+                                .frame(width: layout.width)
+                                .padding(.leading, layout.inset)
+
                             NewItemButton()
                         }
                     }
@@ -392,6 +405,8 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
+        .tint(Color.sidebarSelection)
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
     }
 }
@@ -662,18 +677,98 @@ private struct GeneratorPane: View {
                     .frame(maxWidth: 1180)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
             }
-            .scrollIndicators(.never)
+            .thinScroller()
         }
     }
 }
 
 // MARK: Item column
 
+/// How the item list is ordered, and the section headers that go with it.
+enum ItemSort: String, CaseIterable, Identifiable {
+    case title, edited, created
+    var id: Self { self }
+
+    var title: LocalizedStringKey {
+        switch self { case .title: "Title"; case .edited: "Date Edited"; case .created: "Date Created" }
+    }
+    var symbol: String {
+        switch self { case .title: "textformat"; case .edited: "pencil"; case .created: "calendar" }
+    }
+    func orderTitle(ascending: Bool) -> LocalizedStringKey {
+        switch self {
+        case .title: ascending ? "A to Z" : "Z to A"
+        case .edited, .created: ascending ? "Oldest First" : "Newest First"
+        }
+    }
+
+    /// The index letter for a title: A–Z, with Chinese and Japanese romanised (銀行 → Y) and everything else "#".
+    static func letter(_ name: String) -> String {
+        let latin = name.applyingTransform(.toLatin, reverse: false)?.applyingTransform(.stripDiacritics, reverse: false) ?? name
+        guard let first = latin.trimmingCharacters(in: .whitespacesAndNewlines).first.map({ String($0).uppercased() }),
+              first.count == 1, ("A"..."Z").contains(first) else { return "#" }
+        return first
+    }
+
+    private func date(_ item: VaultItem) -> Date? { self == .created ? item.created : item.revised }
+
+    static func sorted(_ items: [VaultItem], by sort: ItemSort, ascending: Bool) -> [VaultItem] {
+        switch sort {
+        case .title:
+            // Letters A–Z, then # (numbers and symbols), then by name within a letter.
+            let keyed = items.map { (item: $0, letter: letter($0.name)) }
+            let ordered = keyed.sorted { a, b in
+                if a.letter != b.letter {
+                    if a.letter == "#" || b.letter == "#" { return b.letter == "#" }
+                    return a.letter < b.letter
+                }
+                return a.item.name.localizedStandardCompare(b.item.name) == .orderedAscending
+            }.map(\.item)
+            return ascending ? ordered : ordered.reversed()
+        case .edited, .created:
+            // Items without a date go last either way.
+            let dated = items.filter { sort.date($0) != nil }.sorted { sort.date($0)! < sort.date($1)! }
+            return (ascending ? dated : dated.reversed()) + items.filter { sort.date($0) == nil }
+        }
+    }
+
+    /// Consecutive runs of the (already sorted) items under one header each.
+    static func sections(_ items: [VaultItem], by sort: ItemSort) -> [(title: String, items: [VaultItem])] {
+        let month = Date.FormatStyle().month(.wide).year()
+        var out: [(title: String, items: [VaultItem])] = []
+        for item in items {
+            let title: String
+            switch sort {
+            case .title: title = letter(item.name)
+            case .edited, .created: title = sort.date(item).map { $0.formatted(month) } ?? String(localized: "No Date")
+            }
+            if out.last?.title == title { out[out.count - 1].items.append(item) } else { out.append((title, [item])) }
+        }
+        return out
+    }
+}
+
+/// A pinned list header ("A", "October 2026"): plain text on the list's surface, like Contacts and 1Password.
+private struct SectionHeader: View {
+    let title: String
+
+    var body: some View {
+        Text(verbatim: title)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .frame(height: 20)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
 private struct ItemColumn: View {
     let items: [VaultItem]
     @Binding var selection: VaultItem.ID?
     @Binding var query: String
-    @Binding var chip: VaultView.Chip
+    @Binding var sort: String
+    @Binding var ascending: Bool
 
     private func step(_ delta: Int, _ proxy: ScrollViewProxy) {
         guard !items.isEmpty else { return }
@@ -684,30 +779,55 @@ private struct ItemColumn: View {
     }
 
     var body: some View {
+        let order = ItemSort(rawValue: sort) ?? .title
         VStack(spacing: 10) {
+            // How many, and how they're ordered (the sidebar filters; this only sorts).
             HStack(spacing: 6) {
-                ForEach(VaultView.Chip.allCases, id: \.self) { c in
-                    Button { withAnimation(.snappy(duration: 0.2)) { chip = c } } label: {
-                        Text(c.title).font(.system(size: 12, weight: .semibold))
-                            .padding(.horizontal, 12).frame(height: 28)
-                            .foregroundStyle(chip == c ? AnyShapeStyle(Color(nsColor: .windowBackgroundColor)) : AnyShapeStyle(.primary))
-                            .background(chip == c ? AnyShapeStyle(.primary) : AnyShapeStyle(Color.panelStrong), in: .capsule)
-                    }
-                    .buttonStyle(.plain)
-                }
+                Text("\(items.count) items").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                 Spacer()
+                Menu {
+                    Picker("Sort By", selection: $sort) {
+                        ForEach(ItemSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
+                    }
+                    .pickerStyle(.inline)
+                    Picker("Order", selection: $ascending) {
+                        Text(order.orderTitle(ascending: true)).tag(true)
+                        Text(order.orderTitle(ascending: false)).tag(false)
+                    }
+                    .pickerStyle(.inline)
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(width: 32, height: 32)
+                        .modifier(HeaderChrome(shape: .circle))
+                        .contentShape(.circle)
+                }
+                .menuStyle(.button)
+                .buttonStyle(.plain)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .help(Text("Sort"))
+                .accessibilityLabel(Text("Sort"))
             }
+            .padding(.leading, 6) // the sort button lines up with the list's edge (and + above it)
 
             ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 6) {
-                    ForEach(items) { item in
-                        ItemRow(item: item, isSelected: item.id == selection, highlight: query)
-                            .onTapGesture { selection = item.id }
-                            .accessibilityElement(children: .combine)
-                            .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
-                            .accessibilityAction { selection = item.id }
-                            .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
+                    // A–Z (then #) by title, or by month by date.
+                    ForEach(ItemSort.sections(items, by: order), id: \.title) { group in
+                        Section {
+                            ForEach(group.items) { item in
+                                ItemRow(item: item, isSelected: item.id == selection, highlight: query)
+                                    .onTapGesture { selection = item.id }
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
+                                    .accessibilityAction { selection = item.id }
+                                    .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
+                            }
+                        } header: {
+                            SectionHeader(title: group.title)
+                        }
                     }
                 }
                 .padding(6)
@@ -718,7 +838,7 @@ private struct ItemColumn: View {
             .onKeyPress(.downArrow) { step(1, proxy); return .handled }
             .onKeyPress(.upArrow) { step(-1, proxy); return .handled }
             }
-            .scrollIndicators(.never)
+            .thinScroller() // the app's slim scroller: on hover and while scrolling
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
             .overlay {
                 if items.isEmpty {
@@ -927,7 +1047,7 @@ struct ItemDetail: View {
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
         }
-        .scrollIndicators(.never)
+        .thinScroller()
         .dropDestination(for: URL.self) { urls, _ in
             guard !item.isDeleted, !urls.isEmpty else { return false }
             Task { await model.addAttachments(urls, to: item) }
@@ -980,13 +1100,12 @@ struct ItemDetail: View {
                 toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
                     .foregroundStyle(.red)
             } else {
+                // Reveal, then a divider, whenever the item has anything secret (password, private key, card code…).
                 if item.password != nil || item.fields.contains(where: \.secret) {
                     toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)",
                                   spoken: reveal.wrappedValue ? "Hide" : "Reveal") {
                         withAnimation(.snappy) { reveal.wrappedValue.toggle() }
                     }
-                }
-                if item.host != nil || item.password != nil {
                     Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
                 }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
@@ -1216,14 +1335,16 @@ struct Monogram: View {
     let size: CGFloat
     @Environment(\.colorScheme) private var scheme
 
-    /// One calm style for every initial (no per-name rainbow): a soft tail-sky tile with the letter in the brand ink.
+    /// One calm style for every initial (no per-name rainbow): a solid tile — pale sky with the brand's blue letter in
+    /// light mode, deep slate-blue with a light-sky letter in dark mode.
     var body: some View {
         let dark = scheme == .dark
         Text(name.prefix(1).uppercased())
             .font(.system(size: size * 0.42, weight: .semibold, design: .rounded))
-            .foregroundStyle(dark ? Color.brandFill : Color.onBrandFill)
+            .foregroundStyle(dark ? Color(red: 0.62, green: 0.83, blue: 0.96) : Color(red: 0.06, green: 0.45, blue: 0.70))
             .frame(width: size, height: size)
-            .background(Color.brandFill.opacity(dark ? 0.16 : 0.28), in: .rect(cornerRadius: size * 0.29, style: .continuous))
+            .background(dark ? Color(red: 0.14, green: 0.22, blue: 0.30) : Color(red: 0.86, green: 0.92, blue: 0.97),
+                        in: .rect(cornerRadius: size * 0.29, style: .continuous))
             .accessibilityHidden(true) // decorative: the name is read next to it
     }
 }

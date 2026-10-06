@@ -416,6 +416,9 @@
         }
       }
     },
+    "%lld items" : {
+
+    },
     "%lld logins" : {
       "localizations" : {
         "ja" : {
@@ -936,9 +939,6 @@
         }
       }
     },
-    "2FA" : {
-      "shouldTranslate" : false
-    },
     "3 days" : {
       "localizations" : {
         "ja" : {
@@ -1246,6 +1246,9 @@
           }
         }
       }
+    },
+    "A to Z" : {
+
     },
     "About" : {
       "localizations" : {
@@ -1753,6 +1756,7 @@
       }
     },
     "All" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5172,6 +5176,12 @@
       }
     },
     "Dashlane CSV" : {
+
+    },
+    "Date Created" : {
+
+    },
+    "Date Edited" : {
 
     },
     "days to crack" : {
@@ -9932,6 +9942,9 @@
         }
       }
     },
+    "Newest First" : {
+
+    },
     "No" : {
       "localizations" : {
         "ja" : {
@@ -9987,6 +10000,9 @@
           }
         }
       }
+    },
+    "No Date" : {
+
     },
     "No Folder" : {
       "localizations" : {
@@ -10659,6 +10675,9 @@
           }
         }
       }
+    },
+    "Oldest First" : {
+
     },
     "On" : {
       "localizations" : {
@@ -11478,6 +11497,9 @@
           }
         }
       }
+    },
+    "Order" : {
+
     },
     "Organization" : {
       "localizations" : {
@@ -14187,6 +14209,12 @@
           }
         }
       }
+    },
+    "Sort" : {
+
+    },
+    "Sort By" : {
+
     },
     "Source Code" : {
       "localizations" : {
@@ -17676,6 +17704,9 @@
           }
         }
       }
+    },
+    "Z to A" : {
+
     }
   },
   "version" : "1.0"
