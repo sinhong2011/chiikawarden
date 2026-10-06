@@ -122,6 +122,26 @@ public actor VaultClient {
         }
     }
 
+    /// Finishes "log in with device": once another device approved the request, sign in with its access code. The
+    /// user key itself came wrapped in the approval; the answer carries the master-password-wrapped copy for later
+    /// unlocks, and the tokens.
+    public func loginWithApprovedRequest(email: String, requestId: String, accessCode: String) async throws(APIError)
+        -> (protectedUserKey: String, kdf: KDFConfig, refreshToken: String?) {
+        let config = try await prelogin(email: email).config()
+        let form = [
+            "grant_type": "password", "username": KDF.normalizedEmail(email), "password": accessCode,
+            "authRequest": requestId, "scope": "api offline_access", "client_id": Self.clientName,
+            "deviceType": "7", "deviceIdentifier": deviceIdentifier, "deviceName": "chiikawarden",
+        ]
+        var request = try post(environment.identityURL, "connect/token", formBody: form)
+        request.setValue(Data(KDF.normalizedEmail(email).utf8).base64URLEncoded, forHTTPHeaderField: "Auth-Email")
+        let token: TokenResponse = try await send(request)
+        accessToken = token.accessToken
+        refreshToken = token.refreshToken
+        guard let protected = token.key else { throw .missingUserKey }
+        return (protected, config, token.refreshToken)
+    }
+
     // MARK: Single sign-on (OpenID Connect)
 
     /// The redirect the server accepts for `client_id=desktop`; ASWebAuthenticationSession catches the

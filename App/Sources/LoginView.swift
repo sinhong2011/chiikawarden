@@ -162,7 +162,17 @@ private struct LoginForm: View {
                         Label("Log in with single sign-on", systemImage: "building.2")
                     }
                     .buttonStyle(AppButtonStyle(kind: .secondary, large: true))
-                    .disabled(model.isBusy)
+                    .disabled(model.isBusy || model.deviceLogin != nil)
+                    if let waiting = model.deviceLogin {
+                        DeviceLoginCard(waiting: waiting)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    } else {
+                        Button { Task { await model.loginWithDevice() } } label: {
+                            Label("Log in with another device", systemImage: "iphone.and.arrow.forward")
+                        }
+                        .buttonStyle(AppButtonStyle(kind: .secondary, large: true))
+                        .disabled(model.isBusy)
+                    }
                 }
                 if step != .credentials {
                     Button("Back") { code = ""; password = ""; model.cancelChallenge() }
@@ -495,5 +505,31 @@ struct CustomEnvironmentSheet: View {
                 .labelsHidden()
                 .textContentType(.URL)
         }
+    }
+}
+
+/// Waiting for another device: what to check there, and a way out.
+private struct DeviceLoginCard: View {
+    @Environment(AppModel.self) private var model
+    let waiting: AppModel.DeviceLogin
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Approve the sign-in on a device where you're signed in").font(.system(size: 13, weight: .semibold))
+            }
+            Text("Make sure it shows this phrase:").font(.system(size: 12)).foregroundStyle(.secondary)
+            Text(verbatim: waiting.fingerprint.joined(separator: "-"))
+                .font(.system(size: 14, weight: .semibold, design: .monospaced)).textSelection(.enabled)
+            HStack {
+                Spacer()
+                Button("Cancel") { withAnimation(.snappy) { model.cancelDeviceLogin() } }.buttonStyle(.appSecondarySmall)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.panelStrong, in: .rect(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.panelEdge))
     }
 }

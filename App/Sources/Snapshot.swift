@@ -852,6 +852,13 @@ enum SelfTest {
                             check(response.approved == true && unwrapped == mine.map { $0.encryptionKey + $0.macKey }
                                   && s2.fingerprint(of: request).count == 5,
                                   "approve a sign-in from another device (it unwraps the same user key)")
+                            // …and that device finishes signing in with the approved request (no master password).
+                            let finished = try await asker.loginWithApprovedRequest(email: email2, requestId: requestID, accessCode: accessCode)
+                            // The master-password-wrapped copy it got opens with the master password, to the same user key.
+                            let master = try KDF.masterKey(password: password2, email: email2, config: finished.kdf)
+                            let opened = try EncString(finished.protectedUserKey).decrypt(with: SymmetricKeyPair.stretched(masterKey: master))
+                            check(finished.refreshToken != nil && opened == mine.map { $0.encryptionKey + $0.macKey },
+                                  "log in with another device: signed in with the approved request")
                         } else {
                             check(false, "approve a sign-in from another device: request not listed")
                         }

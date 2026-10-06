@@ -648,6 +648,89 @@ final class AppModel {
         }
     }
 
+    // MARK: Log in with another device
+
+    /// Waiting for another device to approve this sign-in: the phrase to compare on it.
+    struct DeviceLogin: Equatable {
+        var fingerprint: [String]
+        var requestId: String
+    }
+    var deviceLogin: DeviceLogin?
+    private var deviceLoginTask: Task<Void, Never>?
+
+    /// Asks the account's other devices (signed in and unlocked) to approve this sign-in, then waits up to five
+    /// minutes. The approval carries the user key, wrapped for a key made here just for this request.
+    func loginWithDevice() async {
+        guard let environment = environment() else {
+            errorMessage = serverURLProblem ?? String(localized: "Enter a valid server URL.")
+            return
+        }
+        let email = self.email.trimmingCharacters(in: .whitespaces)
+        guard email.contains("@") else { errorMessage = String(localized: "Enter your email first."); return }
+        errorMessage = nil
+        let client = self.client?.environment == environment ? self.client! : makeClient(environment)
+        self.client = client
+        do {
+            let key = try RSAPrivateKey.generate()
+            let spki = try key.publicKeySPKI()
+            let accessCode = Self.accessCode()
+            let id = try await client.requestSignIn(email: email, publicKeySPKI: spki, accessCode: accessCode)
+            deviceLogin = DeviceLogin(fingerprint: Fingerprint.phrase(publicKeySPKI: spki, material: KDF.normalizedEmail(email)),
+                                      requestId: id)
+            deviceLoginTask?.cancel()
+            deviceLoginTask = Task { [weak self] in
+                let deadline = Date.now.addingTimeInterval(5 * 60)
+                while !Task.isCancelled, Date.now < deadline {
+                    try? await Task.sleep(for: .seconds(3))
+                    guard let self, self.deviceLogin?.requestId == id else { return }
+                    do {
+                        let answer = try await client.signInResponse(id: id, accessCode: accessCode)
+                        guard answer.approved == true, let wrapped = answer.key else { continue }
+                        let userKey = try SymmetricKeyPair(combined: key.decrypt(wrapped))
+                        let login = try await client.loginWithApprovedRequest(email: email, requestId: id, accessCode: accessCode)
+                        self.deviceLogin = nil
+                        self.isBusy = true
+                        defer { self.isBusy = false }
+                        try await self.finishLogin(environment: environment, client: client, kdf: login.kdf,
+                                                   protectedUserKey: login.protectedUserKey, userKey: userKey,
+                                                   refreshToken: login.refreshToken)
+                        return
+                    } catch {
+                        // Denied requests are deleted: the answer stops existing.
+                        if case APIError.http(let status, _)? = error as? APIError, status == 404 || status == 400 {
+                            self.deviceLogin = nil
+                            self.errorMessage = String(localized: "The sign-in wasn't approved.")
+                            return
+                        }
+                    }
+                }
+                if self?.deviceLogin?.requestId == id {
+                    self?.deviceLogin = nil
+                    self?.errorMessage = String(localized: "No device approved the sign-in in time.")
+                }
+            }
+        } catch {
+            // Vaultwarden only takes requests from devices it already knows for the account.
+            if case APIError.http(_, let message?)? = error as? APIError, message.lowercased().contains("doesn't exist") {
+                errorMessage = String(localized: "This Mac isn't known to the server for this account yet. Log in with your master password once.")
+            } else {
+                handle(error)
+            }
+        }
+    }
+
+    func cancelDeviceLogin() {
+        deviceLoginTask?.cancel()
+        deviceLoginTask = nil
+        deviceLogin = nil
+    }
+
+    /// 25 random letters and digits: the request's one-time secret.
+    private static func accessCode() -> String {
+        let alphabet = Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+        return String((0..<25).map { _ in alphabet[Int.random(in: 0..<alphabet.count)] })
+    }
+
     /// Saves the account, opens its session and syncs — shared by password and SSO login.
     private func finishLogin(environment: ServerEnvironment, client: VaultClient, kdf: KDFConfig, protectedUserKey: String,
                              userKey: SymmetricKeyPair, refreshToken: String?) async throws {
