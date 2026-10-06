@@ -4809,148 +4809,6 @@
         }
       }
     },
-    "Triwarden %@ is up to date." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden %@ は最新です。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden %@ 已是最新版本。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden %@ 已是最新版本。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden %@ 已經係最新版本。"
-          }
-        }
-      }
-    },
-    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
-          }
-        }
-      }
-    },
-    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。自動入力パネルはシステムの言語に従います。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。自动填充面板跟随系统语言。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文與日本語。自動填寫面板會依照系統語言。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文同日本語。自動填寫面板會跟系統語言。"
-          }
-        }
-      }
-    },
-    "Triwarden is locked." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden をロックしました。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已锁定。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已鎖定。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已鎖定。"
-          }
-        }
-      }
-    },
-    "Triwarden is locked. Unlock it first." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden はロックされています。先にロックを解除してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已锁定，请先解锁。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已鎖定，請先解鎖。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden 已鎖定，請先解鎖。"
-          }
-        }
-      }
-    },
     "Choose" : {
       "localizations" : {
         "ja" : {
@@ -7611,34 +7469,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自訂欄位"
-          }
-        }
-      }
-    },
-    "tw get github · tw code github · tw list · tw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tw get github · tw code github · tw list · tw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tw get github · tw code github · tw list · tw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
           }
         }
       }
@@ -10683,7 +10513,6 @@
       }
     },
     "Folders" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -16335,175 +16164,6 @@
         }
       }
     },
-    "Open Triwarden" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden を開く"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 Triwarden"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開 Triwarden"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開 Triwarden"
-          }
-        }
-      }
-    },
-    "Open Triwarden and log in first." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "まず Triwarden を開いてログインしてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先打开 Triwarden 并登录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開 Triwarden 並登入。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開 Triwarden 並登入。"
-          }
-        }
-      }
-    },
-    "Open Triwarden and sign in to this account again." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden を開いて、このアカウントに再度サインインしてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请打开 Triwarden 并重新登录此账户。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請開啟 Triwarden 並重新登入此帳號。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請開啟 Triwarden 並重新登入此帳戶。"
-          }
-        }
-      }
-    },
-    "Open Triwarden once to download your vault." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保管庫をダウンロードするため、一度 Triwarden を開いてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先打开 Triwarden 一次以下载密码库。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開 Triwarden 一次以下載保險庫。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開 Triwarden 一次以下載保險庫。"
-          }
-        }
-      }
-    },
-    "Open Triwarden once to refresh your vault." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保管庫を更新するために Triwarden を一度開いてください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请打开 Triwarden 一次以刷新密码库。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請開啟 Triwarden 一次以更新保險庫。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請開啟 Triwarden 一次以更新保險庫。"
-          }
-        }
-      }
-    },
-    "Open Triwarden to unlock" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden を開いてロックを解除"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 Triwarden 以解锁"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開 Triwarden 以解鎖"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開 Triwarden 以解鎖"
-          }
-        }
-      }
-    },
     "Open in your browser" : {
       "localizations" : {
         "ja" : {
@@ -16669,6 +16329,175 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟指令面板"
+          }
+        }
+      }
+    },
+    "Open Triwarden" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden を開く"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Triwarden"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 Triwarden"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 Triwarden"
+          }
+        }
+      }
+    },
+    "Open Triwarden and log in first." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まず Triwarden を開いてログインしてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先打开 Triwarden 并登录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開 Triwarden 並登入。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開 Triwarden 並登入。"
+          }
+        }
+      }
+    },
+    "Open Triwarden and sign in to this account again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden を開いて、このアカウントに再度サインインしてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请打开 Triwarden 并重新登录此账户。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟 Triwarden 並重新登入此帳號。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟 Triwarden 並重新登入此帳戶。"
+          }
+        }
+      }
+    },
+    "Open Triwarden once to download your vault." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫をダウンロードするため、一度 Triwarden を開いてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先打开 Triwarden 一次以下载密码库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開 Triwarden 一次以下載保險庫。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開 Triwarden 一次以下載保險庫。"
+          }
+        }
+      }
+    },
+    "Open Triwarden once to refresh your vault." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫を更新するために Triwarden を一度開いてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请打开 Triwarden 一次以刷新密码库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟 Triwarden 一次以更新保險庫。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟 Triwarden 一次以更新保險庫。"
+          }
+        }
+      }
+    },
+    "Open Triwarden to unlock" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden を開いてロックを解除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Triwarden 以解锁"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 Triwarden 以解鎖"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開 Triwarden 以解鎖"
           }
         }
       }
@@ -19752,7 +19581,6 @@
       }
     },
     "Send" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -23432,6 +23260,148 @@
         }
       }
     },
+    "Triwarden %@ is up to date." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden %@ は最新です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden %@ 已是最新版本。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden %@ 已是最新版本。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden %@ 已經係最新版本。"
+          }
+        }
+      }
+    },
+    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文和日本語。"
+          }
+        }
+      }
+    },
+    "Triwarden is available in English, 繁體中文, 繁體中文（香港）, 简体中文 and 日本語. The AutoFill panel follows the system's language." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden は English、繁體中文、繁體中文（香港）、简体中文、日本語に対応しています。自動入力パネルはシステムの言語に従います。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支持 English、繁體中文、繁體中文（香港）、简体中文和日本語。自动填充面板跟随系统语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文與日本語。自動填寫面板會依照系統語言。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支援 English、繁體中文、繁體中文（香港）、简体中文同日本語。自動填寫面板會跟系統語言。"
+          }
+        }
+      }
+    },
+    "Triwarden is locked." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden をロックしました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已锁定。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已鎖定。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已鎖定。"
+          }
+        }
+      }
+    },
+    "Triwarden is locked. Unlock it first." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden はロックされています。先にロックを解除してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已锁定，请先解锁。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已鎖定，請先解鎖。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 已鎖定，請先解鎖。"
+          }
+        }
+      }
+    },
     "Trusted certificates" : {
       "localizations" : {
         "ja" : {
@@ -23708,6 +23678,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在轉動鎖芯…"
+          }
+        }
+      }
+    },
+    "tw get github · tw code github · tw list · tw generate. Reading anything from the vault needs it unlocked and Touch ID or your Mac password." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tw get github · tw code github · tw list · tw generate。保管庫から読み取るには、ロック解除と Touch ID または Mac のパスワードが必要です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tw get github · tw code github · tw list · tw generate。从密码库读取任何数据都需要先解锁，并使用 Touch ID 或 Mac 密码。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tw get github · tw code github · tw list · tw generate。從保險庫讀取任何資料都需要先解鎖，並使用 Touch ID 或 Mac 密碼。"
           }
         }
       }
@@ -24504,34 +24502,6 @@
         }
       }
     },
-    "Use Triwarden as SSH agent" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triwarden を SSH エージェントとして使う"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Triwarden 作为 SSH 代理"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Triwarden 作為 SSH 代理程式"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Triwarden 作為 SSH 代理程式"
-          }
-        }
-      }
-    },
     "Use https:// for servers on the internet. http:// is only allowed on your local network." : {
       "localizations" : {
         "ja" : {
@@ -24612,6 +24582,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用 Touch ID"
+          }
+        }
+      }
+    },
+    "Use Triwarden as SSH agent" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden を SSH エージェントとして使う"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Triwarden 作为 SSH 代理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Triwarden 作為 SSH 代理程式"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Triwarden 作為 SSH 代理程式"
           }
         }
       }
