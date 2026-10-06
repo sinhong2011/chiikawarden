@@ -355,7 +355,7 @@ private struct Sidebar: View {
     private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
 
     private func row(_ s: VaultSection) -> some View {
-        Label(s.title, systemImage: s.symbol)
+        SidebarLabel(s.title, symbol: s.symbol)
             .badge(count(.section(s)))
             .tag(SidebarSelection.section(s))
     }
@@ -377,7 +377,7 @@ private struct Sidebar: View {
                                 FolderRow(node: node, count: count)
                             }
                         } label: {
-                            Label("Folders", systemImage: "folder")
+                            SidebarLabel("Folders", symbol: "folder")
                         }
                     }
                 } label: {
@@ -388,15 +388,15 @@ private struct Sidebar: View {
             }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
-                Label("Send", systemImage: "paperplane")
+                SidebarLabel("Send", symbol: "paperplane")
                     .badge(model.sends.count)
                     .tag(SidebarSelection.sends)
-                Label("One-Time Codes", systemImage: "clock.badge.checkmark")
+                SidebarLabel("One-Time Codes", symbol: "clock.badge.checkmark")
                     .badge(model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
                     .tag(SidebarSelection.codes)
-                Label("Generator", systemImage: "dice")
+                SidebarLabel("Generator", symbol: "dice")
                     .tag(SidebarSelection.generator)
-                Label("Watchtower", systemImage: "checkmark.shield")
+                SidebarLabel("Watchtower", symbol: "checkmark.shield")
                     .badge(model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
             }
@@ -421,14 +421,14 @@ private struct Sidebar: View {
                             .labelStyle(.titleAndIcon)
                         }
                     }
-                    Button { model.beginAddAccount() } label: { Label("Add Account…", systemImage: "plus") }
+                    Button { model.beginAddAccount() } label: { SidebarLabel("Add Account…", symbol: "plus") }
                         .buttonStyle(.plain)
                         .foregroundStyle(.secondary)
                 }
             }
             ForEach(model.organizations) { org in
                 Section(org.name) {
-                    Label("All Items", systemImage: "building.2")
+                    SidebarLabel("All Items", symbol: "building.2")
                         .badge(count(.organization(org.id)))
                         .tag(SidebarSelection.organization(org.id))
                         .contextMenu {
@@ -440,7 +440,7 @@ private struct Sidebar: View {
                             .labelStyle(.titleAndIcon)
                         }
                     ForEach(org.children) { collection in
-                        Label(collection.name, systemImage: "rectangle.stack")
+                        SidebarLabel(collection.name, symbol: "rectangle.stack")
                             .badge(count(.collection(collection.id)))
                             .tag(SidebarSelection.collection(collection.id))
                     }
@@ -629,7 +629,7 @@ private struct FolderRow: View {
     @State private var targeted = false
 
     var body: some View {
-        let label = Label(node.name, systemImage: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
+        let label = SidebarLabel(node.name, symbol: node.folderIds.isEmpty ? "folder.badge.questionmark" : "folder")
             .badge(count(.folder(node.path)))
             .tag(SidebarSelection.folder(node.path))
             .listRowBackground(targeted ? Color.brand.opacity(0.18).clipShape(.rect(cornerRadius: 6)) : nil)
@@ -1964,5 +1964,20 @@ struct OwnerTag: View {
 private struct OwnerLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 3) { configuration.icon; configuration.title }
+    }
+}
+
+/// A sidebar row's label with its icon in the text's quiet secondary colour (the sidebar would tint it brand blue).
+struct SidebarLabel: View {
+    let title: Text
+    let symbol: String
+
+    init(_ title: LocalizedStringKey, symbol: String) { self.title = Text(title); self.symbol = symbol }
+    init<S: StringProtocol>(_ title: S, symbol: String) { self.title = Text(title); self.symbol = symbol }
+
+    var body: some View {
+        Label { title } icon: {
+            Image(systemName: symbol).foregroundStyle(.secondary)
+        }
     }
 }

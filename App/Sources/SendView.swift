@@ -121,56 +121,106 @@ private struct SendDetail: View {
     let send: SendItem
     @State private var confirmDelete = false
     @State private var revealText = false
+    @State private var copied = false
 
     var body: some View {
         let link = model.sendLink(send)
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "paperplane.fill").font(.system(size: 20)).foregroundStyle(.white)
-                            .frame(width: 46, height: 46)
-                            .background(.white.opacity(0.12), in: .rect(cornerRadius: 13, style: .continuous))
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(send.name).font(.system(size: 24, weight: .bold)).foregroundStyle(.white).lineLimit(1)
-                            Text(status(send)).font(.system(size: 13)).foregroundStyle(.white.opacity(0.7))
-                        }
-                    }
-                    if let link {
-                        Text(verbatim: link.absoluteString)
-                            .font(.system(size: 12, design: .monospaced)).foregroundStyle(.white.opacity(0.85))
-                            .lineLimit(2).truncationMode(.middle).textSelection(.enabled)
-                            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.white.opacity(0.08), in: .rect(cornerRadius: 12, style: .continuous))
-                        HStack(spacing: 10) {
-                            Button { model.copyPlain(link.absoluteString) } label: { Label("Copy Link", systemImage: "link") }
-                                .buttonStyle(HeroButtonStyle(prominent: true))
-                            ShareLink(item: link) { Label("Share…", systemImage: "square.and.arrow.up") }
-                                .buttonStyle(HeroButtonStyle(prominent: false))
-                        }
-                    }
-                }
-                .padding(22)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.hero, in: .rect(cornerRadius: 22, style: .continuous))
-
-                VStack(spacing: 0) {
-                    if send.kind == .text, let text = send.text {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Text").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-                                    .textCase(.uppercase).tracking(0.6)
-                                Spacer()
-                                if send.hideText {
-                                    Button(revealText ? "Hide" : "Reveal") { revealText.toggle() }.buttonStyle(.borderless).font(.caption)
+            VStack(alignment: .leading, spacing: 16) {
+                // Header: the same card language as an item's — tile, name, status, then the link and its actions.
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 14) {
+                        Image(systemName: send.kind == .file ? "doc.fill" : "paperplane.fill")
+                            .font(.system(size: 19, weight: .semibold)).foregroundStyle(.white)
+                            .frame(width: 48, height: 48)
+                            .background(LinearGradient(colors: [Color.brandFill, Color.brandButton], startPoint: .top, endPoint: .bottom),
+                                        in: .rect(cornerRadius: 13, style: .continuous))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(send.name).font(.system(size: 22, weight: .bold)).tracking(-0.3).lineLimit(1)
+                            HStack(spacing: 6) {
+                                Text(status(send))
+                                if send.hasPassword {
+                                    Label("Password", systemImage: "lock.fill").labelStyle(.titleAndIcon)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .padding(.horizontal, 7).frame(height: 18)
+                                        .background(Color.primary.opacity(0.07), in: .capsule)
                                 }
                             }
-                            Text(verbatim: send.hideText && !revealText ? String(repeating: "•", count: min(text.count, 24)) : text)
-                                .font(.system(size: 13)).textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            .font(.system(size: 12)).foregroundStyle(.secondary)
                         }
-                        .padding(16)
+                        Spacer(minLength: 0)
                     }
+                    if let link {
+                        HStack(spacing: 8) {
+                            Image(systemName: "link").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                            Text(verbatim: link.absoluteString)
+                                .font(.system(size: 12, design: .monospaced)).foregroundStyle(.secondary)
+                                .lineLimit(1).truncationMode(.middle).textSelection(.enabled)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 12).frame(height: 38)
+                        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+                        HStack(spacing: 8) {
+                            Button {
+                                model.copyPlain(link.absoluteString)
+                                withAnimation(.snappy) { copied = true }
+                                Task { try? await Task.sleep(for: .seconds(1.5)); withAnimation(.snappy) { copied = false } }
+                            } label: {
+                                Label(copied ? "Copied" : "Copy Link", systemImage: copied ? "checkmark" : "doc.on.doc")
+                                    .contentTransition(.symbolEffect(.replace))
+                            }
+                            .buttonStyle(.appPrimary)
+                            ShareLink(item: link) { Label("Share…", systemImage: "square.and.arrow.up") }
+                                .buttonStyle(.appSecondary)
+                            Button { NSWorkspace.shared.open(link) } label: { Label("Open", systemImage: "arrow.up.right") }
+                                .buttonStyle(.appSecondary)
+                            Spacer(minLength: 0)
+                        }
+                        .labelStyle(.titleAndIcon)
+                    }
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.panelStrong, in: .rect(cornerRadius: 20, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.panelEdge))
+
+                // What's shared.
+                if send.kind == .text, let text = send.text {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Text("Text").font(.system(size: 13, weight: .semibold))
+                            Spacer()
+                            if send.hideText {
+                                Button { withAnimation(.snappy) { revealText.toggle() } } label: {
+                                    Image(systemName: revealText ? "eye.slash" : "eye").font(.system(size: 13, weight: .medium))
+                                        .frame(width: 30, height: 26).contentShape(.rect)
+                                }
+                                .buttonStyle(HeaderIconStyle())
+                                .help(revealText ? Text("Hide") : Text("Reveal"))
+                            }
+                            Button { model.copy(text, label: String(localized: "Text")) } label: {
+                                Image(systemName: "doc.on.doc").font(.system(size: 12, weight: .medium))
+                                    .frame(width: 30, height: 26).contentShape(.rect)
+                            }
+                            .buttonStyle(HeaderIconStyle())
+                            .help(Text("Copy"))
+                        }
+                        Text(verbatim: send.hideText && !revealText ? String(repeating: "•", count: min(text.count, 24)) : text)
+                            .font(.system(size: 13, design: send.hideText && !revealText ? .monospaced : .default))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10, style: .continuous))
+                            .contentTransition(.opacity)
+                    }
+                    .padding(16)
+                    .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
+                }
+
+                // Details.
+                VStack(spacing: 0) {
                     if send.kind == .file {
                         DetailRow(symbol: "doc", title: "File") {
                             Text(verbatim: [send.fileName, send.sizeName].compactMap { $0 }.joined(separator: " · ")).foregroundStyle(.secondary)
@@ -199,12 +249,14 @@ private struct SendDetail: View {
                 .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
 
-                HStack {
+                HStack(spacing: 8) {
                     Spacer()
                     Button("Edit", systemImage: "pencil") { withAnimation(.snappy(duration: 0.25)) { model.editingSend = send } }
                         .buttonStyle(.appSecondary)
-                    Button("Delete Send", role: .destructive) { confirmDelete = true }
+                    Button("Delete Send", systemImage: "trash", role: .destructive) { confirmDelete = true }
+                        .buttonStyle(.appSecondary)
                 }
+                .labelStyle(.titleAndIcon)
             }
             .padding(.horizontal, 18).padding(.vertical, 14)
             .frame(maxWidth: 680).frame(maxWidth: .infinity)
@@ -215,18 +267,6 @@ private struct SendDetail: View {
         } message: {
             Text("The link stops working immediately.")
         }
-    }
-}
-
-private struct HeroButtonStyle: ButtonStyle {
-    let prominent: Bool
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(prominent ? Color.black : .white)
-            .padding(.horizontal, 16).frame(height: 34)
-            .background(prominent ? Color.white : Color.white.opacity(0.12), in: .capsule)
-            .opacity(configuration.isPressed ? 0.75 : 1)
     }
 }
 
