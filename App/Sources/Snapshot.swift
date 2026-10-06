@@ -426,6 +426,12 @@ enum SelfTest {
                 check(model.items.first { $0.id == new.id }?.favorite == true, "toggle favorite")
                 if let starred = model.items.first(where: { $0.id == new.id }) { await model.toggleFavorite(starred) }
                 check(model.items.first { $0.id == new.id }?.favorite == false, "toggle favorite off again")
+                if let item = model.items.first(where: { $0.id == new.id }) { await model.setArchived(item, true) }
+                let archivedItem = model.items.first { $0.id == new.id }
+                check(archivedItem?.isArchived == true && archivedItem.map { VaultSection.archive.includes($0) && !VaultSection.all.includes($0) } == true,
+                      "archive: in Archive, out of All Items")
+                if let archivedItem { await model.setArchived(archivedItem, false) }
+                check(model.items.first { $0.id == new.id }?.isArchived == false, "unarchive")
                 if let item = model.items.first(where: { $0.id == new.id }) { await model.trash(item) }
                 check(model.items.first { $0.id == new.id }?.isDeleted == true, "move to Trash")
                 if let item = model.items.first(where: { $0.id == new.id }) { await model.restore(item) }

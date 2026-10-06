@@ -126,6 +126,11 @@ struct ChiikawardenApp: App {
                 Button("Toggle Favorite") { if let item { Task { await model.toggleFavorite(item) } } }
                     .keyboardShortcut("d", modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
+                Button(item?.isArchived == true ? "Unarchive" : "Archive") {
+                    if let item { Task { await model.setArchived(item, !item.isArchived) } }
+                }
+                .keyboardShortcut("a", modifiers: [.command, .option])
+                .disabled(item == nil || item?.isDeleted == true)
                 Button("Move to Trash…") { if let item { model.confirmTrash(item) } }
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)

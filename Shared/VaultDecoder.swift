@@ -57,6 +57,7 @@ enum VaultDecoder {
             )
             item.revised = Self.date(cipher.revisionDate)
             item.created = Self.date(cipher.creationDate)
+            item.archived = Self.date(cipher.archivedDate)
             // Raw values for the editor, by API name.
             func raw(_ pairs: [(String, String?)]) -> [String: String] {
                 Dictionary(pairs.compactMap { k, v in dec(v).map { (k, $0) } }, uniquingKeysWith: { a, _ in a })

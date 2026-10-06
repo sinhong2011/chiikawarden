@@ -27,7 +27,7 @@ struct MenuBarContent: View {
 
     /// First favourite with a code, else any favourite login, else any code.
     private var featured: VaultItem? {
-        let live = model.items.filter { !$0.isDeleted && $0.kind == .login }
+        let live = model.items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
         return live.first { $0.favorite && $0.totp != nil } ?? live.first { $0.favorite } ?? live.first { $0.totp != nil }
     }
 
@@ -173,7 +173,7 @@ private struct CodesSection: View {
     @State private var copiedID: String?
 
     var body: some View {
-        let items = model.items.filter { !$0.isDeleted && $0.totp != nil }.prefix(5)
+        let items = model.items.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.prefix(5)
         if !items.isEmpty {
             TimelineView(.animation(minimumInterval: 1 / 30)) { context in
                 VStack(alignment: .leading, spacing: 0) {
@@ -279,7 +279,7 @@ private struct SSHRow: View {
 
     var body: some View {
         let agent = model.sshAgent!
-        let keys = model.items.filter { $0.kind == .sshKey && !$0.isDeleted }.count
+        let keys = model.items.filter { $0.kind == .sshKey && !$0.isDeleted && !$0.isArchived }.count
         if agent.isRunning || keys > 0 {
             HStack(spacing: 10) {
                 Image(systemName: "terminal").font(.system(size: 14, weight: .medium))

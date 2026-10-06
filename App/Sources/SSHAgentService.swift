@@ -64,7 +64,7 @@ final class SSHAgentService {
     /// SSH key items from every unlocked account. Empty while locked.
     private func identities() -> [SSHAgentServer.Identity] {
         guard let model else { return [] }
-        return model.items.filter { $0.kind == .sshKey && !$0.isDeleted }.compactMap { item in
+        return model.items.filter { $0.kind == .sshKey && !$0.isDeleted && !$0.isArchived }.compactMap { item in
             guard let pem = item.properties["privateKey"], !pem.isEmpty else { return nil }
             if let cached = parsed[item.id], cached.pem == pem {
                 return SSHAgentServer.Identity(id: item.id, name: item.name, key: cached.key)

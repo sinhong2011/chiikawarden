@@ -25,6 +25,9 @@ struct VaultItem: Identifiable, Hashable {
     /// Decrypted folder name, e.g. "Work/Servers" (nested by "/").
     var folderName: String?
     var isDeleted = false
+    /// When it was archived; archived items stay in the vault but out of the lists, search and AutoFill.
+    var archived: Date?
+    var isArchived: Bool { archived != nil }
     var organizationId: String?
     var collectionIds: [String] = []
     /// When the item was last changed and first created (from the server).

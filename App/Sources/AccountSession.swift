@@ -264,6 +264,18 @@ final class AccountSession {
         try await refresh()
     }
 
+    func archive(_ id: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.archiveCipher(id: id)
+        try await refresh()
+    }
+
+    func unarchive(_ id: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.unarchiveCipher(id: id)
+        try await refresh()
+    }
+
     func restore(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.restoreCipher(id: id)

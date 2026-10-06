@@ -42,7 +42,7 @@ struct CommandPalette: View {
 
     private var items: [VaultItem] {
         guard model.isUnlocked else { return [] }
-        let live = model.items.filter { !$0.isDeleted }
+        let live = model.items.filter { !$0.isDeleted && !$0.isArchived }
         if q.isEmpty { return Array((live.filter(\.favorite) + live.filter { !$0.favorite }).prefix(4)) }
         return Array(live.filter {
             $0.name.localizedCaseInsensitiveContains(q) || ($0.username?.localizedCaseInsensitiveContains(q) ?? false)

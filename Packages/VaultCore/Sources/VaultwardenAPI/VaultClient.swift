@@ -291,6 +291,20 @@ public actor VaultClient {
         _ = try await sendRaw(authorized(r))
     }
 
+    /// Archives an item: kept in the vault, left out of search and AutoFill (Bitwarden 2026.2+, Vaultwarden 1.36+;
+    /// on Bitwarden's cloud a paid plan).
+    public func archiveCipher(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(id)/archive")
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
+    public func unarchiveCipher(id: String) async throws(APIError) {
+        var r = try request(environment.apiURL, "ciphers/\(id)/unarchive")
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
     /// Moves to Trash (restorable).
     public func trashCipher(id: String) async throws(APIError) {
         var r = try request(environment.apiURL, "ciphers/\(id)/delete")

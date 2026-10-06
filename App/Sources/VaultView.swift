@@ -289,37 +289,40 @@ enum SidebarSelection: Hashable {
     func includes(_ item: VaultItem) -> Bool {
         switch self {
         case .watchtower, .sends, .generator, .codes: false
-        case .account(let id): !item.isDeleted && item.accountId == id
+        case .account(let id): !item.isDeleted && !item.isArchived && item.accountId == id
         case .section(let s): s.includes(item)
-        case .folder(let path): !item.isDeleted && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
-        case .organization(let id): !item.isDeleted && item.organizationId == id
-        case .collection(let id): !item.isDeleted && item.collectionIds.contains(id)
+        case .folder(let path): !item.isDeleted && !item.isArchived && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
+        case .organization(let id): !item.isDeleted && !item.isArchived && item.organizationId == id
+        case .collection(let id): !item.isDeleted && !item.isArchived && item.collectionIds.contains(id)
         }
     }
 }
 
 enum VaultSection: Hashable, CaseIterable {
-    case all, favorites, logins, passkeys, sshKeys, cards, notes, trash
+    case all, favorites, logins, passkeys, sshKeys, cards, notes, archive, trash
 
     var title: LocalizedStringKey {
         switch self {
         case .all: "All Items"; case .favorites: "Favorites"; case .logins: "Logins"; case .passkeys: "Passkeys"
-        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .notes: "Secure Notes"; case .trash: "Trash"
+        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .notes: "Secure Notes"; case .archive: "Archive"; case .trash: "Trash"
         }
     }
 
     var symbol: String {
         switch self {
         case .all: "square.grid.2x2"; case .favorites: "star"; case .logins: "key"; case .passkeys: "person.badge.key"
-        case .sshKeys: "terminal"; case .cards: "creditcard"; case .notes: "note.text"; case .trash: "trash"
+        case .sshKeys: "terminal"; case .cards: "creditcard"; case .notes: "note.text"; case .archive: "archivebox"; case .trash: "trash"
         }
     }
 
     func includes(_ item: VaultItem) -> Bool {
         if self == .trash { return item.isDeleted }
         if item.isDeleted { return false }
+        // Archived items live only in Archive (as in Bitwarden): out of every other list.
+        if self == .archive { return item.isArchived }
+        if item.isArchived { return false }
         switch self {
-        case .trash: return true
+        case .trash, .archive: return true
         case .all: return true
         case .favorites: return item.favorite
         case .logins: return item.kind == .login
@@ -353,7 +356,7 @@ private struct Sidebar: View {
                     .badge(model.sends.count)
                     .tag(SidebarSelection.sends)
                 Label("One-Time Codes", systemImage: "clock.badge.checkmark")
-                    .badge(model.items.filter { !$0.isDeleted && $0.totp != nil }.count)
+                    .badge(model.items.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }.count)
                     .tag(SidebarSelection.codes)
                 Label("Generator", systemImage: "dice")
                     .tag(SidebarSelection.generator)
@@ -1107,6 +1110,10 @@ struct ItemDetail: View {
                         withAnimation(.snappy) { reveal.wrappedValue.toggle() }
                     }
                     Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
+                }
+                toolbarButton(item.isArchived ? "archivebox.fill" : "archivebox", help: item.isArchived ? "Unarchive" : "Archive",
+                              spoken: item.isArchived ? "Unarchive" : "Archive") {
+                    Task { await model.setArchived(item, !item.isArchived) }
                 }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)

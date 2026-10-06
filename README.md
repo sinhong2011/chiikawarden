@@ -27,7 +27,8 @@
 ## Features
 
 **Your vault, natively**
-- Logins, secure notes, cards, identities and SSH keys, with folders, favorites, custom fields, attachments and Trash.
+- Logins, secure notes, cards, identities and SSH keys, with folders, favorites, custom fields, attachments, Archive
+  and Trash.
 - Several accounts at once, across servers: self-hosted Vaultwarden or Bitwarden, and Bitwarden cloud (US and EU).
 - Organizations and collections; live sync over WebSocket.
 - Works offline from the encrypted cache; edits go straight to the server.

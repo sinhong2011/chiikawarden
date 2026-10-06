@@ -131,6 +131,8 @@ public struct SyncResponse: Decodable, Sendable {
         public let deletedDate: String?
         public var revisionDate: String? = nil
         public var creationDate: String? = nil
+        /// Set while the item is archived (out of search and AutoFill, still in the vault).
+        public var archivedDate: String? = nil
     }
 
     public struct Login: Decodable, Sendable {

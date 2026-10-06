@@ -109,7 +109,7 @@ final class AutoFillState {
             error = String(localized: "Open Chiikawarden once to download your vault.")
             return
         }
-        items = vaults.flatMap(\.items).filter { !$0.isDeleted && $0.kind == .login }
+        items = vaults.flatMap(\.items).filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         unlocked = true
         error = nil

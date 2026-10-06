@@ -10,7 +10,7 @@ enum AutoFillIdentities {
 
     static func publish(_ items: [VaultItem]) {
         guard isEnabled else { return }
-        let logins = items.filter { !$0.isDeleted && $0.kind == .login }
+        let logins = items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
         var identities: [any ASCredentialIdentity] = logins.compactMap { item in
             guard let host = item.host, item.password != nil else { return nil }
             return ASPasswordCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: host, type: .domain),

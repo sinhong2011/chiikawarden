@@ -84,7 +84,7 @@ final class CLIBridge {
             })
         case .fill:
             guard model.isUnlocked else { return .failure(Self.locked) }
-            guard let item = model.items.first(where: { $0.id == request.query && !$0.isDeleted }) else {
+            guard let item = model.items.first(where: { $0.id == request.query && !$0.isDeleted && !$0.isArchived }) else {
                 return .failure("That login is no longer in your vault.")
             }
             let host = request.url.flatMap(URL.init(string:))?.host() ?? ""
@@ -111,7 +111,7 @@ final class CLIBridge {
             return await model.createItem(.login, edit: edit) ? .success("saved") : .failure("Couldn't save.")
         case .status:
             return .success(model.isUnlocked
-                ? "unlocked · \(model.sessions.count) account(s) · \(model.items.filter { !$0.isDeleted }.count) items"
+                ? "unlocked · \(model.sessions.count) account(s) · \(model.items.filter { !$0.isDeleted && !$0.isArchived }.count) items"
                 : "locked")
         case .generate:
             var generator = PasswordGenerator.saved
@@ -124,7 +124,7 @@ final class CLIBridge {
             guard model.isUnlocked else { return .failure(Self.locked) }
             guard await approve(String(localized: "list your vault items"), peer: peer) else { return .failure(Self.denied) }
             let q = request.query ?? ""
-            let rows = model.items.filter { !$0.isDeleted && (q.isEmpty || Self.matches($0, q)) }.map {
+            let rows = model.items.filter { !$0.isDeleted && !$0.isArchived && (q.isEmpty || Self.matches($0, q)) }.map {
                 CLIResponse.Row(id: $0.id, name: $0.name, detail: $0.username ?? $0.host ?? "")
             }
             return .list(rows)
@@ -188,7 +188,7 @@ final class CLIBridge {
     static func logins(for host: String, in items: [VaultItem]) -> [VaultItem] {
         guard !host.isEmpty else { return [] }
         return items.filter { item in
-            guard !item.isDeleted, item.kind == .login, item.password != nil, let h = item.host?.lowercased() else { return false }
+            guard !item.isDeleted, !item.isArchived, item.kind == .login, item.password != nil, let h = item.host?.lowercased() else { return false }
             return h == host || host.hasSuffix("." + h) || h.hasSuffix("." + host)
         }
     }
@@ -204,7 +204,7 @@ final class CLIBridge {
 
     /// Id, then exact name, then a unique partial match.
     static func resolve(_ query: String, in items: [VaultItem]) -> Result<VaultItem, Message> {
-        let live = items.filter { !$0.isDeleted }
+        let live = items.filter { !$0.isDeleted && !$0.isArchived }
         if let byID = live.first(where: { $0.id == query }) { return .success(byID) }
         let exact = live.filter { $0.name.caseInsensitiveCompare(query) == .orderedSame }
         if exact.count == 1 { return .success(exact[0]) }

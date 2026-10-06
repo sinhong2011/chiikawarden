@@ -7,7 +7,7 @@ struct CodesPane: View {
     @State private var copiedID: String?
 
     private var items: [VaultItem] {
-        model.items.filter { !$0.isDeleted && $0.totp != nil }
+        model.items.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }
             .sorted { ($0.favorite ? 0 : 1, $0.name) < ($1.favorite ? 0 : 1, $1.name) }
     }
 

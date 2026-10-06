@@ -840,6 +840,26 @@ final class AppModel {
         } catch { _ = failed(error) }
     }
 
+    /// Archive: keep the item, but out of the lists, search and AutoFill. Unarchive brings it back.
+    func setArchived(_ item: VaultItem, _ archived: Bool) async {
+        if sessions.isEmpty, previewUnlocked, let i = items.firstIndex(where: { $0.id == item.id }) {
+            items[i].archived = archived ? .now : nil // demo vault: no server
+            return
+        }
+        guard let session = session(for: item) else { _ = offline(); return }
+        do {
+            if archived { try await session.archive(item.id) } else { try await session.unarchive(item.id) }
+            flash(archived ? String(localized: "Archived") : String(localized: "Moved out of the archive"))
+        } catch {
+            // Older servers (Vaultwarden before 1.36) don't know the endpoint; Bitwarden's cloud needs a paid plan.
+            if case APIError.http(let status, _)? = error as? APIError, status == 404 || status == 405 {
+                flash(String(localized: "This server doesn't support archiving yet."))
+            } else {
+                _ = failed(error)
+            }
+        }
+    }
+
     func deleteForever(_ item: VaultItem) async {
         guard let session = session(for: item) else { _ = offline(); return }
         do {

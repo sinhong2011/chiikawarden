@@ -59,7 +59,7 @@ struct VaultItemQuery: EntityStringQuery {
 
     @MainActor func entities(matching string: String) async throws -> [VaultItemEntity] {
         try model.items.filter {
-            !$0.isDeleted && ($0.name.localizedCaseInsensitiveContains(string)
+            !$0.isDeleted && !$0.isArchived && ($0.name.localizedCaseInsensitiveContains(string)
                 || ($0.username?.localizedCaseInsensitiveContains(string) ?? false)
                 || ($0.host?.localizedCaseInsensitiveContains(string) ?? false))
         }
@@ -67,7 +67,7 @@ struct VaultItemQuery: EntityStringQuery {
     }
 
     @MainActor func suggestedEntities() async throws -> [VaultItemEntity] {
-        let items = try model.items.filter { !$0.isDeleted && $0.kind == .login }
+        let items = try model.items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
         return (items.filter(\.favorite) + items.filter { !$0.favorite }).prefix(20).map(VaultItemEntity.init)
     }
 }
