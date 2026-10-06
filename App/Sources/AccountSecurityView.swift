@@ -14,6 +14,9 @@ struct AccountSecuritySections: View {
     /// Why two-step login couldn't load, and why the devices couldn't (each its own, with the server's words).
     @State private var error: String?
     @State private var devicesError: String?
+    /// Bitwarden's cloud answers 403 here: it lets only its own web vault change two-step login (the official
+    /// desktop app sends you there too). Vaultwarden has no such rule.
+    @State private var twoFactorWebOnly = false
     @State private var sheet: Sheet?
 
     enum Sheet: Identifiable {
@@ -63,6 +66,10 @@ struct AccountSecuritySections: View {
         do {
             providers = try await session.twoFactorProviders()
             error = nil
+            twoFactorWebOnly = false
+        } catch APIError.http(403, _) {
+            error = nil
+            twoFactorWebOnly = true
         } catch {
             self.error = String(localized: "Couldn't load two-step login: \(problem(error))")
         }
@@ -109,6 +116,37 @@ struct AccountSecuritySections: View {
 
     private func twoFactorSection(_ session: AccountSession) -> some View {
         Section {
+            if twoFactorWebOnly {
+                LabeledContent {
+                    if let web = session.webVault {
+                        Button("Open Web Vault") {
+                            NSWorkspace.shared.open(URL(string: web.absoluteString + "/#/settings/security/two-factor") ?? web)
+                        }
+                    }
+                } label: {
+                    Label {
+                        Text("Change it in the web vault")
+                        Text("Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } icon: {
+                        Image(systemName: "safari").foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                twoFactorRows(session)
+            }
+        } header: {
+            HStack {
+                Text("Two-step login")
+                if loading { ProgressView().controlSize(.mini) }
+            }
+        } footer: {
+            Text("A second step after your master password when you sign in on a new device. Keep the recovery code somewhere safe: it turns two-step login off if you lose every method.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func twoFactorRows(_ session: AccountSession) -> some View {
             providerRow(type: 0, name: "Authenticator app", symbol: "clock.badge.checkmark", setup: .authenticator)
             providerRow(type: 1, name: "Email", symbol: "envelope", setup: .email)
             ForEach([(7, "Passkey or security key"), (3, "YubiKey OTP"), (2, "Duo")], id: \.0) { type, name in
@@ -129,15 +167,6 @@ struct AccountSecuritySections: View {
                     Label("Recovery code", systemImage: "lifepreserver")
                 }
             }
-        } header: {
-            HStack {
-                Text("Two-step login")
-                if loading { ProgressView().controlSize(.mini) }
-            }
-        } footer: {
-            Text("A second step after your master password when you sign in on a new device. Keep the recovery code somewhere safe: it turns two-step login off if you lose every method.")
-                .font(.caption).foregroundStyle(.secondary)
-        }
     }
 
     private func providerRow(type: Int, name: LocalizedStringKey, symbol: String, setup: Sheet) -> some View {

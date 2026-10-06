@@ -63,6 +63,62 @@
         }
       }
     },
+    "Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden では、2 段階ログインのオン・オフは Web 保管庫でのみ行えます（公式デスクトップアプリも同じです）。認証アプリのコードはここでも使えます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 只允许在其网页版密码库开启或关闭两步登录，其官方桌面版也是如此。验证器生成的验证码在这里仍可使用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 只允許在其網頁版保險庫開啟或關閉兩步驟登入，其官方桌面版也是如此。驗證器產生的驗證碼在這裡仍可使用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 淨係容許喺佢嘅網頁版保險庫開啟或者關閉兩步驟登入，佢自己嘅桌面版都係咁。驗證器嘅驗證碼喺度照用得。"
+          }
+        }
+      }
+    },
+    "Change it in the web vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web 保管庫で変更してください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在网页版密码库中更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在網頁版保險庫中更改"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺網頁版保險庫更改"
+          }
+        }
+      }
+    },
     "Deleted in ^[%lld day](inflect: true)" : {
       "localizations" : {
         "ja" : {
