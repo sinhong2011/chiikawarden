@@ -275,23 +275,35 @@ private struct VaultDoorArt: View, Animatable {
     @ViewBuilder private var glyphSymbols: some View {
         let p = DoorPalette(dark: dark)
         let glow = p.glow(alert: alert)
-        let looks: [Color] = [p.engraveLip, p.engrave.opacity(0.8), glow(1)]
-        let size = radius * 0.062
-        ForEach(0..<3, id: \.self) { look in
-            ForEach(0..<12, id: \.self) { i in
-                Text(String(Self.runes[i])).font(.custom("Apple Symbols", size: size)).foregroundStyle(looks[look])
-                    .tag("rune-\(i)-\(look)")
-                // U+FE0E asks for the text form, not the emoji.
-                Text(String(Self.zodiac[i]) + "\u{FE0E}").font(.custom("Apple Symbols", size: size)).foregroundStyle(looks[look])
-                    .tag("zodiac-\(i)-\(look)")
+        // One flat list with a unique id per symbol (nested ForEach ranges would repeat ids, which Canvas rejects).
+        ForEach(Self.glyphIDs, id: \.self) { id in
+            let parts = id.split(separator: "-")
+            let kind = parts[0], i = Int(parts[1]) ?? 0, look = Int(parts[2]) ?? 0
+            let color: Color = switch look {
+            case 0: p.engraveLip
+            case 1: kind == "icon" ? p.engrave.opacity(0.75) : p.engrave.opacity(0.8)
+            default: glow(1)
             }
-            ForEach(0..<6, id: \.self) { i in
-                Image(systemName: Self.runeSymbols[i]).resizable().scaledToFit()
-                    .frame(width: radius * 0.064, height: radius * 0.064)
-                    .foregroundStyle(look == 1 ? p.engrave.opacity(0.75) : looks[look])
-                    .tag("icon-\(i)-\(look)")
+            Group {
+                switch kind {
+                case "rune":
+                    Text(String(Self.runes[i])).font(.custom("Apple Symbols", size: radius * 0.062))
+                case "zodiac":
+                    // U+FE0E asks for the text form, not the emoji.
+                    Text(String(Self.zodiac[i]) + "\u{FE0E}").font(.custom("Apple Symbols", size: radius * 0.062))
+                default:
+                    Image(systemName: Self.runeSymbols[i]).resizable().scaledToFit()
+                        .frame(width: radius * 0.064, height: radius * 0.064)
+                }
             }
+            .foregroundStyle(color)
+            .tag(id)
         }
+    }
+
+    /// "rune-3-1": the glyph kind, its index, and the look (0 lip, 1 cut, 2 glow).
+    private static let glyphIDs: [String] = (0..<3).flatMap { look in
+        (0..<12).flatMap { ["rune-\($0)-\(look)", "zodiac-\($0)-\(look)"] } + (0..<6).map { "icon-\($0)-\(look)" }
     }
 
     /// The glyphs resolved for this frame (cheap: the layout is already done).
