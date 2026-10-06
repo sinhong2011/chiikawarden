@@ -14,6 +14,16 @@ struct Shortcut: Codable, Equatable {
     /// own window ⌘K opens the palette too.
     static let paletteDefault = Shortcut(keyCode: UInt32(kVK_Space), modifiers: UInt32(cmdKey | shiftKey), key: "Space")
 
+    /// Each key on its own, for keycaps: ⌃ ⌥ ⇧ ⌘ then the key.
+    var parts: [String] {
+        var out: [String] = []
+        if modifiers & UInt32(controlKey) != 0 { out.append("⌃") }
+        if modifiers & UInt32(optionKey) != 0 { out.append("⌥") }
+        if modifiers & UInt32(shiftKey) != 0 { out.append("⇧") }
+        if modifiers & UInt32(cmdKey) != 0 { out.append("⌘") }
+        return out + [key]
+    }
+
     var display: String {
         var s = ""
         if modifiers & UInt32(controlKey) != 0 { s += "⌃" }

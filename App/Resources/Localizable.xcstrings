@@ -707,6 +707,34 @@
         }
       }
     },
+    "Record Shortcut" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ショートカットを記録"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制快捷键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄製快速鍵"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錄製快捷鍵"
+          }
+        }
+      }
+    },
     "Reused" : {
       "localizations" : {
         "ja" : {

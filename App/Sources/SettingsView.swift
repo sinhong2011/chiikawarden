@@ -840,30 +840,70 @@ private struct ShortcutRecorder: View {
         _shortcut = State(initialValue: Shortcut.current(for: action))
     }
 
+    @State private var hovering = false
+    @Environment(\.colorScheme) private var scheme
+
+    /// A field like System Settings' shortcut fields: the keys as keycaps; empty, a dashed "Record Shortcut"; while
+    /// recording, a firmer outline. Clear shows on hover; reset and clear are also in its context menu.
     var body: some View {
-        HStack(spacing: 6) {
-            if let problem { Text(verbatim: problem).font(.caption).foregroundStyle(.orange).lineLimit(2) }
+        let dark = scheme == .dark
+        VStack(alignment: .trailing, spacing: 4) {
             Button { recording ? stop() : start() } label: {
-                Text(recording ? String(localized: "Type shortcut…") : shortcut?.display ?? String(localized: "None"))
-                    .font(.system(size: 12, weight: .semibold, design: recording || shortcut == nil ? .default : .rounded))
-                    .foregroundStyle(recording || shortcut == nil ? Color.secondary : .primary)
-                    .frame(minWidth: 96)
+                HStack(spacing: 4) {
+                    if recording {
+                        Text("Type shortcut…").foregroundStyle(.secondary)
+                    } else if let shortcut {
+                        ForEach(Array(shortcut.parts.enumerated()), id: \.offset) { _, key in
+                            Text(verbatim: key)
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.primary)
+                                .padding(.horizontal, 5).frame(minWidth: 20, minHeight: 20)
+                                .background(Color.primary.opacity(dark ? 0.12 : 0.07), in: .rect(cornerRadius: 5, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.06)))
+                        }
+                    } else {
+                        Text("Record Shortcut").foregroundStyle(.tertiary)
+                    }
+                }
+                .font(.system(size: 12, weight: .medium))
+                .frame(width: 148, height: 30)
+                .background(Color.primary.opacity(recording ? 0.06 : shortcut == nil ? 0 : 0.03),
+                            in: .rect(cornerRadius: 8, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(recording ? Color.primary.opacity(0.45) : problem != nil ? Color.orange.opacity(0.7)
+                                      : Color.primary.opacity(shortcut == nil ? 0.18 : 0.1),
+                                      style: StrokeStyle(lineWidth: recording ? 1.5 : 1, dash: shortcut == nil && !recording ? [3, 3] : []))
+                }
+                .overlay(alignment: .trailing) {
+                    if shortcut != nil, hovering, !recording {
+                        Button { apply(nil) } label: {
+                            Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 7)
+                        .help(Text("Turn off"))
+                        .accessibilityLabel(Text("Turn off"))
+                        .transition(.opacity)
+                    }
+                }
+                .contentShape(.rect)
             }
-            .buttonStyle(.appSecondarySmall)
-            // Fixed slots, so every row's button lines up whether or not these show.
-            Button { apply(nil) } label: { Image(systemName: "xmark.circle.fill") }
-                .buttonStyle(.borderless).foregroundStyle(.tertiary)
-                .help(Text("Turn off"))
-                .accessibilityLabel(Text("Turn off"))
-                .frame(width: 16)
-                .opacity(shortcut == nil ? 0 : 1).disabled(shortcut == nil)
-            let initial = action.defaultShortcut
-            Button { apply(initial) } label: { Image(systemName: "arrow.uturn.backward") }
-                .buttonStyle(.borderless)
-                .help(Text("Reset to \(initial?.display ?? "")"))
-                .accessibilityLabel(Text("Reset to \(initial?.display ?? "")"))
-                .frame(width: 16)
-                .opacity(initial == nil || shortcut == initial ? 0 : 1).disabled(initial == nil || shortcut == initial)
+            .buttonStyle(.plain)
+            .onHover { inside in withAnimation(.easeOut(duration: 0.12)) { hovering = inside } }
+            .animation(.easeOut(duration: 0.15), value: recording)
+            .contextMenu {
+                if let initial = action.defaultShortcut, shortcut != initial {
+                    Button("Reset to \(initial.display)") { apply(initial) }
+                }
+                if shortcut != nil { Button("Turn off") { apply(nil) } }
+            }
+            .accessibilityLabel(Text(action.title))
+            .accessibilityValue(Text(verbatim: shortcut?.display ?? ""))
+            if let problem {
+                Text(verbatim: problem).font(.caption).foregroundStyle(.orange).lineLimit(2)
+            }
         }
         .onDisappear(perform: stop)
     }
