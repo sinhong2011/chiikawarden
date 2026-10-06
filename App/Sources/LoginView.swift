@@ -391,21 +391,19 @@ private struct ServerStatusLine: View {
 /// "Custom environment": per-service URLs for self-hosted servers. Empty fields derive from the server URL.
 private struct CustomEnvironmentFields: View {
     @Environment(AppModel.self) private var model
-    @State private var expanded = false
+    @State private var editing = false
 
     var body: some View {
-        @Bindable var model = model
-        VStack(alignment: .leading, spacing: 10) {
-            Button {
-                withAnimation(.snappy(duration: 0.25)) { expanded.toggle() }
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9, weight: .bold))
-                        .rotationEffect(.degrees(expanded ? 90 : 0))
-                    Text("Custom environment")
-                    if model.hasCustomURLs && !expanded {
-                        Text("· in use").foregroundStyle(Color.brand)
+        VStack(alignment: .leading, spacing: 8) {
+            // A quiet button; the five URLs are edited in a sheet.
+            Button { editing = true } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "slider.horizontal.3").font(.system(size: 11, weight: .semibold))
+                    Text("Custom environment…")
+                    if model.hasCustomURLs {
+                        Text("In use").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color.brand)
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Color.brandFill.opacity(0.2), in: .capsule)
                     }
                 }
                 .font(.system(size: 12, weight: .medium))
@@ -413,25 +411,70 @@ private struct CustomEnvironmentFields: View {
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
-
-            if expanded {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Only if your services live on different URLs. Leave empty to use the server URL.")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                    row("Web vault", $model.customWebVault, derived(""))
-                    row("API", $model.customAPI, derived("/api"))
-                    row("Identity", $model.customIdentity, derived("/identity"))
-                    row("Icons", $model.customIcons, derived("/icons"))
-                    row("Notifications", $model.customNotifications, derived("/notifications"))
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
             if let problem = model.serverURLProblem {
                 Label(problem, systemImage: "exclamationmark.triangle.fill")
                     .font(.system(size: 11)).foregroundStyle(.orange)
             }
         }
-        .onAppear { expanded = model.hasCustomURLs }
+        .sheet(isPresented: $editing) { CustomEnvironmentSheet() }
+    }
+}
+
+/// The per-service URLs for self-hosted servers whose services live on different addresses.
+struct CustomEnvironmentSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    /// What was there when the sheet opened, for Cancel.
+    @State private var original: [String] = []
+
+    var body: some View {
+        @Bindable var model = model
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(Color.brand)
+                    .frame(width: 38, height: 38)
+                    .background(Color.brandFill.opacity(0.22), in: .circle)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Custom environment").font(.system(size: 17, weight: .semibold))
+                    Text("Only if your services live on different URLs. Leave a field empty to use the server URL.")
+                        .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                field("Web vault", $model.customWebVault, derived(""))
+                field("API", $model.customAPI, derived("/api"))
+                field("Identity", $model.customIdentity, derived("/identity"))
+                field("Icons", $model.customIcons, derived("/icons"))
+                field("Notifications", $model.customNotifications, derived("/notifications"))
+            }
+            if let problem = model.serverURLProblem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill").font(.system(size: 12)).foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Button("Clear All") {
+                    model.customWebVault = ""; model.customAPI = ""; model.customIdentity = ""
+                    model.customIcons = ""; model.customNotifications = ""
+                }
+                .buttonStyle(.appSecondary)
+                .disabled(!model.hasCustomURLs)
+                Spacer()
+                Button("Cancel") { restore(); dismiss() }.buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
+                Button("Done") { dismiss() }.buttonStyle(.appPrimary).keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(24)
+        .frame(width: 480)
+        .onAppear {
+            original = [model.customWebVault, model.customAPI, model.customIdentity, model.customIcons, model.customNotifications]
+        }
+    }
+
+    private func restore() {
+        guard original.count == 5 else { return }
+        model.customWebVault = original[0]; model.customAPI = original[1]; model.customIdentity = original[2]
+        model.customIcons = original[3]; model.customNotifications = original[4]
     }
 
     /// What an empty field will use: the server URL (or web vault) plus the service path.
@@ -440,12 +483,11 @@ private struct CustomEnvironmentFields: View {
         return root.map { $0.absoluteString + suffix } ?? String(localized: "Server URL") + suffix
     }
 
-    private func row(_ label: LocalizedStringKey, _ text: Binding<String>, _ placeholder: String) -> some View {
-        HStack(spacing: 10) {
-            Text(label).font(.system(size: 12)).foregroundStyle(.secondary).frame(width: 92, alignment: .leading)
+    private func field(_ label: LocalizedStringKey, _ text: Binding<String>, _ placeholder: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
             TextField(label, text: text, prompt: Text(verbatim: placeholder).foregroundStyle(.tertiary))
-                .textFieldStyle(SoftFieldStyle(height: 30))
-                .font(.system(size: 12))
+                .textFieldStyle(SoftFieldStyle())
                 .labelsHidden()
                 .textContentType(.URL)
         }

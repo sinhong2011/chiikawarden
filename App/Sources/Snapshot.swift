@@ -37,6 +37,8 @@ enum Snapshot {
         custom.customNotifications = "http://push.example.com"
         render(desktop(LoginView().environment(custom).tint(.brand), dark: false),
                size: CGSize(width: 900, height: 760), appearance: .aqua, to: dir.appending(path: "login-custom-light.png"))
+        render(desktop(CustomEnvironmentSheet().environment(custom).tint(.brand), dark: false),
+               size: CGSize(width: 480, height: 520), appearance: .aqua, to: dir.appending(path: "custom-env-light.png"))
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(UnlockView().environment(model).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 900, height: 600), appearance: appearance,
