@@ -272,6 +272,7 @@ struct VaultView: View {
         }
         .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
         .overlay(alignment: .bottom) { ToastView() }
+        .overlay(alignment: .bottomTrailing) { ClipboardCountdown() }
         .onAppear {
             if let initialSection { section = initialSection }
             selectFirst()
@@ -473,7 +474,6 @@ private struct SidebarAccountCard: View {
                         Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                             .contentTransition(.opacity)
                         SyncStatusText().font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
-                            .animation(.snappy(duration: 0.3), value: model.clipboardClearsAt)
                     }
                     Spacer(minLength: 0)
                     Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
@@ -691,17 +691,7 @@ private struct SyncStatusText: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        if let clears = model.clipboardClearsAt {
-            // A copied secret waits on the clipboard: count it down.
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                let left = max(0, Int(clears.timeIntervalSince(context.date).rounded(.up)))
-                Text("Clipboard clears in \(left) s")
-                    .monospacedDigit()
-                    .contentTransition(.numericText(countsDown: true))
-                    .animation(.snappy, value: left)
-            }
-            .transition(.opacity.combined(with: .move(edge: .bottom)))
-        } else if model.isSyncing {
+        if model.isSyncing {
             Text("Syncing…")
         } else if let date = model.lastSynced {
             TimelineView(.periodic(from: .now, by: 30)) { context in
@@ -1698,6 +1688,56 @@ struct ToastView: View {
         }
         .padding(.bottom, 28)
         .animation(.spring(duration: 0.35, bounce: 0.35), value: model.toast)
+    }
+}
+
+/// Bottom right while a copied secret waits on the clipboard: a ring draining to the moment it's cleared, the seconds
+/// counting down. Clicking clears it now.
+private struct ClipboardCountdown: View {
+    @Environment(AppModel.self) private var model
+    @State private var hovering = false
+
+    var body: some View {
+        ZStack {
+            if let clears = model.clipboardClearsAt, let total = model.clipboardHoldSeconds {
+                Button { model.clearClipboardNow() } label: {
+                    TimelineView(.animation(minimumInterval: 1 / 15)) { context in
+                        let remaining = max(0, clears.timeIntervalSince(context.date))
+                        let left = Int(remaining.rounded(.up))
+                        HStack(spacing: 7) {
+                            ZStack {
+                                Circle().stroke(Color.primary.opacity(0.12), lineWidth: 2)
+                                Circle().trim(from: 1 - remaining / total, to: 1)
+                                    .stroke(Color.secondary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                                    .rotationEffect(.degrees(-90))
+                            }
+                            .frame(width: 13, height: 13)
+                            Group {
+                                if hovering {
+                                    Text("Clear Clipboard Now")
+                                } else {
+                                    Text("Clipboard clears in \(left) s")
+                                        .monospacedDigit()
+                                        .contentTransition(.numericText(countsDown: true))
+                                }
+                            }
+                            .transition(.opacity)
+                        }
+                        .animation(.snappy, value: left)
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10).frame(height: 26)
+                    .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+                    .contentShape(.capsule)
+                }
+                .buttonStyle(.plain)
+                .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
+                .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)))
+            }
+        }
+        .padding(.trailing, 18).padding(.bottom, 16)
+        .animation(.spring(duration: 0.35, bounce: 0.25), value: model.clipboardClearsAt)
     }
 }
 

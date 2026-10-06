@@ -515,6 +515,10 @@ final class AppModel {
     var copyCount = 0
     /// When the clipboard empties itself (Settings › Security), while a copied secret is still waiting there.
     var clipboardClearsAt: Date?
+    /// How long it was set to wait, for the countdown's ring.
+    var clipboardHoldSeconds: Double?
+    /// The pasteboard's change count right after our copy: anything newer was copied by someone else, so it stays.
+    @ObservationIgnored private var copiedChange = 0
     /// The item just created, for its row to pop as it lands in the list.
     var arrivedID: String?
     private var toastTask: Task<Void, Never>?
@@ -712,11 +716,13 @@ final class AppModel {
             pb.setString("", forType: concealed)
         }
         let change = pb.changeCount
+        copiedChange = change
         let seconds = UserDefaults.standard.integer(forKey: Pref.clipboardSeconds)
         clearTask?.cancel()
         copyCount += 1
         if seconds > 0 {
             clipboardClearsAt = .now.addingTimeInterval(TimeInterval(seconds))
+            clipboardHoldSeconds = Double(seconds)
             clearTask = Task {
                 try? await Task.sleep(for: .seconds(seconds))
                 guard !Task.isCancelled else { return }
@@ -735,6 +741,15 @@ final class AppModel {
             try? await Task.sleep(for: .seconds(1.8))
             if !Task.isCancelled { toast = nil; toastAction = nil }
         }
+    }
+
+    /// Empties the clipboard before its time (the countdown's button), if what we copied is still there.
+    func clearClipboardNow() {
+        clearTask?.cancel()
+        clearTask = nil
+        if clipboardClearsAt != nil, NSPasteboard.general.changeCount == copiedChange { NSPasteboard.general.clearContents() }
+        clipboardClearsAt = nil
+        flash(String(localized: "Clipboard cleared"))
     }
 
     /// Shows an item's password in big letters, to type it on another device.

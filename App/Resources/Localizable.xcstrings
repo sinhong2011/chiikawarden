@@ -7,286 +7,6 @@
     " " : {
 
     },
-    "Anyone who gets this file can read every password in it. Keep it off shared and synced folders, and delete it when you're done. To keep a backup, choose Password-protected." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このファイルを手に入れた人は誰でも、中のすべてのパスワードを読めます。共有・同期フォルダには置かず、使い終わったら削除してください。バックアップには「パスワード保護」を選んでください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任何获得此文件的人都能读取其中所有密码。请勿放在共享或同步的文件夹，用完后删除。如需保留备份，请选择“密码保护”。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任何取得此檔案的人都能讀取其中所有密碼。請勿放在共享或同步的資料夾，用完後刪除。如要保留備份，請選擇「密碼保護」。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任何攞到呢個檔案嘅人都可以睇到入面所有密碼。唔好放喺共享或者同步嘅資料夾，用完就刪除。想保留備份嘅話，請揀「密碼保護」。"
-          }
-        }
-      }
-    },
-    "Bitwarden deletes items for good %lld days after they go to the Trash." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden はゴミ箱に入れてから %lld 日後に項目を完全に削除します。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 会在项目移至废纸篓 %lld 天后将其永久删除。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 會在項目移至垃圾桶 %lld 天後將其永久刪除。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 會喺項目放入垃圾桶 %lld 日之後永久刪除。"
-          }
-        }
-      }
-    },
-    "Bitwarden deletes items for good %lld days after they go to the Trash. Your own server keeps them until you delete them, unless its admin set it to empty the Trash." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden はゴミ箱に入れてから %lld 日後に項目を完全に削除します。自分のサーバーでは、管理者がゴミ箱の自動削除を設定していない限り、削除するまで残ります。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 会在项目移至废纸篓 %lld 天后将其永久删除。你自己的服务器会一直保留，直到你删除为止，除非管理员设置了自动清空废纸篓。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 會在項目移至垃圾桶 %lld 天後將其永久刪除。你自己的伺服器會一直保留，直到你刪除為止，除非管理員設定了自動清空垃圾桶。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 會喺項目放入垃圾桶 %lld 日之後永久刪除。你自己嘅伺服器會一直保留，直到你刪除為止，除非管理員設定咗自動清空垃圾桶。"
-          }
-        }
-      }
-    },
-    "Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden では、2 段階ログインのオン・オフは Web 保管庫でのみ行えます（公式デスクトップアプリも同じです）。認証アプリのコードはここでも使えます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 只允许在其网页版密码库开启或关闭两步登录，其官方桌面版也是如此。验证器生成的验证码在这里仍可使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 只允許在其網頁版保險庫開啟或關閉兩步驟登入，其官方桌面版也是如此。驗證器產生的驗證碼在這裡仍可使用。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitwarden 淨係容許喺佢嘅網頁版保險庫開啟或者關閉兩步驟登入，佢自己嘅桌面版都係咁。驗證器嘅驗證碼喺度照用得。"
-          }
-        }
-      }
-    },
-    "Change it in the web vault" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Web 保管庫で変更してください"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在网页版密码库中更改"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請在網頁版保險庫中更改"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喺網頁版保險庫更改"
-          }
-        }
-      }
-    },
-    "Deleted in ^[%lld day](inflect: true)" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 日後に削除"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 天后删除"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 天後刪除"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 日後刪除"
-          }
-        }
-      }
-    },
-    "Deleted today" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日削除"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天删除"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天刪除"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日刪除"
-          }
-        }
-      }
-    },
-    "In Trash until %@, when Bitwarden deletes it for good. Restore it to use it again." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゴミ箱にあります。%@ に Bitwarden が完全に削除します。元に戻すと再び使えます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在废纸篓中，Bitwarden 将于 %@ 永久删除。恢复即可再次使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在垃圾桶中，Bitwarden 將於 %@ 永久刪除。還原即可再次使用。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喺垃圾桶入面，Bitwarden 會喺 %@ 永久刪除。還原就可以再用。"
-          }
-        }
-      }
-    },
-    "Items stay here until you delete them, unless your server's admin set it to empty the Trash after a while." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "サーバーの管理者が一定期間後にゴミ箱を空にする設定をしていない限り、削除するまでここに残ります。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "项目会一直保留在此，直到你删除为止，除非服务器管理员设置了一段时间后自动清空废纸篓。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目會一直保留在此，直到你刪除為止，除非伺服器管理員設定了一段時間後自動清空垃圾桶。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目會一直留喺度，直到你刪除為止，除非伺服器管理員設定咗一段時間之後自動清空垃圾桶。"
-          }
-        }
-      }
-    },
-    "Not encrypted" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暗号化されていません"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未加密"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未加密"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "冇加密"
-          }
-        }
-      }
-    },
     "· in use" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3394,6 +3114,34 @@
         }
       }
     },
+    "Anyone who gets this file can read every password in it. Keep it off shared and synced folders, and delete it when you're done. To keep a backup, choose Password-protected." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルを手に入れた人は誰でも、中のすべてのパスワードを読めます。共有・同期フォルダには置かず、使い終わったら削除してください。バックアップには「パスワード保護」を選んでください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何获得此文件的人都能读取其中所有密码。请勿放在共享或同步的文件夹，用完后删除。如需保留备份，请选择“密码保护”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何取得此檔案的人都能讀取其中所有密碼。請勿放在共享或同步的資料夾，用完後刪除。如要保留備份，請選擇「密碼保護」。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何攞到呢個檔案嘅人都可以睇到入面所有密碼。唔好放喺共享或者同步嘅資料夾，用完就刪除。想保留備份嘅話，請揀「密碼保護」。"
+          }
+        }
+      }
+    },
     "Anywhere" : {
       "localizations" : {
         "ja" : {
@@ -4357,6 +4105,62 @@
         }
       }
     },
+    "Bitwarden deletes items for good %lld days after they go to the Trash." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden はゴミ箱に入れてから %lld 日後に項目を完全に削除します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 会在项目移至废纸篓 %lld 天后将其永久删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 會在項目移至垃圾桶 %lld 天後將其永久刪除。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 會喺項目放入垃圾桶 %lld 日之後永久刪除。"
+          }
+        }
+      }
+    },
+    "Bitwarden deletes items for good %lld days after they go to the Trash. Your own server keeps them until you delete them, unless its admin set it to empty the Trash." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden はゴミ箱に入れてから %lld 日後に項目を完全に削除します。自分のサーバーでは、管理者がゴミ箱の自動削除を設定していない限り、削除するまで残ります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 会在项目移至废纸篓 %lld 天后将其永久删除。你自己的服务器会一直保留，直到你删除为止，除非管理员设置了自动清空废纸篓。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 會在項目移至垃圾桶 %lld 天後將其永久刪除。你自己的伺服器會一直保留，直到你刪除為止，除非管理員設定了自動清空垃圾桶。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 會喺項目放入垃圾桶 %lld 日之後永久刪除。你自己嘅伺服器會一直保留，直到你刪除為止，除非管理員設定咗自動清空垃圾桶。"
+          }
+        }
+      }
+    },
     "Bitwarden emailed a verification code to %@." : {
       "localizations" : {
         "ja" : {
@@ -4522,6 +4326,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bitwarden JSON，密碼保護"
+          }
+        }
+      }
+    },
+    "Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden では、2 段階ログインのオン・オフは Web 保管庫でのみ行えます（公式デスクトップアプリも同じです）。認証アプリのコードはここでも使えます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 只允许在其网页版密码库开启或关闭两步登录，其官方桌面版也是如此。验证器生成的验证码在这里仍可使用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 只允許在其網頁版保險庫開啟或關閉兩步驟登入，其官方桌面版也是如此。驗證器產生的驗證碼在這裡仍可使用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitwarden 淨係容許喺佢嘅網頁版保險庫開啟或者關閉兩步驟登入，佢自己嘅桌面版都係咁。驗證器嘅驗證碼喺度照用得。"
           }
         }
       }
@@ -5061,6 +4893,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在系統設定中更改…"
+          }
+        }
+      }
+    },
+    "Change it in the web vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web 保管庫で変更してください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在网页版密码库中更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在網頁版保險庫中更改"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺網頁版保險庫更改"
           }
         }
       }
@@ -6157,6 +6017,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剪貼簿"
+          }
+        }
+      }
+    },
+    "Clipboard clears in %lld s" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードは %lld 秒後に消去"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板将在 %lld 秒后清除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪貼簿將在 %lld 秒後清除"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪貼簿 %lld 秒後清除"
           }
         }
       }
@@ -9219,6 +9107,34 @@
         }
       }
     },
+    "Deleted in ^[%lld day](inflect: true)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日後に削除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天后删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天後刪除"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日後刪除"
+          }
+        }
+      }
+    },
     "Deleted permanently" : {
       "localizations" : {
         "ja" : {
@@ -9243,6 +9159,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已永久刪除"
+          }
+        }
+      }
+    },
+    "Deleted today" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日削除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天刪除"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日刪除"
           }
         }
       }
@@ -13294,6 +13238,34 @@
         }
       }
     },
+    "In Trash until %@, when Bitwarden deletes it for good. Restore it to use it again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゴミ箱にあります。%@ に Bitwarden が完全に削除します。元に戻すと再び使えます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在废纸篓中，Bitwarden 将于 %@ 永久删除。恢复即可再次使用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在垃圾桶中，Bitwarden 將於 %@ 永久刪除。還原即可再次使用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺垃圾桶入面，Bitwarden 會喺 %@ 永久刪除。還原就可以再用。"
+          }
+        }
+      }
+    },
     "In Trash. Restore it to use it again, or delete it forever." : {
       "localizations" : {
         "ja" : {
@@ -13766,6 +13738,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "項目"
+          }
+        }
+      }
+    },
+    "Items stay here until you delete them, unless your server's admin set it to empty the Trash after a while." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーの管理者が一定期間後にゴミ箱を空にする設定をしていない限り、削除するまでここに残ります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目会一直保留在此，直到你删除为止，除非服务器管理员设置了一段时间后自动清空废纸篓。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目會一直保留在此，直到你刪除為止，除非伺服器管理員設定了一段時間後自動清空垃圾桶。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目會一直留喺度，直到你刪除為止，除非伺服器管理員設定咗一段時間之後自動清空垃圾桶。"
           }
         }
       }
@@ -17486,6 +17486,34 @@
         }
       }
     },
+    "Not encrypted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暗号化されていません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未加密"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未加密"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "冇加密"
+          }
+        }
+      }
+    },
     "Not Now" : {
       "localizations" : {
         "ja" : {
@@ -18783,7 +18811,6 @@
       }
     },
     "Open Web Vault" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -30234,30 +30261,58 @@
         }
       }
     },
-    "Clipboard clears in %lld s" : {
+    "Clear Clipboard Now" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "クリップボードは %lld 秒後に消去"
+            "value" : "今すぐクリップボードを消去"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪贴板将在 %lld 秒后清除"
+            "value" : "立即清除剪贴板"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪貼簿將在 %lld 秒後清除"
+            "value" : "立即清除剪貼簿"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪貼簿 %lld 秒後清除"
+            "value" : "即刻清除剪貼簿"
+          }
+        }
+      }
+    },
+    "Clipboard cleared" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードを消去しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪贴板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪貼簿"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪貼簿"
           }
         }
       }
