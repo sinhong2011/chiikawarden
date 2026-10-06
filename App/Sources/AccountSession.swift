@@ -20,6 +20,15 @@ final class AccountSession {
     private let userKey: SymmetricKeyPair
     private(set) var client: VaultClient?
     private var rawCiphers: [String: Data] = [:]
+    /// The sync payload as last saved (every secret still encrypted), and the parts of it read often.
+    private var payload = Data()
+    private var cipherIndex: [String: SyncResponse.Cipher] = [:]
+    private var profile: SyncResponse.Profile?
+    /// The server's revision date at the last sync or one-item update: while it's the same, there's nothing new.
+    private var knownRevision: String?
+    /// Items live notifications named, waiting for the debounce; or a full sync, when one said something else.
+    private var pendingIDs: Set<String> = []
+    private var pendingFull = false
     private var keyring: Keyring?
     private var live: LiveSync?
     private var debounce: Task<Void, Never>?
@@ -45,16 +54,52 @@ final class AccountSession {
 
     // MARK: Sync
 
-    /// Pulls the vault, caches the (still encrypted) payload, rebuilds, then listens for live changes.
+    /// Pulls the whole vault, caches the (still encrypted) payload, rebuilds, then listens for live changes.
     func refresh() async throws {
         guard let client else { return }
         isSyncing = true
         defer { isSyncing = false }
+        // Asked first: a change landing during the sync then shows up as a newer revision next time.
+        let revision = try? await client.revisionDate()
         let data = try await client.syncData()
         AccountStore.saveCache(data, account.id)
         try load(data)
+        knownRevision = revision
         lastSynced = .now
         await startLiveSync()
+    }
+
+    /// Brings just these items up to date: each is fetched on its own and put into the cached payload, and only they
+    /// are decrypted again. `removed`: items deleted for good, dropped without asking. Falls back to a full sync for
+    /// many items, or if anything goes wrong (an item gone or out of reach, say), so the vault never ends up stale.
+    func reload(_ ids: Set<String>, removed: Set<String> = []) async throws {
+        guard let client else { throw WriteError.offline }
+        guard !ids.isEmpty || !removed.isEmpty else { return }
+        guard ids.count <= 20, !payload.isEmpty else { try await refresh(); return }
+        do {
+            let revision = try await client.revisionDate()
+            var changes: [String: Data?] = [:]
+            for id in removed { changes.updateValue(nil, forKey: id) }
+            for id in ids where !removed.contains(id) { changes[id] = try await client.cipherData(id: id) }
+            guard let data = SyncPayload.replacingCiphers(in: payload, with: changes) else { throw WriteError.offline }
+            try load(data, changed: ids.union(removed))
+            AccountStore.saveCache(data, account.id)
+            knownRevision = revision
+            lastSynced = .now
+        } catch {
+            try await refresh()
+        }
+    }
+
+    /// A full sync only if the server's revision moved since the last one (switching back to the app, the timer).
+    private func syncIfChanged() async throws {
+        guard let client else { return }
+        if let known = knownRevision, let now = try? await client.revisionDate(), now == known {
+            lastSynced = .now
+            await startLiveSync()
+            return
+        }
+        try await refresh()
     }
 
     /// Reconnects with the stored refresh token, then syncs. Failures keep the cached vault.
@@ -71,22 +116,52 @@ final class AccountSession {
         }
     }
 
-    func scheduleSync() {
+    /// Checks for changes soon (several calls in a row make one check).
+    func scheduleSync() { runPending() }
+
+    /// What live notifications said: one item each, or something that needs a full sync.
+    private func received(_ changes: [LiveSync.Change]) {
+        for change in changes {
+            switch change {
+            case .cipher(let id): pendingIDs.insert(id)
+            case .other: pendingFull = true
+            }
+        }
+        runPending()
+    }
+
+    private func runPending() {
         debounce?.cancel()
         debounce = Task {
             try? await Task.sleep(for: .milliseconds(800))
             guard !Task.isCancelled else { return }
-            do { try await refresh() } catch {
+            // From here on the work runs to the end; a newer change waits for its own turn.
+            debounce = nil
+            let (full, ids) = (pendingFull, pendingIDs)
+            pendingFull = false
+            pendingIDs = []
+            let work: () async throws -> Void = { [weak self] in
+                guard let self else { return }
+                if full { try await refresh() } else if !ids.isEmpty { try await reload(ids) } else { try await syncIfChanged() }
+            }
+            do { try await work() } catch {
                 // The AutoFill extension may have rotated the refresh token meanwhile; use the stored one.
                 if let stored = AccountStore.refreshToken(account.id) { await client?.restore(refreshToken: stored) }
                 if let token = try? await client?.refreshAccessToken() { AccountStore.setRefreshToken(token, account.id) }
-                try? await refresh()
+                try? await work()
             }
         }
     }
 
-    private func load(_ data: Data) throws {
-        let vault = try VaultDecoder.decode(data, userKey: userKey, accountId: account.id)
+    /// - Parameter changed: after a one-item update, the items that changed; the rest are kept as decrypted already.
+    private func load(_ data: Data, changed: Set<String>? = nil) throws {
+        let unchanged = changed.map { ids in
+            Dictionary(items.lazy.filter { !ids.contains($0.id) }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        } ?? [:]
+        let vault = try VaultDecoder.decode(data, userKey: userKey, accountId: account.id, unchanged: unchanged)
+        payload = data
+        cipherIndex = Dictionary(vault.sync.ciphers.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        profile = vault.sync.profile
         items = vault.items
         folders = vault.folders
         organizations = vault.organizations
@@ -100,8 +175,8 @@ final class AccountSession {
 
     private func startLiveSync() async {
         guard live == nil, let client, let token = await client.currentAccessToken else { return }
-        let live = LiveSync(environment: client.environment, accessToken: token, session: makeSession()) { [weak self] in
-            Task { @MainActor in self?.scheduleSync() }
+        let live = LiveSync(environment: client.environment, accessToken: token, session: makeSession()) { [weak self] changes in
+            Task { @MainActor in self?.received(changes) }
         }
         self.live = live
         do { try await live.start() } catch { self.live = nil }
@@ -134,21 +209,19 @@ final class AccountSession {
     func create(_ kind: CipherEditor.Kind, edit: CipherEdit) async throws -> String {
         guard let client else { throw WriteError.offline }
         let id = try await client.createCipher(CipherEditor.newCipher(kind: kind, edit: edit, key: userKey))
-        try await refresh()
+        try await reload([id])
         return id
     }
 
     func update(_ id: String, edit: CipherEdit) async throws {
         guard let client, let raw = rawCiphers[id], let key = itemKey(id) else { throw WriteError.offline }
         try await client.updateCipher(id: id, CipherEditor.updatedCipher(raw: raw, edit: edit, key: key))
-        try await refresh()
+        try await reload([id])
     }
 
     /// The key that encrypts this item's fields (its own key, the org key, or the user key).
     private func itemKey(_ id: String) -> SymmetricKeyPair? {
-        guard let cipher = try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).ciphers.first(where: { $0.id == id })
-        else { return nil }
-        return keyring?.key(for: cipher)
+        cipherIndex[id].flatMap { keyring?.key(for: $0) }
     }
 
     // MARK: Import and export
@@ -156,15 +229,15 @@ final class AccountSession {
     /// Vaults this account may import into and export: Personal (nil id), then each organization where the user is an
     /// owner or admin, or has the import/export permission.
     func transferVaults() -> [(id: String?, name: String)] {
-        let orgs = (try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).profile.organizations) ?? nil
-        let allowed = Set((orgs ?? []).filter(\.canImportExport).map(\.id))
+        let allowed = Set((profile?.organizations ?? []).filter(\.canImportExport).map(\.id))
         return [(nil, String(localized: "Personal"))] + organizations.filter { allowed.contains($0.id) }.map { ($0.id, $0.name) }
     }
 
     /// The personal vault, or an organization's, as a file in one of Bitwarden's export formats.
     /// Uses the synced (still encrypted) payload, so the export matches the server exactly.
     func export(_ format: VaultExport.Format, filePassword: String? = nil, organizationId: String? = nil) throws -> (data: Data, skipped: Int, count: Int) {
-        guard let cache = AccountStore.loadCache(account.id) else { throw WriteError.offline }
+        guard !payload.isEmpty else { throw WriteError.offline }
+        let cache = payload
         if let organizationId {
             let vault = try VaultExport.organizationVault(syncData: cache, userKey: userKey, organizationId: organizationId)
             let json = { try VaultExport.json(collections: vault.collections, items: vault.items) }
@@ -239,13 +312,13 @@ final class AccountSession {
         guard let client, let key = itemKey(itemId) else { throw WriteError.offline }
         let sealed = try SealedAttachment(name: name, contents: contents, itemKey: key)
         try await client.uploadAttachment(cipherId: itemId, fileName: sealed.fileName, key: sealed.key, encrypted: sealed.encrypted)
-        try await refresh()
+        try await reload([itemId])
     }
 
     func deleteAttachment(_ itemId: String, _ attachmentId: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.deleteAttachment(cipherId: itemId, attachmentId: attachmentId)
-        try await refresh()
+        try await reload([itemId])
     }
 
     func createFolder(name: String) async throws -> String {
@@ -264,31 +337,31 @@ final class AccountSession {
     func trash(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.trashCipher(id: id)
-        try await refresh()
+        try await reload([id])
     }
 
     func archive(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.archiveCipher(id: id)
-        try await refresh()
+        try await reload([id])
     }
 
     func unarchive(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.unarchiveCipher(id: id)
-        try await refresh()
+        try await reload([id])
     }
 
     func restore(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.restoreCipher(id: id)
-        try await refresh()
+        try await reload([id])
     }
 
     func deleteForever(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.deleteCipher(id: id)
-        try await refresh()
+        try await reload([], removed: [id])
     }
 
     // MARK: Organizations and bulk edits
@@ -300,13 +373,13 @@ final class AccountSession {
         }
         let cipher = try CipherEditor.sharedCipher(raw: raw, key: key, organizationKey: orgKey, organizationId: organizationId)
         try await client.shareCipher(id: id, cipher: cipher, collectionIds: collectionIds)
-        try await refresh()
+        try await reload([id])
     }
 
     func setCollections(_ id: String, collectionIds: [String]) async throws {
         guard let client else { throw WriteError.offline }
         try await client.setCollections(cipherId: id, collectionIds: collectionIds)
-        try await refresh()
+        try await reload([id])
     }
 
     /// One request for many items: trash, restore, delete forever, archive, or move to a folder.
@@ -322,7 +395,7 @@ final class AccountSession {
         case .archive: try await client.archiveCiphers(ids: ids)
         case .move(let folderId): try await client.moveCiphers(ids: ids, folderId: folderId)
         }
-        try await refresh()
+        if case .delete = action { try await reload([], removed: Set(ids)) } else { try await reload(Set(ids)) }
     }
 
     func leaveOrganization(_ id: String) async throws {
@@ -350,8 +423,6 @@ final class AccountSession {
         let master = try KDF.masterKey(password: password, email: account.email, config: account.kdf)
         return try KDF.masterPasswordHash(masterKey: master, password: password)
     }
-
-    private var profile: SyncResponse.Profile? { try? SyncResponse.decode(AccountStore.loadCache(account.id) ?? Data()).profile }
 
     /// The account's public key, from its private key (offline).
     func publicKeySPKI() -> Data? {

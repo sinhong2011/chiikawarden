@@ -96,7 +96,7 @@ struct DevServerTests {
         let session = ServerTrust(certificates: ca.map { [$0] } ?? []).makeSession()
         let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
         let live = LiveSync(environment: .selfHosted(URL(string: "https://\(DevServer.host!):\(port)")!),
-                            accessToken: token, session: session) { continuation.yield() }
+                            accessToken: token, session: session) { _ in continuation.yield() }
         try await live.start()
         let folder = try await client.createFolder(encryptedName: EncString.encrypt(Data("live-test".utf8), with: userKey).description)
         let notified = await withTaskGroup(of: Bool.self) { group in
