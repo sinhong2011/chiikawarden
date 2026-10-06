@@ -9,21 +9,13 @@ struct SendsPane: View {
     var body: some View {
         HStack(spacing: 8) {
             VStack(spacing: 10) {
-                // Like the item list: a count, and + at the list's edge.
-                HStack(spacing: 6) {
+                // Like the item list: a count (new Sends come from the header's + menu).
+                HStack {
                     Text("\(model.sends.count) sends").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                     Spacer()
-                    Button { compose() } label: {
-                        Image(systemName: "plus").font(.system(size: 13, weight: .semibold))
-                            .frame(width: 32, height: 32)
-                            .modifier(HeaderChrome(shape: .circle))
-                            .contentShape(.circle)
-                    }
-                    .buttonStyle(.plain)
-                    .help(Text("New Send"))
-                    .accessibilityLabel(Text("New Send"))
                 }
                 .padding(.leading, 6)
+                .frame(height: 32)
                 ScrollView {
                     LazyVStack(spacing: 2) {
                         ForEach(model.sends) { send in

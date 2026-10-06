@@ -652,6 +652,10 @@ private struct NewItemButton: View {
                 Button("New Identity", systemImage: "person.vcard") { model.editing = EditRequest(mode: .create(.identity)) }
                 Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
                 Divider()
+                Button("New Send", systemImage: "paperplane") {
+                    model.requestedSection = .sends
+                    model.composingSend = true
+                }
                 Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }
             }
             .labelStyle(.titleAndIcon)
