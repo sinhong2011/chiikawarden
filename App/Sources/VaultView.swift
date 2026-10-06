@@ -230,12 +230,6 @@ struct VaultView: View {
                     .accessibilityHidden(!vaultOpen)
                 }
                 .sharedBackgroundVisibility(.hidden)
-                // A copied secret's countdown: top right, its edge on the page's (an item shows it beside its actions).
-                if model.clipboardClearsAt != nil, vaultOpen, !detailHasActions {
-                    ToolbarSpacer(.flexible)
-                    ToolbarItem { ClipboardCountdown() }
-                        .sharedBackgroundVisibility(.hidden)
-                }
             }
             .background {
                 // Keyboard: ⌘K / ⌘F open the command palette, ⌘G the generator.
@@ -535,6 +529,12 @@ private struct AppFooter: View {
         HStack {
             Spacer(minLength: 0)
             HStack(spacing: 0) {
+                if model.clipboardClearsAt != nil {
+                    ClipboardCountdown()
+                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
+                    Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 2)
+                        .transition(.opacity)
+                }
                 SyncFooterButton { Task { try? await model.refresh() } }
                 Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 2)
                 Button { model.lock(animated: true) } label: {
@@ -551,6 +551,7 @@ private struct AppFooter: View {
             .padding(.horizontal, 3)
             .frame(height: 30)
             .modifier(HeaderChrome(shape: .capsule))
+            .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
         }
     }
 }
@@ -1445,12 +1446,7 @@ struct ItemDetail: View {
             if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
                 ToolbarSpacer(.flexible)
                 // Inset by the detail's own side padding, so the pill's edge lines up with the cards below.
-                ToolbarItem {
-                    HStack(spacing: 10) {
-                        ClipboardCountdown()
-                        actions
-                    }
-                }
+                ToolbarItem { actions }
                     .sharedBackgroundVisibility(.hidden)
             }
         }
@@ -1784,7 +1780,7 @@ struct ToastView: View {
     }
 }
 
-/// In the header while a copied secret waits on the clipboard: a ring draining to the moment it's cleared, the seconds
+/// In the footer, before Sync, while a copied secret waits on the clipboard: a ring draining to the moment it's cleared, the seconds
 /// counting down. Clicking clears it now.
 private struct ClipboardCountdown: View {
     @Environment(AppModel.self) private var model
@@ -1820,16 +1816,15 @@ private struct ClipboardCountdown: View {
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 12).frame(height: 32)
-                    .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+                    .padding(.horizontal, 8).frame(height: 26)
+                    .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .capsule)
                     .contentShape(.capsule)
                 }
                 .buttonStyle(.plain)
                 .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
-                .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)))
+                .help(Text("Clear Clipboard Now"))
             }
         }
-        .animation(.spring(duration: 0.35, bounce: 0.25), value: model.clipboardClearsAt)
     }
 }
 
