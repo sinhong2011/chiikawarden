@@ -1225,8 +1225,8 @@ struct ItemDetail: View {
     private var actions: some View {
         HStack(spacing: 0) {
             if item.isDeleted {
-                toolbarButton("arrow.uturn.backward", help: "Restore") { Task { await model.restore(item) } }
-                toolbarButton("trash.slash", help: "Delete Forever") { confirmDelete = true }
+                toolbarButton("arrow.uturn.backward", help: "Restore", effect: .wiggleBack) { Task { await model.restore(item) } }
+                toolbarButton("trash.slash", help: "Delete Forever", effect: .bounce) { confirmDelete = true }
                     .foregroundStyle(.red)
             } else {
                 // Reveal, then a divider, whenever the item has anything secret (password, private key, card code…).
@@ -1242,13 +1242,13 @@ struct ItemDetail: View {
                     Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
                 }
                 toolbarButton(item.isArchived ? "archivebox.fill" : "archivebox", help: item.isArchived ? "Unarchive" : "Archive",
-                              spoken: item.isArchived ? "Unarchive" : "Archive") {
+                              spoken: item.isArchived ? "Unarchive" : "Archive", effect: .bounceDown) {
                     Task { await model.setArchived(item, !item.isArchived) }
                 }
-                toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
+                toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite", effect: .bounce) { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
-                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
-                toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash") { model.confirmTrash(item) }
+                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit", effect: .wiggle) { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash", effect: .bounce) { model.confirmTrash(item) }
             }
         }
         .padding(.horizontal, 3)
@@ -1258,14 +1258,10 @@ struct ItemDetail: View {
 
     /// `spoken`: the VoiceOver label when the tooltip carries a shortcut hint, e.g. "Edit" for "Edit (⌘E)".
     private func toolbarButton(_ symbol: String, help: LocalizedStringKey, spoken: LocalizedStringKey? = nil,
-                               action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 13, weight: .medium)).frame(width: 30, height: 26).contentShape(.rect)
-                .contentTransition(.symbolEffect(.replace)) // star ↔ star.fill, archive ↔ unarchive
-        }
-        .buttonStyle(HeaderIconStyle())
-        .help(Text(help))
-        .accessibilityLabel(Text(spoken ?? help))
+                               effect: ToolbarSymbolButton.Effect = .none, action: @escaping () -> Void) -> some View {
+        ToolbarSymbolButton(symbol: symbol, effect: effect, action: action)
+            .help(Text(help))
+            .accessibilityLabel(Text(spoken ?? help))
     }
 }
 
@@ -1936,6 +1932,40 @@ struct SidebarLabel: View {
     var body: some View {
         Label { title } icon: {
             Image(systemName: symbol).foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// A toolbar icon that answers its click with its own motion: the star bounces as it fills, the archive box bounces
+/// down as if something dropped in, the pencil wiggles, the trash bounces; a changed symbol morphs into the new one.
+/// (Reduce Motion: the symbols only swap.)
+struct ToolbarSymbolButton: View {
+    enum Effect { case none, bounce, bounceDown, wiggle, wiggleBack }
+
+    let symbol: String
+    var effect: Effect = .none
+    let action: () -> Void
+    @State private var taps = 0
+
+    var body: some View {
+        Button {
+            taps += 1
+            action()
+        } label: {
+            animated(Image(systemName: symbol).font(.system(size: 13, weight: .medium)))
+                .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer))) // star ↔ star.fill, eye ↔ eye.slash
+                .frame(width: 30, height: 26).contentShape(.rect)
+        }
+        .buttonStyle(HeaderIconStyle())
+    }
+
+    @ViewBuilder private func animated(_ image: some View) -> some View {
+        switch effect {
+        case .none: image
+        case .bounce: image.symbolEffect(.bounce, options: .speed(1.2), value: taps)
+        case .bounceDown: image.symbolEffect(.bounce.down, options: .speed(1.2), value: taps)
+        case .wiggle: image.symbolEffect(.wiggle, value: taps)
+        case .wiggleBack: image.symbolEffect(.wiggle.backward, value: taps)
         }
     }
 }
