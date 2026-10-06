@@ -47,6 +47,7 @@ Create an environment named `release` (Settings › Environments) and add the se
 | `ASC_KEY_P8` | An App Store Connect API key (Users and Access › Integrations; role *Admin* — creating Developer ID provisioning profiles needs it), the .p8 contents |
 | `ASC_KEY_ID`, `ASC_ISSUER_ID` | That key's ID and the issuer ID |
 | `SPARKLE_PRIVATE_KEY` | The contents of `sparkle-private-key.txt` from step 1 (then delete that file) |
+| `HOMEBREW_TAP_DEPLOY_KEY` | The private half of a write deploy key on `sinhong2011/homebrew-tap` (see [Homebrew](#homebrew)) |
 
 For example:
 
