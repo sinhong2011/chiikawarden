@@ -950,7 +950,7 @@ private struct ShortcutsSettings: View {
         ("Command Palette", "⌘K  ⌘F"), ("New Login", "⌘N"), ("New Secure Note", "⇧⌘N"), ("New Folder…", "⌥⌘N"),
         ("Edit", "⌘E"), ("Copy Username", "⇧⌘C"), ("Copy Password", "⌥⌘C"), ("Copy One-Time Code", "⌃⌘C"),
         ("Toggle Favorite", "⌘D"), ("Archive", "⌥⌘A"), ("Move to Trash…", "⌘⌫"), ("Generator", "⌘G"),
-        ("Lock Vault", "⇧⌘L"), ("Settings…", "⌘,"),
+        ("Import…", "⇧⌘I"), ("Export Vault…", "⇧⌘E"), ("Lock Vault", "⇧⌘L"), ("Settings…", "⌘,"),
     ]
 
     var body: some View {

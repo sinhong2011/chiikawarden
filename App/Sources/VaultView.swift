@@ -602,11 +602,11 @@ struct AccountSwitcher: View {
             Divider().padding(.vertical, 4).padding(.horizontal, 8)
             action("Add Account…", "person.badge.plus") { model.beginAddAccount() }
             action("Sync Now", "arrow.triangle.2.circlepath") { Task { try? await model.refresh() } }
-            action("Import…", "square.and.arrow.down") { model.beginImport() }
-            action("Export Vault…", "square.and.arrow.up") { model.beginExport() }
-            action("Settings…", "gearshape") { model.showSettings() }
+            action("Import…", "square.and.arrow.down", keys: "⇧⌘I") { model.beginImport() }
+            action("Export Vault…", "square.and.arrow.up", keys: "⇧⌘E") { model.beginExport() }
+            action("Settings…", "gearshape", keys: "⌘,") { model.showSettings() }
             Divider().padding(.vertical, 4).padding(.horizontal, 8)
-            action("Lock Vault", "lock") { model.lock(animated: true) }
+            action("Lock Vault", "lock", keys: "⇧⌘L") { model.lock(animated: true) }
             action("Log Out…", "rectangle.portrait.and.arrow.right", destructive: true) {
                 model.confirmLogOut(model.focusedAccountID ?? (model.sessions.count == 1 ? model.sessions[0].account.id : nil))
             }
@@ -627,8 +627,9 @@ struct AccountSwitcher: View {
         SwitcherRow(selected: selected, action: action, content: content())
     }
 
-    private func action(_ title: LocalizedStringKey, _ symbol: String, destructive: Bool = false, run: @escaping () -> Void) -> some View {
-        SwitcherAction(title: title, symbol: symbol, destructive: destructive) { close(); run() }
+    private func action(_ title: LocalizedStringKey, _ symbol: String, keys: String? = nil, destructive: Bool = false,
+                        run: @escaping () -> Void) -> some View {
+        SwitcherAction(title: title, symbol: symbol, keys: keys, destructive: destructive) { close(); run() }
     }
 }
 
@@ -659,19 +660,26 @@ private struct SwitcherRow<Content: View>: View {
 private struct SwitcherAction: View {
     let title: LocalizedStringKey
     let symbol: String
+    /// The menu-bar shortcut, drawn on the right the way a menu shows it.
+    var keys: String?
     var destructive = false
     let action: () -> Void
     @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.system(size: 13))
-                .foregroundStyle(destructive ? Color.red : .primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 8).frame(height: 28)
-                .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .rect(cornerRadius: 7, style: .continuous))
-                .contentShape(.rect)
+            HStack(spacing: 8) {
+                Label(title, systemImage: symbol)
+                    .foregroundStyle(destructive ? Color.red : .primary)
+                Spacer(minLength: 8)
+                if let keys {
+                    Text(verbatim: keys).foregroundStyle(.tertiary)
+                }
+            }
+            .font(.system(size: 13))
+            .padding(.horizontal, 8).frame(height: 28)
+            .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .rect(cornerRadius: 7, style: .continuous))
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
         .onHover { h in withAnimation(.snappy(duration: 0.12)) { hovering = h } }
@@ -810,7 +818,9 @@ private struct NewItemButton: View {
         Menu {
             Group {
                 Button("New Login", systemImage: "key") { model.editing = EditRequest(mode: .create(.login)) }
+                    .keyboardShortcut("n", modifiers: .command)
                 Button("New Secure Note", systemImage: "note.text") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                    .keyboardShortcut("n", modifiers: [.command, .shift])
                 Button("New Card", systemImage: "creditcard") { model.editing = EditRequest(mode: .create(.card)) }
                 Button("New Identity", systemImage: "person.crop.rectangle") { model.editing = EditRequest(mode: .create(.identity)) }
                 Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
@@ -820,6 +830,7 @@ private struct NewItemButton: View {
                     model.composingSend = true
                 }
                 Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }
+                    .keyboardShortcut("n", modifiers: [.command, .option])
             }
             .labelStyle(.titleAndIcon)
         } label: {

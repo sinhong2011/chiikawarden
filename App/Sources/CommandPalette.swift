@@ -250,9 +250,9 @@ struct CommandPalette: View {
                 PaletteCommand(id: "sync", title: String(localized: "Sync Now"), symbol: "arrow.triangle.2.circlepath", keywords: ["refresh"]) {
                     Task { try? await model.refresh() }
                 },
-                PaletteCommand(id: "import", title: String(localized: "Import…"), symbol: "square.and.arrow.down",
+                PaletteCommand(id: "import", title: String(localized: "Import…"), symbol: "square.and.arrow.down", shortcut: "⇧⌘I",
                                keywords: ["csv", "json", "chrome", "safari", "firefox", "bitwarden"]) { model.beginImport() },
-                PaletteCommand(id: "export", title: String(localized: "Export Vault…"), symbol: "square.and.arrow.up",
+                PaletteCommand(id: "export", title: String(localized: "Export Vault…"), symbol: "square.and.arrow.up", shortcut: "⇧⌘E",
                                keywords: ["backup", "csv", "json"]) { model.beginExport() },
                 PaletteCommand(id: "lock", title: String(localized: "Lock Vault"), symbol: "lock", shortcut: "⇧⌘L") { model.lock(animated: true) },
             ]

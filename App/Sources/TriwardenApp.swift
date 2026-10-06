@@ -95,8 +95,10 @@ struct TriwardenApp: App {
             }
             CommandGroup(replacing: .importExport) {
                 Button("Import…") { model.beginImport() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
                     .disabled(model.sessions.isEmpty)
                 Button("Export Vault…") { model.beginExport() }
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
                     .disabled(model.sessions.isEmpty)
             }
             CommandMenu("Item") {
