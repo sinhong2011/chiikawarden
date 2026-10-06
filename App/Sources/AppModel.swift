@@ -585,7 +585,13 @@ final class AppModel {
         }
     }
 
-    /// Pings the selected server's public `/api/config`, debounced while the user types a URL.
+    /// The server address changed: what was said about the old one no longer applies. Checked again on leaving the field.
+    func serverURLEdited() {
+        statusTask?.cancel()
+        serverStatus = .unknown
+    }
+
+    /// Pings the selected server's public `/api/config`.
     func checkServer() {
         statusTask?.cancel()
         guard let environment = environment() else { serverStatus = .unknown; return }
