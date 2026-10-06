@@ -266,6 +266,60 @@ final class AppModel {
     func isUnlocked(_ accountId: String) -> Bool { session(for: accountId) != nil }
     func isTouchIDEnabled(_ accountId: String) -> Bool { AccountStore.isTouchIDEnabled(accountId) }
 
+    // MARK: Sign-in requests
+
+    /// Another device asking this one to approve its sign-in.
+    struct SignInPrompt: Identifiable {
+        var id: String { request.id }
+        let accountId: String
+        let email: String
+        let request: SignInRequest
+        let fingerprint: [String]
+    }
+    var signInPrompt: SignInPrompt?
+    private var signInWatch: Task<Void, Never>?
+    private var answeredSignIns: Set<String> = []
+
+    /// While a vault is open, looks for sign-in requests every 30 seconds.
+    private func watchSignIns() {
+        guard signInWatch == nil, !sessions.isEmpty, !previewUnlocked else { return }
+        signInWatch = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.checkSignIns()
+                try? await Task.sleep(for: .seconds(30))
+            }
+        }
+    }
+
+    func checkSignIns() async {
+        guard signInPrompt == nil else { return }
+        for session in sessions {
+            guard let pending = try? await session.pendingSignIns() else { continue }
+            // Requests expire after 15 minutes.
+            let fresh = pending.filter { request in
+                !answeredSignIns.contains(request.id)
+                    && (request.created.flatMap(VaultDecoder.date).map { Date.now.timeIntervalSince($0) < 15 * 60 } ?? true)
+            }
+            if let request = fresh.first {
+                signInPrompt = SignInPrompt(accountId: session.id, email: session.account.email, request: request,
+                                            fingerprint: session.fingerprint(of: request))
+                bringToFront()
+                NSApp.requestUserAttention(.criticalRequest)
+                return
+            }
+        }
+    }
+
+    func answerSignIn(_ prompt: SignInPrompt, approve: Bool) async {
+        answeredSignIns.insert(prompt.request.id)
+        signInPrompt = nil
+        guard let session = session(for: prompt.accountId) else { return }
+        do {
+            try await session.answer(prompt.request, approve: approve)
+            flash(approve ? String(localized: "Sign-in approved") : String(localized: "Sign-in denied"))
+        } catch { _ = failed(error) }
+    }
+
     /// Merges every unlocked account into one list.
     private func rebuild() {
         let multi = sessions.count > 1
@@ -281,6 +335,7 @@ final class AppModel {
         }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items, equivalents: equivalentDomains)
+        if sessions.isEmpty { signInWatch?.cancel(); signInWatch = nil } else { watchSignIns() }
     }
 
     enum ServerStatus: Equatable {

@@ -6,7 +6,7 @@ import Foundation
 public actor VaultClient {
     public nonisolated let environment: ServerEnvironment
     private let session: URLSession
-    private let deviceIdentifier: String
+    let deviceIdentifier: String
     private let extraHeaders: [String: String]
     private var accessToken: String?
     private var refreshToken: String?

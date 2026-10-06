@@ -238,6 +238,7 @@ struct VaultView: View {
         }
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
+        .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
         .sheet(item: $model.organizationSheet) { sheet in
             switch sheet {
             case .share(let ids): MoveToOrganizationSheet(itemIDs: ids)
@@ -1849,5 +1850,55 @@ private struct RepromptSheet: View {
     private func touchID() async {
         let keys = await AccountStore.unlockAllWithTouchID([request.item.accountId], reason: String(localized: "show this item"))
         if !keys.isEmpty { model.passReprompt(request) }
+    }
+}
+
+/// "Are you trying to sign in?": another device asks to sign in with this Mac's approval.
+private struct SignInApprovalSheet: View {
+    @Environment(AppModel.self) private var model
+    let prompt: AppModel.SignInPrompt
+    @State private var busy = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                FormHeader(symbol: "person.badge.key", title: "Are you trying to sign in?",
+                           subtitle: "A device wants to sign in to \(prompt.email) without the master password.")
+                FormCard {
+                    LabeledContent("Device") { Text(verbatim: prompt.request.deviceType).foregroundStyle(.secondary) }
+                    LabeledContent("IP address") { Text(verbatim: prompt.request.ipAddress).foregroundStyle(.secondary) }
+                    if let created = prompt.request.created.flatMap(VaultDecoder.date) {
+                        LabeledContent("Asked") { Text(created, format: .relative(presentation: .named)).foregroundStyle(.secondary) }
+                    }
+                    FormField(label: "Fingerprint phrase", note: "Approve only if it matches the phrase on the other device.") {
+                        Text(verbatim: prompt.fingerprint.joined(separator: "-"))
+                            .font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(Color.brand)
+                            .textSelection(.enabled)
+                    }
+                }
+                .font(.system(size: 13))
+            }
+            .padding(20)
+            HStack(spacing: 10) {
+                Spacer()
+                Button("Deny") { answer(false) }.buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
+                Button {
+                    answer(true)
+                } label: {
+                    HStack(spacing: 6) { if busy { ProgressView().controlSize(.small).tint(.white) }; Text("Approve") }
+                }
+                .buttonStyle(.appPrimary)
+            }
+            .padding(.horizontal, 18).padding(.vertical, 12)
+            .background(alignment: .top) { Divider().opacity(0.5) }
+        }
+        .frame(width: 460)
+        .background(Color.windowBase)
+        .interactiveDismissDisabled()
+    }
+
+    private func answer(_ approve: Bool) {
+        busy = true
+        Task { await model.answerSignIn(prompt, approve: approve) }
     }
 }

@@ -464,4 +464,27 @@ final class AccountSession {
         guard let client else { throw WriteError.offline }
         try await client.enableEmailTwoFactor(email: email, code: code, masterPasswordHash: passwordHash(password))
     }
+
+    // MARK: Sign-in requests
+
+    func pendingSignIns() async throws -> [SignInRequest] {
+        guard let client else { throw WriteError.offline }
+        return try await client.pendingSignIns()
+    }
+
+    /// The asking device's fingerprint phrase (its public key, with this account's email), to compare on its screen.
+    func fingerprint(of request: SignInRequest) -> [String] {
+        guard let spki = Data(base64Encoded: request.publicKey) else { return [] }
+        return Fingerprint.phrase(publicKeySPKI: spki, material: KDF.normalizedEmail(account.email))
+    }
+
+    func answer(_ request: SignInRequest, approve: Bool) async throws {
+        guard let client else { throw WriteError.offline }
+        var wrapped: String?
+        if approve {
+            guard let spki = Data(base64Encoded: request.publicKey) else { throw WriteError.offline }
+            wrapped = try RSAPublicKey(spki: spki).encrypt(userKey.encryptionKey + userKey.macKey)
+        }
+        try await client.answerSignIn(id: request.id, key: wrapped, approve: approve)
+    }
 }

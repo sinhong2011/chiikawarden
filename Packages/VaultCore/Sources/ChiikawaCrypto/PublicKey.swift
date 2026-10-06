@@ -3,6 +3,16 @@ import Foundation
 import Security
 
 extension RSAPrivateKey {
+    /// A new 2048-bit key (a device asking to sign in keeps it until the answer arrives).
+    public static func generate() throws(CryptoError) -> RSAPrivateKey {
+        let attrs: [String: Any] = [kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeySizeInBits as String: 2048]
+        guard let key = SecKeyCreateRandomKey(attrs as CFDictionary, nil),
+              let pkcs1 = SecKeyCopyExternalRepresentation(key, nil) as Data? else { throw .malformedEncString }
+        let algorithm: [UInt8] = [0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00]
+        let pkcs8 = RSAPublicKey.der(tag: 0x30, [0x02, 0x01, 0x00] + algorithm + RSAPublicKey.der(tag: 0x04, Array(pkcs1)))
+        return try RSAPrivateKey(pkcs8: Data(pkcs8))
+    }
+
     /// The matching public key as SubjectPublicKeyInfo DER — the form Bitwarden stores and hashes.
     public func publicKeySPKI() throws(CryptoError) -> Data {
         guard let pub = SecKeyCopyPublicKey(key), let pkcs1 = SecKeyCopyExternalRepresentation(pub, nil) as Data? else {

@@ -801,6 +801,25 @@ enum SelfTest {
                         let devices = try await s2.devices()
                         check(!devices.isEmpty, "devices signed in (\(devices.count))")
 
+                        // Another device asks to sign in; this Mac approves; that device unwraps the same user key.
+                        let asker = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString.lowercased())
+                        _ = try await asker.loginDetailed(email: email2, password: password2)
+                        let askerKey = try RSAPrivateKey.generate()
+                        let accessCode = String(UUID().uuidString.prefix(20))
+                        let requestID = try await asker.requestSignIn(email: email2, publicKeySPKI: askerKey.publicKeySPKI(), accessCode: accessCode)
+                        let pending = try await s2.pendingSignIns()
+                        if let request = pending.first(where: { $0.id == requestID }) {
+                            try await s2.answer(request, approve: true)
+                            let response = try await asker.signInResponse(id: requestID, accessCode: accessCode)
+                            let unwrapped = try response.key.map { try askerKey.decrypt($0) }
+                            let mine = AccountStore.unlock(id2, password: password2)
+                            check(response.approved == true && unwrapped == mine.map { $0.encryptionKey + $0.macKey }
+                                  && s2.fingerprint(of: request).count == 5,
+                                  "approve a sign-in from another device (it unwraps the same user key)")
+                        } else {
+                            check(false, "approve a sign-in from another device: request not listed")
+                        }
+
                         let secret = try await s2.authenticatorSecret(password: password2)
                         let code = TOTP(secret.key)?.code() ?? ""
                         try await s2.enableAuthenticator(key: secret.key, code: code, password: password2)

@@ -90,6 +90,35 @@ extension VaultClient {
         try await call("POST", "accounts/kdf", json: change.body(currentHash: currentHash))
     }
 
+    // MARK: Sign-in requests (log in with device)
+
+    /// Requests from devices waiting for this one to approve their sign-in.
+    public func pendingSignIns() async throws(APIError) -> [SignInRequest] {
+        (try await callJSON("GET", "auth-requests/pending")["data"] as? [[String: Any]] ?? []).compactMap(SignInRequest.init)
+    }
+
+    /// Approves (`key`: the user key wrapped with the request's public key) or denies a request.
+    public func answerSignIn(id: String, key: String?, approve: Bool) async throws(APIError) {
+        try await call("PUT", "auth-requests/\(id)", json: ["deviceIdentifier": deviceIdentifier, "key": key ?? "",
+                                                             "masterPasswordHash": NSNull(), "requestApproved": approve] as [String: Any])
+    }
+
+    /// As the device asking: request a sign-in approved from another device. Returns the request id.
+    public func requestSignIn(email: String, publicKeySPKI: Data, accessCode: String) async throws(APIError) -> String {
+        let answer = try await callJSON("POST", "auth-requests", json: [
+            "email": email, "publicKey": publicKeySPKI.base64EncodedString(), "deviceIdentifier": deviceIdentifier,
+            "accessCode": accessCode, "type": 0,
+        ] as [String: Any])
+        guard let id = answer["id"] as? String else { throw .http(status: -1, message: "No request id") }
+        return id
+    }
+
+    /// As the device asking: the answer so far — the wrapped user key once approved, nil while waiting.
+    public func signInResponse(id: String, accessCode: String) async throws(APIError) -> (approved: Bool?, key: String?) {
+        let answer = try await callJSON("GET", "auth-requests/\(id)/response?code=\(accessCode)")
+        return (answer["requestApproved"] as? Bool, answer["key"] as? String)
+    }
+
     // MARK: Two-step login
 
     /// Each provider's type and whether it's on (0 authenticator, 1 email, 7 WebAuthn, 3 YubiKey, 2 Duo…).
@@ -198,5 +227,24 @@ public struct DeviceInfo: Sendable, Identifiable, Hashable {
         case 21...25: "cli"
         default: "other"
         }
+    }
+}
+
+/// Another device asking to sign in without the master password.
+public struct SignInRequest: Sendable, Identifiable, Hashable {
+    public let id: String
+    /// Base64 SubjectPublicKeyInfo of the asking device.
+    public let publicKey: String
+    public let deviceType: String
+    public let ipAddress: String
+    public let created: String?
+
+    init?(_ d: [String: Any]) {
+        guard let id = d["id"] as? String, let key = d["publicKey"] as? String else { return nil }
+        self.id = id
+        publicKey = key
+        deviceType = d["requestDeviceType"] as? String ?? ""
+        ipAddress = d["requestIpAddress"] as? String ?? ""
+        created = d["creationDate"] as? String
     }
 }
