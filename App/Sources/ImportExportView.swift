@@ -351,7 +351,7 @@ struct ImportSheet: View {
         case 1: ("key", "\(n) logins")
         case 2: ("note.text", "\(n) notes")
         case 3: ("creditcard", "\(n) cards")
-        case 4: ("person.vcard", "\(n) identities")
+        case 4: ("person.crop.rectangle", "\(n) identities")
         default: ("terminal", "\(n) SSH keys")
         }
         return Label(title, systemImage: symbol).font(.system(size: 12, weight: .medium))

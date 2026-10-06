@@ -25,7 +25,6 @@ struct EditItemSheet: View {
     /// Card / identity / SSH-key properties by API name.
     @State private var props: [String: String] = [:]
     @State private var customFields: [CustomField] = []
-    @State private var showPassword = false
     @State private var showSecrets = false
     @State private var showGenerator = false
     @State private var saving = false
@@ -60,78 +59,77 @@ struct EditItemSheet: View {
     private var symbol: String {
         switch kind {
         case .login: "key.fill"; case .note: "note.text"; case .card: "creditcard.fill"
-        case .identity: "person.vcard.fill"; case .sshKey: "terminal.fill"
+        case .identity: "person.crop.rectangle.fill"; case .sshKey: "terminal.fill"
         }
     }
 
+    private var subtitle: LocalizedStringKey {
+        switch kind {
+        case .login: "A sign-in for a website or app."
+        case .note: "Private text, encrypted like everything else."
+        case .card: "A payment card, ready for AutoFill."
+        case .identity: "Your details, for filling in forms."
+        case .sshKey: "A key the Chiikawarden SSH agent can sign with."
+        }
+    }
+
+    /// Secrets on cards, identities and SSH keys hide until asked for.
+    private var hasHiddenValues: Bool { kind == .card || kind == .identity || kind == .sshKey }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Image(systemName: symbol).foregroundStyle(Color.brand)
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Spacer()
-            }
-            .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
-            Form {
-                Section {
-                    if case .create = mode, model.sessions.count > 1 {
-                        Picker("Account", selection: $accountId) {
-                            ForEach(model.sessions, id: \.id) { Text(verbatim: "\($0.account.email) · \($0.account.serverSummary)").tag(String?.some($0.id)) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    FormHeader(symbol: symbol, title: title, subtitle: subtitle)
+
+                    FormCard {
+                        if case .create = mode, model.sessions.count > 1 {
+                            FormField(label: "Account") {
+                                SoftMenu(options: model.sessions.map { (String?.some($0.id), "\($0.account.email) · \($0.account.serverSummary)") },
+                                         selection: $accountId, accessibilityLabel: "Account")
+                            }
+                            .onChange(of: accountId) { folderId = nil }
                         }
-                        .onChange(of: accountId) { folderId = nil }
-                    }
-                    TextField("Name", text: $name, prompt: Text("e.g. GitHub"))
-                        .focused($focus, equals: .name)
-                    if !accountFolders.isEmpty {
-                        Picker("Folder", selection: $folderId) {
-                            Text("No Folder").tag(String?.none)
-                            ForEach(accountFolders) { Text($0.name).tag(String?.some($0.id)) }
+                        FormField(label: "Name") {
+                            TextField("Name", text: $name, prompt: Text("e.g. GitHub"))
+                                .textFieldStyle(SoftFieldStyle())
+                                .focused($focus, equals: .name)
+                        }
+                        if !accountFolders.isEmpty {
+                            FormField(label: "Folder") {
+                                SoftMenu(options: [(String?.none, String(localized: "No Folder"))] + accountFolders.map { (String?.some($0.id), $0.name) },
+                                         selection: $folderId, accessibilityLabel: "Folder")
+                            }
                         }
                     }
-                }
 
-                switch kind {
-                case .login: loginSection
-                case .card: cardSection
-                case .identity: identitySection
-                case .sshKey: sshSection
-                case .note: EmptyView()
-                }
+                    switch kind {
+                    case .login: loginSection
+                    case .card: cardSection
+                    case .identity: identitySection
+                    case .sshKey: sshSection
+                    case .note: EmptyView()
+                    }
 
-                customFieldsSection
+                    customFieldsSection
 
-                Section("Notes") {
-                    TextEditor(text: $notes)
-                        .font(.body)
-                        .frame(minHeight: kind == .note ? 180 : 70)
-                        .scrollContentBackground(.hidden)
-                }
-            }
-            .formStyle(.grouped)
-
-            Divider()
-            HStack {
-                if kind != .login && kind != .note {
-                    Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.checkbox).font(.callout)
-                }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction).buttonStyle(.appSecondary)
-                Button {
-                    Task { await save() }
-                } label: {
-                    HStack(spacing: 6) {
-                        if saving { ProgressView().controlSize(.small) }
-                        Text("Save")
+                    FormCard(title: "Notes") {
+                        SoftEditor(text: $notes, minHeight: kind == .note ? 200 : 80)
                     }
                 }
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.appPrimary)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || saving)
+                .padding(20)
             }
-            .padding(14)
+            .thinScroller()
+
+            FormFooter(action: "Save", busy: saving, disabled: name.trimmingCharacters(in: .whitespaces).isEmpty,
+                       cancel: { dismiss() }, submit: { Task { await save() } }) {
+                if hasHiddenValues {
+                    Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.switch).controlSize(.mini).font(.system(size: 12))
+                }
+            }
         }
-        .frame(width: 540, height: kind == .note ? 460 : 620)
+        .frame(width: 580, height: kind == .note ? 560 : 700)
+        .background(Color.windowBase)
         .navigationTitle(title)
         .onAppear(perform: load)
     }
@@ -139,110 +137,116 @@ struct EditItemSheet: View {
     // MARK: Sections
 
     @ViewBuilder private var loginSection: some View {
-        Section {
-            TextField("Username", text: $username, prompt: Text(verbatim: "you@example.com"))
-                .textContentType(.username)
-            LabeledContent("Password") {
-                HStack(spacing: 6) {
-                    Group {
-                        if showPassword {
-                            TextField("Password", text: $password)
-                        } else {
-                            SecureField("Password", text: $password)
+        FormCard(title: "Sign-in") {
+            FormField(label: "Username") {
+                TextField("Username", text: $username, prompt: Text(verbatim: "you@example.com"))
+                    .textFieldStyle(SoftFieldStyle())
+                    .textContentType(.username)
+            }
+            FormField(label: "Password") {
+                HStack(spacing: 8) {
+                    PasswordField(title: "Password", text: $password, prompt: Text("Password"))
+                        .font(.system(size: 13, design: .monospaced))
+                    Button { showGenerator = true } label: {
+                        Image(systemName: "dice").font(.system(size: 14, weight: .medium))
+                            .frame(width: 38, height: 38)
+                            .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
+                            .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .help(Text("Generate password"))
+                    .accessibilityLabel(Text("Generate password"))
+                    .popover(isPresented: $showGenerator, arrowEdge: .trailing) {
+                        GeneratorView(modes: [.password, .passphrase], compact: true) { generated in
+                            password = generated
+                            showGenerator = false
                         }
                     }
-                    .labelsHidden()
-                    .font(.system(.body, design: .monospaced))
-                    Button { showPassword.toggle() } label: { Image(systemName: showPassword ? "eye.slash" : "eye").accessibilityLabel(showPassword ? Text("Hide") : Text("Reveal")) }
-                        .buttonStyle(.borderless).help(showPassword ? Text("Hide") : Text("Reveal"))
-                    Button { showGenerator = true } label: { Image(systemName: "dice").accessibilityLabel(Text("Generate password")) }
-                        .buttonStyle(.borderless).help(Text("Generate password"))
-                        .popover(isPresented: $showGenerator, arrowEdge: .trailing) {
-                            GeneratorView(modes: [.password, .passphrase], compact: true) { generated in
-                                password = generated
-                                showPassword = true
-                                showGenerator = false
-                            }
-                        }
                 }
+                if !password.isEmpty { StrengthMeter(password: password).padding(.top, 2) }
             }
-            if !password.isEmpty { StrengthMeter(password: password) }
-            TextField("Website", text: $uri, prompt: Text(verbatim: "https://example.com"))
-                .textContentType(.URL)
-            LabeledContent("One-time code secret") {
+            FormField(label: "Website") {
+                TextField("Website", text: $uri, prompt: Text(verbatim: "https://example.com"))
+                    .textFieldStyle(SoftFieldStyle())
+                    .textContentType(.URL)
+            }
+            FormField(label: "One-time code secret", note: "From the site's two-factor setup: an otpauth:// link or the key under the QR code.") {
                 TextField("One-time code secret", text: $totp, prompt: Text("otpauth://… or base32 key"))
-                    .labelsHidden()
-                    .multilineTextAlignment(.trailing)
-                    .font(.system(.body, design: .monospaced))
-            }
-            if !totp.isEmpty, TOTP(totp) == nil {
-                Label("That doesn't look like a valid one-time code secret.", systemImage: "exclamationmark.triangle")
-                    .font(.caption).foregroundStyle(.orange)
+                    .textFieldStyle(SoftFieldStyle())
+                    .font(.system(size: 13, design: .monospaced))
+                if !totp.isEmpty, TOTP(totp) == nil {
+                    Label("That doesn't look like a valid one-time code secret.", systemImage: "exclamationmark.triangle")
+                        .font(.system(size: 11)).foregroundStyle(.orange)
+                }
             }
         }
     }
 
     @ViewBuilder private var cardSection: some View {
-        Section {
+        FormCard(title: "Card") {
             prop("Cardholder", "cardholderName")
-            Picker("Brand", selection: binding("brand")) {
-                Text("—").tag("")
-                ForEach(["Visa", "Mastercard", "Amex", "Discover", "JCB", "UnionPay", "Diners Club", "Maestro", "Other"], id: \.self) {
-                    Text(verbatim: $0).tag($0)
-                }
+            FormField(label: "Brand") {
+                SoftMenu(options: [("", "—")] + ["Visa", "Mastercard", "Amex", "Discover", "JCB", "UnionPay", "Diners Club", "Maestro", "Other"].map { ($0, $0) },
+                         selection: binding("brand"), accessibilityLabel: "Brand")
             }
             prop("Card number", "number", secret: true, monospaced: true)
-            HStack {
-                Picker("Expires", selection: binding("expMonth")) {
-                    Text("Month").tag("")
-                    ForEach(1...12, id: \.self) { Text(String(format: "%02d", $0)).tag(String($0)) }
+            HStack(alignment: .top, spacing: 12) {
+                FormField(label: "Expires") {
+                    HStack(spacing: 8) {
+                        SoftMenu(options: (1...12).map { (String($0), String(format: "%02d", $0)) }, selection: binding("expMonth"),
+                                 placeholder: "Month", accessibilityLabel: "Expiry month")
+                        TextField("Year", text: binding("expYear"), prompt: Text(verbatim: "2030"))
+                            .textFieldStyle(SoftFieldStyle())
+                            .frame(width: 90)
+                    }
                 }
-                TextField("Year", text: binding("expYear"), prompt: Text(verbatim: "2030"))
-                    .labelsHidden()
-                    .frame(width: 70)
+                prop("Security code", "code", secret: true, monospaced: true)
+                    .frame(width: 150)
             }
-            prop("Security code", "code", secret: true, monospaced: true)
         }
     }
 
     @ViewBuilder private var identitySection: some View {
-        Section("Name") {
-            prop("Title", "title"); prop("First name", "firstName"); prop("Middle name", "middleName"); prop("Last name", "lastName")
+        FormCard(title: "Name") {
+            pair(("Title", "title"), ("First name", "firstName"))
+            pair(("Middle name", "middleName"), ("Last name", "lastName"))
         }
-        Section("Contact") {
-            prop("Email", "email"); prop("Phone", "phone"); prop("Company", "company"); prop("Username", "username")
+        FormCard(title: "Contact") {
+            pair(("Email", "email"), ("Phone", "phone"))
+            pair(("Company", "company"), ("Username", "username"))
         }
-        Section("Address") {
-            prop("Address 1", "address1"); prop("Address 2", "address2"); prop("City", "city")
-            prop("State / Province", "state"); prop("Postal code", "postalCode"); prop("Country", "country")
+        FormCard(title: "Address") {
+            prop("Address 1", "address1"); prop("Address 2", "address2")
+            pair(("City", "city"), ("State / Province", "state"))
+            pair(("Postal code", "postalCode"), ("Country", "country"))
         }
-        Section("Documents") {
-            prop("National ID / SSN", "ssn", secret: true); prop("Passport number", "passportNumber", secret: true)
-            prop("Licence number", "licenseNumber", secret: true)
+        FormCard(title: "Documents") {
+            prop("National ID / SSN", "ssn", secret: true)
+            pair(("Passport number", "passportNumber"), ("Licence number", "licenseNumber"), secret: true)
         }
     }
 
     @ViewBuilder private var sshSection: some View {
-        Section {
-            LabeledContent("Private key") {
-                VStack(alignment: .trailing, spacing: 6) {
-                    if showSecrets || (props["privateKey"] ?? "").isEmpty {
-                        TextEditor(text: binding("privateKey"))
-                            .font(.system(size: 11, design: .monospaced))
-                            .frame(height: 90)
-                            .scrollContentBackground(.hidden)
-                            .padding(4)
-                            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 6))
-                    } else {
-                        Text(verbatim: "•••••••• OpenSSH private key ••••••••").font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary)
-                    }
-                    Button("Generate Ed25519 Key") {
-                        let pair = SSHKeyPair.generateEd25519(comment: name.isEmpty ? "" : name)
-                        props["privateKey"] = pair.privateKey
-                        props["publicKey"] = pair.publicKey
-                        props["keyFingerprint"] = pair.fingerprint
-                    }
+        FormCard(title: "Key") {
+            FormField(label: "Private key") {
+                if showSecrets || (props["privateKey"] ?? "").isEmpty {
+                    SoftEditor(text: binding("privateKey"), minHeight: 100, monospaced: true)
+                } else {
+                    Text(verbatim: "•••••••• OpenSSH private key ••••••••")
+                        .font(.system(size: 12, design: .monospaced)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 12).frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
+                        .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
                 }
+                Button("Generate Ed25519 Key", systemImage: "wand.and.stars") {
+                    let pair = SSHKeyPair.generateEd25519(comment: name.isEmpty ? "" : name)
+                    props["privateKey"] = pair.privateKey
+                    props["publicKey"] = pair.publicKey
+                    props["keyFingerprint"] = pair.fingerprint
+                }
+                .buttonStyle(.appSecondary)
+                .padding(.top, 2)
             }
             prop("Public key", "publicKey", monospaced: true)
             prop("Fingerprint", "keyFingerprint", monospaced: true)
@@ -250,37 +254,41 @@ struct EditItemSheet: View {
     }
 
     @ViewBuilder private var customFieldsSection: some View {
-        Section {
+        FormCard(title: "Custom fields") {
             ForEach($customFields) { $field in
                 HStack(spacing: 8) {
-                    TextField("Name", text: $field.name, prompt: Text("Name")).labelsHidden().frame(width: 130)
-                    switch field.kind {
-                    case .boolean:
-                        Toggle("Value", isOn: Binding(get: { field.value == "true" }, set: { field.value = $0 ? "true" : "false" }))
-                            .labelsHidden()
-                        Spacer()
-                    case .hidden where !showSecrets:
-                        SecureField("Value", text: $field.value, prompt: Text("Value")).labelsHidden()
-                    default:
-                        TextField("Value", text: $field.value, prompt: Text("Value")).labelsHidden()
+                    TextField("Name", text: $field.name, prompt: Text("Name"))
+                        .textFieldStyle(SoftFieldStyle()).frame(width: 130)
+                    Group {
+                        switch field.kind {
+                        case .boolean:
+                            Toggle("Value", isOn: Binding(get: { field.value == "true" }, set: { field.value = $0 ? "true" : "false" }))
+                                .labelsHidden().toggleStyle(.switch)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        case .hidden where !showSecrets:
+                            SecureField("Value", text: $field.value, prompt: Text("Value")).textFieldStyle(SoftFieldStyle())
+                        default:
+                            TextField("Value", text: $field.value, prompt: Text("Value")).textFieldStyle(SoftFieldStyle())
+                        }
                     }
-                    Picker("Type", selection: $field.kind) {
-                        Text("Text").tag(CustomField.Kind.text)
-                        Text("Hidden").tag(CustomField.Kind.hidden)
-                        Text("Yes / No").tag(CustomField.Kind.boolean)
+                    SoftMenu(options: [(CustomField.Kind.text, String(localized: "Text")), (.hidden, String(localized: "Hidden")),
+                                       (.boolean, String(localized: "Yes / No"))],
+                             selection: $field.kind, accessibilityLabel: "Type")
+                        .frame(width: 110)
+                    Button { withAnimation(.snappy) { customFields.removeAll { $0.id == field.id } } } label: {
+                        Image(systemName: "minus.circle.fill").font(.system(size: 15)).foregroundStyle(.secondary)
+                            .accessibilityLabel(Text("Remove"))
                     }
-                    .labelsHidden()
-                    .frame(width: 96)
-                    Button { customFields.removeAll { $0.id == field.id } } label: { Image(systemName: "minus.circle").accessibilityLabel(Text("Remove")) }
-                        .buttonStyle(.borderless).help(Text("Remove"))
+                    .buttonStyle(.plain).help(Text("Remove"))
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            Button { customFields.append(CustomField(name: "", value: "", kind: .text)) } label: {
+            Button {
+                withAnimation(.snappy) { customFields.append(CustomField(name: "", value: "", kind: .text)) }
+            } label: {
                 Label("Add Field", systemImage: "plus")
             }
-            .buttonStyle(.borderless)
-        } header: {
-            Text("Custom fields")
+            .buttonStyle(.appSecondary)
         }
     }
 
@@ -290,17 +298,24 @@ struct EditItemSheet: View {
 
     @ViewBuilder
     private func prop(_ label: LocalizedStringKey, _ key: String, secret: Bool = false, monospaced: Bool = false) -> some View {
-        LabeledContent(label) {
+        FormField(label: label) {
             Group {
                 if secret && !showSecrets {
-                    SecureField(label, text: binding(key))
+                    SecureField(label, text: binding(key), prompt: Text(verbatim: ""))
                 } else {
-                    TextField(label, text: binding(key))
+                    TextField(label, text: binding(key), prompt: Text(verbatim: ""))
                 }
             }
-            .labelsHidden()
-            .multilineTextAlignment(.trailing)
-            .font(monospaced ? .system(.body, design: .monospaced) : .body)
+            .textFieldStyle(SoftFieldStyle())
+            .font(.system(size: 13, design: monospaced ? .monospaced : .default))
+        }
+    }
+
+    /// Two short fields side by side.
+    private func pair(_ a: (LocalizedStringKey, String), _ b: (LocalizedStringKey, String), secret: Bool = false) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            prop(a.0, a.1, secret: secret)
+            prop(b.0, b.1, secret: secret)
         }
     }
 

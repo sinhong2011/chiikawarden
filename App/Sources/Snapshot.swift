@@ -155,19 +155,19 @@ enum Snapshot {
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(EditItemSheet(mode: .edit(demoItems[1])).environment(vault).tint(.brand),
-                   size: CGSize(width: 520, height: 560), appearance: appearance,
+                   size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-\(name).png"))
             var card = demoItems.first { $0.kind == .card }!
             card.properties = ["cardholderName": "Usagi", "brand": "Visa", "number": "4111111111116411", "expMonth": "8", "expYear": "2029", "code": "123"]
             card.customFields = [CustomField(name: "PIN", value: "0420", kind: .hidden), CustomField(name: "Virtual", value: "true", kind: .boolean)]
             render(EditItemSheet(mode: .edit(card)).environment(vault).tint(.brand),
-                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-card-\(name).png"))
             render(EditItemSheet(mode: .create(.identity)).environment(vault).tint(.brand),
-                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-identity-\(name).png"))
             render(EditItemSheet(mode: .create(.sshKey)).environment(vault).tint(.brand),
-                   size: CGSize(width: 540, height: 620), appearance: appearance,
+                   size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-ssh-\(name).png"))
             if vault.generatorHistory.isEmpty {
                 vault.rememberGenerated("correct-Horse-battery-staple4", kind: "passphrase")

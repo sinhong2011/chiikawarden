@@ -247,7 +247,6 @@ struct SendComposer: View {
     @State private var picking = false
     @State private var saving = false
     @State private var dropTargeted = false
-    @FocusState private var textFocused: Bool
 
     private var ready: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && (kind == .text ? !text.isEmpty : file != nil)
@@ -259,12 +258,8 @@ struct SendComposer: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("New Send").font(.system(size: 22, weight: .bold)).tracking(-0.3)
-                        Text("Share text or a file through an encrypted link that expires.")
-                            .font(.system(size: 13)).foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 4)
+                    FormHeader(symbol: "paperplane.fill", title: "New Send",
+                               subtitle: "Share text or a file through an encrypted link that expires.")
 
                     HStack(spacing: 12) {
                         AppSegmented(options: [(Kind.text, LocalizedStringKey("Text")), (.file, LocalizedStringKey("File"))],
@@ -272,37 +267,27 @@ struct SendComposer: View {
                             .frame(maxWidth: 260)
                         Spacer()
                         if model.sessions.count > 1 {
-                            Picker("Account", selection: $accountId) {
-                                ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag(String?.some($0.id)) }
-                            }
-                            .labelsHidden().fixedSize()
+                            SoftMenu(options: model.sessions.map { (String?.some($0.id), $0.account.email) }, selection: $accountId,
+                                     accessibilityLabel: "Account")
+                                .frame(maxWidth: 240)
                         }
                     }
 
-                    card {
-                        field("Name") {
+                    FormCard {
+                        FormField(label: "Name") {
                             TextField("Name", text: $name, prompt: Text("e.g. Wi-Fi password")).textFieldStyle(SoftFieldStyle())
                         }
                         if kind == .text {
-                            field("Text") {
-                                TextEditor(text: $text)
-                                    .font(.system(size: 13))
-                                    .scrollContentBackground(.hidden)
-                                    .focused($textFocused)
-                                    .padding(8)
-                                    .frame(minHeight: 120)
-                                    .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
-                                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                        .strokeBorder(textFocused ? Color.brand : Color(nsColor: .separatorColor), lineWidth: textFocused ? 1.5 : 1))
-                                    .animation(.easeOut(duration: 0.15), value: textFocused)
+                            FormField(label: "Text") {
+                                SoftEditor(text: $text, minHeight: 120)
                             }
                             Toggle("Hide the text until the recipient reveals it", isOn: $hideText).toggleStyle(.trailingSwitch)
                         } else {
-                            field("File") { fileZone }
+                            FormField(label: "File") { fileZone }
                         }
                     }
 
-                    card(title: "Availability") {
+                    FormCard(title: "Availability") {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Delete after").font(.system(size: 13))
                             // The same sliding segments as Text / File, not a pop-up menu.
@@ -327,12 +312,12 @@ struct SendComposer: View {
                         }
                     }
 
-                    card(title: "Protection") {
-                        field("Password") {
+                    FormCard(title: "Protection") {
+                        FormField(label: "Password") {
                             PasswordField(title: "Password", text: $password, prompt: Text("Optional"))
                         }
                         Toggle("Hide my email address from recipients", isOn: $hideEmail).toggleStyle(.trailingSwitch)
-                        field("Private notes") {
+                        FormField(label: "Private notes") {
                             TextField("Private notes", text: $notes, prompt: Text("Only you see these")).textFieldStyle(SoftFieldStyle())
                         }
                     }
@@ -343,24 +328,11 @@ struct SendComposer: View {
             }
             .thinScroller()
 
-            HStack(spacing: 10) {
+            FormFooter(action: "Create & Copy Link", busy: saving, disabled: !ready, cancel: dismiss,
+                       submit: { Task { await create() } }) {
                 Label("The link holds the key; the server never sees your content.", systemImage: "lock.shield")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
-                Spacer()
-                Button("Cancel") { dismiss() }.buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
-                Button {
-                    Task { await create() }
-                } label: {
-                    HStack(spacing: 6) {
-                        if saving { ProgressView().controlSize(.small).tint(.white) }
-                        Text("Create & Copy Link")
-                    }
-                }
-                .buttonStyle(.appPrimary).keyboardShortcut(.defaultAction)
-                .disabled(!ready || saving)
             }
-            .padding(.horizontal, 18).padding(.vertical, 12)
-            .background(alignment: .top) { Divider().opacity(0.5) }
         }
         .fileImporter(isPresented: $picking, allowedContentTypes: [.item]) { result in
             if case .success(let url) = result { choose(url) }
@@ -399,24 +371,6 @@ struct SendComposer: View {
             choose(url)
             return true
         } isTargeted: { dropTargeted = $0 }
-    }
-
-    private func card<Content: View>(title: LocalizedStringKey? = nil, @ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            if let title { Text(title).font(.system(size: 13, weight: .semibold)) }
-            content()
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.panelStrong, in: .rect(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
-    }
-
-    private func field<Content: View>(_ label: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-            content()
-        }
     }
 
     private func create() async {

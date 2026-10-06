@@ -35,7 +35,6 @@ struct VaultView: View {
     /// Narrow windows: the strip's starting pane (snapshots and previews).
     var initialDepth = 1
     @Environment(AppModel.self) private var model
-    @State private var newFolderName = ""
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
     @AppStorage("itemSort") private var sortRaw = ItemSort.title.rawValue
@@ -254,13 +253,7 @@ struct VaultView: View {
         .onChange(of: model.previewURL) { old, _ in
             if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
         }
-        .alert("New Folder", isPresented: $model.promptingNewFolder) {
-            TextField("Name", text: $newFolderName, prompt: Text("e.g. Work/Servers"))
-            Button("Create") { let name = newFolderName; newFolderName = ""; Task { await model.createFolder(name: name) } }
-            Button("Cancel", role: .cancel) { newFolderName = "" }
-        } message: {
-            Text("Use / to nest, e.g. Work/Servers.")
-        }
+        .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
         .overlay(alignment: .bottom) { ToastView() }
         .onAppear(perform: selectFirst)
         // Under the lock layer the vault starts empty; pick an item once unlocking fills it.
@@ -657,7 +650,7 @@ private struct NewItemButton: View {
                 Button("New Login", systemImage: "key") { model.editing = EditRequest(mode: .create(.login)) }
                 Button("New Secure Note", systemImage: "note.text") { model.editing = EditRequest(mode: .create(.secureNote)) }
                 Button("New Card", systemImage: "creditcard") { model.editing = EditRequest(mode: .create(.card)) }
-                Button("New Identity", systemImage: "person.vcard") { model.editing = EditRequest(mode: .create(.identity)) }
+                Button("New Identity", systemImage: "person.crop.rectangle") { model.editing = EditRequest(mode: .create(.identity)) }
                 Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
                 Divider()
                 Button("New Send", systemImage: "paperplane") {
@@ -1548,6 +1541,57 @@ struct HeaderIconStyle: ButtonStyle {
                 .background(Color.primary.opacity(pressed ? 0.12 : hovering ? 0.07 : 0), in: .capsule)
                 .onHover { hovering = $0 }
                 .animation(.easeOut(duration: 0.12), value: hovering)
+        }
+    }
+}
+
+/// New Folder, in the same form language as the item and Send forms.
+private struct NewFolderSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var accountId: String?
+    @State private var saving = false
+    @FocusState private var focused: Bool
+
+    private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                FormHeader(symbol: "folder.badge.plus", title: "New Folder", subtitle: "Group items; folders can nest.")
+                FormCard {
+                    if model.sessions.count > 1 {
+                        FormField(label: "Account") {
+                            SoftMenu(options: model.sessions.map { (String?.some($0.id), $0.account.email) }, selection: $accountId,
+                                     accessibilityLabel: "Account")
+                        }
+                    }
+                    FormField(label: "Name", note: "Use / to nest, e.g. Work/Servers.") {
+                        TextField("Name", text: $name, prompt: Text("e.g. Work/Servers"))
+                            .textFieldStyle(SoftFieldStyle())
+                            .focused($focused)
+                            .onSubmit(create)
+                    }
+                }
+            }
+            .padding(20)
+            FormFooter(action: "Create", busy: saving, disabled: trimmed.isEmpty, cancel: { dismiss() }, submit: create)
+        }
+        .frame(width: 440)
+        .background(Color.windowBase)
+        .onAppear {
+            accountId = model.defaultAccountId
+            focused = true
+        }
+    }
+
+    private func create() {
+        guard !trimmed.isEmpty, !saving else { return }
+        saving = true
+        Task {
+            if await model.createFolder(name: trimmed, accountId: accountId) != nil { dismiss() }
+            saving = false
         }
     }
 }
