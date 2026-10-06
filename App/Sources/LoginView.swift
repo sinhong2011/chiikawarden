@@ -4,21 +4,38 @@ import SwiftUI
 /// Login: the vault door on the left, a calm native form on the right.
 /// The stage bleeds to the window edge so the traffic lights sit on it, and hides on narrow windows.
 struct LoginView: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
         GeometryReader { geo in
-            let showStage = geo.size.width >= 820
-            HStack(spacing: 0) {
+            let w = geo.size.width, h = geo.size.height
+            let showStage = w >= 900
+            // The door's centre sits on the line between the stage and the form; the form keeps clear of its right half.
+            let radius = min(w * 0.17, h * 0.3, 240) / DoorGeometry.frameOuter
+            let outer = radius * DoorGeometry.frameOuter
+            let stageWidth = max(300, min(w * 0.42, w - outer - 28 - 430))
+            ZStack(alignment: .topLeading) {
+                HStack(spacing: 0) {
+                    if showStage {
+                        LoginDoorStage()
+                            .frame(width: stageWidth)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                    ScrollView {
+                        LoginForm()
+                            .padding(.vertical, 40)
+                            .frame(maxWidth: .infinity, minHeight: h)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                    .padding(.leading, showStage ? outer + 28 : 0)
+                }
                 if showStage {
-                    LoginDoorStage()
-                        .frame(width: min(max(geo.size.width * 0.46, 380), 560))
-                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    VaultDoorStage(radius: radius, center: CGPoint(x: stageWidth, y: h * 0.46), typed: 0, turns: 0,
+                                   busy: model.isBusy, errorAt: nil, openedAt: model.unlockOpenedAt, closedAt: nil,
+                                   room: false, dial: true)
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
                 }
-                ScrollView {
-                    LoginForm()
-                        .padding(.vertical, 40)
-                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
-                }
-                .scrollBounceBehavior(.basedOnSize)
             }
             .animation(.snappy(duration: 0.3), value: showStage)
         }

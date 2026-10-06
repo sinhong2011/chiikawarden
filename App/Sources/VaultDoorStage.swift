@@ -29,6 +29,17 @@ struct VaultDoorStage: View {
     let errorAt: Date?
     let openedAt: Date?
     let closedAt: Date?
+    /// Paint the room (the dark backdrop) across the whole frame; off when the door sits over other content.
+    var room = true
+    /// A combination dial with a spoked handle in the hub (the login page, where the hub has no password field).
+    var dial = false
+
+    /// The room's backdrop, for a panel that shows the room without the door.
+    static func roomGradient(dark: Bool) -> LinearGradient {
+        let p = DoorPalette(dark: dark)
+        // As translucent as the door's own room, so the window's backdrop shows through and the panel melts into it.
+        return LinearGradient(colors: [p.backTop.opacity(0.86), p.backBottom.opacity(0.9)], startPoint: .top, endPoint: .bottom)
+    }
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -66,7 +77,7 @@ struct VaultDoorStage: View {
     private func art(time: Double, opened: Double?, closed: Double?, alert: Double, typed: Int, turns: Int,
                      busy: Bool) -> some View {
         VaultDoorArt(steps: Double(turns), busy: busy ? 1 : 0, time: time, opened: opened, closed: closed, alert: alert,
-                     lit: typed, radius: radius, center: center, dark: scheme == .dark)
+                     lit: typed, radius: radius, center: center, dark: scheme == .dark, room: room, dial: dial)
             .animation(.easeInOut(duration: 0.4), value: busy)
     }
 }
@@ -244,6 +255,8 @@ private struct VaultDoorArt: View, Animatable {
     let radius: CGFloat
     let center: CGPoint
     let dark: Bool
+    var room = true
+    var dial = false
 
     nonisolated var animatableData: AnimatablePair<Double, Double> {
         get { AnimatablePair(steps, busy) }
@@ -288,6 +301,8 @@ private struct VaultDoorArt: View, Animatable {
                 switch kind {
                 case "rune":
                     Text(String(Self.runes[i])).font(.custom("Apple Symbols", size: radius * 0.062))
+                case "number":
+                    Text(verbatim: "\(i * 10)").font(.system(size: radius * 0.03, weight: .semibold, design: .rounded))
                 case "zodiac":
                     // U+FE0E asks for the text form, not the emoji.
                     Text(String(Self.zodiac[i]) + "\u{FE0E}").font(.custom("Apple Symbols", size: radius * 0.062))
@@ -304,18 +319,20 @@ private struct VaultDoorArt: View, Animatable {
     /// "rune-3-1": the glyph kind, its index, and the look (0 lip, 1 cut, 2 glow).
     private static let glyphIDs: [String] = (0..<3).flatMap { look in
         (0..<12).flatMap { ["rune-\($0)-\(look)", "zodiac-\($0)-\(look)"] } + (0..<6).map { "icon-\($0)-\(look)" }
-    }
+    } + (0..<10).map { "number-\($0)-1" }
 
     /// The glyphs resolved for this frame (cheap: the layout is already done).
     struct Glyphs {
         var runes: [[GraphicsContext.ResolvedSymbol?]] = []
         var zodiac: [[GraphicsContext.ResolvedSymbol?]] = []
         var icons: [[GraphicsContext.ResolvedSymbol?]] = []
+        var numbers: [GraphicsContext.ResolvedSymbol?] = []
 
         init(_ ctx: GraphicsContext) {
             runes = (0..<12).map { i in (0..<3).map { ctx.resolveSymbol(id: "rune-\(i)-\($0)") } }
             zodiac = (0..<12).map { i in (0..<3).map { ctx.resolveSymbol(id: "zodiac-\(i)-\($0)") } }
             icons = (0..<6).map { i in (0..<3).map { ctx.resolveSymbol(id: "icon-\(i)-\($0)") } }
+            numbers = (0..<10).map { ctx.resolveSymbol(id: "number-\($0)-1") }
         }
 
         /// Draws one glyph as an engraving: lip, cut, then the glow at `light` strength.
@@ -371,8 +388,8 @@ private struct VaultDoorArt: View, Animatable {
 
         // Room: translucent, so the lock reads as a layer over the window.
         let full = Path(CGRect(origin: .zero, size: size))
-        ctx.fill(full, with: .linearGradient(Gradient(colors: [p.backTop.opacity(0.86), p.backBottom.opacity(0.9)]),
-                                             startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
+        if room { ctx.fill(full, with: .linearGradient(Gradient(colors: [p.backTop.opacity(0.86), p.backBottom.opacity(0.9)]),
+                                             startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height))) }
 
         var c = ctx
         c.translateBy(x: center.x, y: center.y)
@@ -407,8 +424,8 @@ private struct VaultDoorArt: View, Animatable {
         // The pieces, inside out, so each slides out under the next; the rune segments retract into the frame.
         c.clip(to: circle(1.0 * R))
         let turn = (0..<4).map { angle($0, m) }
-        pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow) }
         let glyphs = Glyphs(ctx)
+        pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow, m: m, glyphs: glyphs) }
         pieces(c, ring: 1, m: m, p: p, count: 8, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
             drawPins(&$0, p: p, m: m, glyphs: glyphs, turn: turn[1])
         }
@@ -647,7 +664,7 @@ private struct VaultDoorArt: View, Animatable {
         }
     }
 
-    private func drawCore(_ l: inout GraphicsContext, p: DoorPalette, glow: RGB) {
+    private func drawCore(_ l: inout GraphicsContext, p: DoorPalette, glow: RGB, m: Mechanism, glyphs: Glyphs) {
         let R = radius
         let rc = DoorGeometry.core * R
         l.fill(circle(rc), with: .linearGradient(Gradient(colors: p.recess), startPoint: CGPoint(x: 0, y: -rc),
@@ -670,6 +687,63 @@ private struct VaultDoorArt: View, Animatable {
         marker.addLine(to: CGPoint(x: R * 0.016, y: -rc * 0.915))
         marker.closeSubpath()
         l.fill(marker, with: .color(glow(0.9)))
+        if dial { drawDial(&l, p: p, glow: glow, m: m, glyphs: glyphs) }
+    }
+
+    /// The combination dial: a numbered disc that turns slowly at rest and spins a full turn as the door opens, under
+    /// a four-spoke handle with a lit hub.
+    private func drawDial(_ l: inout GraphicsContext, p: DoorPalette, glow: RGB, m: Mechanism, glyphs: Glyphs) {
+        let rd = DoorGeometry.core * radius * 0.72
+        let spin = opened.map { Ease.inOut(Mechanism.seg($0 * Self.openSpeed, 0.05, 0.6)) * 360 } ?? 0
+        let angle = time * 4 + spin
+        // The disc, raised: a soft shadow, turned metal, a bright lip.
+        var shadow = l
+        shadow.translateBy(x: 0, y: rd * 0.04)
+        shadow.fill(circle(rd), with: .color(.black.opacity(dark ? 0.45 : 0.15)))
+        fillBand(&l, inner: 0.001, outer: rd, colors: p.metal, turn: angle)
+        var d = l
+        d.rotate(by: .degrees(angle))
+        // Fifty ticks, every fifth long and numbered 0…90.
+        for k in 0..<50 {
+            let long = k % 5 == 0
+            let a = Double(k) / 50 * 2 * .pi - .pi / 2
+            var tick = Path()
+            tick.move(to: CGPoint(x: cos(a) * rd * (long ? 0.83 : 0.88), y: sin(a) * rd * (long ? 0.83 : 0.88)))
+            tick.addLine(to: CGPoint(x: cos(a) * rd * 0.95, y: sin(a) * rd * 0.95))
+            engrave(&d, tick, p: p, width: long ? 1.2 : 0.7)
+            if long, let number = glyphs.numbers[k / 5] {
+                var n = d
+                n.translateBy(x: cos(a) * rd * 0.7, y: sin(a) * rd * 0.7)
+                n.rotate(by: .radians(a + .pi / 2))
+                n.draw(number, at: .zero, anchor: .center)
+            }
+        }
+        // The handle: a ring, four spokes with knobs, a hub that holds the light.
+        let reach = rd * 0.5
+        var spokes = Path()
+        for q in 0..<4 {
+            let a = Double(q) * .pi / 2 + .pi / 4
+            spokes.move(to: .zero)
+            spokes.addLine(to: CGPoint(x: cos(a) * reach, y: sin(a) * reach))
+        }
+        var h = d
+        h.translateBy(x: 0, y: rd * 0.02)
+        h.stroke(spokes, with: .color(.black.opacity(dark ? 0.5 : 0.18)), style: StrokeStyle(lineWidth: rd * 0.09, lineCap: .round))
+        h.stroke(circle(rd * 0.3), with: .color(.black.opacity(dark ? 0.5 : 0.18)), lineWidth: rd * 0.07)
+        let steel = GraphicsContext.Shading.linearGradient(Gradient(colors: p.bolt), startPoint: CGPoint(x: 0, y: -reach),
+                                                           endPoint: CGPoint(x: 0, y: reach))
+        d.stroke(spokes, with: steel, style: StrokeStyle(lineWidth: rd * 0.075, lineCap: .round))
+        d.stroke(circle(rd * 0.3), with: steel, lineWidth: rd * 0.055)
+        for q in 0..<4 {
+            let a = Double(q) * .pi / 2 + .pi / 4
+            let knob = CGPoint(x: cos(a) * reach, y: sin(a) * reach)
+            d.fill(circle(rd * 0.075, at: knob), with: steel)
+            d.stroke(circle(rd * 0.075, at: knob), with: .color(p.edge), lineWidth: 0.8)
+        }
+        d.fill(circle(rd * 0.16), with: steel)
+        d.stroke(circle(rd * 0.16), with: .color(p.edge), lineWidth: 1)
+        d.fill(circle(rd * 0.06), with: .color(glow(0.9)))
+        d.fill(circle(rd * 0.025), with: .color(.white.opacity(0.9)))
     }
 
     // MARK: Helpers
@@ -722,12 +796,10 @@ struct LoginDoorStage: View {
     var body: some View {
         let dark = scheme == .dark
         let ink = dark ? Color.white : Color(red: 0.05, green: 0.16, blue: 0.27)
-        GeometryReader { geo in
-            let size = geo.size
-            let radius = min(size.width * 0.34, size.height * 0.27, 200)
+        GeometryReader { _ in
             ZStack {
-                VaultDoorStage(radius: radius, center: CGPoint(x: size.width / 2, y: size.height * 0.40), typed: 0, turns: 0,
-                               busy: model.isBusy, errorAt: nil, openedAt: model.unlockOpenedAt, closedAt: nil)
+                // The room only: the door itself sits on the line between this panel and the form (LoginView).
+                VaultDoorStage.roomGradient(dark: dark)
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: "Chiikawarden")
                         .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
@@ -746,8 +818,9 @@ struct LoginDoorStage: View {
             }
         }
         // Fades out on the right so the stage melts into the form's side (no hard seam).
-        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.78),
-                                     .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing))
+        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.45),
+                                     .init(color: .black.opacity(0.5), location: 0.75), .init(color: .clear, location: 1)],
+                             startPoint: .leading, endPoint: .trailing))
         .accessibilityHidden(true)
     }
 }
