@@ -43,7 +43,7 @@ Create an environment named `release` (Settings › Environments) and add the se
 | --- | --- |
 | `DEVELOPER_ID_P12` | Your *Developer ID Application* certificate and key, exported as .p12, base64-encoded |
 | `DEVELOPER_ID_P12_PASSWORD` | The .p12 export password |
-| `ASC_KEY_P8` | An App Store Connect API key (Users and Access › Integrations; role *Developer*), the .p8 contents |
+| `ASC_KEY_P8` | An App Store Connect API key (Users and Access › Integrations; role *Admin* — creating Developer ID provisioning profiles needs it), the .p8 contents |
 | `ASC_KEY_ID`, `ASC_ISSUER_ID` | That key's ID and the issuer ID |
 | `SPARKLE_PRIVATE_KEY` | The contents of `sparkle-private-key.txt` from step 1 (then delete that file) |
 
