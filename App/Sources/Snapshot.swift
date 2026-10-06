@@ -450,6 +450,12 @@ enum SelfTest {
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
+            // Equivalent domains come down with sync: a google.com login belongs on youtube.com too.
+            let eq = model.equivalentDomains
+            check(eq.groups.count > 50 && eq.matches(itemHost: "accounts.google.com", site: "youtube.com")
+                  && !eq.matches(itemHost: "github.com", site: "gitlab.com"),
+                  "equivalent domains from the server (\(eq.groups.count) groups)")
+
             // Organizations: move a personal item in (re-encrypted with the organization key), change its collections.
             if let org = model.organizations.first, let collection = org.children.first {
                 _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest share", username: "kurimanju", password: "s3cret-share",

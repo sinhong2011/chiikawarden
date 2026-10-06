@@ -150,7 +150,7 @@ private struct GeneralSettings: View {
             }
             .task {
                 autoFillOn = await ASCredentialIdentityStore.shared.state().isEnabled
-                if autoFillOn == true { AutoFillIdentities.publish(model.items) }
+                if autoFillOn == true { AutoFillIdentities.publish(model.items, equivalents: model.equivalentDomains) }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 Task { autoFillOn = await ASCredentialIdentityStore.shared.state().isEnabled }

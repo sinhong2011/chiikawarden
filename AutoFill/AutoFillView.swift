@@ -105,6 +105,9 @@ final class AutoFillState {
             }
         }
         let vaults = opened.values.map(\.vault)
+        equivalents = EquivalentDomains(groups: keys.keys.flatMap { id in
+            AccountStore.loadCache(id).map { EquivalentDomains(syncData: $0).groups } ?? []
+        })
         guard !vaults.isEmpty else {
             error = String(localized: "Open Chiikawarden once to download your vault.")
             return
@@ -206,13 +209,16 @@ final class AutoFillState {
         AccountStore.saveCache(data, accountId)
         if let fresh = try? VaultDecoder.decode(data, userKey: key, accountId: accountId) {
             opened[accountId] = (key, fresh)
-            AutoFillIdentities.publish(opened.values.flatMap(\.vault.items))
+            AutoFillIdentities.publish(opened.values.flatMap(\.vault.items), equivalents: equivalents)
         }
     }
 
+    /// Sites that share sign-ins (the server's equivalent domains), for matching.
+    private var equivalents = EquivalentDomains.none
+
     func matches(_ item: VaultItem) -> Bool {
         guard let host = item.host?.lowercased() else { return false }
-        return domains.contains { d in host == d || host.hasSuffix("." + d) || d.hasSuffix("." + host) }
+        return domains.contains { equivalents.matches(itemHost: host, site: $0) }
     }
 
     func fill(_ item: VaultItem) {

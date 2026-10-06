@@ -78,6 +78,9 @@ final class AppModel {
         }
     }
 
+    /// Every open account's equivalent domains.
+    var equivalentDomains: EquivalentDomains { EquivalentDomains(groups: sessions.flatMap(\.equivalents.groups)) }
+
     /// The items in the chosen vault.
     var vaultItems: [VaultItem] { vaultFilter == .all ? items : items.filter(inVault) }
     /// True while adding another account from an unlocked vault (login screen can be cancelled).
@@ -245,7 +248,7 @@ final class AppModel {
             vaultFilter = .all
         }
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
-        AutoFillIdentities.publish(items)
+        AutoFillIdentities.publish(items, equivalents: equivalentDomains)
     }
 
     enum ServerStatus: Equatable {
@@ -362,7 +365,7 @@ final class AppModel {
     /// Re-sync when the app comes to the front if the last sync is stale.
     func appDidBecomeActive() {
         // AutoFill may have just been switched on in System Settings.
-        if isUnlocked { AutoFillIdentities.publish(items) }
+        if isUnlocked { AutoFillIdentities.publish(items, equivalents: equivalentDomains) }
         for session in sessions where session.lastSynced.map({ Date.now.timeIntervalSince($0) > 60 }) ?? true {
             session.scheduleSync()
         }

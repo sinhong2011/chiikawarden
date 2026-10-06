@@ -12,6 +12,8 @@ final class AccountSession {
     private(set) var organizations: [Grouping] = []
     private(set) var sends: [SendItem] = []
     private(set) var hiddenCount = 0
+    /// Sites that share sign-ins, from the server's domain rules.
+    private(set) var equivalents = EquivalentDomains.none
     private(set) var lastSynced: Date?
     private(set) var isSyncing = false
 
@@ -92,6 +94,7 @@ final class AccountSession {
         hiddenCount = vault.hiddenCount
         keyring = vault.keyring
         rawCiphers = vault.rawCiphers
+        equivalents = EquivalentDomains(syncData: data)
         onChange()
     }
 

@@ -502,7 +502,7 @@ public actor VaultClient {
 
     /// Raw sync payload — every secret in it is already encrypted, so it can be cached as-is.
     public func syncData() async throws(APIError) -> Data {
-        var request = try request(environment.apiURL, "sync?excludeDomains=true")
+        var request = try request(environment.apiURL, "sync?excludeDomains=false")
         if let accessToken { request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
         return try await sendRaw(request)
     }

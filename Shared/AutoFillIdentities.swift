@@ -8,13 +8,17 @@ enum AutoFillIdentities {
     /// Off during self-tests so test data never reaches the system's AutoFill store.
     nonisolated(unsafe) static var isEnabled = true
 
-    static func publish(_ items: [VaultItem]) {
+    /// `equivalents`: a login is also suggested on the domains that share its sign-in (google.com → youtube.com).
+    static func publish(_ items: [VaultItem], equivalents: EquivalentDomains = .none) {
         guard isEnabled else { return }
         let logins = items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
-        var identities: [any ASCredentialIdentity] = logins.compactMap { item in
-            guard let host = item.host, item.password != nil else { return nil }
-            return ASPasswordCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: host, type: .domain),
-                                                user: item.username ?? "", recordIdentifier: item.id)
+        var identities: [any ASCredentialIdentity] = logins.flatMap { item -> [any ASCredentialIdentity] in
+            guard let host = item.host, item.password != nil else { return [] }
+            let hosts = [host] + equivalents.related(to: host).filter { !EquivalentDomains.within(host, $0) }.sorted()
+            return hosts.map { site in
+                ASPasswordCredentialIdentity(serviceIdentifier: ASCredentialServiceIdentifier(identifier: site, type: .domain),
+                                             user: item.username ?? "", recordIdentifier: item.id)
+            }
         }
         identities += logins.compactMap { item in
             guard let host = item.host, item.totp != nil else { return nil }
