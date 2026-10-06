@@ -124,12 +124,15 @@ struct AccountSecuritySections: View {
                         }
                     }
                 } label: {
-                    Label {
-                        Text("Change it in the web vault")
-                        Text("Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here.")
-                            .font(.caption).foregroundStyle(.secondary)
-                    } icon: {
-                        Image(systemName: "safari").foregroundStyle(.secondary)
+                    // Icon, then the title over its explanation, all centred on the button.
+                    HStack(alignment: .center, spacing: 10) {
+                        Image(systemName: "safari").foregroundStyle(.secondary).frame(width: 20)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Change it in the web vault")
+                            Text("Bitwarden lets only its web vault turn two-step login on or off, as with its own desktop app. Codes from your authenticator still work here.")
+                                .font(.caption).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
             } else {
