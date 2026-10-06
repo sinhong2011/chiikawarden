@@ -178,7 +178,7 @@ private struct CopyIcon: View {
         } label: {
             Image(systemName: done ? "checkmark" : symbol)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(done ? Color.brand : .secondary)
+                .foregroundStyle(done ? Color.primary : .secondary)
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: 26, height: 26)
                 .background(Color.primary.opacity(0.06), in: .circle)
@@ -366,7 +366,7 @@ private struct QuickActions: View {
     private func tile(_ symbol: String, _ title: LocalizedStringKey, badge: Int = 0, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 5) {
-                Image(systemName: symbol).font(.system(size: 15, weight: .medium)).foregroundStyle(Color.brand)
+                Image(systemName: symbol).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary)
                     .frame(height: 18)
                     .overlay(alignment: .topTrailing) {
                         if badge > 0 {
@@ -475,9 +475,9 @@ private struct LockedCard: View {
     var body: some View {
         PanelCard {
             VStack(spacing: 10) {
-                Image(systemName: "lock.fill").font(.system(size: 20)).foregroundStyle(Color.brand)
+                Image(systemName: "lock.fill").font(.system(size: 20)).foregroundStyle(.secondary)
                     .frame(width: 44, height: 44)
-                    .background(Color.brand.opacity(0.12), in: .rect(cornerRadius: 12, style: .continuous))
+                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 12, style: .continuous))
                 Text("Vault locked").font(.system(size: 14, weight: .semibold))
                 Button("Unlock…") { model.bringToFront() }
                     .buttonStyle(.appPrimarySmall)

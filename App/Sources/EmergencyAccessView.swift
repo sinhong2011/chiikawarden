@@ -225,7 +225,7 @@ private struct ConfirmEmergencyContactSheet: View {
                         ProgressView().frame(maxWidth: .infinity)
                     } else {
                         Text(verbatim: phrase.joined(separator: "-"))
-                            .font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(Color.brand).textSelection(.enabled)
+                            .font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(.primary).textSelection(.enabled)
                     }
                 }
                 if let error { Label(error, systemImage: "exclamationmark.circle.fill").font(.system(size: 12)).foregroundStyle(.red) }

@@ -106,7 +106,7 @@ private struct DoorCore: View {
         VStack(spacing: 12) {
             Image(systemName: model.unlockOpening ? "lock.open.fill" : "lock.fill")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(dark ? Color.brandFill : Color.brand)
+                .foregroundStyle(.secondary)
                 .contentTransition(.symbolEffect(.replace))
                 .accessibilityHidden(true)
 
@@ -160,7 +160,8 @@ private struct DoorCore: View {
 
             HStack(spacing: 4) {
                 Text("Not you?").foregroundStyle(.secondary)
-                Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }.buttonStyle(.link)
+                Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
+                    .buttonStyle(.plain).foregroundStyle(.primary).underline()
             }
             .font(.system(size: 11))
             .padding(.top, -4)
@@ -238,7 +239,7 @@ private struct InlineTouchID: View {
         HStack(spacing: 8) {
             ZStack {
                 // The system glyph only draws during a prompt; show ours otherwise.
-                Image(systemName: "touchid").font(.system(size: 17)).foregroundStyle(Color.brand)
+                Image(systemName: "touchid").font(.system(size: 17)).foregroundStyle(.primary)
                     .opacity(prompting ? 0 : 1)
                 TouchIDGlyph(context: context).opacity(prompting ? 1 : 0)
             }

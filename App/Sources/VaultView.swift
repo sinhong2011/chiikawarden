@@ -440,6 +440,7 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .listItemTint(.monochrome) // icons in the text's own colour, not the brand blue
         // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
         .tint(Color.sidebarSelection)
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
@@ -985,7 +986,7 @@ struct ItemRow: View {
                 Image(systemName: "clock.badge.checkmark")
                     .font(.system(size: 13, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.brand)
+                    .foregroundStyle(.secondary)
                     .help(Text("Has a one-time code"))
                     .accessibilityLabel(Text("Has a one-time code"))
             }
@@ -1053,8 +1054,9 @@ struct ItemDetail: View {
                                 HStack(spacing: 5) {
                                     Text(verbatim: address).lineLimit(1).truncationMode(.middle)
                                     Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(.secondary)
                                 }
-                                .foregroundStyle(Color.brand)
+                                .foregroundStyle(.primary)
                                 .contentShape(.rect)
                             }
                             .buttonStyle(.plain)
@@ -1172,7 +1174,7 @@ struct ItemDetail: View {
                     .background(Color.brand.opacity(0.06), in: .rect(cornerRadius: 18, style: .continuous))
                     .overlay {
                         Label("Drop to attach", systemImage: "paperclip")
-                            .font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.brand)
+                            .font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
                     }
                     .padding(10)
                     .allowsHitTesting(false)
@@ -1463,8 +1465,7 @@ struct Monogram: View {
         let dark = scheme == .dark
         Text(name.prefix(1).uppercased())
             .font(.system(size: size * 0.44, weight: .semibold, design: .rounded))
-            .foregroundStyle(LinearGradient(colors: [Color(red: 0.36, green: 0.68, blue: 0.91), Color(red: 0.06, green: 0.45, blue: 0.70)],
-                                            startPoint: .top, endPoint: .bottom))
+            .foregroundStyle(Color.primary.opacity(dark ? 0.85 : 0.7))
             .frame(width: size, height: size)
             .background(dark ? Color(white: 0.96) : .white, in: .rect(cornerRadius: size * 0.29, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: size * 0.29, style: .continuous).strokeBorder(.black.opacity(0.08)))
@@ -1730,9 +1731,9 @@ private struct VaultSwitcher: View {
             }
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.brand)
+                Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     .frame(width: 22, height: 22)
-                    .background(Color.brand.opacity(0.14), in: .rect(cornerRadius: 6, style: .continuous))
+                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 6, style: .continuous))
                 Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
@@ -1771,7 +1772,7 @@ private struct PasswordHistoryButton: View {
                 Text("^[\(item.passwordHistory.count) earlier password](inflect: true)")
                 Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
             }
-            .foregroundStyle(Color.brand).contentShape(.rect)
+            .foregroundStyle(.secondary).contentShape(.rect)
         }
         .buttonStyle(.plain)
         .popover(isPresented: $open, arrowEdge: .trailing) {
@@ -1877,7 +1878,7 @@ private struct SignInApprovalSheet: View {
                     }
                     FormField(label: "Fingerprint phrase", note: "Approve only if it matches the phrase on the other device.") {
                         Text(verbatim: prompt.fingerprint.joined(separator: "-"))
-                            .font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(Color.brand)
+                            .font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(.primary)
                             .textSelection(.enabled)
                     }
                 }

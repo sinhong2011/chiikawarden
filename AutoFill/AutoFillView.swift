@@ -308,12 +308,12 @@ private struct IconTile: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        let tint = scheme == .dark ? Color.brandFill : Palette.brand
         Image(systemName: symbol)
             .font(.system(size: size * 0.42, weight: .semibold))
-            .foregroundStyle(tint)
+            .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(tint.opacity(scheme == .dark ? 0.18 : 0.12), in: .rect(cornerRadius: size * 0.28, style: .continuous))
+            .background(LinearGradient(colors: [Color.brandFill, Color.brandButton], startPoint: .top, endPoint: .bottom),
+                        in: .rect(cornerRadius: size * 0.28, style: .continuous))
     }
 }
 
@@ -356,7 +356,7 @@ private struct LetterTile: View {
     var body: some View {
         Text(verbatim: name.prefix(1).uppercased())
             .font(.system(size: size * 0.44, weight: .bold, design: .rounded))
-            .foregroundStyle(LinearGradient(colors: [Color.brandFill, Palette.brand], startPoint: .top, endPoint: .bottom))
+            .foregroundStyle(Color.black.opacity(0.7))
             .frame(width: size, height: size)
             .background(.white, in: .rect(cornerRadius: size * 0.26, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: size * 0.26, style: .continuous).strokeBorder(Color.black.opacity(0.08)))
@@ -384,7 +384,7 @@ private struct ChoiceRow<Leading: View>: View {
             Spacer(minLength: 6)
             if let trailing {
                 Text(trailing).font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(selected ? Palette.brand : .secondary)
+                    .foregroundStyle(selected ? Color.primary : .secondary)
             }
         }
         .padding(.horizontal, 10).frame(height: 50)

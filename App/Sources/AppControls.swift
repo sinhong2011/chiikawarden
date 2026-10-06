@@ -175,7 +175,7 @@ struct NumberStepper: View {
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(enabled ? Color.brand : .secondary.opacity(0.4))
+        .foregroundStyle(enabled ? Color.primary : .secondary.opacity(0.4))
         .disabled(!enabled)
         .accessibilityLabel(symbol == "plus" ? Text("Increase") : Text("Decrease"))
     }

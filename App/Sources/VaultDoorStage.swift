@@ -719,7 +719,7 @@ struct LoginDoorStage: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: "Chiikawarden")
                         .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
-                        .foregroundStyle(dark ? Color.brandFill : Color(red: 0.06, green: 0.45, blue: 0.70))
+                        .foregroundStyle(ink.opacity(0.85))
                         .padding(.bottom, 4)
                     Text("Every login,\nbehind one door.")
                         .font(.system(size: 26, weight: .semibold)).tracking(-0.4)

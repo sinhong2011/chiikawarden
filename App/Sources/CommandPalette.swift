@@ -307,7 +307,7 @@ private struct CommandLine: View {
         HStack(spacing: 12) {
             Image(systemName: command.symbol)
                 .font(.system(size: 14))
-                .foregroundStyle(selected ? Color.brand : .secondary)
+                .foregroundStyle(selected ? Color.primary : .secondary)
                 .frame(width: 32)
             Text(command.title).font(.system(size: 14))
             Spacer()

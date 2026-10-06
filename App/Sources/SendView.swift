@@ -62,9 +62,9 @@ struct SendsPane: View {
                 } else {
                     VStack(spacing: 14) {
                         Image(systemName: "paperplane")
-                            .font(.system(size: 26, weight: .medium)).foregroundStyle(Color.brand)
+                            .font(.system(size: 26, weight: .medium)).foregroundStyle(.secondary)
                             .frame(width: 64, height: 64)
-                            .background(Color.brandFill.opacity(0.18), in: .circle)
+                            .background(Color.primary.opacity(0.07), in: .circle)
                         Text("Share something securely").font(.system(size: 17, weight: .semibold))
                         Text("Send text or a file through an end-to-end encrypted link that expires on its own.")
                             .font(.system(size: 13)).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -398,7 +398,7 @@ struct SendComposer: View {
         Button { picking = true } label: {
             HStack(spacing: 12) {
                 Image(systemName: file == nil ? "doc.badge.plus" : "doc.fill")
-                    .font(.system(size: 22)).foregroundStyle(file == nil ? Color.secondary : Color.brand)
+                    .font(.system(size: 22)).foregroundStyle(file == nil ? Color.secondary : Color.primary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: file?.lastPathComponent ?? String(localized: "Choose a file, or drop it here"))
                         .font(.system(size: 13, weight: .medium)).lineLimit(1).truncationMode(.middle)

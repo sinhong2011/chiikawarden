@@ -81,13 +81,13 @@ private struct CollectionChecklist: View {
                 } label: {
                     HStack(spacing: 10) {
                         Image(systemName: on ? "checkmark.square.fill" : "square")
-                            .font(.system(size: 15)).foregroundStyle(on ? Color.brand : .secondary)
+                            .font(.system(size: 15)).foregroundStyle(on ? Color.primary : .secondary)
                         Image(systemName: "rectangle.stack").foregroundStyle(.secondary)
                         Text(verbatim: collection.name).font(.system(size: 13))
                         Spacer()
                     }
                     .padding(.horizontal, 10).frame(height: 34)
-                    .background(on ? Color.brand.opacity(0.08) : .clear, in: .rect(cornerRadius: 9, style: .continuous))
+                    .background(on ? Color.primary.opacity(0.06) : .clear, in: .rect(cornerRadius: 9, style: .continuous))
                     .contentShape(.rect)
                 }
                 .buttonStyle(.plain)

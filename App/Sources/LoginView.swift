@@ -297,7 +297,7 @@ private struct ForgotPasswordButton: View {
 
     var body: some View {
         Button("Forgot password?") { isPresented = true }
-            .buttonStyle(.link)
+            .buttonStyle(.plain).foregroundStyle(.secondary).underline()
             .font(.system(size: 12))
             .popover(isPresented: $isPresented, arrowEdge: .bottom) {
                 PasswordHintView(email: email)
@@ -401,7 +401,7 @@ private struct CustomEnvironmentFields: View {
                     Image(systemName: "slider.horizontal.3").font(.system(size: 11, weight: .semibold))
                     Text("Custom environment…")
                     if model.hasCustomURLs {
-                        Text("In use").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color.brand)
+                        Text("In use").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(Color.brandFill.opacity(0.2), in: .capsule)
                     }
@@ -432,9 +432,10 @@ struct CustomEnvironmentSheet: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(Color.brand)
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
                     .frame(width: 38, height: 38)
-                    .background(Color.brandFill.opacity(0.22), in: .circle)
+                    .background(LinearGradient(colors: [Color.brandFill, Color.brandButton], startPoint: .top, endPoint: .bottom),
+                                in: .rect(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Custom environment").font(.system(size: 17, weight: .semibold))
                     Text("Only if your services live on different URLs. Leave a field empty to use the server URL.")

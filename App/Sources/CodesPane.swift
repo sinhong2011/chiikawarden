@@ -70,7 +70,7 @@ private struct CodeCard: View {
                     // Copy state as an icon: appears on hover, turns to a check once copied.
                     Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(copied ? Color.brand : .secondary)
+                        .foregroundStyle(copied ? Color.primary : .secondary)
                         .contentTransition(.symbolEffect(.replace))
                         .opacity(copied || hovering ? 1 : 0)
                         .accessibilityHidden(true)
