@@ -63,6 +63,7 @@ enum VaultDecoder {
             )
             item.revised = Self.date(cipher.revisionDate)
             item.created = Self.date(cipher.creationDate)
+            item.passwordRevised = Self.date(cipher.login?.passwordRevisionDate)
             item.archived = Self.date(cipher.archivedDate)
             item.reprompt = cipher.reprompt == 1
             item.passwordHistory = (cipher.passwordHistory ?? []).compactMap { entry in

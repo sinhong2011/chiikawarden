@@ -308,6 +308,17 @@ enum Snapshot {
                 SavedAccount(id: "b", email: "hachiware@work.example", serverKind: "bitwardenEU", serverURL: "",
                              kdf: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4), protectedUserKey: ""),
             ])
+            var historic = demoItems[1]
+            historic.passwordRevised = Calendar.current.date(byAdding: .day, value: -12, to: .now)
+            historic.passwordHistory = [
+                .init(password: "7m4Gv%Y6A56NAMPBz#aoTX", date: Calendar.current.date(byAdding: .day, value: -12, to: .now)),
+                .init(password: "hunter2-old", date: Calendar.current.date(byAdding: .year, value: -1, to: .now)),
+            ]
+            render(ItemHistoryCard(item: historic).environment(vault).padding(20).frame(width: 460)
+                .background(Color(nsColor: .windowBackgroundColor)),
+                   size: CGSize(width: 460, height: 260), appearance: appearance, to: dir.appending(path: "item-history-\(name).png"))
+            render(PasswordHistorySheet(item: historic).environment(vault).background(Color(nsColor: .windowBackgroundColor)),
+                   size: CGSize(width: 460, height: 330), appearance: appearance, to: dir.appending(path: "item-history-sheet-\(name).png"))
             render(AccountSwitcher(close: {}).environment(people).background(.regularMaterial),
                    size: CGSize(width: 300, height: 420), appearance: appearance,
                    to: dir.appending(path: "account-switcher-\(name).png"))

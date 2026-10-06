@@ -33,6 +33,8 @@ struct VaultItem: Identifiable, Hashable {
     /// When the item was last changed and first created (from the server).
     var revised: Date?
     var created: Date?
+    /// When the password was last changed, as the server recorded it.
+    var passwordRevised: Date?
     /// Filled in after sync: how many other items share this password.
     var reuseCount = 0
     /// Ask for the master password before showing or using its secrets.
@@ -78,7 +80,7 @@ struct VaultItem: Identifiable, Hashable {
             && a.notes == b.notes && a.totpSecret == b.totpSecret && a.uri == b.uri && a.folderId == b.folderId
             && a.folderName == b.folderName && a.organizationId == b.organizationId && a.collectionIds == b.collectionIds
             && a.reprompt == b.reprompt && a.properties == b.properties && a.customFields == b.customFields
-            && a.attachments == b.attachments && a.passwordHistory == b.passwordHistory && a.reuseCount == b.reuseCount
+            && a.attachments == b.attachments && a.passwordHistory == b.passwordHistory && a.passwordRevised == b.passwordRevised && a.reuseCount == b.reuseCount
             && a.passkeys.map(\.credentialId) == b.passkeys.map(\.credentialId) && a.accountId == b.accountId
     }
     func hash(into h: inout Hasher) { h.combine(id) }

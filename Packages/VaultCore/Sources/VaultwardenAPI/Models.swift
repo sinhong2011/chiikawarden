@@ -149,6 +149,8 @@ public struct SyncResponse: Decodable, Sendable {
         public let totp: String?
         public let uris: [URI]?
         public let fido2Credentials: [Fido2Credential]?
+        /// When the password was last changed (the server keeps it; nil until it first changes).
+        public var passwordRevisionDate: String? = nil
     }
 
     public struct Card: Decodable, Sendable {

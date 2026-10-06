@@ -1092,6 +1092,15 @@ struct ItemRow: View {
                 }
             }
             Spacer(minLength: 4)
+            if let issue = item.passwordIssue(breaches: model.breachCounts) {
+                Image(systemName: issue.rowSymbol)
+                    .font(.system(size: 12, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(issue.tint)
+                    .help(Text(issue.rowLabel))
+                    .accessibilityLabel(Text(issue.rowLabel))
+                    .transition(.scale(scale: 0.3).combined(with: .opacity))
+            }
             if item.favorite {
                 Image(systemName: "star.fill")
                     .font(.system(size: 11, weight: .semibold))
@@ -1183,9 +1192,6 @@ struct ItemDetail: View {
                             }
                         }
                     }
-                    if !item.passwordHistory.isEmpty {
-                        DetailRow(symbol: "clock.arrow.circlepath", title: "Password history") { PasswordHistoryButton(item: item) }
-                    }
                     if item.organizationId == nil {
                         DetailRow(symbol: "person", title: "Owner") {
                             Text(verbatim: model.accounts.first { $0.id == item.accountId }?.email ?? String(localized: "Me"))
@@ -1273,19 +1279,9 @@ struct ItemDetail: View {
                     AttachmentsSection(item: item)
                 }
 
-                // When it was last changed, in full.
-                if item.revised != nil || item.created != nil {
-                    VStack(spacing: 2) {
-                        if let revised = item.revised {
-                            Text("Last edited \(revised.formatted(date: .complete, time: .standard))")
-                        }
-                        if let created = item.created {
-                            Text("Created \(created.formatted(date: .complete, time: .standard))").foregroundStyle(.tertiary)
-                        }
-                    }
-                    .font(.system(size: 11)).foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .textSelection(.enabled)
+                // When it was made and changed, and the passwords it had before.
+                if item.revised != nil || item.created != nil || !item.passwordHistory.isEmpty {
+                    ItemHistoryCard(item: item)
                 }
             }
             .padding(.horizontal, 18)
@@ -1900,52 +1896,146 @@ private struct VaultSwitcher: View {
     }
 }
 
-/// "3 earlier" — opens the item's earlier passwords, newest first, each hidden until revealed and copyable.
-private struct PasswordHistoryButton: View {
+/// When the item was made and last edited, when its password last changed, and its earlier passwords.
+struct ItemHistoryCard: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
-    @State private var open = false
-    @State private var revealed: Set<Int> = []
+    @State private var showingPasswords = false
 
     var body: some View {
-        Button { model.guarded(item) { open = true } } label: {
-            HStack(spacing: 4) {
-                Text("^[\(item.passwordHistory.count) earlier password](inflect: true)")
-                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Item history").font(.system(size: 13, weight: .semibold))
+            VStack(spacing: 8) {
+                if let revised = item.revised { row("Last edited", revised) }
+                if let created = item.created { row("Created", created) }
+                if item.kind == .login, let since = item.passwordSince { row("Password updated", since) }
             }
-            .foregroundStyle(.secondary).contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $open, arrowEdge: .trailing) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Password history").font(.system(size: 13, weight: .semibold))
-                ForEach(Array(item.passwordHistory.enumerated()), id: \.offset) { i, past in
-                    HStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: revealed.contains(i) ? past.password : String(repeating: "•", count: 12))
-                                .font(.system(size: 13, design: .monospaced)).textSelection(.enabled).lineLimit(1)
-                            if let date = past.date {
-                                Text("Changed \(date.formatted(date: .abbreviated, time: .shortened))")
-                                    .font(.system(size: 11)).foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer(minLength: 12)
-                        Button { if revealed.contains(i) { revealed.remove(i) } else { revealed.insert(i) } } label: {
-                            Image(systemName: revealed.contains(i) ? "eye.slash" : "eye")
-                        }
-                        .buttonStyle(.borderless)
-                        .help(revealed.contains(i) ? Text("Hide") : Text("Reveal"))
-                        Button { model.copy(past.password, label: String(localized: "Password")) } label: { Image(systemName: "doc.on.doc") }
-                            .buttonStyle(.borderless)
-                            .help(Text("Copy"))
+            if !item.passwordHistory.isEmpty {
+                Divider().opacity(0.6)
+                Button { model.guarded(item) { showingPasswords = true } } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock.arrow.circlepath").foregroundStyle(.secondary)
+                        Text("Password history")
+                        Spacer()
+                        Text(item.passwordHistory.count, format: .number).foregroundStyle(.secondary).monospacedDigit()
+                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
                     }
-                    .padding(10)
-                    .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10, style: .continuous))
+                    .font(.system(size: 13))
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.panelEdge))
+        .sheet(isPresented: $showingPasswords) { PasswordHistorySheet(item: item) }
+    }
+
+    private func row(_ label: LocalizedStringKey, _ date: Date) -> some View {
+        HStack {
+            Text(label).foregroundStyle(.secondary)
+            Spacer(minLength: 12)
+            Text(date.formatted(date: .abbreviated, time: .shortened))
+                .help(Text(date.formatted(date: .complete, time: .standard)))
+                .textSelection(.enabled)
+        }
+        .font(.system(size: 12))
+    }
+}
+
+/// The passwords an item had before, newest first: hidden until revealed (one at a time or all), then coloured
+/// like the generator's, each a click from the clipboard.
+struct PasswordHistorySheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let item: VaultItem
+    @State private var revealed: Set<Int> = []
+
+    private var entries: [VaultItem.PastPassword] {
+        item.passwordHistory.sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Password history").font(.system(size: 17, weight: .semibold))
+                    Text(verbatim: item.name).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Button(revealed.count == entries.count ? "Hide All" : "Reveal All") {
+                    withAnimation(.snappy(duration: 0.2)) {
+                        revealed = revealed.count == entries.count ? [] : Set(entries.indices)
+                    }
+                }
+                .buttonStyle(.appSecondarySmall)
+            }
+            .padding(20)
+
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(entries.enumerated()), id: \.offset) { index, past in
+                        entry(index, past)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            .frame(maxHeight: 360)
+            .fixedSize(horizontal: false, vertical: true)
+
+            HStack {
+                Text("Kept by the server when a password is changed: the last five.")
+                    .font(.system(size: 11)).foregroundStyle(.tertiary)
+                Spacer()
+                Button("Close") { dismiss() }
+                    .buttonStyle(.appSecondary)
+                    .keyboardShortcut(.cancelAction)
+            }
+            .padding(20)
+        }
+        .frame(width: 460)
+    }
+
+    private func entry(_ index: Int, _ past: VaultItem.PastPassword) -> some View {
+        let shown = revealed.contains(index)
+        return HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Group {
+                    if shown {
+                        ColoredSecret(value: past.password).foregroundStyle(.primary)
+                    } else {
+                        Text(verbatim: String(repeating: "•", count: 14)).foregroundStyle(.secondary)
+                    }
+                }
+                .font(.system(size: 14, design: .monospaced))
+                .lineLimit(1).truncationMode(.middle)
+                .textSelection(.enabled)
+                .contentTransition(.opacity)
+                if let date = past.date {
+                    Text("Replaced \(date.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
-            .padding(14)
-            .frame(width: 320)
+            Spacer(minLength: 8)
+            Button {
+                withAnimation(.snappy(duration: 0.2)) { if shown { revealed.remove(index) } else { revealed.insert(index) } }
+            } label: {
+                Image(systemName: shown ? "eye.slash" : "eye").frame(width: 26, height: 26).contentShape(.rect)
+            }
+            .buttonStyle(.borderless)
+            .help(shown ? Text("Hide") : Text("Reveal"))
+            Button { model.copy(past.password, label: String(localized: "Password")) } label: {
+                Image(systemName: "doc.on.doc").frame(width: 26, height: 26).contentShape(.rect)
+            }
+            .buttonStyle(.borderless)
+            .help(Text("Copy"))
         }
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.06)))
     }
 }
 

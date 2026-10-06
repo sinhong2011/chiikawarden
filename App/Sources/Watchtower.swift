@@ -43,6 +43,26 @@ struct WatchtowerReport {
             case .duplicate, .oldPassword: .secondary
             }
         }
+        /// The mark at the end of an item's row.
+        var rowSymbol: String {
+            switch self {
+            case .breached: "exclamationmark.shield.fill"
+            case .reused: "arrow.triangle.2.circlepath"
+            case .weak: "exclamationmark.triangle.fill"
+            case .insecure: "lock.open.fill"
+            default: symbol
+            }
+        }
+        /// What that mark says, for its tooltip.
+        var rowLabel: LocalizedStringKey {
+            switch self {
+            case .breached: "Password found in a data breach"
+            case .reused: "Password used on other items too"
+            case .weak: "Weak password"
+            case .insecure: "Saved for an http:// site, sent unencrypted"
+            default: title
+            }
+        }
         var advice: LocalizedStringKey {
             switch self {
             case .breached: "These passwords appear in known breaches. Change them on each site."
@@ -352,9 +372,20 @@ extension VaultItem {
         return expiry < .now ? String(localized: "Expired \(date)") : String(localized: "Expires \(date)")
     }
 
-    /// Roughly when the current password was set: when the one before it was replaced, or when the item was made.
+    /// When the current password was set: the server's record, else when the one before it was replaced, else
+    /// when the item was made.
     var passwordSince: Date? {
         guard password != nil else { return nil }
-        return passwordHistory.compactMap(\.date).max() ?? created
+        return passwordRevised ?? passwordHistory.compactMap(\.date).max() ?? created
+    }
+
+    /// The worst thing Watchtower would say about this login's password, for a mark in the item list.
+    func passwordIssue(breaches: [String: Int]?) -> WatchtowerReport.Issue? {
+        guard kind == .login, !isDeleted, let pw = password, !pw.isEmpty else { return nil }
+        if let n = breaches?[id], n > 0 { return .breached }
+        if reuseCount > 0 { return .reused }
+        if WatchtowerReport.isWeak(pw) { return .weak }
+        if let uri, WatchtowerReport.isInsecure(uri) { return .insecure }
+        return nil
     }
 }
