@@ -487,4 +487,88 @@ final class AccountSession {
         }
         try await client.answerSignIn(id: request.id, key: wrapped, approve: approve)
     }
+
+    // MARK: Emergency access
+
+    func emergencyContacts(granted: Bool) async throws -> [EmergencyContact] {
+        guard let client else { throw WriteError.offline }
+        return try await client.emergencyContacts(granted: granted)
+    }
+
+    /// Accepts an invitation from the link in its email (`…#/accept-emergency/?id=…&token=…`).
+    func acceptEmergencyInvite(link: String) async throws {
+        guard let client else { throw WriteError.offline }
+        let query = link.split(separator: "?", maxSplits: 1).last.map(String.init) ?? ""
+        var fields: [String: String] = [:]
+        for pair in query.split(separator: "&") {
+            let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            if kv.count == 2 { fields[kv[0]] = kv[1].removingPercentEncoding ?? kv[1] }
+        }
+        guard let id = fields["id"], let token = fields["token"] else { throw SecurityError.wrongPassword }
+        try await client.acceptEmergencyInvite(id: id, token: token)
+    }
+
+    func inviteEmergencyContact(email: String, takeover: Bool, waitDays: Int) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.inviteEmergencyContact(email: email, takeover: takeover, waitDays: waitDays)
+    }
+
+    /// The contact's public key and its fingerprint phrase (their user id), to compare before confirming.
+    func contactKey(_ contact: EmergencyContact) async throws -> (key: RSAPublicKey, fingerprint: [String]) {
+        guard let client, let userId = contact.userId, let base64 = try await client.publicKey(userId: userId),
+              let spki = Data(base64Encoded: base64) else { throw WriteError.offline }
+        return (try RSAPublicKey(spki: spki), Fingerprint.phrase(publicKeySPKI: spki, material: userId))
+    }
+
+    /// Confirms an accepted contact: this account's user key, wrapped with their public key.
+    func confirmEmergencyContact(_ contact: EmergencyContact, key: RSAPublicKey) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.emergencyAccess("confirm", id: contact.id, key: key.encrypt(userKey.encryptionKey + userKey.macKey))
+    }
+
+    func emergencyAccess(_ action: String, _ contact: EmergencyContact) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.emergencyAccess(action, id: contact.id)
+    }
+
+    /// The other account's user key, unwrapped with this account's private key.
+    private func grantorKey(_ wrapped: String?) throws -> SymmetricKeyPair {
+        guard let wrapped, let mine = privateKey() else { throw WriteError.offline }
+        return try SymmetricKeyPair(combined: mine.decrypt(wrapped))
+    }
+
+    /// As an approved view-only contact: the other account's items, read-only.
+    func emergencyView(_ contact: EmergencyContact) async throws -> [VaultItem] {
+        guard let client else { throw WriteError.offline }
+        let (ciphers, wrapped) = try await client.emergencyView(id: contact.id)
+        let key = try grantorKey(wrapped)
+        // A minimal sync payload around their items, decoded like our own.
+        let list = (try? JSONSerialization.jsonObject(with: ciphers)) ?? []
+        let sync: [String: Any] = ["profile": ["id": contact.userId ?? "", "email": contact.email, "key": "", "organizations": []],
+                                   "folders": [], "ciphers": list]
+        return try VaultDecoder.decode(JSONSerialization.data(withJSONObject: sync), userKey: key).items.filter { !$0.isDeleted }
+    }
+
+    /// As an approved takeover contact: the other account's KDF and key (step one), for setting its new password.
+    func emergencyTakeoverKey(_ contact: EmergencyContact) async throws -> (kdf: KDFConfig, key: SymmetricKeyPair) {
+        guard let client else { throw WriteError.offline }
+        let (kdf, wrapped) = try await client.emergencyTakeover(id: contact.id)
+        return (kdf, try grantorKey(wrapped))
+    }
+
+    func emergencyTakeover(_ contact: EmergencyContact, newPassword: String) async throws {
+        guard let client else { throw WriteError.offline }
+        let (kdf, key) = try await emergencyTakeoverKey(contact)
+        let change = try MasterPasswordChange(email: contact.email, newPassword: newPassword, kdf: kdf, userKey: key)
+        try await client.emergencySetPassword(id: contact.id, change: change)
+    }
+
+    // MARK: Event logs
+
+    func organizationEvents(_ organizationId: String, days: Int) async throws -> (events: [OrgEvent], names: [String: String]) {
+        guard let client else { throw WriteError.offline }
+        async let events = client.organizationEvents(id: organizationId, start: .now.addingTimeInterval(-Double(days) * 86_400), end: .now)
+        async let names = client.organizationMembers(id: organizationId)
+        return try await (events, (try? await names) ?? [:])
+    }
 }

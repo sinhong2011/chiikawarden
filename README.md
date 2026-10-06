@@ -28,9 +28,11 @@
 
 **Your vault, natively**
 - Logins, secure notes, cards, identities and SSH keys, with folders, favorites, custom fields, attachments, Archive
-  and Trash.
+  and Trash; password history, clone, and "ask for master password" on sensitive items.
 - Several accounts at once, across servers: self-hosted Vaultwarden or Bitwarden, and Bitwarden cloud (US and EU).
-- Organizations and collections; live sync over WebSocket.
+- Organizations and collections: a vault switcher (All vaults, My vault, each organization), move items into an
+  organization, change collections, event logs for admins; live sync over WebSocket.
+- Pick many items (⌘-click, ⇧-click, ⌘A) to move, archive, trash or restore them at once.
 - Works offline from the encrypted cache; edits go straight to the server.
 
 **Fast to reach**
@@ -39,15 +41,20 @@
 - Two-finger swipes between sidebar, list and item on narrow windows.
 
 **Deep macOS integration**
-- System AutoFill for passwords, **passkeys** and one-time codes, in Safari, Chrome and apps.
+- System AutoFill for passwords, **passkeys** and one-time codes, in Safari, Chrome and apps; equivalent domains
+  (a google.com login fills on youtube.com).
 - Touch ID unlock, one touch for every account.
 - An SSH agent backed by your vault's SSH keys (sign git commits too).
 - A Safari extension and a Chrome native host; App Intents and Shortcuts; a `cw` command-line tool.
 
 **Security tools**
-- Watchtower: weak, reused and breached passwords (k-anonymity, nothing leaves in the clear).
+- Watchtower: weak, reused, breached and unsecured (http://) passwords, and sites that offer two-step login you
+  haven't set up (k-anonymity for breaches; nothing leaves in the clear).
+- Account security: fingerprint phrase, two-step login (authenticator app, email, recovery code), change the master
+  password or KDF, devices, sign out everywhere, and approve sign-ins from your other devices.
+- Emergency access: trusted contacts who can view or take over your vault after a wait you choose.
 - A generator for passwords, passphrases (EFF wordlist) and usernames, with history.
-- Send: share text or files with an encrypted link.
+- Send: share text or files with an encrypted link; edit it later and keep the same link.
 - Import from Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords, Chrome and Firefox;
   export in Bitwarden's formats, including password-protected JSON.
 

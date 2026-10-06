@@ -97,6 +97,8 @@ final class AppModel {
         }
     }
     var organizationSheet: OrganizationSheet?
+    /// The organization whose event log is open.
+    var eventLogFor: String?
 
     /// Selected item, shared by the list, detail and the Item menu commands.
     var selectedID: VaultItem.ID?

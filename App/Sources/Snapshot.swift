@@ -801,6 +801,10 @@ enum SelfTest {
                         let devices = try await s2.devices()
                         check(!devices.isEmpty, "devices signed in (\(devices.count))")
 
+                        // Steps that sign in again (another device, password and KDF changes) use up the server's login
+                        // rate limit; they run with `make selftest-security`.
+                        let securityRun = ProcessInfo.processInfo.environment["CHIIKAWARDEN_SELFTEST_SECURITY"] == "1"
+                        if securityRun {
                         // Another device asks to sign in; this Mac approves; that device unwraps the same user key.
                         let asker = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString.lowercased())
                         _ = try await asker.loginDetailed(email: email2, password: password2)
@@ -819,6 +823,53 @@ enum SelfTest {
                         } else {
                             check(false, "approve a sign-in from another device: request not listed")
                         }
+                        }
+
+                        // Emergency access: account 1 trusts account 2 (view-only, then takeover).
+                        if let s1 = model.session(for: firstID) {
+                            for takeover in [false, true] {
+                                try await s1.inviteEmergencyContact(email: email2, takeover: takeover, waitDays: 1)
+                                guard let listed = try await s1.emergencyContacts(granted: false).first(where: { $0.email == email2 }) else {
+                                    check(false, "emergency access: invitation not listed"); break
+                                }
+                                var invited = listed
+                                if invited.status == .invited {
+                                    // The server emails the invitation: read it from the dev server's Mailpit and accept.
+                                    if let link = await HeadlessIdP.mailpitLink(server: server, to: email2, containing: invited.id) {
+                                        try await s2.acceptEmergencyInvite(link: link)
+                                        invited = try await s1.emergencyContacts(granted: false).first { $0.id == invited.id } ?? invited
+                                    }
+                                }
+                                guard invited.status == .accepted else {
+                                    check(false, "emergency access: invitation not accepted (no Mailpit?)")
+                                    try await s1.emergencyAccess("delete", invited); break
+                                }
+                                let (contactKey, phrase) = try await s1.contactKey(invited)
+                                try await s1.confirmEmergencyContact(invited, key: contactKey)
+                                let granted = try await s2.emergencyContacts(granted: true).first { $0.email == email }
+                                if let granted { try await s2.emergencyAccess("initiate", granted) }
+                                if let trusted = try await s1.emergencyContacts(granted: false).first(where: { $0.id == invited.id }) {
+                                    try await s1.emergencyAccess("approve", trusted)
+                                }
+                                if let approved = try await s2.emergencyContacts(granted: true).first(where: { $0.email == email }),
+                                   approved.status == .recoveryApproved {
+                                    if takeover {
+                                        let (_, key) = try await s2.emergencyTakeoverKey(approved)
+                                        check(key == AccountStore.unlock(firstID, password: password), "emergency takeover: the other account's key, unwrapped")
+                                    } else {
+                                        let theirs = try await s2.emergencyView(approved)
+                                        let mine = model.items.filter { $0.accountId == firstID && $0.organizationId == nil && !$0.isDeleted }
+                                        check(phrase.count == 5 && theirs.count == mine.count
+                                              && Set(theirs.map(\.name)) == Set(mine.map(\.name))
+                                              && theirs.first { $0.name == "GitHub" }?.password == mine.first { $0.name == "GitHub" }?.password,
+                                              "emergency access: invite, confirm, request, approve, view (\(theirs.count) items)")
+                                    }
+                                } else {
+                                    check(false, "emergency access: recovery not approved")
+                                }
+                                try await s1.emergencyAccess("delete", invited)
+                            }
+                        }
 
                         let secret = try await s2.authenticatorSecret(password: password2)
                         let code = TOTP(secret.key)?.code() ?? ""
@@ -829,6 +880,7 @@ enum SelfTest {
                         let off = try await s2.twoFactorProviders()[0] != true
                         check(on && recovery?.isEmpty == false && off, "authenticator two-step login: turn on with a code, recovery code, turn off")
 
+                        if securityRun {
                         try await s2.changeMasterPassword(current: password2, new: temporary, hint: nil)
                         let opensWithNew = AccountStore.unlock(id2, password: temporary) != nil && AccountStore.unlock(id2, password: password2) == nil
                         try await s2.changeMasterPassword(current: temporary, new: password2, hint: nil)
@@ -845,6 +897,13 @@ enum SelfTest {
                         let changed = AccountStore.load(id2)?.kdf == stronger && AccountStore.unlock(id2, password: password2) != nil
                         try await s2.changeMasterPassword(current: password2, new: password2, kdf: original, hint: nil)
                         check(changed && AccountStore.load(id2)?.kdf == original, "change the KDF (and back)")
+                        }
+
+                        // An organization's event log (empty unless the server keeps events).
+                        if let s1 = model.session(for: firstID), let org = s1.organizations.first {
+                            let log = try await s1.organizationEvents(org.id, days: 7)
+                            check(true, "organization event log readable (\(log.events.count) events, \(log.names.count) names)")
+                        }
                     } catch {
                         check(false, "account security: \(error)")
                         // Never leave the test account on the temporary password.
@@ -1014,6 +1073,27 @@ enum SelfTest {
 
 /// Plays a browser through dex's password form, for the SSO self-test.
 enum HeadlessIdP {
+    /// The dev environment's Mailpit (port 18826 on the server's host): the newest link in an email to `to` that
+    /// mentions `containing`.
+    static func mailpitLink(server: String, to: String, containing: String) async -> String? {
+        guard let host = URL(string: server)?.host(),
+              let search = URL(string: "http://\(host):18826/api/v1/search?query=to:\(to)&limit=5") else { return nil }
+        for _ in 0..<10 {
+            if let (data, _) = try? await URLSession.shared.data(from: search),
+               let list = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["messages"] as? [[String: Any]] {
+                for message in list {
+                    guard let id = message["ID"] as? String, let url = URL(string: "http://\(host):18826/api/v1/message/\(id)"),
+                          let (body, _) = try? await URLSession.shared.data(from: url),
+                          let text = (try? JSONSerialization.jsonObject(with: body) as? [String: Any])?["Text"] as? String else { continue }
+                    if let link = text.split(whereSeparator: \.isWhitespace).map(String.init)
+                        .first(where: { $0.contains(containing) && $0.contains("token=") }) { return link }
+                }
+            }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        return nil
+    }
+
     final class Browser: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
         var callback: URL?
         lazy var session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)

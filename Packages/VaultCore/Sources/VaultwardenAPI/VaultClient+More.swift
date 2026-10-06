@@ -119,6 +119,73 @@ extension VaultClient {
         return (answer["requestApproved"] as? Bool, answer["key"] as? String)
     }
 
+    // MARK: Emergency access
+
+    /// People this account trusts (`trusted`), or accounts that trust this one (`granted`).
+    public func emergencyContacts(granted: Bool) async throws(APIError) -> [EmergencyContact] {
+        (try await callJSON("GET", "emergency-access/\(granted ? "granted" : "trusted")")["data"] as? [[String: Any]] ?? [])
+            .compactMap(EmergencyContact.init)
+    }
+
+    /// As the invited contact: accepts with the token from the invitation email's link.
+    public func acceptEmergencyInvite(id: String, token: String) async throws(APIError) {
+        try await call("POST", "emergency-access/\(id)/accept", json: ["token": token])
+    }
+
+    public func inviteEmergencyContact(email: String, takeover: Bool, waitDays: Int) async throws(APIError) {
+        try await call("POST", "emergency-access/invite", json: ["email": email, "type": takeover ? 1 : 0, "waitTimeDays": waitDays] as [String: Any])
+    }
+
+    /// `action`: confirm (with `key`), initiate, approve, reject, delete, reinvite.
+    public func emergencyAccess(_ action: String, id: String, key: String? = nil) async throws(APIError) {
+        if action == "delete" { try await call("DELETE", "emergency-access/\(id)"); return }
+        try await call("POST", "emergency-access/\(id)/\(action)", json: key.map { ["key": $0] })
+    }
+
+    /// As the trusted contact, once approved: the other account's items and its user key wrapped for this account.
+    public func emergencyView(id: String) async throws(APIError) -> (ciphers: Data, wrappedKey: String?) {
+        let data = try await call("POST", "emergency-access/\(id)/view")
+        let root = CipherEditor.normalize(try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+        let ciphers = (try? JSONSerialization.data(withJSONObject: root["ciphers"] ?? [])) ?? Data("[]".utf8)
+        return (ciphers, root["keyEncrypted"] as? String)
+    }
+
+    /// As the trusted contact, takeover: the other account's KDF and wrapped user key, then its new password.
+    public func emergencyTakeover(id: String) async throws(APIError) -> (kdf: KDFConfig, wrappedKey: String?) {
+        let a = try await callJSON("POST", "emergency-access/\(id)/takeover")
+        let kdf: KDFConfig = (a["kdf"] as? Int) == 1
+            ? .argon2id(iterations: a["kdfIterations"] as? Int ?? 3, memoryMiB: a["kdfMemory"] as? Int ?? 64, parallelism: a["kdfParallelism"] as? Int ?? 4)
+            : .pbkdf2(iterations: a["kdfIterations"] as? Int ?? 600_000)
+        return (kdf, a["keyEncrypted"] as? String)
+    }
+
+    public func emergencySetPassword(id: String, change: MasterPasswordChange) async throws(APIError) {
+        try await call("POST", "emergency-access/\(id)/password", json: ["newMasterPasswordHash": change.newHash, "key": change.protectedUserKey])
+    }
+
+    // MARK: Event logs
+
+    /// An organization's events between two dates, newest first (owners and admins; empty when the server keeps none).
+    public func organizationEvents(id: String, start: Date, end: Date) async throws(APIError) -> [OrgEvent] {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        func q(_ d: Date) -> String { iso.string(from: d).addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "" }
+        return (try await callJSON("GET", "organizations/\(id)/events?start=\(q(start))&end=\(q(end))")["data"] as? [[String: Any]] ?? [])
+            .compactMap(OrgEvent.init)
+    }
+
+    /// Member ids to names and emails, for the event log.
+    public func organizationMembers(id: String) async throws(APIError) -> [String: String] {
+        let list = try await callJSON("GET", "organizations/\(id)/users")["data"] as? [[String: Any]] ?? []
+        var out: [String: String] = [:]
+        for m in list {
+            let label = (m["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? m["email"] as? String ?? ""
+            if let user = m["userId"] as? String { out[user] = label }
+            if let member = m["id"] as? String { out[member] = label }
+        }
+        return out
+    }
+
     // MARK: Two-step login
 
     /// Each provider's type and whether it's on (0 authenticator, 1 email, 7 WebAuthn, 3 YubiKey, 2 Duo…).
@@ -246,5 +313,55 @@ public struct SignInRequest: Sendable, Identifiable, Hashable {
         deviceType = d["requestDeviceType"] as? String ?? ""
         ipAddress = d["requestIpAddress"] as? String ?? ""
         created = d["creationDate"] as? String
+    }
+}
+
+/// One emergency-access relationship, from either side.
+public struct EmergencyContact: Sendable, Identifiable, Hashable {
+    public enum Status: Int, Sendable { case invited = 0, accepted, confirmed, recoveryInitiated, recoveryApproved }
+    public let id: String
+    public let status: Status
+    /// Takeover (a new master password) rather than view-only.
+    public let takeover: Bool
+    public let waitDays: Int
+    /// The other person's user id (grantee on the trusted side, grantor on the granted side).
+    public let userId: String?
+    public let email: String
+    public let name: String?
+
+    init?(_ d: [String: Any]) {
+        guard let id = d["id"] as? String else { return nil }
+        self.id = id
+        status = Status(rawValue: d["status"] as? Int ?? 0) ?? .invited
+        takeover = (d["type"] as? Int) == 1
+        waitDays = d["waitTimeDays"] as? Int ?? 7
+        userId = (d["granteeId"] ?? d["grantorId"]) as? String
+        email = d["email"] as? String ?? ""
+        name = d["name"] as? String
+    }
+}
+
+/// One entry in an organization's event log.
+public struct OrgEvent: Sendable, Identifiable, Hashable {
+    public let id = UUID()
+    public let type: Int
+    public let actingUserId: String?
+    public let memberId: String?
+    public let cipherId: String?
+    public let collectionId: String?
+    public let date: String
+    public let ipAddress: String?
+    public let deviceType: Int?
+
+    init?(_ d: [String: Any]) {
+        guard let type = d["type"] as? Int, let date = d["date"] as? String else { return nil }
+        self.type = type
+        actingUserId = (d["actingUserId"] ?? d["userId"]) as? String
+        memberId = d["organizationUserId"] as? String
+        cipherId = d["cipherId"] as? String
+        collectionId = d["collectionId"] as? String
+        self.date = date
+        ipAddress = d["ipAddress"] as? String
+        deviceType = d["deviceType"] as? Int
     }
 }

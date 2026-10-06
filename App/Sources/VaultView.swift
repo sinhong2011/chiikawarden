@@ -239,6 +239,9 @@ struct VaultView: View {
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
+        .sheet(isPresented: Binding(get: { model.eventLogFor != nil }, set: { if !$0 { model.eventLogFor = nil } })) {
+            if let id = model.eventLogFor { EventLogSheet(organizationId: id) }
+        }
         .sheet(item: $model.organizationSheet) { sheet in
             switch sheet {
             case .share(let ids): MoveToOrganizationSheet(itemIDs: ids)
@@ -421,6 +424,8 @@ private struct Sidebar: View {
                         .badge(count(.organization(org.id)))
                         .tag(SidebarSelection.organization(org.id))
                         .contextMenu {
+                            Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
+                                .labelStyle(.titleAndIcon)
                             Button("Leave Organization…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
                                 model.leaveOrganization(org.id)
                             }

@@ -38,6 +38,10 @@ selftest: build ## In-app self-test against the dev server (isolated storage)
 	@"$(BIN)" --selftest http://$(DEV_IP):18880 usagi@chiikawarden.test $(DEV_PASSWORD) \
 		hachiware@chiikawarden.test $(DEV_PASSWORD) 2>/dev/null | grep -E "PASS|FAIL|SKIP|SELFTEST"
 
+selftest-security: build ## Self-test plus the steps that sign in again (sign-in approval, password and KDF changes)
+	@CHIIKAWARDEN_SELFTEST_SECURITY=1 "$(BIN)" --selftest http://$(DEV_IP):18880 usagi@chiikawarden.test $(DEV_PASSWORD) \
+		hachiware@chiikawarden.test $(DEV_PASSWORD) 2>/dev/null | grep -E "PASS|FAIL|SKIP|SELFTEST"
+
 selftest-cloud: build ## Self-test against Bitwarden cloud with the account in .env (REGION=us|eu)
 	@test -f .env || { echo "Create .env with BITWARDEN_ACCOUNT=… and BITWARDEN_PASSWORD=… (an empty test account)"; exit 64; }
 	@set -a; . ./.env; set +a; "$(BIN)" --selftest-cloud $(REGION) 2>/dev/null
