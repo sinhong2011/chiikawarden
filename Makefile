@@ -58,9 +58,11 @@ uitest: ## Click-through UI tests in --demo mode (quit any running Chiikawarden 
 	@xcodebuild -project Chiikawarden.xcodeproj -scheme Chiikawarden -derivedDataPath build -allowProvisioningUpdates \
 		test -only-testing:ChiikawardenUITests 2>&1 | grep -E "\.swift:[0-9]+: error|' (passed|failed)|TEST (SUCCEEDED|FAILED)"
 
-snapshots: build ## Render UI snapshots (light + dark) into build/snapshots
-	@dir=$$("$(BIN)" --snapshot 2>/dev/null | tail -1); mkdir -p build/snapshots; cp "$$dir"/*.png build/snapshots/; \
-		echo "$$(ls build/snapshots | wc -l | tr -d ' ') images in build/snapshots"
+snapshots: build ## Render UI snapshots (light + dark) into build/snapshots; ONLY=login,send renders just those
+	@dir=$$(CHIIKAWARDEN_SNAPSHOT_ONLY="$(ONLY)" "$(BIN)" --snapshot 2>/dev/null | tail -1); \
+		mkdir -p build/snapshots; n=$$(find "$$dir" -name '*.png' -newer "$(BIN)" | wc -l | tr -d ' '); \
+		find "$$dir" -name '*.png' -newer "$(BIN)" -exec cp -f {} build/snapshots/ \; ; \
+		echo "$$n images rendered into build/snapshots$(if $(ONLY), (only: $(ONLY)),)"
 
 dev-up: ## Start the dev servers on the dev box (Vaultwarden ×2, SSO + dex, Mailpit)
 	@CHIIKAWARDEN_DEV_HOST=$(DEV_HOST) CHIIKAWARDEN_DEV_IP=$(DEV_IP) DevServer/dev.sh up

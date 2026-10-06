@@ -10598,6 +10598,7 @@
       }
     },
     "Folders" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -16845,6 +16846,7 @@
       }
     },
     "Owner: an organization" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -16873,6 +16875,7 @@
       }
     },
     "Owner: you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -19523,6 +19526,7 @@
       }
     },
     "Send" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {

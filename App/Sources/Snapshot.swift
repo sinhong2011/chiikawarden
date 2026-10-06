@@ -11,6 +11,14 @@ import VaultwardenAPI
 /// to PNGs, so UI can be reviewed without screen-recording permission. Exits when done.
 @MainActor
 enum Snapshot {
+    /// `make snapshots ONLY=login,send`: render only screens whose file name contains one of these (all when empty).
+    static let only: [String] = (ProcessInfo.processInfo.environment["CHIIKAWARDEN_SNAPSHOT_ONLY"] ?? "")
+        .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+
+    static func wanted(_ url: URL) -> Bool {
+        only.isEmpty || only.contains { url.lastPathComponent.contains($0) }
+    }
+
     static func runIfRequested() {
         let args = CommandLine.arguments
         guard args.contains("--snapshot") else { return }
@@ -316,6 +324,7 @@ enum Snapshot {
     /// A real window with SwiftUI's toolbar bridged in, so toolbar items render as in the app.
     /// `resizeFrom`: open at that size first, then shrink to `size` — like dragging the window edge.
     private static func renderWindow(_ view: some View, size: CGSize, resizeFrom: CGSize? = nil, appearance: NSAppearance.Name, to url: URL) {
+        guard wanted(url) else { return }
         let controller = NSHostingController(rootView: view.frame(minWidth: 380, maxWidth: .infinity, minHeight: 520, maxHeight: .infinity))
         controller.sceneBridgingOptions = [.toolbars, .title]
         let window = NSWindow(contentViewController: controller)
@@ -338,6 +347,7 @@ enum Snapshot {
     }
 
     private static func render(_ view: some View, size: CGSize, appearance: NSAppearance.Name, to url: URL) {
+        guard wanted(url) else { return }
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size),
                               styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
         window.titlebarAppearsTransparent = true

@@ -104,7 +104,7 @@ make run        # generate the project, build and open the app
 | `make test` | Unit tests for the crypto, API, import/export and SSH agent (`Packages/VaultCore`) |
 | `make selftest` | End-to-end self-test against a local Vaultwarden dev server (`DevServer/`) |
 | `make uitest` | Click-through UI tests on a demo vault (quit any running copy first) |
-| `make snapshots` | Light and dark renders of every screen into `build/snapshots` |
+| `make snapshots` | Light and dark renders of every screen into `build/snapshots` (`ONLY=login,send` for just those) |
 
 Core logic lives in the `Packages/VaultCore` Swift package: `ChiikawaCrypto` (KDFs, EncString, keys, TOTP,
 generators, passkeys), `VaultwardenAPI` (login, 2FA, SSO, sync, edits, attachments, Send, import/export) and
