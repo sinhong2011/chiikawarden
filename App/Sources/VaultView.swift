@@ -978,13 +978,9 @@ struct ItemRow: View {
                 }
             VStack(alignment: .leading, spacing: 1) {
                 Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                HStack(spacing: 6) {
-                    if let username = item.username {
-                        Text(Highlight.marked(username, highlight)).lineLimit(1).layoutPriority(1)
-                    }
-                    OwnerTag(item: item)
+                if let username = item.username {
+                    Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
-                .font(.system(size: 12)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 4)
             if item.favorite {
@@ -1925,45 +1921,6 @@ private struct SignInApprovalSheet: View {
     private func answer(_ approve: Bool) {
         busy = true
         Task { await model.answerSignIn(prompt, approve: approve) }
-    }
-}
-
-/// Whose an item is: the organization's name, or yours (the account's email when several are open).
-struct OwnerTag: View {
-    @Environment(AppModel.self) private var model
-    let item: VaultItem
-    var showsYours = true
-
-    var body: some View {
-        if let name = Self.owner(item, model) {
-            Label { Text(verbatim: name).lineLimit(1).truncationMode(.tail) } icon: {
-                Image(systemName: item.organizationId == nil ? "person.fill" : "building.2.fill").font(.system(size: 8))
-            }
-            .labelStyle(OwnerLabelStyle())
-            .font(.system(size: 10, weight: .medium))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 6).frame(height: 16)
-            .background(Color.primary.opacity(0.06), in: .capsule)
-            .fixedSize(horizontal: false, vertical: true)
-            .help(Text(item.organizationId == nil ? "Owner: you" : "Owner: an organization"))
-        }
-    }
-
-    static func owner(_ item: VaultItem, _ model: AppModel) -> String? {
-        if let org = item.organizationId {
-            return model.organizations.first { $0.id == org }?.name ?? String(localized: "Organization")
-        }
-        // Yours: "Me", or the account when more than one is open.
-        if model.sessions.count > 1, let email = model.accounts.first(where: { $0.id == item.accountId })?.email {
-            return email.split(separator: "@").first.map(String.init) ?? email
-        }
-        return String(localized: "Me")
-    }
-}
-
-private struct OwnerLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 3) { configuration.icon; configuration.title }
     }
 }
 
