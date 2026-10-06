@@ -189,6 +189,8 @@ private struct SecuritySettings: View {
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
     @AppStorage(Pref.lockAnimations) private var lockAnimations = true
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
+    @AppStorage(Pref.codeAfterPassword) private var codeAfterPassword = true
+    @AppStorage(Pref.hideFromCapture) private var hideFromCapture = true
 
     var body: some View {
         Form {
@@ -220,10 +222,21 @@ private struct SecuritySettings: View {
                     Divider()
                     Text("Never").tag(0)
                 }
+                Toggle("Copy the one-time code after the password is pasted", isOn: $codeAfterPassword)
             } header: {
                 Text("Clipboard")
             } footer: {
-                Text("Copied secrets are marked as concealed, so clipboard managers skip them.")
+                Text("Copied secrets are marked as concealed, so clipboard managers skip them. Paste a login's password, and its one-time code is ready to paste next.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Hide Triwarden from screen sharing and screenshots", isOn: $hideFromCapture)
+                    .onChange(of: hideFromCapture) { CaptureShield.applyAll() }
+            } header: {
+                Text("Privacy")
+            } footer: {
+                Text("Meeting apps, recordings and screenshots show an empty space where Triwarden's windows are, so a password on screen doesn't go out with the call.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

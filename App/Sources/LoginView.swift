@@ -88,6 +88,7 @@ private struct LoginForm: View {
                             .textFieldStyle(SoftFieldStyle(trailingInset: 22))
                             .textContentType(.URL)
                             .focused($focus, equals: .server)
+                            .onSubmit { model.checkServer() }
                             .labelsHidden()
                             .overlay(alignment: .trailing) { ServerStatusBadge(status: model.serverStatus).padding(.trailing, 12) }
                             .padding(.top, 4)
@@ -206,7 +207,9 @@ private struct LoginForm: View {
             model.checkServer()
         }
         .onChange(of: model.serverKind) { model.checkServer() }
-        .onChange(of: model.serverURL) { model.checkServer() }
+        // Typing only clears the old answer; the server is asked once the field is left (or Return is pressed).
+        .onChange(of: model.serverURL) { model.serverURLEdited() }
+        .onChange(of: focus) { old, _ in if old == .server { model.checkServer() } }
         .onChange(of: step) { _, new in if new != .credentials { code = ""; focus = .code } }
     }
 

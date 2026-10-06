@@ -109,7 +109,7 @@ struct MenuBarContent: View {
 enum QuickCopy {
     /// The most useful secret: the password, else the code, else the username.
     @MainActor static func primary(_ item: VaultItem, _ model: AppModel) {
-        if let password = item.password { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
+        if item.password != nil { model.copyPassword(item) }
         else if let totp = item.totp { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } }
         else if let username = item.username { model.copy(username, label: String(localized: "Username")) }
     }
@@ -307,7 +307,7 @@ private struct QuickRow: View {
                         CopyIcon(symbol: "person", help: "Copy Username") { model.copy(username, label: String(localized: "Username")) }
                     }
                     if let password = item.password {
-                        CopyIcon(symbol: "key", help: "Copy Password") { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
+                        CopyIcon(symbol: "key", help: "Copy Password") { model.copyPassword(item) }
                     }
                     if let host = item.host, let url = URL(string: "https://\(host)") {
                         CopyIcon(symbol: "arrow.up.right", help: "Open Website") { NSWorkspace.shared.open(url) }

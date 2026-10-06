@@ -45,6 +45,7 @@ struct TriwardenApp: App {
                     NSApp.servicesProvider = services
                     NSUpdateDynamicServices()
                     model.startAutoLock()
+                    CaptureShield.start()
                 }
                 // Soft pastel wash from the Liquid design under every screen.
                 .containerBackground(for: .window) { WindowBackdrop() }
@@ -107,12 +108,15 @@ struct TriwardenApp: App {
                 Button("Copy Username") { if let u = item?.username { model.copy(u, label: String(localized: "Username")) } }
                     .keyboardShortcut("c", modifiers: [.command, .shift])
                     .disabled(item?.kind != .login || item?.username == nil)
-                Button("Copy Password") { if let item, let p = item.password { model.guarded(item) { model.copy(p, label: String(localized: "Password")) } } }
+                Button("Copy Password") { if let item { model.copyPassword(item) } }
                     .keyboardShortcut("c", modifiers: [.command, .option])
                     .disabled(item?.password == nil)
                 Button("Copy One-Time Code") { if let item, let t = item.totp { model.guarded(item) { model.copy(t.code(), label: String(localized: "Code")) } } }
                     .keyboardShortcut("c", modifiers: [.command, .control])
                     .disabled(item?.totp == nil)
+                Button("Show Password in Large Type") { if let item { model.showLargeType(item) } }
+                    .keyboardShortcut("t", modifiers: [.command, .option])
+                    .disabled(item?.password == nil)
                 Divider()
                 Button("Toggle Favorite") { if let item { Task { await model.toggleFavorite(item) } } }
                     .keyboardShortcut("d", modifiers: .command)
@@ -122,7 +126,7 @@ struct TriwardenApp: App {
                 }
                 .keyboardShortcut("a", modifiers: [.command, .option])
                 .disabled(item == nil || item?.isDeleted == true)
-                Button("Move to Trash…") { if let item { model.confirmTrash(item) } }
+                Button("Move to Trash") { if let item { model.trashWithUndo(item) } }
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }

@@ -39,6 +39,11 @@ struct PasswordField: View {
 
     @State private var visible = false
     @FocusState private var focused: Bool
+    /// Caps Lock is on: worth a word while typing a password you can't see.
+    @State private var capsLock = NSEvent.modifierFlags.contains(.capsLock)
+    @State private var capsMonitor: Any?
+
+    private var showsCapsLock: Bool { capsLock && focused && !visible }
 
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -54,21 +59,41 @@ struct PasswordField: View {
             .focused($focused)
             .onSubmit(onSubmit)
 
-            Button {
-                visible.toggle()
-                focused = true
-            } label: {
-                Image(systemName: visible ? "eye.slash" : "eye")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 26, height: 26)
-                    .contentShape(.rect)
+            HStack(spacing: 0) {
+                if showsCapsLock {
+                    Image(systemName: "capslock.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 22, height: 26)
+                        .help(Text("Caps Lock is on"))
+                        .accessibilityLabel(Text("Caps Lock is on"))
+                        .transition(.opacity.combined(with: .scale(scale: 0.6)))
+                }
+                Button {
+                    visible.toggle()
+                    focused = true
+                } label: {
+                    Image(systemName: visible ? "eye.slash" : "eye")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 26, height: 26)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .help(visible ? Text("Hide password") : Text("Show password"))
+                .accessibilityLabel(visible ? Text("Hide password") : Text("Show password"))
             }
-            .buttonStyle(.plain)
             .padding(.trailing, look == .plain ? 0 : 6)
-            .help(visible ? Text("Hide password") : Text("Show password"))
-            .accessibilityLabel(visible ? Text("Hide password") : Text("Show password"))
+            .animation(.snappy(duration: 0.2), value: showsCapsLock)
         }
+        .onAppear {
+            capsLock = NSEvent.modifierFlags.contains(.capsLock)
+            capsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+                capsLock = event.modifierFlags.contains(.capsLock)
+                return event
+            }
+        }
+        .onDisappear { capsMonitor.map(NSEvent.removeMonitor); capsMonitor = nil }
         .onChange(of: focused) { _, now in if isFocused?.wrappedValue != now { isFocused?.wrappedValue = now } }
         .onChange(of: isFocused?.wrappedValue) { _, wanted in if let wanted, wanted != focused { focused = wanted } }
         .onAppear { if isFocused?.wrappedValue == true { focused = true } }
@@ -78,9 +103,9 @@ struct PasswordField: View {
     @ViewBuilder
     private func styled(_ field: some View) -> some View {
         switch look {
-        case .soft: field.textFieldStyle(SoftFieldStyle(trailingInset: 22))
+        case .soft: field.textFieldStyle(SoftFieldStyle(trailingInset: showsCapsLock ? 44 : 22))
         case .rounded: field.textFieldStyle(.roundedBorder).padding(.trailing, 0)
-        case .plain: field.textFieldStyle(.plain).padding(.trailing, 28) // room for the reveal button
+        case .plain: field.textFieldStyle(.plain).padding(.trailing, showsCapsLock ? 50 : 28) // room for the reveal button
         }
     }
 }

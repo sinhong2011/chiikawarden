@@ -16,10 +16,13 @@ enum Pref {
     static let cliApprovalSeconds = "cliApprovalSeconds"
     static let browser = "browser"                       // answer the Safari/Chrome extension
     static let checkUpdates = "checkUpdates"             // opt-in: look at GitHub's latest release daily
+    static let codeAfterPassword = "codeAfterPassword"   // after a password is pasted, the clipboard holds its code
+    static let hideFromCapture = "hideFromCapture"       // windows stay out of screen sharing, recordings and screenshots
 
     static func register() {
         UserDefaults.standard.register(defaults: [
             appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
+            codeAfterPassword: true, hideFromCapture: true,
         ])
     }
 

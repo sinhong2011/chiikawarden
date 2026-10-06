@@ -95,9 +95,12 @@ final class ButtonTests: XCTestCase {
         button("Hide").click()
         XCTAssertFalse(window.staticTexts["m7Kq#vR2!tLp9wZe$Hu"].waitForExistence(timeout: 1), "Hide did not hide the password")
 
+        // Trash doesn't ask; the toast's Undo brings the item back.
         button("Move to Trash").click()
-        cancelConfirmation()
-        XCTAssertTrue(window.staticTexts["GitHub"].firstMatch.exists, "item vanished after cancelling trash")
+        let undo = window.buttons["Undo"].firstMatch
+        XCTAssertTrue(undo.waitForExistence(timeout: 3), "no Undo after moving to Trash")
+        undo.click()
+        XCTAssertTrue(window.staticTexts["GitHub"].firstMatch.waitForExistence(timeout: 3), "Undo did not bring the item back")
     }
 
     func testFavoriteButton() {

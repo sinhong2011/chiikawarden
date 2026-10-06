@@ -1131,6 +1131,14 @@ struct ItemDetail: View {
                             }
                         }
                     }
+                    if let expiry = item.cardExpiry, expiry < WatchtowerReport.expiryHorizon, let text = item.cardExpiryText {
+                        DetailRow(symbol: "creditcard", title: "Card") {
+                            HStack(spacing: 7) {
+                                Circle().fill(item.isCardExpired ? Color.red : Color.orange).frame(width: 7, height: 7)
+                                Text(verbatim: text)
+                            }
+                        }
+                    }
                     if item.password != nil {
                         DetailRow(symbol: "checkmark.shield", title: "Watchtower") {
                             HStack(spacing: 7) {
@@ -1248,7 +1256,7 @@ struct ItemDetail: View {
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite", effect: .bounce) { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
                 toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit", effect: .wiggle) { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
-                toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash", effect: .bounce) { model.confirmTrash(item) }
+                toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash", effect: .bounce) { model.trashWithUndo(item) }
             }
         }
         .padding(.horizontal, 3)
@@ -1270,7 +1278,7 @@ extension HeroCard {
     @ViewBuilder func tiles(_ style: HeroStyle) -> some View {
                 if let password = item.password {
                     Tile(style: style) {
-                        model.guarded(item) { model.copy(password, label: String(localized: "Password")) }
+                        model.copyPassword(item)
                     } content: {
                         let strength = StrengthMeter(password: password).level
                         HStack {
@@ -1287,6 +1295,10 @@ extension HeroCard {
                             .contentTransition(.opacity)
                         // Same place and size as the code's countdown bar, so the tiles line up.
                         LevelBar(level: strength.0, color: strength.0 <= 1 ? .red : strength.0 == 2 ? .orange : .green)
+                    }
+                    .contextMenu {
+                        Button("Copy Password", systemImage: "doc.on.doc") { model.copyPassword(item) }
+                        Button("Show in Large Type", systemImage: "textformat.size") { model.showLargeType(item) }
                     }
                 }
                 if let totp = item.totp {
@@ -1449,10 +1461,19 @@ struct ToastView: View {
     var body: some View {
         ZStack {
             if let toast = model.toast {
-                Label(toast, systemImage: "checkmark.circle.fill")
+                HStack(spacing: 14) {
+                    Label(toast, systemImage: "checkmark.circle.fill")
+                    if let action = model.toastAction {
+                        Button(action.title) { action.run() }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 12).frame(height: 28)
+                            .background(.white.opacity(0.2), in: .capsule)
+                            .contentShape(.capsule)
+                    }
+                }
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 18)
+                    .padding(.leading, 18).padding(.trailing, model.toastAction == nil ? 18 : 8)
                     .frame(height: 44)
                     .background(Color.hero, in: .capsule)
                     .shadow(color: .black.opacity(0.3), radius: 16, y: 10)
