@@ -148,32 +148,6 @@ private struct GeneralSettings: View {
             }
 
             Section {
-                @Bindable var updates = model.updates
-                Toggle("Check for updates automatically", isOn: $updates.automaticallyChecks)
-                    .disabled(!updates.isConfigured)
-                Toggle("Download and install updates automatically", isOn: $updates.automaticallyDownloads)
-                    .disabled(!updates.isConfigured || !updates.automaticallyChecks)
-                LabeledContent {
-                    Button("Check Now") { updates.checkForUpdates() }
-                        .disabled(!updates.canCheck)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Version \(updates.current)")
-                        if !updates.isConfigured {
-                            Text("Updates are off in development builds.").font(.caption).foregroundStyle(.secondary)
-                        } else if let checked = updates.lastChecked {
-                            Text("Last checked \(checked, format: .relative(presentation: .named))").font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            } header: {
-                Text("Updates")
-            } footer: {
-                Text("Updates come from this project's GitHub releases. Each one is signed; Triwarden checks the signature and Apple's notarization before installing, then relaunches.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section {
                 LabeledContent("AutoFill") {
                     HStack(spacing: 10) {
                         if let autoFillOn {
@@ -649,39 +623,119 @@ private struct ServerSettings: View {
 // MARK: About
 
 private struct AboutSettings: View {
+    @Environment(AppModel.self) private var model
     @State private var showingNotices = false
+    @State private var copiedVersion = false
+
+    private static let repo = URL(string: "https://github.com/sinhong2011/triwarden")!
+    private var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "" }
+    private var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "" }
 
     var body: some View {
-        VStack(spacing: 10) {
-            Image(nsImage: NSApplication.shared.applicationIconImage)
-                .resizable().frame(width: 96, height: 96)
-            Text(verbatim: "Triwarden").font(.system(size: 22, weight: .bold))
-            Text(verbatim: "Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""))")
-                .foregroundStyle(.secondary)
-            Text("A native Mac client for Vaultwarden and Bitwarden.")
-                .padding(.top, 4)
-            Text("Free software under the GNU General Public License v3.0. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.")
-                .font(.caption).foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-                .padding(.top, 8)
-            HStack(spacing: 8) {
-                Link(destination: URL(string: "https://github.com/sinhong2011/triwarden")!) {
-                    Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
+        @Bindable var updates = model.updates
+        Form {
+            // Who we are.
+            Section {
+                VStack(spacing: 8) {
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable().frame(width: 84, height: 84)
+                        .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                    Text(verbatim: "Triwarden").font(.system(size: 24, weight: .bold)).tracking(-0.3)
+                    Text("A native Mac client for Vaultwarden and Bitwarden.")
+                        .font(.system(size: 13)).foregroundStyle(.secondary)
+                    Button {
+                        model.copyPlain("Triwarden \(version) (\(build)), macOS \(ProcessInfo.processInfo.operatingSystemVersionString)")
+                        withAnimation(.snappy) { copiedVersion = true }
+                        Task { try? await Task.sleep(for: .seconds(1.5)); withAnimation(.snappy) { copiedVersion = false } }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(verbatim: "\(version) (\(build))").monospacedDigit()
+                            Image(systemName: copiedVersion ? "checkmark" : "doc.on.doc").font(.system(size: 10, weight: .semibold))
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10).frame(height: 24)
+                        .background(Color.primary.opacity(0.06), in: .capsule)
+                    }
+                    .buttonStyle(.plain)
+                    .help(Text("Copy the version, for a bug report"))
+                    .padding(.top, 2)
                 }
-                .buttonStyle(.appSecondarySmall)
-                Link(destination: URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!) {
-                    Label("License", systemImage: "doc.text")
-                }
-                .buttonStyle(.appSecondarySmall)
-                Button { showingNotices = true } label: { Label("Acknowledgements", systemImage: "heart.text.square") }
-                    .buttonStyle(.appSecondarySmall)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
             }
-            .padding(.top, 10)
+
+            Section {
+                LabeledContent {
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(!updates.canCheck)
+                } label: {
+                    Label {
+                        Text("Version \(updates.current)")
+                        if !updates.isConfigured {
+                            Text("Updates are off in development builds.")
+                        } else if let checked = updates.lastChecked {
+                            Text("Last checked \(checked, format: .relative(presentation: .named))")
+                        } else {
+                            Text("Not checked yet")
+                        }
+                    } icon: {
+                        Image(systemName: "arrow.triangle.2.circlepath.circle").foregroundStyle(.secondary)
+                    }
+                }
+                Toggle("Check for updates automatically", isOn: $updates.automaticallyChecks)
+                    .disabled(!updates.isConfigured)
+                Toggle("Download and install updates automatically", isOn: $updates.automaticallyDownloads)
+                    .disabled(!updates.isConfigured || !updates.automaticallyChecks)
+            } header: {
+                Text("Updates")
+            } footer: {
+                Text("Updates come from this project's GitHub releases. Each one is signed; Triwarden checks the signature and Apple's notarization before installing, then relaunches.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                link("What's New in \(version)", "sparkles", Self.repo.appending(path: "releases/tag/v\(version)"))
+                link("Source Code", "chevron.left.forwardslash.chevron.right", Self.repo)
+                link("Report a Problem", "exclamationmark.bubble", Self.repo.appending(path: "issues/new"))
+                link("License", "doc.text", URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
+                Button { showingNotices = true } label: {
+                    row("Acknowledgements", "heart.text.square", trailing: "chevron.right")
+                }
+                .buttonStyle(.plain)
+            } footer: {
+                Text("Free software under the GNU General Public License v3.0. Not affiliated with Bitwarden, Inc. or the Vaultwarden project.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
+        .formStyle(.grouped)
         .sheet(isPresented: $showingNotices) { NoticesSheet() }
+    }
+
+    private func link(_ title: LocalizedStringKey, _ symbol: String, _ url: URL) -> some View {
+        Link(destination: url) { row(title, symbol, trailing: "arrow.up.right") }
+            .buttonStyle(.plain)
+    }
+
+    private func row(_ title: LocalizedStringKey, _ symbol: String, trailing: String) -> some View {
+        HStack {
+            Label(title, systemImage: symbol).labelStyle(SecondaryIconLabelStyle())
+            Spacer()
+            Image(systemName: trailing).font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
+        }
+        .foregroundStyle(.primary)
+        .contentShape(.rect)
+    }
+}
+
+/// A label whose icon is quiet (secondary) beside primary text.
+private struct SecondaryIconLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 8) {
+            configuration.icon.foregroundStyle(.secondary).frame(width: 20)
+            configuration.title
+        }
     }
 }
 

@@ -35,6 +35,34 @@
         }
       }
     },
+    "Copy the version, for a bug report" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バグ報告用にバージョンをコピー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝版本信息，用于报告问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝版本資訊，用於回報問題"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製版本資料，方便回報問題"
+          }
+        }
+      }
+    },
     "Emergency access" : {
       "localizations" : {
         "ja" : {
@@ -91,6 +119,34 @@
         }
       }
     },
+    "Not checked yet" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まだ確認していません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未检查"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未檢查"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未檢查過"
+          }
+        }
+      }
+    },
     "Removes the account and its saved vault from this Mac. Your data stays on the server." : {
       "localizations" : {
         "ja" : {
@@ -115,6 +171,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫。你嘅資料仍然留喺伺服器。"
+          }
+        }
+      }
+    },
+    "Report a Problem" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "問題を報告"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回報問題"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回報問題"
           }
         }
       }
@@ -171,6 +255,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解鎖呢個帳戶就可以管理佢嘅兩步驟登入、主密碼、裝置同緊急存取。"
+          }
+        }
+      }
+    },
+    "What's New in %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の新機能"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的新功能"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的新功能"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 嘅新功能"
           }
         }
       }
