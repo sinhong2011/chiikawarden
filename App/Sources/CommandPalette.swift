@@ -256,34 +256,37 @@ private struct ItemLine: View {
     let selected: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                ItemIcon(item: item, size: 32)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(item.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
-                    Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                if selected, let totp = item.totp {
-                    TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                        let period = Double(totp.period)
-                        let left = totp.secondsRemaining(at: ctx.date)
-                        HStack(spacing: 12) {
-                            OTPCode(code: totp.code(at: ctx.date), size: 17, urgent: left <= 5)
-                            CountdownRing(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
-                                          seconds: left, size: 30)
-                        }
+        // The code and its ring sit at the row's centre, beside both the name and the hints below it.
+        HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 12) {
+                    ItemIcon(item: item, size: 32)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(item.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
+                        Text(verbatim: item.username ?? item.host ?? "").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                     }
                 }
-            }
-            if selected, item.password != nil || item.totp != nil || item.host != nil {
-                HStack(spacing: 14) {
-                    if item.password != nil { hint("⌘↵", "Copy password") }
-                    if item.totp != nil { hint("⌥↵", "Copy code") }
-                    if item.host != nil { hint("⇧↵", "Open website") }
+                if selected, item.password != nil || item.totp != nil || item.host != nil {
+                    HStack(spacing: 14) {
+                        if item.password != nil { hint("⌘↵", "Copy password") }
+                        if item.totp != nil { hint("⌥↵", "Copy code") }
+                        if item.host != nil { hint("⇧↵", "Open website") }
+                    }
+                    .padding(.leading, 44)
+                    .transition(.opacity)
                 }
-                .padding(.leading, 44)
-                .transition(.opacity)
+            }
+            Spacer(minLength: 8)
+            if selected, let totp = item.totp {
+                TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                    let period = Double(totp.period)
+                    let left = totp.secondsRemaining(at: ctx.date)
+                    HStack(spacing: 12) {
+                        OTPCode(code: totp.code(at: ctx.date), size: 17, urgent: left <= 5)
+                        CountdownRing(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
+                                      seconds: left, size: 30)
+                    }
+                }
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 8)
