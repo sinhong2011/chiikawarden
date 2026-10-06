@@ -94,7 +94,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: ControlAccent # neutral graphite for system controls (menus, pickers, switches); Color.brand stays AccentColor
         ENABLE_PREVIEWS: YES # Xcode canvas: see App/Sources/Previews.swift
-        SPARKLE_PUBLIC_KEY: "" # sparkle-public-key (written by `make sparkle-keys`; the private key never enters the repo)
+        SPARKLE_PUBLIC_KEY: "7DshdRJXizUaeQeMuAi1w4A8QeYH+2YJxaOdvtxPfTI=" # sparkle-public-key (written by `make sparkle-keys`; the private key never enters the repo)
     scheme:
       testTargets: [ChiikawardenUITests]
 

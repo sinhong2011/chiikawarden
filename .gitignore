@@ -9,3 +9,4 @@ dist/
 .env
 .env.*
 local.mk
+sparkle-private-key.txt
