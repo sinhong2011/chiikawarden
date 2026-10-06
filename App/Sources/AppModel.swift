@@ -659,8 +659,9 @@ final class AppModel {
                 try? await Task.sleep(for: .milliseconds(30))
                 phase = .vault
                 await Task.yield()
-                withAnimation(.easeInOut(duration: 0.5)) { gateApart = true }
-                try? await Task.sleep(for: .milliseconds(550))
+                // Leaves with the door's momentum (a quick start, a long glide), not from a standstill.
+                withAnimation(.timingCurve(0.4, 0, 0.12, 1, duration: 0.6)) { gateApart = true }
+                try? await Task.sleep(for: .milliseconds(620))
                 gate = nil
             } else {
                 // Login: its screen parts like a gate (RootView's transition).

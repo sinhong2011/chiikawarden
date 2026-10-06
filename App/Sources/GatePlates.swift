@@ -48,6 +48,13 @@ struct GatePlates: View {
                 }
                 .offset(y: top ? size.height / 2 - 3 : size.height / 2)
             }
-            .shadow(color: .black.opacity(0.3), radius: 22, y: top ? 14 : -14)
+            // Depth at the parting edge from a cheap gradient (a full-window shadow over a material re-renders
+            // offscreen every frame and stutters).
+            .overlay(alignment: top ? .bottom : .top) {
+                LinearGradient(colors: [.black.opacity(0.18), .clear], startPoint: top ? .bottom : .top, endPoint: top ? .top : .bottom)
+                    .frame(height: 28)
+                    .offset(y: top ? -size.height / 2 : size.height / 2)
+                    .allowsHitTesting(false)
+            }
     }
 }

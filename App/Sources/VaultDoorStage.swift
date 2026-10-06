@@ -110,8 +110,9 @@ private struct Mechanism {
     func piece(_ k: Int, _ i: Int) -> Double {
         let n = Double(Self.pieceCount[k])
         if let e = openT {
-            let start = [0.46, 0.56, 0.64, 0.72][k] + Double(i) / n * 0.12
-            return Ease.machine(Self.seg(e, start, start + 0.3))
+            // Every piece has landed by ~1.02 (0.68 s at play speed), before the gate takes over with a still copy.
+            let start = [0.42, 0.5, 0.58, 0.66][k] + Double(i) / n * 0.1
+            return Ease.machine(Self.seg(e, start, start + 0.28))
         }
         if let e = closeT {
             let start = [0.42, 0.3, 0.16, 0.02][k] + Double(i) / n * 0.1
@@ -122,7 +123,7 @@ private struct Mechanism {
 
     static func seg(_ e: Double, _ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
 
-    /// Unlocking, `e` seconds in (~1.1 s; AppModel hands over to the gate at 1.05 s).
+    /// Unlocking, `e` seconds of timeline in (~1.02; played 1.5x, so AppModel hands over to the gate at 0.7 s).
     static func opening(_ e: Double) -> Mechanism {
         func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
         var m = Mechanism()
@@ -139,7 +140,7 @@ private struct Mechanism {
         m.twist = 30 * Ease.backOut(seg(0.36, 0.5))
         // Transform: pieces cascade out (see `piece`); the core spins up, then retracts into the light.
         for k in 0..<4 { m.parts[k] = m.piece(k, pieceCount[k] - 1) > 0 ? m.piece(k, 0) : 0 }
-        m.core = 1 - Ease.inOut(seg(0.86, 1.06))
+        m.core = 1 - Ease.inOut(seg(0.82, 1.02))
         m.light = Ease.out(seg(0.05, 0.6))
         return m
     }
@@ -350,9 +351,9 @@ private struct VaultDoorArt: View, Animatable {
             var l = c
             if dark { l.blendMode = .plusLighter }
             let a = (0.35 + 0.5 * inner) * (1 - m.latch)
+            // Hairlines of light between the rings: present, never loud.
             for f in [0.9925, 0.8375, 0.7075, DoorGeometry.core + 0.0075] {
-                l.stroke(circle(R * f), with: .color(glow(a * (dark ? 0.12 : 0.18))), lineWidth: R * 0.034)
-                l.stroke(circle(R * f), with: .color(glow(a * (dark ? 0.5 : 0.7))), lineWidth: R * 0.006)
+                l.stroke(circle(R * f), with: .color(glow(a * (dark ? 0.35 : 0.4))), lineWidth: 1)
             }
         }
 
@@ -375,15 +376,8 @@ private struct VaultDoorArt: View, Animatable {
         c = ctx
         c.translateBy(x: center.x, y: center.y)
         fillBand(&c, inner: 1.0 * R, outer: DoorGeometry.frameOuter * R, colors: p.frame, turn: 0)
-        braid(&c, inner: 1.0 * R + 3, outer: DoorGeometry.frameOuter * R - 3, count: 120, p: p)
         c.stroke(circle(DoorGeometry.frameOuter * R), with: .color(p.shine), lineWidth: 1)
-        c.stroke(circle(1.1 * R), with: .color(p.engrave), lineWidth: 0.8)
-        for i in 0..<24 {
-            let a = (Double(i) + 0.5) / 24 * 2 * .pi
-            let pt = CGPoint(x: cos(a) * R * 1.065, y: sin(a) * R * 1.065)
-            c.fill(circle(R * 0.013, at: pt), with: .color(p.edge))
-            c.fill(circle(R * 0.008, at: CGPoint(x: pt.x - 0.4, y: pt.y - 0.4)), with: .color(p.shine))
-        }
+        c.stroke(circle(1.1 * R), with: .color(p.engrave.opacity(0.5)), lineWidth: 0.6)
 
         // Sealed: one ring of light ripples out from the frame.
         if m.seal > 0, m.seal < 1 {
@@ -535,57 +529,39 @@ private struct VaultDoorArt: View, Animatable {
     private func drawRunes(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glow: RGB, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.runes.inner * R, outer: DoorGeometry.runes.outer * R, colors: p.metal, turn: turn)
-        for i in 0..<72 {
-            let long = i % 6 == 3
-            let t = Double(i) / 72 * 2 * .pi
-            var tick = Path()
-            tick.move(to: CGPoint(x: cos(t) * R * (long ? 0.935 : 0.95), y: sin(t) * R * (long ? 0.935 : 0.95)))
-            tick.addLine(to: CGPoint(x: cos(t) * R * 0.97, y: sin(t) * R * 0.97))
-            engrave(&r, tick, p: p, width: long ? 1.1 : 0.7)
-        }
-        runeText(&r, radius: R * 0.893, size: R * 0.042, glow: glow, amount: max(dark ? 0.35 : 0.25, m.light * 0.6), p: p)
         for i in 0..<6 {
             let local = Double(i) * 60
-            let shimmer = 0.5 + 0.5 * sin(time * 0.9 + Double(i) * 1.7)
-            let glowAmount = max(dark ? 0.45 + 0.3 * shimmer : 0.3 + 0.25 * shimmer, m.light)
+            // Lit only while the door opens; at rest a quiet inlay.
+            let glowAmount = m.light
 
             var g = r
             g.rotate(by: .degrees(local))
             g.translateBy(x: R * 0.893, y: 0)
             g.rotate(by: .degrees(90))
             var image = g.resolve(Image(systemName: Self.runeSymbols[i]))
-            let side = R * 0.082
+            let side = R * 0.064
             let scale = side / max(image.size.width, image.size.height, 1)
             let rect = CGRect(x: -image.size.width * scale / 2, y: -image.size.height * scale / 2,
                               width: image.size.width * scale, height: image.size.height * scale)
-            // Inlaid: a soft pool of light around the rune, the cut, then the glowing fill.
-            g.fill(circle(R * 0.075), with: .radialGradient(Gradient(colors: [glow(glowAmount * 0.45), glow(0)]),
-                                                            center: .zero, startRadius: 0, endRadius: R * 0.075))
+            // Inlaid: the cut with a lip of light, warming to the glow as the door opens.
             image.shading = .color(p.engraveLip)
             g.draw(image, in: rect.offsetBy(dx: 0, dy: 0.7))
-            image.shading = .color(p.engrave)
+            image.shading = .color(p.engrave.opacity(0.75))
             g.draw(image, in: rect)
-            image.shading = .color(glow(glowAmount * (dark ? 1 : 0.9)))
-            g.draw(image, in: rect)
-
-            // A small diamond between runes.
-            var d = r
-            d.rotate(by: .degrees(local + 30))
-            var diamond = Path()
-            let s = R * 0.012
-            diamond.move(to: CGPoint(x: R * 0.893 - s, y: 0))
-            diamond.addLine(to: CGPoint(x: R * 0.893, y: -s))
-            diamond.addLine(to: CGPoint(x: R * 0.893 + s, y: 0))
-            diamond.addLine(to: CGPoint(x: R * 0.893, y: s))
-            diamond.closeSubpath()
-            d.fill(diamond, with: .color(p.engrave))
+            if glowAmount > 0 {
+                image.shading = .color(glow(glowAmount * 0.9))
+                g.draw(image, in: rect)
+            }
         }
     }
 
     private func drawTumbler(_ r: inout GraphicsContext, p: DoorPalette, glow: RGB, inner: Double, turn: Double) {
         let R = radius
         fillBand(&r, inner: DoorGeometry.tumbler.inner * R, outer: DoorGeometry.tumbler.outer * R, colors: p.metal, turn: turn)
-        braid(&r, inner: DoorGeometry.tumbler.inner * R + 2, outer: DoorGeometry.tumbler.outer * R - 2, count: 84, p: p)
+        for i in 0..<12 {
+            let t = (Double(i) * 30 + 15) * .pi / 180
+            r.fill(circle(R * 0.007, at: CGPoint(x: cos(t) * R * 0.7725, y: sin(t) * R * 0.7725)), with: .color(p.engrave.opacity(0.6)))
+        }
     }
 
     private func drawPins(_ r: inout GraphicsContext, p: DoorPalette, m: Mechanism, glow: RGB, turn: Double) {
@@ -593,15 +569,6 @@ private struct VaultDoorArt: View, Animatable {
         // While the key is derived, a light chases around the pins.
         let head = (time * 1.6).truncatingRemainder(dividingBy: 1) * 12
         fillBand(&r, inner: DoorGeometry.pins.inner * R, outer: DoorGeometry.pins.outer * R, colors: p.metal, turn: turn)
-        braid(&r, inner: DoorGeometry.pins.inner * R + 2, outer: R * 0.612, count: 72, p: p)
-        for i in 0..<60 {
-            let long = i % 5 == 0
-            let t = Double(i) / 60 * 2 * .pi
-            var tick = Path()
-            tick.move(to: CGPoint(x: cos(t) * R * (long ? 0.665 : 0.675), y: sin(t) * R * (long ? 0.665 : 0.675)))
-            tick.addLine(to: CGPoint(x: cos(t) * R * 0.688, y: sin(t) * R * 0.688))
-            engrave(&r, tick, p: p, width: long ? 1 : 0.6)
-        }
         for i in 0..<12 {
             // Pin i sits at the top when it's the newest lit one (the ring turns 30° per character).
             let t = (Double(i) * 30 - 90) * .pi / 180
@@ -646,8 +613,6 @@ private struct VaultDoorArt: View, Animatable {
         l.fill(marker, with: .color(glow(0.9)))
     }
 
-    // MARK: Motes
-
     // MARK: Helpers
 
     private func circle(_ r: CGFloat, at p: CGPoint = .zero) -> Path {
@@ -655,7 +620,7 @@ private struct VaultDoorArt: View, Animatable {
     }
 
     /// A band of turned steel, lit from a fixed light above whatever `turn` the ring is at: a fine concentric
-    /// lathe finish, the cross-shaped sheen turned metal throws, a raised outer lip and a chamfered inner edge.
+    /// satin finish, a soft cross-shaped sheen, a raised outer lip and a chamfered inner edge.
     private func fillBand(_ c: inout GraphicsContext, inner: CGFloat, outer: CGFloat, colors: [Color], turn: Double) {
         let p = DoorPalette(dark: dark)
         var band = circle(outer)
@@ -669,74 +634,15 @@ private struct VaultDoorArt: View, Animatable {
         c.fill(band, with: .linearGradient(Gradient(colors: colors), startPoint: lit(-outer * 0.35, -outer),
                                            endPoint: lit(outer * 0.35, outer)), style: style)
         // Anisotropic sheen: bright lobes top-left and bottom-right, darker ones across.
-        let hi = Color.white.opacity(dark ? 0.09 : 0.55)
-        let lo = Color.black.opacity(dark ? 0.16 : 0.06)
+        let hi = Color.white.opacity(dark ? 0.05 : 0.3)
+        let lo = Color.black.opacity(dark ? 0.08 : 0.03)
         c.fill(band, with: .conicGradient(Gradient(colors: [hi, .clear, lo, .clear, hi, .clear, lo, .clear, hi]),
                                           center: .zero, angle: .degrees(-135 - turn)), style: style)
-        // Lathe rings.
-        var r = inner + 1.5
-        var i = 0
-        while r < outer - 1 {
-            c.stroke(circle(r), with: .color(i % 2 == 0 ? Color.white.opacity(dark ? 0.025 : 0.18) : Color.black.opacity(dark ? 0.05 : 0.025)),
-                     lineWidth: 0.6)
-            r += 1.8
-            i += 1
-        }
         // Raised outer lip (lit at the top), chamfered inner edge (lit at the bottom).
         c.stroke(circle(outer - 0.75), with: .linearGradient(Gradient(colors: [p.shine, p.edge.opacity(0.6)]),
                                                              startPoint: lit(0, -outer), endPoint: lit(0, outer)), lineWidth: 1.5)
         c.stroke(circle(inner + 0.75), with: .linearGradient(Gradient(colors: [p.edge, p.shine.opacity(0.7)]),
                                                              startPoint: lit(0, -inner), endPoint: lit(0, inner)), lineWidth: 1.5)
-    }
-
-    /// A braided band, like the woven rings of an old vault door: rows of chevrons cut into the steel, alternating in
-    /// direction so they read as a twisted rope.
-    private func braid(_ c: inout GraphicsContext, inner: CGFloat, outer: CGFloat, count: Int, p: DoorPalette) {
-        let rows = 2
-        let height = (outer - inner) / CGFloat(rows)
-        let step = 2 * .pi / Double(count)
-        var cut = Path()
-        for row in 0..<rows {
-            let r0 = inner + height * CGFloat(row) + height * 0.15
-            let r1 = inner + height * CGFloat(row + 1) - height * 0.15
-            let lean = (row % 2 == 0 ? 1.0 : -1.0) * step * 0.55
-            for i in 0..<count {
-                let a = Double(i) * step + (row % 2 == 0 ? 0 : step / 2)
-                cut.move(to: CGPoint(x: cos(a) * r0, y: sin(a) * r0))
-                cut.addLine(to: CGPoint(x: cos(a + lean) * r1, y: sin(a + lean) * r1))
-            }
-        }
-        engrave(&c, cut, p: p, width: 0.8)
-        // The divide between the strands.
-        for row in 1..<rows {
-            let r = inner + height * CGFloat(row)
-            c.stroke(circle(r), with: .color(p.engrave.opacity(0.7)), lineWidth: 0.6)
-        }
-    }
-
-    /// Runic letters engraved around a ring at `radius`, skipping the gaps where the inlaid icons sit.
-    private func runeText(_ c: inout GraphicsContext, radius r: CGFloat, size: CGFloat, glow: RGB, amount: Double,
-                          p: DoorPalette) {
-        let futhark = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ")
-        var cache: [Character: GraphicsContext.ResolvedText] = [:]
-        func glyph(_ ch: Character, _ color: Color) -> GraphicsContext.ResolvedText {
-            c.resolve(Text(String(ch)).font(.custom("Apple Symbols", size: size)).foregroundColor(color))
-        }
-        var n = 0
-        for slot in 0..<6 {
-            for j in 1...6 { // six letters between each pair of icons
-                let a = (Double(slot) * 60 + Double(j) * 60 / 7) * .pi / 180
-                let ch = futhark[n % futhark.count]
-                n += 1
-                var g = c
-                g.translateBy(x: cos(a) * r, y: sin(a) * r)
-                g.rotate(by: .radians(a + .pi / 2))
-                g.draw(glyph(ch, p.engraveLip), at: CGPoint(x: 0, y: 0.6), anchor: .center)
-                g.draw(glyph(ch, p.engrave), at: .zero, anchor: .center)
-                g.draw(glyph(ch, glow(amount)), at: .zero, anchor: .center)
-                _ = cache
-            }
-        }
     }
 
     /// An engraved line: the cut, with a lip of light along its lower edge.
