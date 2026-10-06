@@ -31,8 +31,9 @@ extension Color {
 }
 
 struct VaultView: View {
-    /// A full-page section's side inset inside the pane: the same as the item list panel's, so its left edge sits under
-    /// the header's search field.
+    /// A full-page section's left inset inside the pane: the same as the item list panel's, so its left edge sits under
+    /// the header's search field. On the right, content runs to the pane's edge, as far from the window's edge as the
+    /// sidebar is on the left.
     static let pageInset: CGFloat = 6
     var initialSelection: VaultItem.ID?
     /// The section to open on (snapshots).
@@ -70,7 +71,7 @@ struct VaultView: View {
         VStack(spacing: 8) {
             content.frame(maxHeight: .infinity)
             if vaultOpen {
-                AppFooter().padding(.trailing, detailHasActions ? ItemDetail.detailInset : Self.pageInset)
+                AppFooter()
             }
         }
     }
@@ -232,7 +233,7 @@ struct VaultView: View {
                 // A copied secret's countdown: top right, its edge on the page's (an item shows it beside its actions).
                 if model.clipboardClearsAt != nil, vaultOpen, !detailHasActions {
                     ToolbarSpacer(.flexible)
-                    ToolbarItem { ClipboardCountdown().padding(.trailing, Self.pageInset) }
+                    ToolbarItem { ClipboardCountdown() }
                         .sharedBackgroundVisibility(.hidden)
                 }
             }
@@ -928,11 +929,12 @@ private struct GeneratorPane: View {
         GeometryReader { geo in
             ScrollView {
                 GeneratorView()
-                    .padding(.horizontal, VaultView.pageInset)
+                    .padding(.leading, VaultView.pageInset)
                     .padding(.vertical, 24)
                     .frame(maxWidth: 1180)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .topLeading)
             }
+            .modifier(SideOverflowClip())
             .thinScroller()
         }
     }
@@ -1251,7 +1253,7 @@ extension EnvironmentValues {
 }
 
 struct ItemDetail: View {
-    /// The cards' inset from the detail pane's sides; the header's item actions use it too.
+    /// The cards' inset from the list (on the right they run to the pane's edge, like the header and footer).
     static let detailInset: CGFloat = 18
     @Environment(\.showsDetailToolbar) private var showsToolbar
     @Environment(AppModel.self) private var model
@@ -1411,10 +1413,11 @@ struct ItemDetail: View {
                     ItemHistoryCard(item: item)
                 }
             }
-            .padding(.horizontal, Self.detailInset)
+            .padding(.leading, Self.detailInset)
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
         }
+        .modifier(SideOverflowClip())
         .thinScroller()
         .dropDestination(for: URL.self) { urls, _ in
             guard !item.isDeleted, !urls.isEmpty else { return false }
@@ -1447,7 +1450,6 @@ struct ItemDetail: View {
                         ClipboardCountdown()
                         actions
                     }
-                    .padding(.trailing, Self.detailInset)
                 }
                     .sharedBackgroundVisibility(.hidden)
             }

@@ -102,6 +102,17 @@ struct ArrivalPop: ViewModifier {
     }
 }
 
+/// A scroll view that clips only at its top and bottom: content sitting flush with its sides keeps its shadow.
+struct SideOverflowClip: ViewModifier {
+    func body(content: Content) -> some View {
+        content.scrollClipDisabled().clipShape(SidesOpen())
+    }
+
+    private struct SidesOpen: Shape {
+        func path(in rect: CGRect) -> Path { Path(rect.insetBy(dx: -40, dy: 0)) }
+    }
+}
+
 /// Off for snapshots and self-tests, which render one frame and must show everything in place.
 enum Motion {
     static let plays = !CommandLine.arguments.contains { $0 == "--snapshot" || $0.hasPrefix("--selftest") }
