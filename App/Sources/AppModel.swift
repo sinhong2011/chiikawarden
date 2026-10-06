@@ -30,7 +30,8 @@ final class AppModel {
     }
 
     enum ServerKind: String, CaseIterable, Identifiable {
-        case bitwardenUS, bitwardenEU, selfHosted
+        // Self-hosted first: Chiikawarden is made for Vaultwarden.
+        case selfHosted, bitwardenUS, bitwardenEU
         var id: Self { self }
         var label: LocalizedStringResource {
             switch self {

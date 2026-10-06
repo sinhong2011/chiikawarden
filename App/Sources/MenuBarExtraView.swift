@@ -64,7 +64,7 @@ struct MenuBarContent: View {
             }
             .padding(.horizontal, 12).frame(height: 36)
             .background(Color.panelStrong, in: .capsule)
-            .overlay(Capsule().strokeBorder(searching ? Color.brand.opacity(0.7) : Color.panelEdge, lineWidth: searching ? 1.5 : 1))
+            .overlay(Capsule().strokeBorder(searching ? Color.primary.opacity(0.3) : Color.panelEdge, lineWidth: searching ? 1.5 : 1))
             .animation(.easeOut(duration: 0.15), value: searching)
 
             if model.isUnlocked {

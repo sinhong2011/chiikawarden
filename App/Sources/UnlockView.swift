@@ -138,9 +138,8 @@ private struct DoorCore: View {
             .padding(.leading, 14).padding(.trailing, 5)
             .frame(height: 36)
             .background(dark ? Color.black.opacity(0.35) : Color.white.opacity(0.9), in: .capsule)
-            .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.brandFill.opacity(dark ? 0.8 : 1) : Color.primary.opacity(0.1),
+            .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.primary.opacity(dark ? 0.35 : 0.3) : Color.primary.opacity(0.1),
                                             lineWidth: focused.wrappedValue ? 1.5 : 1))
-            .shadow(color: Color.brandFill.opacity(focused.wrappedValue ? 0.45 : 0), radius: 8)
             .animation(.easeOut(duration: 0.15), value: focused.wrappedValue)
 
             Group {

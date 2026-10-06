@@ -9,7 +9,6 @@ struct SoftFieldStyle: TextFieldStyle {
     @FocusState private var focused: Bool
 
     func _body(configuration: TextField<Self._Label>) -> some View {
-        let brand = Color(nsColor: .chiikawardenBrand)
         configuration
             .textFieldStyle(.plain)
             .focused($focused)
@@ -19,9 +18,9 @@ struct SoftFieldStyle: TextFieldStyle {
             .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder(focused ? brand : Color(nsColor: .separatorColor), lineWidth: focused ? 1.5 : 1)
+                    // Focus: a firmer neutral outline — no colour, no glow.
+                    .strokeBorder(focused ? Color.primary.opacity(0.35) : Color(nsColor: .separatorColor), lineWidth: focused ? 1.5 : 1)
             )
-            .shadow(color: focused ? brand.opacity(0.18) : .clear, radius: 4)
             .animation(.easeOut(duration: 0.15), value: focused)
     }
 }

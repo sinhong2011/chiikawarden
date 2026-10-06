@@ -23,7 +23,7 @@ struct FormHeader: View {
                         .fill(LinearGradient(colors: [Color.brandFill, Color.brandButton], startPoint: .top, endPoint: .bottom))
                         .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
                             .strokeBorder(.white.opacity(scheme == .dark ? 0.18 : 0.35), lineWidth: 0.5))
-                        .shadow(color: Color.brandButton.opacity(scheme == .dark ? 0.35 : 0.25), radius: 6, y: 3)
+                        .shadow(color: .black.opacity(scheme == .dark ? 0.3 : 0.1), radius: 2, y: 1)
                 }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 20, weight: .bold)).tracking(-0.3)
@@ -84,8 +84,7 @@ struct SoftEditor: View {
             .frame(minHeight: minHeight)
             .background(Color(nsColor: .controlBackgroundColor), in: .rect(cornerRadius: 9, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .strokeBorder(focused ? Color.brand : Color(nsColor: .separatorColor), lineWidth: focused ? 1.5 : 1))
-            .shadow(color: focused ? Color.brand.opacity(0.18) : .clear, radius: 4)
+                .strokeBorder(focused ? Color.primary.opacity(0.35) : Color(nsColor: .separatorColor), lineWidth: focused ? 1.5 : 1))
             .animation(.easeOut(duration: 0.15), value: focused)
     }
 }

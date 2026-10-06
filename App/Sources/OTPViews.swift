@@ -54,7 +54,6 @@ struct BreathingDot: View {
                         .fill(color)
                         .scaleEffect(inhale ? 1 : 0.72)
                         .opacity(inhale ? 1 : 0.6)
-                        .shadow(color: color.opacity(inhale ? 0.6 : 0), radius: diameter * 0.6)
                 }
                 .frame(width: diameter, height: diameter)
             } animation: { inhale in

@@ -92,6 +92,7 @@ private struct LoginForm: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                     ServerStatusLine(status: model.serverStatus)
+                        .padding(.top, 4) // a breath between the field and what it says about the server
                     if model.serverKind == .selfHosted { CustomEnvironmentFields() }
                 }
 
