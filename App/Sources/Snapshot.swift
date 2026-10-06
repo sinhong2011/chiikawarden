@@ -1107,6 +1107,25 @@ enum SelfTest {
                       "lock one account, keep the other open")
                 await model.unlock(password: password2, accountId: id2)
                 check(model.sessions.count == 2 && model.items.contains { $0.accountId == id2 }, "unlock that account again")
+
+                // PIN unlock: set, wrong once (tries left), right; five wrong erase it; a PIN can outlive a restart.
+                let pinSet = await model.setPIN("2468", persistent: false, for: id2)
+                model.lock(id2)
+                await model.unlockWithPIN("1111", accountId: id2)
+                let wrongSays = model.errorMessage ?? ""
+                await model.unlockWithPIN("2468", accountId: id2)
+                check(pinSet && wrongSays.contains("4") && model.isUnlocked(id2) && model.items.contains { $0.accountId == id2 },
+                      "PIN unlock: a wrong PIN counts down, the right one opens the account")
+                model.lock(id2)
+                for _ in 0..<AccountStore.pinAttempts { await model.unlockWithPIN("0000", accountId: id2) }
+                check(!model.isUnlocked(id2) && !model.isPINEnabled(id2), "five wrong PINs turn PIN unlock off")
+                await model.unlock(password: password2, accountId: id2)
+                _ = await model.setPIN("8642", persistent: true, for: id2)
+                let onDisk = model.isPINPersistent(id2)
+                model.setPINPersistent(false, for: id2)
+                check(onDisk && model.isPINEnabled(id2) && !model.isPINPersistent(id2), "a PIN moves between this run and disk")
+                model.disablePIN(for: id2)
+                model.errorMessage = nil
             }
 
             // Custom environment: no server URL, explicit per-service URLs.

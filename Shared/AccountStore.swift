@@ -94,6 +94,7 @@ enum AccountStore {
     }
 
     static func erase(_ id: String) {
+        sessionPINs[id] = nil
         try? FileManager.default.removeItem(at: root.appending(path: id))
         Keychain.delete(service: refreshService(id))
     }
@@ -189,6 +190,113 @@ enum AccountStore {
     private static func wrapKey(_ shared: SharedSecret) -> SymmetricKey {
         shared.hkdfDerivedSymmetricKey(using: SHA256.self, salt: Data("triwarden-touchid".utf8),
                                        sharedInfo: Data(), outputByteCount: 32)
+    }
+
+    // MARK: PIN
+
+    /// The user key sealed with a key made from the PIN (stretched with the account's own KDF) and, where the Mac
+    /// has one, a Secure Enclave key: the blob is useless anywhere but on this Mac. Five wrong PINs erase it.
+    private struct PINBlob: Codable {
+        var enclaveKey: Data?      // Secure Enclave key handle, no biometry needed
+        var ephemeralPublic: Data?
+        var sealed: Data           // AES-GCM(userKey)
+        var failures = 0
+    }
+
+    static let pinAttempts = 5
+
+    private static func pinURL(_ id: String) -> URL { root.appending(path: id).appending(path: "pin.json") }
+    /// PINs that last only until the app quits (the default: after a restart, the master password).
+    nonisolated(unsafe) private static var sessionPINs: [String: Data] = [:]
+
+    static func isPINEnabled(_ id: String) -> Bool {
+        sessionPINs[id] != nil || FileManager.default.fileExists(atPath: pinURL(id).path)
+    }
+    /// Whether the PIN survives a restart (kept on disk) rather than living only in this run.
+    static func isPINPersistent(_ id: String) -> Bool { FileManager.default.fileExists(atPath: pinURL(id).path) }
+
+    static func enablePIN(_ pin: String, userKey: SymmetricKeyPair, persistent: Bool, _ id: String) throws {
+        guard let saved = load(id) else { throw CocoaError(.fileNoSuchFile) }
+        let stretched = try pinSecret(pin, saved)
+        var blob = PINBlob(sealed: Data())
+        var secret = stretched
+        if SecureEnclave.isAvailable {
+            var error: Unmanaged<CFError>?
+            guard let access = SecAccessControlCreateWithFlags(nil, kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+                                                               [.privateKeyUsage], &error) else {
+                throw error!.takeRetainedValue() as Error
+            }
+            let enclave = try SecureEnclave.P256.KeyAgreement.PrivateKey(accessControl: access)
+            let ephemeral = P256.KeyAgreement.PrivateKey()
+            let shared = try ephemeral.sharedSecretFromKeyAgreement(with: enclave.publicKey)
+            secret += shared.withUnsafeBytes { Data($0) }
+            blob.enclaveKey = enclave.dataRepresentation
+            blob.ephemeralPublic = ephemeral.publicKey.rawRepresentation
+        }
+        blob.sealed = try AES.GCM.seal(userKey.encryptionKey + userKey.macKey, using: pinWrapKey(secret)).combined!
+        disablePIN(id)
+        let data = try JSONEncoder().encode(blob)
+        if persistent { try data.write(to: dir(id).appending(path: "pin.json"), options: writeOptions) } else { sessionPINs[id] = data }
+    }
+
+    /// Moves the PIN between this run only and disk (surviving restarts), without asking for it again.
+    static func setPINPersistent(_ persistent: Bool, _ id: String) {
+        guard isPINEnabled(id), persistent != isPINPersistent(id) else { return }
+        if persistent, let data = sessionPINs[id] {
+            try? data.write(to: dir(id).appending(path: "pin.json"), options: writeOptions)
+            sessionPINs[id] = nil
+        } else if !persistent, let data = try? Data(contentsOf: pinURL(id)) {
+            sessionPINs[id] = data
+            try? FileManager.default.removeItem(at: pinURL(id))
+        }
+    }
+
+    static func disablePIN(_ id: String) {
+        sessionPINs[id] = nil
+        try? FileManager.default.removeItem(at: pinURL(id))
+    }
+
+    enum PINResult { case unlocked(SymmetricKeyPair), wrong(left: Int), erased }
+
+    /// Opens the user key with the PIN. A wrong one counts; the fifth erases the PIN.
+    static func unlockWithPIN(_ id: String, pin: String) -> PINResult? {
+        let persistent = isPINPersistent(id)
+        guard let saved = load(id), let data = persistent ? try? Data(contentsOf: pinURL(id)) : sessionPINs[id],
+              var blob = try? JSONDecoder().decode(PINBlob.self, from: data),
+              var secret = try? pinSecret(pin, saved) else { return nil }
+        if let handle = blob.enclaveKey, let peerData = blob.ephemeralPublic,
+           let enclave = try? SecureEnclave.P256.KeyAgreement.PrivateKey(dataRepresentation: handle),
+           let peer = try? P256.KeyAgreement.PublicKey(rawRepresentation: peerData),
+           let shared = try? enclave.sharedSecretFromKeyAgreement(with: peer) {
+            secret += shared.withUnsafeBytes { Data($0) }
+        }
+        if let box = try? AES.GCM.SealedBox(combined: blob.sealed),
+           let raw = try? AES.GCM.open(box, using: pinWrapKey(secret)), let key = try? SymmetricKeyPair(combined: raw) {
+            if blob.failures > 0 { blob.failures = 0; store(blob, id, persistent: persistent) }
+            return .unlocked(key)
+        }
+        blob.failures += 1
+        if blob.failures >= pinAttempts {
+            disablePIN(id)
+            return .erased
+        }
+        store(blob, id, persistent: persistent)
+        return .wrong(left: pinAttempts - blob.failures)
+    }
+
+    private static func store(_ blob: PINBlob, _ id: String, persistent: Bool) {
+        guard let data = try? JSONEncoder().encode(blob) else { return }
+        if persistent { try? data.write(to: dir(id).appending(path: "pin.json"), options: writeOptions) } else { sessionPINs[id] = data }
+    }
+
+    /// The PIN stretched with the account's KDF (salted apart from the master password's use of the email).
+    private static func pinSecret(_ pin: String, _ saved: SavedAccount) throws -> Data {
+        try KDF.masterKey(password: pin, email: saved.email + "|triwarden-pin", config: saved.kdf)
+    }
+
+    private static func pinWrapKey(_ secret: Data) -> SymmetricKey {
+        HKDF<SHA256>.deriveKey(inputKeyMaterial: SymmetricKey(data: secret), salt: Data("triwarden-pin".utf8),
+                               info: Data(), outputByteCount: 32)
     }
 
     // MARK: Migration

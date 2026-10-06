@@ -1627,6 +1627,9 @@ private struct AccountUnlockPane: View {
     @Environment(AppModel.self) private var model
     let account: SavedAccount
     @State private var password = ""
+    @State private var usePassword = false
+
+    private var pinMode: Bool { model.isPINEnabled(account.id) && !usePassword }
 
     var body: some View {
         VStack(spacing: 14) {
@@ -1637,8 +1640,12 @@ private struct AccountUnlockPane: View {
             if model.isTouchIDEnabled(account.id) {
                 Button { Task { await model.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid") }
             }
-            PasswordField(title: "Master password", text: $password, onSubmit: submit)
+            PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, onSubmit: submit)
                 .frame(width: 260)
+            if model.isPINEnabled(account.id) {
+                Button(pinMode ? "Use master password" : "Use PIN") { usePassword.toggle(); password = ""; model.errorMessage = nil }
+                    .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary).underline()
+            }
             if let error = model.errorMessage {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }
@@ -1653,8 +1660,9 @@ private struct AccountUnlockPane: View {
     }
 
     private func submit() {
+        let typed = password
         Task {
-            await model.unlock(password: password, accountId: account.id)
+            if pinMode { await model.unlockWithPIN(typed, accountId: account.id) } else { await model.unlock(password: typed, accountId: account.id) }
             if model.isUnlocked(account.id) { password = "" }
         }
     }

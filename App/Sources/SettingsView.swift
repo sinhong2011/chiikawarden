@@ -406,6 +406,7 @@ private struct AccountSettingsPage: View {
     let account: SavedAccount
     let index: Int
     @State private var confirmLogOut = false
+    @State private var settingPIN = false
 
     private var session: AccountSession? { model.session(for: account.id) }
 
@@ -442,6 +443,24 @@ private struct AccountSettingsPage: View {
                          : "Unlock this account once to turn it on.")
                 }
                 .disabled(!AccountStore.isTouchIDAvailable || (session == nil && !model.isTouchIDEnabled(account.id)))
+                Toggle(isOn: Binding(get: { model.isPINEnabled(account.id) }, set: { on in
+                    if on { settingPIN = true } else { model.disablePIN(for: account.id) }
+                })) {
+                    Text("Unlock with PIN")
+                    Text(session != nil || model.isPINEnabled(account.id)
+                         ? "A short PIN instead of the master password. Five wrong tries turn it off."
+                         : "Unlock this account once to set a PIN.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .disabled(session == nil && !model.isPINEnabled(account.id))
+                if model.isPINEnabled(account.id) {
+                    Toggle(isOn: Binding(get: { !model.isPINPersistent(account.id) },
+                                         set: { model.setPINPersistent(!$0, for: account.id) })) {
+                        Text("Ask for the master password after a restart")
+                        Text("The PIN then works only until Triwarden quits, and is never written to disk.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
                 if let session {
                     LabeledContent {
                         HStack(spacing: 8) {
@@ -500,6 +519,7 @@ private struct AccountSettingsPage: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(isPresented: $settingPIN) { SetPINSheet(account: account) }
         .confirmationDialog("Log out of \(account.email)?", isPresented: $confirmLogOut) {
             Button("Log Out", role: .destructive) { model.logOut(account.id) }
         } message: {
@@ -982,5 +1002,80 @@ private struct AutoTypePermission: View {
     private func check() async {
         allowed = await AutoType.isAllowed()
         checked = true
+    }
+}
+
+/// Choose a PIN (twice), and whether it should outlive a restart.
+private struct SetPINSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let account: SavedAccount
+    @State private var pin = ""
+    @State private var again = ""
+    @State private var afterRestart = true
+    @State private var busy = false
+    @State private var error: String?
+
+    private var valid: Bool { pin.count >= 4 && pin == again }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set a PIN").font(.system(size: 17, weight: .semibold))
+                Text(verbatim: account.email).font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                SecureField("PIN", text: $pin, prompt: Text("At least 4 characters"))
+                    .textFieldStyle(SoftFieldStyle())
+                SecureField("Again", text: $again, prompt: Text("The same PIN again"))
+                    .textFieldStyle(SoftFieldStyle())
+                    .onSubmit(submit)
+                Toggle("Ask for the master password after a restart", isOn: $afterRestart)
+                    .toggleStyle(.trailingSwitch)
+                    .font(.system(size: 12))
+                    .padding(.top, 4)
+            }
+            Group {
+                if let error {
+                    Text(verbatim: error).foregroundStyle(.red)
+                } else if !again.isEmpty && pin != again {
+                    Text("The two PINs don't match.").foregroundStyle(.orange)
+                } else {
+                    Text("Five wrong tries turn the PIN off; then the master password unlocks. Anyone who knows the PIN can open this account on this Mac.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.system(size: 11))
+            .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .buttonStyle(.appSecondary)
+                    .keyboardShortcut(.cancelAction)
+                Button {
+                    submit()
+                } label: {
+                    HStack(spacing: 6) {
+                        if busy { ProgressView().controlSize(.small).tint(.white) }
+                        Text("Turn On")
+                    }
+                }
+                .buttonStyle(.appPrimary)
+                .keyboardShortcut(.defaultAction)
+                .disabled(!valid || busy)
+            }
+        }
+        .padding(22)
+        .frame(width: 380)
+    }
+
+    private func submit() {
+        guard valid, !busy else { return }
+        busy = true
+        Task {
+            let ok = await model.setPIN(pin, persistent: !afterRestart, for: account.id)
+            busy = false
+            if ok { dismiss() } else { error = String(localized: "Couldn't set the PIN. Unlock the account and try again.") }
+        }
     }
 }

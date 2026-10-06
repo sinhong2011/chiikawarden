@@ -17,6 +17,8 @@ struct UnlockView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.vaultDoorFrozen) private var frozen
     @State private var password = ""
+    /// With a PIN set, the hub asks for it; this switches to the master password instead.
+    @State private var usePassword = false
     @State private var turns = 0
     @State private var errorAt: Date?
     /// While the door assembles itself after a lock, the hub's controls wait.
@@ -37,7 +39,9 @@ struct UnlockView: View {
                 VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
                                busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: model.lockClosedAt)
 
-                DoorCore(password: $password, focused: $focused, submit: submit)
+                DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN,
+                         switchMode: { usePassword.toggle(); password = ""; model.errorMessage = nil; focused = true },
+                         submit: submit)
                     .frame(width: radius * DoorGeometry.core * 2 * 0.84)
                     .position(center)
                     .opacity(hubHidden ? 0 : 1)
@@ -87,9 +91,13 @@ struct UnlockView: View {
         .onChange(of: password) { _, typed in if !typed.isEmpty, model.errorMessage != nil { model.errorMessage = nil } }
     }
 
+    private var hasPIN: Bool { model.unlockTarget.map { model.isPINEnabled($0.id) } ?? false }
+    private var pinMode: Bool { hasPIN && !usePassword }
+
     private func submit() {
         guard !password.isEmpty, !model.isBusy, !model.unlockOpening else { return }
-        Task { await model.unlock(password: password) }
+        let typed = password
+        Task { if pinMode { await model.unlockWithPIN(typed) } else { await model.unlock(password: typed) } }
     }
 }
 
@@ -99,6 +107,10 @@ private struct DoorCore: View {
     @Environment(\.colorScheme) private var scheme
     @Binding var password: String
     var focused: FocusState<Bool>.Binding
+    /// Asking for the PIN rather than the master password.
+    var pinMode = false
+    var hasPIN = false
+    var switchMode: () -> Void = {}
     let submit: () -> Void
 
     var body: some View {
@@ -111,7 +123,8 @@ private struct DoorCore: View {
                 .accessibilityHidden(true)
 
             HStack(spacing: 4) {
-                PasswordField(title: "Master password", text: $password, look: .plain, prompt: Text("Master password"),
+                PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, look: .plain,
+                              prompt: pinMode ? Text("PIN") : Text("Master password"),
                               isFocused: focused.wrappedBinding, onSubmit: submit)
                     .font(.system(size: 13))
                     .disabled(model.isBusy)
@@ -158,6 +171,11 @@ private struct DoorCore: View {
             .animation(.easeOut(duration: 0.2), value: model.isBusy)
 
             HStack(spacing: 4) {
+                if hasPIN {
+                    Button(pinMode ? "Use master password" : "Use PIN", action: switchMode)
+                        .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                    Text(verbatim: "·").foregroundStyle(.tertiary)
+                }
                 Text("Not you?").foregroundStyle(.secondary)
                 Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
                     .buttonStyle(.plain).foregroundStyle(.primary).underline()

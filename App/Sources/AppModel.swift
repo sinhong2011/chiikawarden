@@ -1045,6 +1045,58 @@ final class AppModel {
         refreshAccounts()
     }
 
+    // MARK: PIN
+
+    func isPINEnabled(_ accountId: String) -> Bool {
+        _ = pinRevision // observed, so views follow a change
+        return AccountStore.isPINEnabled(accountId)
+    }
+    func isPINPersistent(_ accountId: String) -> Bool {
+        _ = pinRevision
+        return AccountStore.isPINPersistent(accountId)
+    }
+    /// Bumped when a PIN is set, moved or erased (AccountStore isn't observable).
+    var pinRevision = 0
+
+    /// Sets the PIN for an unlocked account; off with nil. It stretches the PIN with the account's KDF, so it's slow.
+    func setPIN(_ pin: String?, persistent: Bool, for accountId: String) async -> Bool {
+        guard let session = session(for: accountId) else { return false }
+        let ok = await session.setPIN(pin, persistent: persistent)
+        pinRevision += 1
+        return ok
+    }
+
+    /// Turns the PIN off (works locked too: it only removes the sealed key).
+    func disablePIN(for accountId: String) {
+        AccountStore.disablePIN(accountId)
+        pinRevision += 1
+    }
+
+    func setPINPersistent(_ persistent: Bool, for accountId: String) {
+        AccountStore.setPINPersistent(persistent, accountId)
+        pinRevision += 1
+    }
+
+    /// Unlocks one account with its PIN; a wrong one says how many tries are left, the fifth turns the PIN off.
+    func unlockWithPIN(_ pin: String, accountId: String? = nil) async {
+        guard let id = accountId ?? unlockTarget?.id else { return }
+        isBusy = true
+        errorMessage = nil
+        defer { isBusy = false }
+        let result = await Task.detached(priority: .userInitiated) { AccountStore.unlockWithPIN(id, pin: pin) }.value
+        switch result {
+        case .unlocked(let key)?: finishUnlock([id: key])
+        case .wrong(let left)?:
+            errorMessage = String(localized: "Wrong PIN. ^[\(left) try](inflect: true) left.")
+        case .erased?:
+            pinRevision += 1
+            errorMessage = String(localized: "Too many wrong PINs, so the PIN is off. Use your master password.")
+        case nil:
+            pinRevision += 1
+            errorMessage = String(localized: "PIN unlock isn't set up any more. Use your master password.")
+        }
+    }
+
     /// Locks one account; the others stay open.
     func lock(_ accountId: String) {
         session(for: accountId)?.close()

@@ -202,6 +202,20 @@ final class AccountSession {
         if enabled { try AccountStore.enableTouchID(userKey: userKey, account.id) } else { AccountStore.disableTouchID(account.id) }
     }
 
+    /// Turns PIN unlock on with `pin` (nil turns it off). `persistent`: it survives a restart. Stretching the PIN with
+    /// the account's KDF takes a moment, so it runs off the main actor.
+    func setPIN(_ pin: String?, persistent: Bool) async -> Bool {
+        let key = userKey, id = account.id
+        return await Task.detached(priority: .userInitiated) { () -> Bool in
+            do {
+                if let pin { try AccountStore.enablePIN(pin, userKey: key, persistent: persistent, id) } else { AccountStore.disablePIN(id) }
+                return true
+            } catch {
+                return false
+            }
+        }.value
+    }
+
     // MARK: Editing
 
     enum WriteError: Error { case offline }
