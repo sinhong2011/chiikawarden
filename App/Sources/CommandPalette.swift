@@ -40,7 +40,7 @@ struct CommandPalette: View {
 
     private var q: String { query.trimmingCharacters(in: .whitespaces) }
 
-    /// Called from another app: the page's (or app's) logins, which go first; ↵ copies and returns there.
+    /// Called from another app: the page's (or app's) logins, which go first; ↵ types the login into it.
     private var context: ForegroundContext? { model.foreground }
     private var siteItems: [VaultItem] {
         guard model.isUnlocked, let context else { return [] }
@@ -126,7 +126,12 @@ struct CommandPalette: View {
             Divider().opacity(0.6)
             HStack(spacing: 16) {
                 footerHint("↑↓", "Navigate")
-                footerHint("↵", context != nil ? "Copy and go back" : "Open")
+                if let context {
+                    footerHint("↵", "Type into \(context.app)")
+                    footerHint("⇧", "+ submit")
+                } else {
+                    footerHint("↵", "Open")
+                }
                 Spacer()
                 footerHint("esc", "Close")
             }
@@ -175,28 +180,33 @@ struct CommandPalette: View {
             close()
             command.run()
         case .item(let item):
-            // Called from another app: copy for it and go back there (the palette was only a detour).
-            if context != nil, !modifiers.contains(.shift) {
-                let value: (String, String)? = if modifiers.contains(.control) {
-                    item.username.map { ($0, String(localized: "Username")) }
-                } else if modifiers.contains(.option) {
-                    item.totp.map { ($0.code(), String(localized: "Code")) }
-                } else {
-                    item.password.map { ($0, String(localized: "Password")) }
-                }
-                if let (text, label) = value {
-                    close()
-                    if label == String(localized: "Username") {
-                        model.copy(text, label: label)
-                        model.returnToForeground()
+            // Called from another app: type into it, like KeePass's auto-type (↵ both, ⌃↵ username, ⌥↵ password,
+            // ⌘↵ code; ⇧ also presses Return). Without Accessibility yet, the password is copied instead.
+            if let context, item.kind == .login, item.username != nil || item.password != nil || item.totp != nil {
+                let submit = modifiers.contains(.shift)
+                let steps: () -> [AutoType.Step] = {
+                    var steps: [AutoType.Step]
+                    if modifiers.contains(.control) {
+                        steps = item.username.map { [.text($0)] } ?? []
+                    } else if modifiers.contains(.option) {
+                        steps = item.password.map { [.text($0)] } ?? []
+                    } else if modifiers.contains(.command) {
+                        steps = item.totp.map { [.text($0.code())] } ?? []
                     } else {
-                        model.guarded(item) {
-                            model.copy(text, label: label)
-                            model.returnToForeground()
-                        }
+                        steps = [item.username.map(AutoType.Step.text), item.username != nil && item.password != nil ? .tab : nil,
+                                 item.password.map(AutoType.Step.text)].compactMap { $0 }
                     }
-                    return
+                    if submit, !steps.isEmpty { steps.append(.enter) }
+                    return steps
                 }
+                guard !steps().isEmpty else { return }
+                close()
+                model.guarded(item) {
+                    let fallback = modifiers.contains(.control) ? item.username.map { ($0, String(localized: "Username")) }
+                        : item.password.map { ($0, String(localized: "Password")) }
+                    model.autoType(steps(), into: context, fallback: fallback.map { (value: $0.0, label: $0.1) })
+                }
+                return
             }
             if modifiers.contains(.shift), let host = item.host, let url = URL(string: "https://\(host)") {
                 NSWorkspace.shared.open(url)
@@ -288,7 +298,7 @@ struct Keycap: View {
 private struct ItemLine: View {
     let item: VaultItem
     let selected: Bool
-    /// Called from another app: ↵ copies the password and returns there.
+    /// Called from another app: ↵ types the login into it.
     var returning = false
 
     var body: some View {
@@ -304,9 +314,10 @@ private struct ItemLine: View {
                 if selected, item.password != nil || item.totp != nil || item.host != nil {
                     HStack(spacing: 14) {
                         if returning {
-                            if item.password != nil { hint("↵", "Password") }
+                            hint("↵", "Fill")
                             if item.username != nil { hint("⌃↵", "Username") }
-                            if item.totp != nil { hint("⌥↵", "Code") }
+                            if item.password != nil { hint("⌥↵", "Password") }
+                            if item.totp != nil { hint("⌘↵", "Code") }
                         } else {
                             if item.password != nil { hint("⌘↵", "Copy password") }
                             if item.totp != nil { hint("⌥↵", "Copy code") }
@@ -336,7 +347,7 @@ private struct ItemLine: View {
     private func hint(_ keys: String, _ label: LocalizedStringKey) -> some View {
         HStack(spacing: 5) {
             Keycap(keys: keys)
-            Text(label).font(.system(size: 12)).foregroundStyle(.secondary)
+            Text(label).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1).fixedSize()
         }
     }
 }

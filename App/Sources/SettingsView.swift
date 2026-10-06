@@ -133,10 +133,11 @@ private struct GeneralSettings: View {
 
             Section {
                 LabeledContent("Command palette") { ShortcutRecorder() }
+                LabeledContent("Type into other apps") { AutoTypePermission() }
             } header: {
                 Text("Shortcuts")
             } footer: {
-                Text("Works in every app. In a browser, the palette puts the page's logins first; ↵ copies the password and takes you back. ⌘K and ⌘F also open the palette inside the vault window.")
+                Text("Works in every app. Called over a browser or an app, the palette puts its logins first, and ↵ types the username and password in (⌃↵ username, ⌥↵ password, ⇧ also submits). Typing needs Accessibility for “Triwarden Auto-Type”, a small helper inside the app, so Triwarden itself stays sandboxed. ⌘K and ⌘F also open the palette inside the vault window.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -754,5 +755,39 @@ private struct LanguagePicker: View {
         task.arguments = ["-c", "while kill -0 \(ProcessInfo.processInfo.processIdentifier) 2>/dev/null; do sleep 0.2; done; open \"$0\"", path]
         try? task.run()
         NSApp.terminate(nil)
+    }
+}
+
+/// Whether the auto-type helper may type (Accessibility), with a button to ask macOS for it.
+private struct AutoTypePermission: View {
+    @State private var allowed: Bool?
+    @State private var checked = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            switch checked ? allowed : nil {
+            case .some(true):
+                Label("Allowed", systemImage: "checkmark.circle.fill").labelStyle(.titleAndIcon)
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            case .some(false):
+                Button("Allow…") { Task { await AutoType.askPermission() } }
+                    .buttonStyle(.appSecondarySmall)
+            case nil:
+                if checked {
+                    Text("Unavailable").font(.system(size: 12)).foregroundStyle(.secondary)
+                } else {
+                    ProgressView().controlSize(.small)
+                }
+            }
+        }
+        .task { await check() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await check() }
+        }
+    }
+
+    private func check() async {
+        allowed = await AutoType.isAllowed()
+        checked = true
     }
 }

@@ -51,6 +51,14 @@ with `completeUntilFirstUserAuthentication` file protection, and both the app an
   Status, generate and lock work without approval. Listing or reading anything needs the vault unlocked and
   Touch ID or the Mac password, with a prompt that names the calling program. Secrets go to stdout only,
   never into arguments or environment variables.
+- **Auto-type** types a login into the app the palette was called over. It's done by a separate helper,
+  *Triwarden Auto-Type* (inside the app bundle), which alone holds Accessibility, so the app itself stays
+  sandboxed. The helper listens on a `0600` socket in the App Group container and answers only the Triwarden
+  executable of the bundle it sits in, signed by the same team; anyone else gets no answer at all. It stores
+  nothing, types only what one request carries into the app that request names (after it comes forward), and
+  quits with Triwarden. Typing takes the same Touch ID / re-prompt as copying. The palette and the menu bar
+  ask the front browser for its tab's address over Apple Events (macOS asks once per browser), only to put
+  that site's logins first.
 - **Browser extension** (off by default; Safari, and Chrome/Edge/Brave through `tw` as the native host)
   stores nothing and holds no keys. The page URL comes from the browser, not the page. Suggestions are names
   and usernames for that site only, and only our own bundled binaries may ask for them. Filling needs Touch ID

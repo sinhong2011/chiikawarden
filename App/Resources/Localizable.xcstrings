@@ -4,30 +4,86 @@
     "" : {
       "shouldTranslate" : false
     },
-    "Copy and go back" : {
+    "+ submit" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コピーして戻る"
+            "value" : "＋送信"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制并返回"
+            "value" : "＋提交"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "複製並返回"
+            "value" : "＋送出"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "複製再返回"
+            "value" : "＋提交"
+          }
+        }
+      }
+    },
+    "Allowed" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可済み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已允許"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已允許"
+          }
+        }
+      }
+    },
+    "Allow…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許…"
           }
         }
       }
@@ -144,30 +200,114 @@
         }
       }
     },
-    "Works in every app. In a browser, the palette puts the page's logins first; ↵ copies the password and takes you back. ⌘K and ⌘F also open the palette inside the vault window." : {
+    "Type into %@" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "どのアプリでも使えます。ブラウザでは、そのページのログインが先頭に表示され、↵ でパスワードをコピーして元のアプリに戻ります。保管庫ウインドウでは ⌘K と ⌘F でもパレットを開けます。"
+            "value" : "%@ に入力"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在任何 App 中都能使用。在浏览器中，命令面板会先列出该网页的登录信息；按 ↵ 会复制密码并返回原处。在密码库窗口内，⌘K 和 ⌘F 也能打开命令面板。"
+            "value" : "输入到 %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在任何 App 中都能使用。在瀏覽器中，命令面板會先列出該網頁的登入資料；按 ↵ 會複製密碼並返回原處。在保險庫視窗內，⌘K 和 ⌘F 也能開啟命令面板。"
+            "value" : "輸入到 %@"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "喺任何 App 都用得。喺瀏覽器入面，指令面板會先列出嗰個網頁嘅登入資料；撳 ↵ 會複製密碼再返回原處。喺保險庫視窗入面，⌘K 同 ⌘F 都可以開指令面板。"
+            "value" : "輸入去 %@"
+          }
+        }
+      }
+    },
+    "Type into other apps" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほかのアプリに入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入到其他 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入到其他 App"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入去其他 App"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用できません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用唔到"
+          }
+        }
+      }
+    },
+    "Works in every app. Called over a browser or an app, the palette puts its logins first, and ↵ types the username and password in (⌃↵ username, ⌥↵ password, ⇧ also submits). Typing needs Accessibility for “Triwarden Auto-Type”, a small helper inside the app, so Triwarden itself stays sandboxed. ⌘K and ⌘F also open the palette inside the vault window." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どのアプリでも使えます。ブラウザやアプリの上で呼び出すと、そのログインが先頭に表示され、↵ でユーザ名とパスワードを入力します（⌃↵ はユーザ名のみ、⌥↵ はパスワードのみ、⇧ を加えると送信も）。入力にはアプリ内のヘルパー「Triwarden Auto-Type」へのアクセシビリティ許可が必要で、Triwarden 本体はサンドボックスのままです。保管庫ウインドウでは ⌘K と ⌘F でもパレットを開けます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何 App 中都能使用。在浏览器或其他 App 上调出时，命令面板会先列出相关的登录信息，按 ↵ 会输入用户名和密码（⌃↵ 只输入用户名，⌥↵ 只输入密码，加 ⇧ 会同时提交）。输入功能需要为 App 内的小助手“Triwarden Auto-Type”开启“辅助功能”权限，Triwarden 本身仍保持沙盒保护。在密码库窗口内，⌘K 和 ⌘F 也能打开命令面板。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何 App 中都能使用。在瀏覽器或其他 App 上叫出時，命令面板會先列出相關的登入資料，按 ↵ 會輸入使用者名稱和密碼（⌃↵ 只輸入使用者名稱，⌥↵ 只輸入密碼，加 ⇧ 會同時送出）。輸入功能需要為 App 內的小幫手「Triwarden Auto-Type」開啟「輔助使用」權限，Triwarden 本身仍維持沙盒保護。在保險庫視窗內，⌘K 和 ⌘F 也能開啟命令面板。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺任何 App 都用得。喺瀏覽器或者其他 App 叫出嚟時，指令面板會先列出相關嘅登入資料，撳 ↵ 會輸入用戶名同密碼（⌃↵ 淨係輸入用戶名，⌥↵ 淨係輸入密碼，加 ⇧ 會順便提交）。輸入功能要幫 App 入面嘅小幫手「Triwarden Auto-Type」開啟「輔助使用」權限，Triwarden 本身依然受沙盒保護。喺保險庫視窗入面，⌘K 同 ⌘F 都可以開指令面板。"
           }
         }
       }
@@ -18599,34 +18739,6 @@
         }
       }
     },
-    "Reset to ⌘K" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⌘K に戻す"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重置为 ⌘K"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重設為 ⌘K"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重設為 ⌘K"
-          }
-        }
-      }
-    },
     "Restore" : {
       "localizations" : {
         "ja" : {
@@ -25847,34 +25959,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分隔符號"
-          }
-        }
-      }
-    },
-    "Works in every app. A common shortcut like ⌘K is taken from other apps while Triwarden runs; pick another if you need it elsewhere. ⌘K and ⌘F always open the palette inside the vault window." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべてのアプリで使えます。Triwarden の実行中は、⌘K のような一般的なショートカットは他のアプリで使えなくなります。必要なら別のものを選んでください。保管庫ウインドウ内では ⌘K と ⌘F で常にパレットが開きます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在所有 App 中都可使用。Triwarden 运行时，⌘K 这类常用快捷键会被占用，其他 App 无法使用；如需在别处使用，请换一个。在密码库窗口内，⌘K 和 ⌘F 始终会打开命令面板。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在所有 App 中都可使用。Triwarden 執行時，像 ⌘K 這類常用快速鍵會從其他 App 被佔用；如果其他地方需要它，請改用別的。在保險庫視窗內，⌘K 和 ⌘F 一律會打開命令面板。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喺所有 App 都用得。Triwarden 運行時，⌘K 呢類常用快速鍵會被佔用，其他 App 用唔到；如果其他地方需要，就揀過另一個。喺保險庫視窗入面，⌘K 同 ⌘F 一定會打開指令面板。"
           }
         }
       }

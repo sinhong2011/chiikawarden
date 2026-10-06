@@ -795,6 +795,22 @@ enum SelfTest {
                       && info["SUEnableAutomaticChecks"] as? Bool == false,
                       "updates: Sparkle embedded, appcast feed, installer service, checks opt-in")
 
+                // Auto-type: the bundled helper starts, answers Triwarden over its socket, and reports whether it
+                // may type (Accessibility is the user's to grant, so either answer passes).
+                let typing = await AutoType.isAllowed()
+                var me: SecCode?
+                var staticMe: SecStaticCode?
+                var signing: CFDictionary?
+                let teamSigned = SecCodeCopySelf([], &me) == errSecSuccess && me.map { SecCodeCopyStaticCode($0, [], &staticMe) } == errSecSuccess
+                    && staticMe.map { SecCodeCopySigningInformation($0, SecCSFlags(rawValue: kSecCSSigningInformation), &signing) } == errSecSuccess
+                    && (signing as? [String: Any])?[kSecCodeInfoTeamIdentifier as String] != nil
+                if typing == nil, !teamSigned {
+                    // Unsigned, the helper has no App Group entitlement, so macOS won't let it open its socket.
+                    print("SKIP auto-type helper (unsigned build: start it by hand to test)")
+                } else {
+                    check(typing != nil, "auto-type helper answers the app (Accessibility \(typing == true ? "allowed" : "not allowed yet"))")
+                }
+
                 // The AutoFill extension's flow, in-process: register a passkey for a site, then sign in with it.
                 let ext = AutoFillState()
                 var registered: ASPasskeyRegistrationCredential?

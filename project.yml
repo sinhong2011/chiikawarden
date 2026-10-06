@@ -51,6 +51,12 @@ targets:
         codeSign: false # keep tw's own signature (and its App Group entitlement)
         copy:
           destination: executables
+      - target: TriwardenAutoType
+        embed: true
+        codeSign: false # keep the helper's own signature (not sandboxed; it alone holds Accessibility)
+        copy:
+          destination: wrapper
+          subpath: Contents/Library/Helpers
     entitlements:
       path: App/Triwarden.entitlements
       properties:
@@ -154,6 +160,33 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.sinhong2011.triwarden.safari
         GENERATE_INFOPLIST_FILE: NO
+
+  # Types logins into other apps for the palette. Not sandboxed, so it can hold Accessibility; the app stays
+  # sandboxed and asks it over a socket in the App Group container (Helpers/AutoType/main.swift).
+  TriwardenAutoType:
+    type: application
+    platform: macOS
+    sources:
+      - Helpers/AutoType
+    dependencies:
+      - package: VaultCore
+        product: SSHAgent
+    entitlements:
+      path: Helpers/AutoType/AutoType.entitlements
+      properties:
+        com.apple.security.application-groups: [FX3VR69P5K.io.github.sinhong2011.triwarden] # the socket lives there
+    info:
+      path: Helpers/AutoType/Info.plist
+      properties:
+        CFBundleDisplayName: Triwarden Auto-Type
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+    settings:
+      base:
+        PRODUCT_NAME: Triwarden Auto-Type
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.sinhong2011.triwarden.autotype
+        SKIP_INSTALL: YES
 
   tw:
     type: tool
