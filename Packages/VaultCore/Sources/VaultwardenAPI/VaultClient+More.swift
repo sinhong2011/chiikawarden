@@ -70,7 +70,8 @@ extension VaultClient {
 
     /// Devices signed in to the account.
     public func devices() async throws(APIError) -> [DeviceInfo] {
-        (try await callJSON("GET", "devices")["data"] as? [[String: Any]] ?? []).compactMap(DeviceInfo.init)
+        let list = try await callJSON("GET", "devices")
+        return ((list["data"] ?? list["Data"]) as? [[String: Any]] ?? []).compactMap(DeviceInfo.init)
     }
 
     /// Signs out every session (this one too).
@@ -274,7 +275,7 @@ public struct DeviceInfo: Sendable, Identifiable, Hashable {
     public let lastActive: String?
 
     init?(_ d: [String: Any]) {
-        guard let id = d["id"] as? String else { return nil }
+        guard let id = (d["id"] ?? d["Id"]).map({ "\($0)" }), !id.isEmpty else { return nil }
         self.id = id
         name = d["name"] as? String ?? ""
         type = d["type"] as? Int ?? -1
@@ -330,7 +331,7 @@ public struct EmergencyContact: Sendable, Identifiable, Hashable {
     public let name: String?
 
     init?(_ d: [String: Any]) {
-        guard let id = d["id"] as? String else { return nil }
+        guard let id = (d["id"] ?? d["Id"]).map({ "\($0)" }), !id.isEmpty else { return nil }
         self.id = id
         status = Status(rawValue: d["status"] as? Int ?? 0) ?? .invited
         takeover = (d["type"] as? Int) == 1

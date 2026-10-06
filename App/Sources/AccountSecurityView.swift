@@ -10,7 +10,10 @@ struct AccountSecuritySections: View {
     @State private var providers: [Int: Bool] = [:]
     @State private var devices: [DeviceInfo] = []
     @State private var loading = false
+    @State private var devicesLoading = false
+    /// Why two-step login couldn't load, and why the devices couldn't (each its own, with the server's words).
     @State private var error: String?
+    @State private var devicesError: String?
     @State private var sheet: Sheet?
 
     enum Sheet: Identifiable {
@@ -47,16 +50,41 @@ struct AccountSecuritySections: View {
         }
     }
 
+    /// Two-step login and devices load on their own: one failing doesn't blank the other.
     private func load() async {
+        async let p: Void = loadProviders()
+        async let d: Void = loadDevices()
+        _ = await (p, d)
+    }
+
+    private func loadProviders() async {
         loading = true
         defer { loading = false }
         do {
-            async let p = session.twoFactorProviders()
-            async let d = session.devices()
-            (providers, devices) = try await (p, d)
+            providers = try await session.twoFactorProviders()
             error = nil
         } catch {
-            self.error = String(localized: "Couldn't reach the server. Two-step login and devices need a connection.")
+            self.error = String(localized: "Couldn't load two-step login: \(problem(error))")
+        }
+    }
+
+    private func loadDevices() async {
+        devicesLoading = true
+        defer { devicesLoading = false }
+        do {
+            devices = try await session.devices()
+            devicesError = nil
+        } catch {
+            devicesError = problem(error)
+        }
+    }
+
+    /// The server's own words when it gave some, else what went wrong.
+    private func problem(_ error: Error) -> String {
+        switch error {
+        case APIError.http(let status, let message): message ?? String(localized: "Server error (\(status)).")
+        case AccountSession.WriteError.offline: String(localized: "This account is offline.")
+        default: String(localized: "Couldn't reach the server.")
         }
     }
 
@@ -148,6 +176,17 @@ struct AccountSecuritySections: View {
 
     private func devicesSection(_ session: AccountSession) -> some View {
         Section {
+            if let devicesError {
+                LabeledContent {
+                    Button("Try Again") { Task { await loadDevices() } }
+                } label: {
+                    Label { Text(verbatim: devicesError) } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    }
+                }
+            } else if devices.isEmpty {
+                Text(devicesLoading ? "Loading devices…" : "No devices found.").foregroundStyle(.secondary)
+            }
             ForEach(devices) { device in
                 HStack(spacing: 10) {
                     Image(systemName: symbol(device)).foregroundStyle(.secondary).frame(width: 20)
@@ -165,7 +204,7 @@ struct AccountSecuritySections: View {
                 Button("Sign Out Everywhere…", role: .destructive) { sheet = .signOutEverywhere }
             }
         } header: {
-            Text("Devices")
+            HStack { Text("Devices"); if devicesLoading && !devices.isEmpty { ProgressView().controlSize(.mini) } }
         }
     }
 
