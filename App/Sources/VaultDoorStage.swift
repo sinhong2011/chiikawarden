@@ -790,37 +790,51 @@ private struct VaultDoorArt: View, Animatable {
 /// The login screen's side panel: the same vault door, closed, under the brand and a caption. A successful sign-in
 /// opens it like an unlock.
 struct LoginDoorStage: View {
-    @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let dark = scheme == .dark
         let ink = dark ? Color.white : Color(red: 0.05, green: 0.16, blue: 0.27)
-        GeometryReader { _ in
-            ZStack {
-                // The room only: the door itself sits on the line between this panel and the form (LoginView).
-                VaultDoorStage.roomGradient(dark: dark)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(verbatim: "Chiikawarden")
-                        .font(.system(size: 20, weight: .semibold)).tracking(-0.3)
-                        .foregroundStyle(ink.opacity(0.85))
-                        .padding(.bottom, 4)
-                    Text("Every login,\nbehind one door.")
-                        .font(.system(size: 26, weight: .semibold)).tracking(-0.4)
-                        .foregroundStyle(ink)
-                    Text("Passwords, passkeys, codes and SSH keys — native on your Mac.")
-                        .font(.system(size: 13)).foregroundStyle(ink.opacity(0.62))
+        ZStack {
+            VaultDoorStage.roomGradient(dark: dark)
+            // The welcome: the app's icon, its name and promise, and what it keeps — centred, quiet.
+            VStack(alignment: .leading, spacing: 0) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable().interpolation(.high)
+                    .frame(width: 96, height: 96)
+                    .shadow(color: .black.opacity(dark ? 0.45 : 0.18), radius: 18, y: 10)
+                    .padding(.bottom, 22)
+                Text(verbatim: "Chiikawarden")
+                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(ink.opacity(0.6))
+                    .padding(.bottom, 6)
+                Text("Every login,\nbehind one door.")
+                    .font(.system(size: 30, weight: .bold)).tracking(-0.6)
+                    .foregroundStyle(ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 26)
+                VStack(alignment: .leading, spacing: 14) {
+                    feature("key.horizontal", "Passwords and passkeys, filled in anywhere")
+                    feature("clock.badge.checkmark", "One-time codes, one click away")
+                    feature("terminal", "SSH keys that sign without leaving the vault")
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(36)
-                .opacity(model.unlockOpenedAt == nil ? 1 : 0)
-                .animation(.easeIn(duration: 0.25), value: model.unlockOpenedAt == nil)
+                .foregroundStyle(ink.opacity(0.7))
             }
+            .frame(maxWidth: 340, alignment: .leading)
+            .padding(.horizontal, 44)
         }
         // Fades out on the right so the stage melts into the form's side (no hard seam).
-        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.45),
-                                     .init(color: .black.opacity(0.5), location: 0.75), .init(color: .clear, location: 1)],
+        .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.78),
+                                     .init(color: .black.opacity(0.5), location: 0.92), .init(color: .clear, location: 1)],
                              startPoint: .leading, endPoint: .trailing))
-        .accessibilityHidden(true)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func feature(_ symbol: String, _ text: LocalizedStringKey) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.system(size: 14, weight: .medium))
+                .frame(width: 30, height: 30)
+                .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 8, style: .continuous))
+            Text(text).font(.system(size: 13))
+        }
     }
 }
