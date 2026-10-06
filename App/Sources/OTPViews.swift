@@ -26,6 +26,7 @@ extension OTPCode {
     /// Each half keeps the width of its digit count, so the dot never shifts while digits roll over.
     fileprivate func half(_ digits: String) -> some View {
         Text(verbatim: String(repeating: "0", count: digits.count))
+            .fixedSize() // never squeezed narrower than the digits drawn over it
             .hidden()
             .overlay(alignment: .leading) {
                 Text(verbatim: digits).contentTransition(.numericText()).fixedSize()

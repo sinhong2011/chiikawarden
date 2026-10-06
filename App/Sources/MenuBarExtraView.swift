@@ -2,9 +2,8 @@ import AppKit
 import ChiikawaCrypto
 import SwiftUI
 
-/// The menu bar panel: search right here, the login you use most with its live code, your favorites, codes and
-/// recent items one click from the clipboard, quick actions into the app, a fresh password, the SSH agent, and
-/// sync / Watchtower at a glance. Same cards, capsules and type as the main window.
+/// The menu bar panel: search right here, your favorites, codes and recent items one click from the clipboard,
+/// quick actions into the app, a fresh password, the SSH agent, and sync / Watchtower at a glance. Same cards, capsules and type as the main window.
 struct MenuBarContent: View {
     @Environment(AppModel.self) private var model
     @State private var query = ""
@@ -15,7 +14,6 @@ struct MenuBarContent: View {
             topRow
             if model.isUnlocked {
                 if query.trimmingCharacters(in: .whitespaces).isEmpty {
-                    if let featured { FeaturedCard(item: featured) }
                     ShelfCard()
                     QuickActions()
                     GeneratorCard()
@@ -31,12 +29,6 @@ struct MenuBarContent: View {
         .padding(10)
         .frame(width: 380)
         .animation(.snappy(duration: 0.22), value: query.isEmpty)
-    }
-
-    /// First favourite with a code, else any favourite login, else any code.
-    private var featured: VaultItem? {
-        let live = model.items.filter { !$0.isDeleted && !$0.isArchived && $0.kind == .login }
-        return live.first { $0.favorite && $0.totp != nil } ?? live.first { $0.favorite } ?? live.first { $0.totp != nil }
     }
 
     private var topRow: some View {
@@ -198,66 +190,10 @@ private struct CopyIcon: View {
     }
 }
 
-/// The featured login: its live code and a copy button for each part.
-private struct FeaturedCard: View {
-    static func fraction(_ totp: TOTP, _ date: Date) -> Double {
-        let period = Double(totp.period)
-        return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-    }
-
-    @Environment(AppModel.self) private var model
-    let item: VaultItem
-
-    var body: some View {
-        PanelCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    ItemIcon(item: item, size: 40)
-                    VStack(alignment: .leading, spacing: 1) {
-                        HStack(spacing: 5) {
-                            Text(item.name).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                            if item.favorite {
-                                Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(.yellow)
-                            }
-                        }
-                        Text(verbatim: [item.username, item.host].compactMap { $0 }.joined(separator: " · "))
-                            .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                    }
-                    Spacer(minLength: 4)
-                    if let totp = item.totp {
-                        TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-                            let left = totp.secondsRemaining(at: context.date)
-                            Button { model.copy(totp.code(), label: String(localized: "Code")) } label: {
-                                HStack(spacing: 8) {
-                                    OTPCode(code: totp.code(at: context.date), size: 17, urgent: left <= 5)
-                                    CountdownRing(fraction: Self.fraction(totp, context.date), seconds: left, size: 26)
-                                }
-                                .contentShape(.rect)
-                            }
-                            .buttonStyle(.plain)
-                            .help(Text("Copy code"))
-                        }
-                    }
-                }
-                HStack(spacing: 6) {
-                    if let password = item.password {
-                        Button("Password", systemImage: "key") { model.copy(password, label: String(localized: "Password")) }
-                            .buttonStyle(.appPrimarySmall)
-                    }
-                    if let username = item.username {
-                        Button("Username", systemImage: "person") { model.copy(username, label: String(localized: "Username")) }
-                            .buttonStyle(.appSecondarySmall)
-                    }
-                    if let host = item.host, let url = URL(string: "https://\(host)") {
-                        Button("Open", systemImage: "arrow.up.right") { NSWorkspace.shared.open(url) }
-                            .buttonStyle(.appSecondarySmall)
-                    }
-                    Spacer()
-                }
-                .labelStyle(.titleAndIcon)
-            }
-        }
-    }
+/// How much of a code's period is left, 1…0.
+private func codeFraction(_ totp: TOTP, _ date: Date) -> Double {
+    let period = Double(totp.period)
+    return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
 }
 
 /// Favorites, codes and recently changed items, a tab each; a click copies, hover shows the rest.
@@ -340,10 +276,11 @@ private struct QuickRow: View {
             if let totp = item.totp {
                 let left = totp.secondsRemaining(at: date)
                 Button { model.copy(totp.code(), label: String(localized: "Code")) } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         OTPCode(code: totp.code(at: date), size: 14, urgent: left <= 5)
-                        CountdownRing(fraction: FeaturedCard.fraction(totp, date), seconds: left, size: 22)
+                        CountdownRing(fraction: codeFraction(totp, date), seconds: left, size: 22)
                     }
+                    .fixedSize() // the code keeps its width; the name truncates instead
                     .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
