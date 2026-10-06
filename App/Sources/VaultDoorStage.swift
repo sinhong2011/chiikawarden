@@ -33,6 +33,7 @@ struct VaultDoorStage: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.vaultDoorFrozen) private var frozen
+    @Environment(\.gatePassing) private var gatePassing
     @AppStorage(Pref.lockAnimations) private var animates = true
     @State private var start = Date()
 
@@ -43,7 +44,8 @@ struct VaultDoorStage: View {
                     turns: frozen.typed, busy: frozen.busy)
             } else {
                 let still = reduceMotion || !animates
-                TimelineView(.animation(paused: still)) { context in
+                // Inside the gate's halves the door holds still (one frame), so the halves are cheap to move.
+                TimelineView(.animation(paused: still || gatePassing)) { context in
                     let now = context.date
                     art(time: still ? 0 : now.timeIntervalSince(start),
                         opened: openedAt.map { now.timeIntervalSince($0) },

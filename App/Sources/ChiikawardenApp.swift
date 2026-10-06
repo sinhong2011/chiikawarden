@@ -211,6 +211,11 @@ extension Color {
     static let brand = Color("AccentColor")
 }
 
+extension EnvironmentValues {
+    /// True inside the gate's moving halves: animated content holds still there.
+    @Entry var gatePassing = false
+}
+
 /// The gate: while opening, the screen is drawn as two halves, the top one sliding up and the bottom one down, each
 /// casting a shadow from its edge. Closed, it's just the screen. Animatable, so the halves move every frame.
 struct GateSplit: ViewModifier, Animatable {
@@ -239,6 +244,10 @@ struct GateSplit: ViewModifier, Animatable {
 
     private func half(_ content: Content, top: Bool, height: CGFloat) -> some View {
         content
+            // While the gate moves the door holds still in each half (it's at rest then anyway): its drawing doesn't
+            // change, so SwiftUI keeps the rendered layers and only moves them. (No drawingGroup: it can't draw the
+            // password field and other AppKit-backed views.)
+            .environment(\.gatePassing, true)
             .mask(alignment: top ? .top : .bottom) { Rectangle().frame(height: height / 2) }
             .overlay(alignment: .top) {
                 // The gate's edge: a dark seam with a thin highlight inside, so the halves read as heavy plates.
