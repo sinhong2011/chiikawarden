@@ -78,10 +78,11 @@
 </table>
 
 The lock is a vault door over the vault. You type the master password at its hub; each character lights one of the
-pins' runes and turns the rings (the tumbler carries the twelve signs of the zodiac). On unlock the door takes itself
-apart, then the screen parts like a vault's inner gate:
+pins' runes and turns the rings (the tumbler carries the twelve signs of the zodiac). Each of the three rings has a
+notch. On unlock they turn, outside in, until the notches line up into one keyway and light runs down it to the hub;
+only then does the door take itself apart, and the screen parts like a vault's inner gate:
 
-<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door: at rest, typing, powering up, the rings ratcheting, the hub unlatching"></p>
+<p align="center"><img src="docs/images/door-sequence.jpg" width="820" alt="The vault door: typing, the rings turning, the notches lined up into a keyway, unlatching, coming apart"></p>
 <p align="center"><img src="docs/images/gate.jpg" width="820" alt="The lock screen in light and dark"></p>
 
 ## Install

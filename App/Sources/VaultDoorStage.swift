@@ -107,6 +107,8 @@ private struct Mechanism {
     var twist = 0.0
     /// The geared core under the hub plates: 1 in place … 0 retracted into the light.
     var core = 1.0
+    /// 歸元: the three notches in line at the top, light running down the keyway, 0…1.
+    var keyway = 0.0
     /// An arc of energy running along the seams: its angle (degrees) and strength.
     var sweep = 0.0
     var sweepStrength = 0.0
@@ -121,8 +123,8 @@ private struct Mechanism {
     func piece(_ k: Int, _ i: Int) -> Double {
         let n = Double(Self.pieceCount[k])
         if let e = openT {
-            // Every piece has landed by ~1.02 (0.68 s at play speed), before the gate takes over with a still copy.
-            let start = [0.42, 0.5, 0.58, 0.66][k] + Double(i) / n * 0.1
+            // Every piece has landed by ~1.12 (0.93 s at play speed), before the gate takes over with a still copy.
+            let start = [0.52, 0.6, 0.68, 0.76][k] + Double(i) / n * 0.1
             return Ease.inOut(Self.seg(e, start, start + 0.28)) // soft in, soft out: no snap at either end
         }
         if let e = closeT {
@@ -134,7 +136,8 @@ private struct Mechanism {
 
     static func seg(_ e: Double, _ a: Double, _ b: Double) -> Double { min(1, max(0, (e - a) / (b - a))) }
 
-    /// Unlocking, `e` seconds of timeline in (~1.02; played 1.2x, so AppModel hands over to the gate at 0.87 s).
+    /// Unlocking, `e` seconds of timeline in (~1.12; played 1.2x, so AppModel hands over to the gate at 0.94 s).
+    /// The three rings turn until their notches line up into one keyway at the top, and only then does it open.
     static func opening(_ e: Double) -> Mechanism {
         func seg(_ a: Double, _ b: Double) -> Double { Self.seg(e, a, b) }
         var m = Mechanism()
@@ -143,16 +146,22 @@ private struct Mechanism {
         for i in 0..<12 { m.pinLight[i] = Ease.out(seg(0.012 * Double(i), 0.012 * Double(i) + 0.08)) }
         m.sweep = Ease.inOut(seg(0, 0.42)) * 540 - 90
         m.sweepStrength = sin(.pi * seg(0, 0.42))
-        // Ratchet: each ring turns to its stop with a small overshoot, staggered.
-        for k in 0..<4 { m.align[k] = Ease.backOut(seg(0.08 + 0.04 * Double(k), 0.3 + 0.04 * Double(k))) }
+        // The combination: heaven (runes), person (tumbler), earth (pins), outside in, each turning until its notch
+        // is at the top and stopping with a small overshoot, like a dial clicking home.
+        for k in 1..<4 {
+            let s = 0.02 + 0.06 * Double(3 - k)
+            m.align[k] = Ease.backOut(seg(s, s + 0.3))
+        }
+        // 歸元: the notches in line, light runs down the keyway to the hub, then gives way to the opening.
+        m.keyway = Ease.out(seg(0.4, 0.48)) * (1 - Ease.inOut(seg(0.58, 0.72)))
         // Unlatch: bolts snap back, seams crack with a jolt, the hub turns a little as one.
-        m.bolts = Ease.inOut(seg(0.26, 0.38))
-        m.latch = Ease.backOut(seg(0.34, 0.44))
-        m.twist = 30 * Ease.backOut(seg(0.36, 0.5))
+        m.bolts = Ease.inOut(seg(0.44, 0.54))
+        m.latch = Ease.backOut(seg(0.48, 0.58))
+        m.twist = 30 * Ease.backOut(seg(0.5, 0.62))
         // Transform: pieces cascade out (see `piece`); the core spins up, then retracts into the light.
         for k in 0..<4 { m.parts[k] = m.piece(k, pieceCount[k] - 1) > 0 ? m.piece(k, 0) : 0 }
-        m.core = 1 - Ease.inOut(seg(0.82, 1.02))
-        m.light = Ease.out(seg(0.05, 0.6))
+        m.core = 1 - Ease.inOut(seg(0.92, 1.12))
+        m.light = Ease.out(seg(0.05, 0.7))
         return m
     }
 
@@ -269,7 +278,7 @@ private struct VaultDoorArt: View, Animatable {
     /// The twelve pins, one Elder Futhark rune each.
     private static let runes = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛉ")
 
-    /// How much faster than written the opening plays; AppModel waits `1.02 / openSpeed` before the gate.
+    /// How much faster than written the opening plays; AppModel waits `1.12 / openSpeed` before the gate.
     static let openSpeed = 1.2
 
     private static let runeSymbols = ["key.fill", "person.badge.key.fill", "terminal.fill",
@@ -355,7 +364,7 @@ private struct VaultDoorArt: View, Animatable {
     }
 
     // Ring angles in degrees. The tumbler drifts and turns half a notch per character; the pin ring only moves when
-    // typing, bringing the newest lit pin to the marker at the top. Unlocking turns each to its next aligned stop.
+    // typing, bringing the newest lit pin to the marker at the top. Unlocking turns each until its notch is at the top.
     private func idle(_ k: Int, at t: Double) -> Double {
         switch k {
         case 3: t * 2.2
@@ -364,16 +373,18 @@ private struct VaultDoorArt: View, Animatable {
         default: 0
         }
     }
-    private static let symmetry: [Double] = [90, 30, 30, 60]
-    private static let direction: [Double] = [1, -1, 1, 1]
+    /// Where each ring's notch is cut, on the ring itself (degrees; 0° = 3 o'clock, clockwise): between two pins,
+    /// between two signs, at a seam of the rune ring. Turned to the top, the three make one keyway.
+    private static let notch: [Double] = [0, -75, -90, -90]
 
     private func angle(_ k: Int, _ m: Mechanism) -> Double {
         guard k > 0 else { return 0 }
         guard let e = opened else { return idle(k, at: time) }
         let a0 = idle(k, at: time - e)
-        let sym = Self.symmetry[k]
-        let target = Self.direction[k] > 0 ? (floor(a0 / sym) + 1) * sym : (ceil(a0 / sym) - 1) * sym
-        return a0 + (target - a0) * m.align[k]
+        // The shorter way round to bring the notch to the top.
+        var d = (-90 - Self.notch[k] - a0).truncatingRemainder(dividingBy: 360)
+        if d > 180 { d -= 360 } else if d <= -180 { d += 360 }
+        return a0 + d * m.align[k]
     }
 
     private func draw(_ ctx: inout GraphicsContext, size: CGSize) {
@@ -424,16 +435,21 @@ private struct VaultDoorArt: View, Animatable {
         // The pieces, inside out, so each slides out under the next; the rune segments retract into the frame.
         c.clip(to: circle(1.0 * R))
         let turn = (0..<4).map { angle($0, m) }
+        // The notches show the light inside; brighter as the keyway lines up.
+        let slot = min(1, 0.45 + 0.4 * inner + 0.6 * m.keyway)
         let glyphs = Glyphs(ctx)
         pieces(c, ring: 0, m: m, p: p, count: 4, cut: 0, inner: 0, outer: DoorGeometry.core) { drawCore(&$0, p: p, glow: glow, m: m, glyphs: glyphs) }
         pieces(c, ring: 1, m: m, p: p, count: 8, cut: 0, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer) {
             drawPins(&$0, p: p, m: m, glyphs: glyphs, turn: turn[1])
+            drawNotch(&$0, ring: 1, inner: DoorGeometry.pins.inner, outer: DoorGeometry.pins.outer, p: p, glow: glow, light: slot)
         }
         pieces(c, ring: 2, m: m, p: p, count: 12, cut: 15, inner: DoorGeometry.tumbler.inner, outer: DoorGeometry.tumbler.outer) {
             drawTumbler(&$0, p: p, glyphs: glyphs, inner: inner, turn: turn[2])
+            drawNotch(&$0, ring: 2, inner: DoorGeometry.tumbler.inner, outer: DoorGeometry.tumbler.outer, p: p, glow: glow, light: slot)
         }
         pieces(c, ring: 3, m: m, p: p, count: 6, cut: 30, inner: DoorGeometry.runes.inner, outer: DoorGeometry.runes.outer) {
             drawRunes(&$0, p: p, m: m, glyphs: glyphs, turn: turn[3])
+            drawNotch(&$0, ring: 3, inner: DoorGeometry.runes.inner, outer: DoorGeometry.runes.outer, p: p, glow: glow, light: slot)
         }
 
         // Seams glow onto the steel around them (while the door is whole).
@@ -445,6 +461,17 @@ private struct VaultDoorArt: View, Animatable {
             for f in [0.9925, 0.8375, 0.7075, DoorGeometry.core + 0.0075] {
                 l.stroke(circle(R * f), with: .color(glow(a * (dark ? 0.35 : 0.4))), lineWidth: 1)
             }
+        }
+
+        // 歸元: light runs down the lined-up notches, from the rim to the hub's marker.
+        if m.keyway > 0.01 {
+            var k = c
+            if dark { k.blendMode = .plusLighter }
+            var beam = Path()
+            beam.move(to: CGPoint(x: 0, y: -R * DoorGeometry.runes.outer))
+            beam.addLine(to: CGPoint(x: 0, y: -R * DoorGeometry.core * 0.9))
+            k.stroke(beam, with: .color(glow(0.35 * m.keyway)), style: StrokeStyle(lineWidth: R * 0.07, lineCap: .round))
+            k.stroke(beam, with: .color(.white.opacity(0.85 * m.keyway)), style: StrokeStyle(lineWidth: R * 0.012, lineCap: .round))
         }
 
         // Energy running along the seams (power-up when opening, power-down when closing).
@@ -744,6 +771,22 @@ private struct VaultDoorArt: View, Animatable {
         d.stroke(circle(rd * 0.16), with: .color(p.edge), lineWidth: 1)
         d.fill(circle(rd * 0.06), with: .color(glow(0.9)))
         d.fill(circle(rd * 0.025), with: .color(.white.opacity(0.9)))
+    }
+
+    /// Ring `k`'s notch: a slot cut through the band where the light inside shows, with machined faces.
+    /// Drawn in the ring's own (turned) coordinates.
+    private func drawNotch(_ r: inout GraphicsContext, ring k: Int, inner: CGFloat, outer: CGFloat, p: DoorPalette,
+                           glow: RGB, light: Double) {
+        let R = radius
+        let mid = R * (inner + outer) / 2
+        let half = asin(R * 0.032 / mid) * 180 / .pi
+        let a = Self.notch[k]
+        let slot = sector(R * inner - 1, R * outer + 1, a - half, a + half)
+        let rad = a * .pi / 180
+        r.fill(slot, with: .linearGradient(Gradient(colors: [Color.white.opacity(0.55 * light), glow(light)]),
+                                           startPoint: CGPoint(x: cos(rad) * R * outer, y: sin(rad) * R * outer),
+                                           endPoint: CGPoint(x: cos(rad) * R * inner, y: sin(rad) * R * inner)))
+        r.stroke(slot, with: .color(p.edge), lineWidth: 1)
     }
 
     // MARK: Helpers

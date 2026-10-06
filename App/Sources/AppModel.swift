@@ -875,7 +875,7 @@ final class AppModel {
         Task {
             // The door transforms open (~0.85 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
             // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out over the core.
-            try? await Task.sleep(for: .milliseconds(870)) // the door's last piece lands at 1.02 / 1.2 s
+            try? await Task.sleep(for: .milliseconds(940)) // the door's last piece lands at 1.12 / 1.2 s
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
                 // under them, and the plates part over the vault (GatePlates).
