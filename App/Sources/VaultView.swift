@@ -292,19 +292,24 @@ enum SidebarSelection: Hashable {
 }
 
 enum VaultSection: Hashable, CaseIterable {
-    case all, favorites, logins, passkeys, sshKeys, cards, notes, archive, trash
+    case all, favorites, logins, passkeys, cards, identities, notes, sshKeys, archive, trash
+
+    /// Shown nested under All Items: narrower views of the same items.
+    static let underAll: [VaultSection] = [.favorites, .logins, .passkeys, .cards, .identities, .notes, .sshKeys]
 
     var title: LocalizedStringKey {
         switch self {
         case .all: "All Items"; case .favorites: "Favorites"; case .logins: "Logins"; case .passkeys: "Passkeys"
-        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .notes: "Secure Notes"; case .archive: "Archive"; case .trash: "Trash"
+        case .sshKeys: "SSH Keys"; case .cards: "Cards"; case .identities: "Identities"; case .notes: "Secure Notes"
+        case .archive: "Archive"; case .trash: "Trash"
         }
     }
 
     var symbol: String {
         switch self {
         case .all: "square.grid.2x2"; case .favorites: "star"; case .logins: "key"; case .passkeys: "person.badge.key"
-        case .sshKeys: "terminal"; case .cards: "creditcard"; case .notes: "note.text"; case .archive: "archivebox"; case .trash: "trash"
+        case .sshKeys: "terminal"; case .cards: "creditcard"; case .identities: "person.crop.rectangle"; case .notes: "note.text"
+        case .archive: "archivebox"; case .trash: "trash"
         }
     }
 
@@ -322,6 +327,7 @@ enum VaultSection: Hashable, CaseIterable {
         case .passkeys: return item.hasPasskey
         case .sshKeys: return item.kind == .sshKey
         case .cards: return item.kind == .card
+        case .identities: return item.kind == .identity
         case .notes: return item.kind == .note
         }
     }
@@ -332,16 +338,27 @@ private struct Sidebar: View {
     @Environment(AppModel.self) private var model
     @Binding var section: SidebarSelection
 
+    @AppStorage("sidebarTypesExpanded") private var typesExpanded = true
+
     private func count(_ selection: SidebarSelection) -> Int { model.items.filter(selection.includes).count }
+
+    private func row(_ s: VaultSection) -> some View {
+        Label(s.title, systemImage: s.symbol)
+            .badge(count(.section(s)))
+            .tag(SidebarSelection.section(s))
+    }
 
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
             Section("Vault") {
-                ForEach(VaultSection.allCases, id: \.self) { s in
-                    Label(s.title, systemImage: s.symbol)
-                        .badge(count(.section(s)))
-                        .tag(SidebarSelection.section(s))
+                // All Items, with its narrower views (favorites and each type) folded under it.
+                DisclosureGroup(isExpanded: $typesExpanded) {
+                    ForEach(VaultSection.underAll, id: \.self) { row($0) }
+                } label: {
+                    row(.all)
                 }
+                row(.archive)
+                row(.trash)
                 Label("Watchtower", systemImage: "checkmark.shield")
                     .badge(model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)

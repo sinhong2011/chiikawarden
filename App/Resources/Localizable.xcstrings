@@ -4,6 +4,34 @@
     "" : {
       "shouldTranslate" : false
     },
+    "Identities" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "身份"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "身分"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "身份"
+          }
+        }
+      }
+    },
     "· in use" : {
       "extractionState" : "stale",
       "localizations" : {
