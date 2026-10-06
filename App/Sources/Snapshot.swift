@@ -38,6 +38,23 @@ enum Snapshot {
                    size: CGSize(width: 900, height: 600), appearance: appearance,
                    to: dir.appending(path: "login-\(name).png"))
         }
+        // The emailed-code step, and the code cells part-typed, full and refused.
+        let verifying = AppModel()
+        verifying.email = "usagi@chiikawarden.test"
+        verifying.phase = .deviceVerification
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(LoginView().environment(verifying).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 600), appearance: appearance,
+                   to: dir.appending(path: "login-code-\(name).png"))
+            render(VStack(alignment: .leading, spacing: 24) {
+                CodeEntry(code: .constant("24"))
+                CodeEntry(code: .constant("240719"))
+                CodeEntry(code: .constant("240718"), rejected: true)
+                ResendCodeButton {}
+            }.padding(30).background(Color(nsColor: .windowBackgroundColor)),
+                   size: CGSize(width: 420, height: 330), appearance: appearance,
+                   to: dir.appending(path: "login-code-cells-\(name).png"))
+        }
         let custom = AppModel()
         custom.serverKind = .selfHosted
         custom.serverURL = "https://vault.example.com"

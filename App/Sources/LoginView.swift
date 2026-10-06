@@ -119,12 +119,13 @@ private struct LoginForm: View {
                 }
                 .textFieldStyle(SoftFieldStyle())
             } else {
-                TextField("Verification code", text: $code, prompt: Text(verbatim: "123 456"))
-                    .textFieldStyle(SoftFieldStyle(height: 52))
-                    .font(.system(size: 22, weight: .medium, design: .monospaced))
-                    .multilineTextAlignment(.center)
-                    .textContentType(.oneTimeCode)
-                    .focused($focus, equals: .code)
+                VStack(alignment: .leading, spacing: 12) {
+                    // A full code goes straight to the server; a refused one shows in red until it's edited.
+                    CodeEntry(code: $code, rejected: model.errorMessage != nil && code.count == 6 && !model.isBusy) { submit() }
+                    if step == .emailCode {
+                        ResendCodeButton { await model.login(password: password, code: nil) }
+                    }
+                }
             }
 
             if let message = model.errorMessage {
@@ -214,6 +215,7 @@ private struct LoginForm: View {
     }
 
     private func submit() {
+        guard !model.isBusy else { return }
         Task {
             if step == .ssoPassword {
                 await model.completeSSO(password: password)
