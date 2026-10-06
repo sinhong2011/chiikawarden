@@ -532,7 +532,12 @@ final class AppModel {
         var t = text.trimmingCharacters(in: .whitespaces)
         while t.hasSuffix("/") { t.removeLast() }
         guard !t.isEmpty else { return nil }
-        if !t.contains("://") { t = "https://" + t }
+        if !t.contains("://") {
+            // A half-typed scheme ("https:/") isn't a host called "https".
+            let lower = t.lowercased()
+            if lower.hasPrefix("http:") || lower.hasPrefix("https:") { return nil }
+            t = "https://" + t
+        }
         guard let url = URL(string: t), let scheme = url.scheme?.lowercased(), ["http", "https"].contains(scheme), url.host() != nil else { return nil }
         return url
     }
