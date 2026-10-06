@@ -64,6 +64,17 @@ struct VaultView: View {
         guard !compact else { return (width < 560 ? 150 : 228, 0) }
         return (Self.listWidth - 12 - 40, 6)
     }
+    /// The window's footer (Sync, Lock) on its own strip under `content`, so it never sits over a panel; its right edge
+    /// under the header's right end (an item's actions, or a page's edge).
+    private func withFooter(_ content: some View) -> some View {
+        VStack(spacing: 8) {
+            content.frame(maxHeight: .infinity)
+            if vaultOpen {
+                AppFooter().padding(.trailing, detailHasActions ? ItemDetail.detailInset : Self.pageInset)
+            }
+        }
+    }
+
     /// An item's detail is showing, with its actions in the header.
     private var detailHasActions: Bool { isItemSection && model.selectedItem != nil && (!compact || depth == 2) }
     private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
@@ -170,25 +181,17 @@ struct VaultView: View {
                 // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
                 .toolbar(removing: compact || !vaultOpen ? .sidebarToggle : nil)
         } detail: {
-            VStack(spacing: 8) {
             Group {
                 if compact {
-                    PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth)
+                    withFooter(PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth))
                 } else if isItemSection {
                     HStack(spacing: 8) {
-                        listPane.frame(width: Self.listWidth)
-                        detailPane.frame(maxWidth: .infinity, maxHeight: .infinity)
+                        listPane.frame(width: Self.listWidth) // full height: the footer stays under the right column
+                        withFooter(detailPane.frame(maxWidth: .infinity, maxHeight: .infinity))
                     }
                 } else {
-                    sectionPane
+                    withFooter(sectionPane)
                 }
-            }
-            .frame(maxHeight: .infinity)
-            // The window's footer: its own strip under the panels, so it never sits over them.
-            if vaultOpen {
-                // Its right edge under the header's right end: an item's actions, or a page's edge.
-                AppFooter().padding(.trailing, detailHasActions ? ItemDetail.detailInset : Self.pageInset)
-            }
             }
             .padding(8)
             .background(WindowBackdrop())
