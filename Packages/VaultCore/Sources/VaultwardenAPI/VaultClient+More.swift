@@ -48,4 +48,15 @@ extension VaultClient {
     public func archiveCiphers(ids: [String]) async throws(APIError) { try await call("PUT", "ciphers/archive", json: ["ids": ids]) }
 
     public func leaveOrganization(id: String) async throws(APIError) { try await call("POST", "organizations/\(id)/leave") }
+
+    // MARK: Sends
+
+    /// Changes a Send (body from `SendDraft.seal(userKey:keyMaterial:)` with its own key material; a file Send's file
+    /// stays as it is). A nil password keeps the current one.
+    public func updateSend(id: String, body: Data) async throws(APIError) {
+        guard let object = try? JSONSerialization.jsonObject(with: body) else { throw .http(status: -1, message: "encode") }
+        try await call("PUT", "sends/\(id)", json: object)
+    }
+
+    public func removeSendPassword(id: String) async throws(APIError) { try await call("PUT", "sends/\(id)/remove-password") }
 }

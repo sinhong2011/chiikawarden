@@ -105,8 +105,8 @@ struct MenuBarContent: View {
 enum QuickCopy {
     /// The most useful secret: the password, else the code, else the username.
     @MainActor static func primary(_ item: VaultItem, _ model: AppModel) {
-        if let password = item.password { model.copy(password, label: String(localized: "Password")) }
-        else if let totp = item.totp { model.copy(totp.code(), label: String(localized: "Code")) }
+        if let password = item.password { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
+        else if let totp = item.totp { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } }
         else if let username = item.username { model.copy(username, label: String(localized: "Username")) }
     }
 }
@@ -265,7 +265,7 @@ private struct QuickRow: View {
                         CopyIcon(symbol: "person", help: "Copy Username") { model.copy(username, label: String(localized: "Username")) }
                     }
                     if let password = item.password {
-                        CopyIcon(symbol: "key", help: "Copy Password") { model.copy(password, label: String(localized: "Password")) }
+                        CopyIcon(symbol: "key", help: "Copy Password") { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
                     }
                     if let host = item.host, let url = URL(string: "https://\(host)") {
                         CopyIcon(symbol: "arrow.up.right", help: "Open Website") { NSWorkspace.shared.open(url) }
@@ -275,7 +275,7 @@ private struct QuickRow: View {
             }
             if let totp = item.totp {
                 let left = totp.secondsRemaining(at: date)
-                Button { model.copy(totp.code(), label: String(localized: "Code")) } label: {
+                Button { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } } label: {
                     HStack(spacing: 8) {
                         OTPCode(code: totp.code(at: date), size: 14, urgent: left <= 5)
                         CountdownRing(fraction: codeFraction(totp, date), seconds: left, size: 22)
@@ -291,7 +291,7 @@ private struct QuickRow: View {
         .background(hovering ? Color.primary.opacity(0.05) : .clear, in: .rect(cornerRadius: 11, style: .continuous))
         .contentShape(.rect)
         .onTapGesture {
-            if preferCode, let totp = item.totp { model.copy(totp.code(), label: String(localized: "Code")) } else { QuickCopy.primary(item, model) }
+            if preferCode, let totp = item.totp { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } } else { QuickCopy.primary(item, model) }
         }
         .onHover { inside in withAnimation(.snappy(duration: 0.15)) { hovering = inside } }
         .contextMenu { ItemContextMenu(item: item) }

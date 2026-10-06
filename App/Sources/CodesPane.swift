@@ -25,7 +25,7 @@ struct CodesPane: View {
                             ForEach(items) { item in
                                 if let totp = item.totp {
                                     CodeCard(item: item, totp: totp, date: context.date, copied: copiedID == item.id) {
-                                        model.copy(totp.code(at: .now), label: String(localized: "Code"))
+                                        model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
                                         withAnimation(.snappy) { copiedID = item.id }
                                         Task {
                                             try? await Task.sleep(for: .seconds(1.4))

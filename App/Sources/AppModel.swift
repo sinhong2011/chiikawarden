@@ -123,6 +123,36 @@ final class AppModel {
     func beginImport(_ url: URL? = nil) { bringToFront(); transfer = .importFile(url) }
 
     /// Checks a master password offline (re-entry before an export).
+    /// An item that asks for the master password, waiting for it before `action` runs.
+    struct RepromptRequest: Identifiable {
+        let id = UUID()
+        let item: VaultItem
+        let action: () -> Void
+    }
+    var repromptRequest: RepromptRequest?
+    /// Items confirmed a moment ago: reveal then copy shouldn't ask twice.
+    private var repromptPassed: [String: Date] = [:]
+
+    /// Runs `action` at once, unless the item asks for the master password first (Bitwarden's "master password
+    /// re-prompt"): then after it's entered (or Touch ID), and for the next minute without asking again.
+    func guarded(_ item: VaultItem, _ action: @escaping () -> Void) {
+        guard item.reprompt, repromptPassed[item.id].map({ Date.now.timeIntervalSince($0) > 60 }) ?? true else {
+            action(); return
+        }
+        bringToFront()
+        repromptRequest = RepromptRequest(item: item, action: action)
+    }
+
+    func passReprompt(_ request: RepromptRequest) {
+        repromptPassed[request.item.id] = .now
+        repromptRequest = nil
+        request.action()
+    }
+
+    func isRepromptPassed(_ item: VaultItem) -> Bool {
+        !item.reprompt || (repromptPassed[item.id].map { Date.now.timeIntervalSince($0) <= 60 } ?? false)
+    }
+
     func verifyMasterPassword(_ password: String, accountId: String) -> Bool {
         AccountStore.unlock(accountId, password: password) != nil
     }
@@ -133,6 +163,8 @@ final class AppModel {
     var sends: [SendItem] = []
     var selectedSendID: SendItem.ID?
     var composingSend = false
+    /// The Send being edited in the composer.
+    var editingSend: SendItem?
     /// Organizations, each with its collections as children.
     var organizations: [Grouping] = []
     var skippedOrgItems = 0
@@ -745,6 +777,10 @@ final class AppModel {
 
     enum NewItemKind {
         case login, secureNote, card, identity, sshKey
+        init(_ kind: VaultItem.Kind) {
+            switch kind { case .login: self = .login; case .note: self = .secureNote; case .card: self = .card
+                          case .identity: self = .identity; case .sshKey: self = .sshKey }
+        }
         var itemKind: VaultItem.Kind {
             switch self { case .login: .login; case .secureNote: .note; case .card: .card; case .identity: .identity; case .sshKey: .sshKey }
         }
@@ -913,6 +949,15 @@ final class AppModel {
     }
 
     // MARK: Send
+
+    func updateSend(_ send: SendItem, draft: SendDraft, removePassword: Bool) async -> Bool {
+        guard let session = session(for: send.accountId) else { return offline() }
+        do {
+            try await session.updateSend(send, draft: draft, removePassword: removePassword)
+            flash(String(localized: "Send updated — the link is the same"))
+            return true
+        } catch { return failed(error) }
+    }
 
     func sendLink(_ send: SendItem) -> URL? {
         session(for: send.accountId)?.environment?.sendLink(accessId: send.accessId, keyMaterial: send.keyMaterial)
@@ -1205,6 +1250,8 @@ final class AppModel {
 
     private func clearVaultContents() {
         selectedID = nil
+        repromptPassed = [:]
+        repromptRequest = nil
         accountFilter = nil
         items = []
         sends = []

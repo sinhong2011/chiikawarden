@@ -8,6 +8,8 @@ struct EditItemSheet: View {
     enum Mode: Equatable {
         case create(AppModel.NewItemKind)
         case edit(VaultItem)
+        /// A new item filled in from an existing one (passkeys and attachments stay with the original).
+        case clone(VaultItem)
     }
 
     @Environment(AppModel.self) private var model
@@ -25,6 +27,7 @@ struct EditItemSheet: View {
     /// Card / identity / SSH-key properties by API name.
     @State private var props: [String: String] = [:]
     @State private var customFields: [CustomField] = []
+    @State private var reprompt = false
     @State private var showSecrets = false
     @State private var showGenerator = false
     @State private var saving = false
@@ -35,13 +38,13 @@ struct EditItemSheet: View {
     private var kind: VaultItem.Kind {
         switch mode {
         case .create(let k): k.itemKind
-        case .edit(let item): item.kind
+        case .edit(let item), .clone(let item): item.kind
         }
     }
 
     /// Folders belong to one account; only offer the item's (or the chosen) account's folders.
     private var accountFolders: [Grouping] {
-        let id: String? = if case .edit(let item) = mode { item.accountId } else { accountId }
+        let id: String? = switch mode { case .edit(let item), .clone(let item): item.accountId; case .create: accountId }
         return id.flatMap { model.session(for: $0)?.folders } ?? model.folders
     }
 
@@ -53,6 +56,7 @@ struct EditItemSheet: View {
         case .create(.identity): "New Identity"
         case .create(.sshKey): "New SSH Key"
         case .edit: "Edit Item"
+        case .clone: "Clone Item"
         }
     }
 
@@ -114,6 +118,16 @@ struct EditItemSheet: View {
 
                     FormCard(title: "Notes") {
                         SoftEditor(text: $notes, minHeight: kind == .note ? 200 : 80)
+                    }
+
+                    FormCard {
+                        Toggle(isOn: $reprompt) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Ask for master password").font(.system(size: 13))
+                                Text("Before showing or copying this item's secrets.").font(.system(size: 11)).foregroundStyle(.secondary)
+                            }
+                        }
+                        .toggleStyle(.trailingSwitch)
                     }
                 }
                 .padding(20)
@@ -323,7 +337,13 @@ struct EditItemSheet: View {
     private func load() {
         focus = .name
         accountId = model.defaultAccountId
-        guard case .edit(let item) = mode else { return }
+        let source: VaultItem
+        switch mode {
+        case .create: return
+        case .edit(let item): source = item
+        case .clone(let item): source = item
+        }
+        let item = source
         name = item.name
         username = item.kind == .login ? item.username ?? "" : ""
         password = item.password ?? ""
@@ -333,6 +353,12 @@ struct EditItemSheet: View {
         folderId = item.folderId
         props = item.properties
         customFields = item.customFields.filter { $0.kind != .linked }
+        reprompt = item.reprompt
+        if case .clone = mode {
+            name = String(localized: "\(item.name) - Clone")
+            accountId = item.accountId
+            if item.organizationId != nil { folderId = nil } // the copy is personal
+        }
     }
 
     private func save() async {
@@ -341,8 +367,10 @@ struct EditItemSheet: View {
         let cleanFields = customFields.filter { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
         let ok: Bool
         switch mode {
-        case .create(let newKind):
+        case .create, .clone:
+            let newKind: AppModel.NewItemKind = if case .create(let k) = mode { k } else { AppModel.NewItemKind(kind) }
             var edit = CipherEdit(name: name, notes: notes, folderId: .some(folderId))
+            edit.reprompt = reprompt
             if newKind == .login { (edit.username, edit.password, edit.totp, edit.uri) = (username, password, totp, uri) }
             edit.properties = props.filter { !$0.value.isEmpty }
             if !cleanFields.isEmpty { edit.customFields = cleanFields }
@@ -353,6 +381,7 @@ struct EditItemSheet: View {
             if name != item.name { edit.name = name }
             if notes != (item.notes ?? "") { edit.notes = notes }
             if folderId != item.folderId { edit.folderId = .some(folderId) }
+            if reprompt != item.reprompt { edit.reprompt = reprompt }
             if item.kind == .login {
                 if username != (item.username ?? "") { edit.username = username }
                 if password != (item.password ?? "") { edit.password = password }

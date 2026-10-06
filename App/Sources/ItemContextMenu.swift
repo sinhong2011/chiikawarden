@@ -12,13 +12,13 @@ struct ItemContextMenu: View {
                 Button("Copy Username", systemImage: "person") { model.copy(username, label: String(localized: "Username")) }
             }
             if let password = item.password, !password.isEmpty {
-                Button("Copy Password", systemImage: "key") { model.copy(password, label: String(localized: "Password")) }
+                Button("Copy Password", systemImage: "key") { model.guarded(item) { model.copy(password, label: String(localized: "Password")) } }
             }
             if let totp = item.totp {
-                Button("Copy One-Time Code", systemImage: "clock") { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
+                Button("Copy One-Time Code", systemImage: "clock") { model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) } }
             }
             if let notes = item.notes, !notes.isEmpty {
-                Button("Copy Notes", systemImage: "note.text") { model.copy(notes, label: String(localized: "Notes")) }
+                Button("Copy Notes", systemImage: "note.text") { model.guarded(item) { model.copy(notes, label: String(localized: "Notes")) } }
             }
             if let url = websiteURL {
                 Divider()
@@ -30,7 +30,8 @@ struct ItemContextMenu: View {
                 Button("Restore", systemImage: "arrow.uturn.backward") { Task { await model.restore(item) } }
                 Button("Delete Forever…", systemImage: "trash.slash", role: .destructive) { model.confirmDeleteForever(item) }
             } else {
-                Button("Edit", systemImage: "pencil") { model.editing = EditRequest(mode: .edit(item)) }
+                Button("Edit", systemImage: "pencil") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                Button("Clone", systemImage: "plus.square.on.square") { model.guarded(item) { model.editing = EditRequest(mode: .clone(item)) } }
                 Button(item.favorite ? "Remove from Favorites" : "Add to Favorites", systemImage: item.favorite ? "star.slash" : "star") {
                     Task { await model.toggleFavorite(item) }
                 }

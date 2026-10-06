@@ -237,6 +237,7 @@ struct VaultView: View {
             if show { section = .generator; model.showingGenerator = false }
         }
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.organizationSheet) { sheet in
             switch sheet {
             case .share(let ids): MoveToOrganizationSheet(itemIDs: ids)
@@ -1014,7 +1015,8 @@ struct ItemDetail: View {
     @State private var dropping = false
     /// Revealed while toggled on, or while ⌥ is held.
     private var reveal: Binding<Bool> {
-        Binding(get: { revealToggle || model.optionHeld }, set: { revealToggle = $0 })
+        // Holding ⌥ peeks, except on items that ask for the master password first.
+        Binding(get: { revealToggle || (model.optionHeld && model.isRepromptPassed(item)) }, set: { revealToggle = $0 })
     }
 
     var body: some View {
@@ -1029,7 +1031,7 @@ struct ItemDetail: View {
                 if !item.fields.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(Array(item.fields.enumerated()), id: \.element.id) { index, field in
-                            FieldLine(field: field, reveal: reveal.wrappedValue)
+                            FieldLine(item: item, field: field, reveal: reveal.wrappedValue)
                                 .overlay(alignment: .top) { if index > 0 { Divider().opacity(0.6).padding(.leading, 16) } }
                         }
                     }
@@ -1056,10 +1058,21 @@ struct ItemDetail: View {
                             }
                         }
                     }
+                    if !item.passwordHistory.isEmpty {
+                        DetailRow(symbol: "clock.arrow.circlepath", title: "Password history") { PasswordHistoryButton(item: item) }
+                    }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
                         DetailRow(symbol: "building.2", title: "Organization") {
                             let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
-                            Text(verbatim: ([org.name] + names).joined(separator: " › ")).foregroundStyle(.secondary)
+                            Button { model.organizationSheet = .collections(item.id) } label: {
+                                HStack(spacing: 5) {
+                                    Text(verbatim: ([org.name] + names).joined(separator: " › ")).lineLimit(1).truncationMode(.middle)
+                                    Image(systemName: "pencil").font(.system(size: 10, weight: .semibold))
+                                }
+                                .foregroundStyle(.secondary).contentShape(.rect)
+                            }
+                            .buttonStyle(.plain)
+                            .help(Text("Change collections"))
                         }
                     } else if let folderId = item.folderId, let folder = model.folders.first(where: { $0.id == folderId }) {
                         DetailRow(symbol: "folder", title: "Folder") {
@@ -1197,7 +1210,11 @@ struct ItemDetail: View {
                 if item.password != nil || item.fields.contains(where: \.secret) {
                     toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)",
                                   spoken: reveal.wrappedValue ? "Hide" : "Reveal") {
-                        withAnimation(.snappy) { reveal.wrappedValue.toggle() }
+                        if reveal.wrappedValue {
+                            withAnimation(.snappy) { reveal.wrappedValue = false }
+                        } else {
+                            model.guarded(item) { withAnimation(.snappy) { reveal.wrappedValue = true } }
+                        }
                     }
                     Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
                 }
@@ -1207,7 +1224,7 @@ struct ItemDetail: View {
                 }
                 toolbarButton(item.favorite ? "star.fill" : "star", help: "Favorite") { Task { await model.toggleFavorite(item) } }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
-                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit") { model.editing = EditRequest(mode: .edit(item)) }
+                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
                 toolbarButton("trash", help: "Move to Trash (⌘⌫)", spoken: "Move to Trash") { model.confirmTrash(item) }
             }
         }
@@ -1234,7 +1251,7 @@ extension HeroCard {
     @ViewBuilder func tiles(_ style: HeroStyle) -> some View {
                 if let password = item.password {
                     Tile(style: style) {
-                        model.copy(password, label: String(localized: "Password"))
+                        model.guarded(item) { model.copy(password, label: String(localized: "Password")) }
                     } content: {
                         let strength = StrengthMeter(password: password).level
                         HStack {
@@ -1260,7 +1277,7 @@ extension HeroCard {
                         let period = Double(totp.period)
                         let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
                         Tile(style: style) {
-                            model.copy(code, label: String(localized: "Code"))
+                            model.guarded(item) { model.copy(code, label: String(localized: "Code")) }
                         } content: {
                             Text("One-time code")
                                 .font(.system(size: 12)).foregroundStyle(style.muted)
@@ -1363,6 +1380,7 @@ private struct PressScale: ButtonStyle {
 /// A label/value row with copy; secrets stay masked until revealed.
 private struct FieldLine: View {
     @Environment(AppModel.self) private var model
+    let item: VaultItem
     let field: ItemField
     let reveal: Bool
 
@@ -1378,7 +1396,7 @@ private struct FieldLine: View {
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentTransition(.opacity)
-            Button { model.copy(field.value, label: field.label) } label: { Image(systemName: "doc.on.doc").accessibilityLabel(Text("Copy \(field.label)")) }
+            Button { if field.secret { model.guarded(item) { model.copy(field.value, label: field.label) } } else { model.copy(field.value, label: field.label) } } label: { Image(systemName: "doc.on.doc").accessibilityLabel(Text("Copy \(field.label)")) }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
                 .help(Text("Copy"))
@@ -1731,5 +1749,105 @@ private struct VaultSwitcher: View {
         } label: {
             Label(title, systemImage: model.vaultFilter == filter ? "checkmark" : symbol)
         }
+    }
+}
+
+/// "3 earlier" — opens the item's earlier passwords, newest first, each hidden until revealed and copyable.
+private struct PasswordHistoryButton: View {
+    @Environment(AppModel.self) private var model
+    let item: VaultItem
+    @State private var open = false
+    @State private var revealed: Set<Int> = []
+
+    var body: some View {
+        Button { model.guarded(item) { open = true } } label: {
+            HStack(spacing: 4) {
+                Text("^[\(item.passwordHistory.count) earlier password](inflect: true)")
+                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+            }
+            .foregroundStyle(Color.brand).contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $open, arrowEdge: .trailing) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Password history").font(.system(size: 13, weight: .semibold))
+                ForEach(Array(item.passwordHistory.enumerated()), id: \.offset) { i, past in
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: revealed.contains(i) ? past.password : String(repeating: "•", count: 12))
+                                .font(.system(size: 13, design: .monospaced)).textSelection(.enabled).lineLimit(1)
+                            if let date = past.date {
+                                Text("Changed \(date.formatted(date: .abbreviated, time: .shortened))")
+                                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer(minLength: 12)
+                        Button { if revealed.contains(i) { revealed.remove(i) } else { revealed.insert(i) } } label: {
+                            Image(systemName: revealed.contains(i) ? "eye.slash" : "eye")
+                        }
+                        .buttonStyle(.borderless)
+                        .help(revealed.contains(i) ? Text("Hide") : Text("Reveal"))
+                        Button { model.copy(past.password, label: String(localized: "Password")) } label: { Image(systemName: "doc.on.doc") }
+                            .buttonStyle(.borderless)
+                            .help(Text("Copy"))
+                    }
+                    .padding(10)
+                    .background(Color.primary.opacity(0.04), in: .rect(cornerRadius: 10, style: .continuous))
+                }
+            }
+            .padding(14)
+            .frame(width: 320)
+        }
+    }
+}
+
+/// "Ask for master password": the item's secrets wait for the master password (or Touch ID).
+private struct RepromptSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let request: AppModel.RepromptRequest
+    @State private var password = ""
+    @State private var wrong = false
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                FormHeader(symbol: "lock.shield", title: "Confirm it's you",
+                           subtitle: "“\(request.item.name)” asks for your master password.")
+                FormCard {
+                    PasswordField(title: "Master password", text: $password, prompt: Text("Master password"),
+                                  isFocused: $focused.wrappedBinding, onSubmit: submit)
+                    if wrong {
+                        Label("That's not your master password.", systemImage: "exclamationmark.circle.fill")
+                            .font(.system(size: 12)).foregroundStyle(.red)
+                    }
+                    if AccountStore.isTouchIDEnabled(request.item.accountId) {
+                        Button { Task { await touchID() } } label: { Label("Use Touch ID", systemImage: "touchid") }
+                            .buttonStyle(.appSecondary)
+                    }
+                }
+            }
+            .padding(20)
+            FormFooter(action: "Continue", disabled: password.isEmpty, cancel: { dismiss() }, submit: submit)
+        }
+        .frame(width: 420)
+        .background(Color.windowBase)
+        .onAppear { focused = true }
+    }
+
+    private func submit() {
+        guard !password.isEmpty else { return }
+        if model.verifyMasterPassword(password, accountId: request.item.accountId) {
+            model.passReprompt(request)
+        } else {
+            withAnimation(.snappy) { wrong = true }
+            password = ""
+        }
+    }
+
+    private func touchID() async {
+        let keys = await AccountStore.unlockAllWithTouchID([request.item.accountId], reason: String(localized: "show this item"))
+        if !keys.isEmpty { model.passReprompt(request) }
     }
 }

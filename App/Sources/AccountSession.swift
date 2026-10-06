@@ -330,4 +330,13 @@ final class AccountSession {
         try await client.leaveOrganization(id: id)
         try await refresh()
     }
+
+    /// Changes a Send, keeping its key so the link still works.
+    func updateSend(_ send: SendItem, draft: SendDraft, removePassword: Bool) async throws {
+        guard let client else { throw WriteError.offline }
+        let sealed = try draft.seal(userKey: userKey, keyMaterial: send.keyMaterial)
+        try await client.updateSend(id: send.id, body: sealed.body)
+        if removePassword { try await client.removeSendPassword(id: send.id) }
+        try await refresh()
+    }
 }

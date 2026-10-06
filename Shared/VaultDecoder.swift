@@ -58,6 +58,10 @@ enum VaultDecoder {
             item.revised = Self.date(cipher.revisionDate)
             item.created = Self.date(cipher.creationDate)
             item.archived = Self.date(cipher.archivedDate)
+            item.reprompt = cipher.reprompt == 1
+            item.passwordHistory = (cipher.passwordHistory ?? []).compactMap { entry in
+                dec(entry.password).map { VaultItem.PastPassword(password: $0, date: Self.date(entry.lastUsedDate)) }
+            }
             // Raw values for the editor, by API name.
             func raw(_ pairs: [(String, String?)]) -> [String: String] {
                 Dictionary(pairs.compactMap { k, v in dec(v).map { (k, $0) } }, uniquingKeysWith: { a, _ in a })
@@ -165,12 +169,14 @@ enum VaultDecoder {
             guard let accessId = send.accessId, let material = send.key.flatMap({ try? EncString($0).decrypt(with: userKey) }),
                   let key = try? SendCrypto.key(from: material) else { return nil }
             func dec(_ s: String?) -> String? { s.flatMap { try? EncString($0).decryptString(with: key) } }
-            return SendItem(id: send.id, accountId: accountId, accessId: accessId, kind: send.type == 1 ? .file : .text,
+            var item = SendItem(id: send.id, accountId: accountId, accessId: accessId, kind: send.type == 1 ? .file : .text,
                             name: dec(send.name) ?? "—", notes: dec(send.notes), text: dec(send.text?.text),
                             hideText: send.text?.hidden ?? false, fileName: dec(send.file?.fileName), sizeName: send.file?.sizeName,
                             keyMaterial: material, accessCount: send.accessCount ?? 0, maxAccessCount: send.maxAccessCount,
                             hasPassword: send.password != nil, disabled: send.disabled ?? false,
                             deletionDate: date(send.deletionDate), expirationDate: date(send.expirationDate))
+            item.hideEmail = send.hideEmail ?? false
+            return item
         }
         .sorted { ($0.deletionDate ?? .distantFuture) < ($1.deletionDate ?? .distantFuture) }
     }

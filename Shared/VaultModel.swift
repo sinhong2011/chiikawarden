@@ -35,6 +35,15 @@ struct VaultItem: Identifiable, Hashable {
     var created: Date?
     /// Filled in after sync: how many other items share this password.
     var reuseCount = 0
+    /// Ask for the master password before showing or using its secrets.
+    var reprompt = false
+    /// Earlier passwords, newest first.
+    var passwordHistory: [PastPassword] = []
+
+    struct PastPassword: Hashable, Sendable {
+        var password: String
+        var date: Date?
+    }
 
     var hasTOTP: Bool { totp != nil }
 
@@ -113,6 +122,7 @@ struct SendItem: Identifiable, Hashable, Sendable {
     var accessCount: Int
     var maxAccessCount: Int?
     var hasPassword: Bool
+    var hideEmail = false
     var disabled: Bool
     var deletionDate: Date?
     var expirationDate: Date?

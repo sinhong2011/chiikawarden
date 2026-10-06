@@ -133,6 +133,14 @@ public struct SyncResponse: Decodable, Sendable {
         public var creationDate: String? = nil
         /// Set while the item is archived (out of search and AutoFill, still in the vault).
         public var archivedDate: String? = nil
+        /// 1: ask for the master password before showing or using its secrets.
+        public var reprompt: Int? = nil
+        public var passwordHistory: [PasswordHistoryEntry]? = nil
+    }
+
+    public struct PasswordHistoryEntry: Decodable, Sendable {
+        public let password: String?
+        public let lastUsedDate: String?
     }
 
     public struct Login: Decodable, Sendable {

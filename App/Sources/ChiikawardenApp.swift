@@ -111,17 +111,17 @@ struct ChiikawardenApp: App {
             }
             CommandMenu("Item") {
                 let item = model.selectedItem
-                Button("Edit") { if let item { model.editing = EditRequest(mode: .edit(item)) } }
+                Button("Edit") { if let item { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } } }
                     .keyboardShortcut("e", modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
                 Divider()
                 Button("Copy Username") { if let u = item?.username { model.copy(u, label: String(localized: "Username")) } }
                     .keyboardShortcut("c", modifiers: [.command, .shift])
                     .disabled(item?.kind != .login || item?.username == nil)
-                Button("Copy Password") { if let p = item?.password { model.copy(p, label: String(localized: "Password")) } }
+                Button("Copy Password") { if let item, let p = item.password { model.guarded(item) { model.copy(p, label: String(localized: "Password")) } } }
                     .keyboardShortcut("c", modifiers: [.command, .option])
                     .disabled(item?.password == nil)
-                Button("Copy One-Time Code") { if let t = item?.totp { model.copy(t.code(), label: String(localized: "Code")) } }
+                Button("Copy One-Time Code") { if let item, let t = item.totp { model.guarded(item) { model.copy(t.code(), label: String(localized: "Code")) } } }
                     .keyboardShortcut("c", modifiers: [.command, .control])
                     .disabled(item?.totp == nil)
                 Divider()

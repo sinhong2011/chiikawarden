@@ -8,6 +8,7 @@ public struct CipherEdit: Sendable, Equatable {
             && a.uri == b.uri && a.favorite == b.favorite && a.folderId == b.folderId && a.properties == b.properties
             && a.customFields == b.customFields && a.passkey == b.passkey
             && a.passkeyCounter?.credentialId == b.passkeyCounter?.credentialId && a.passkeyCounter?.counter == b.passkeyCounter?.counter
+            && a.reprompt == b.reprompt
     }
 
     public var name: String?
@@ -28,6 +29,8 @@ public struct CipherEdit: Sendable, Equatable {
     public var passkey: PasskeyCredential?
     /// Updates only the signature counter of the passkey with this credential id.
     public var passkeyCounter: (credentialId: String, counter: Int)?
+    /// Ask for the master password before showing or using the item's secrets.
+    public var reprompt: Bool?
 
     public init(name: String? = nil, notes: String? = nil, username: String? = nil, password: String? = nil,
                 totp: String? = nil, uri: String? = nil, favorite: Bool? = nil, folderId: String?? = nil) {
@@ -120,6 +123,7 @@ public enum CipherEditor {
         if let name = edit.name { dict["name"] = try enc(name) }
         if let notes = edit.notes { dict["notes"] = try enc(notes) }
         if let favorite = edit.favorite { dict["favorite"] = favorite }
+        if let reprompt = edit.reprompt { dict["reprompt"] = reprompt ? 1 : 0 }
         if let folder = edit.folderId { dict["folderId"] = folder ?? NSNull() }
 
         if let object = propertyObject(for: dict["type"] as? Int ?? 0), !edit.properties.isEmpty {

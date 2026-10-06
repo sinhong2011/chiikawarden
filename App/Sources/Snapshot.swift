@@ -450,6 +450,23 @@ enum SelfTest {
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
+            // Item extras: password history, the master-password re-prompt flag, clone.
+            _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest extras", username: "u", password: "first-pass"))
+            if let extra = model.items.first(where: { $0.name == "Selftest extras" }) {
+                var change = CipherEdit(password: "second-pass")
+                change.reprompt = true
+                _ = await model.updateItem(extra.id, edit: change)
+                let updated = model.items.first { $0.id == extra.id }
+                check(updated?.passwordHistory.first?.password == "first-pass" && updated?.reprompt == true,
+                      "password history and master-password re-prompt saved")
+                var clone = CipherEdit(name: "Selftest extras - Clone", username: "u", password: "second-pass")
+                clone.reprompt = true
+                _ = await model.createItem(.login, edit: clone)
+                let copy = model.items.first { $0.name == "Selftest extras - Clone" }
+                check(copy?.password == "second-pass" && copy?.reprompt == true && copy?.id != extra.id, "clone an item")
+                for item in model.items where item.name.hasPrefix("Selftest extras") { await model.deleteForever(item) }
+            }
+
             // Equivalent domains come down with sync: a google.com login belongs on youtube.com too.
             let eq = model.equivalentDomains
             check(eq.groups.count > 50 && eq.matches(itemHost: "accounts.google.com", site: "youtube.com")
@@ -675,6 +692,20 @@ enum SelfTest {
                 }
                 check(sendCreated && mySend?.hasPassword == true && copiedLink.contains("#/send/") && opened == "hello from usagi",
                       "Send: create, copy link, open as recipient")
+                // Edit it: new text, password removed; the same link opens the new text without one.
+                if let mySend, let fragment = copiedLink.split(separator: "/").last, let material = Data(base64URL: String(fragment)),
+                   let key = try? SendCrypto.key(from: material) {
+                    var change = SendDraft(name: "Selftest send", content: .text("edited by usagi", hidden: false),
+                                           deletionDate: .now.addingTimeInterval(7_200))
+                    change.maxAccessCount = 5
+                    let edited = await model.updateSend(mySend, draft: change, removePassword: true)
+                    let stranger = VaultClient(environment: .selfHosted(URL(string: server)!), deviceIdentifier: UUID().uuidString)
+                    let response = try? await stranger.accessSend(accessId: mySend.accessId)
+                    let reread = response?.text?.text.flatMap { try? EncString($0).decryptString(with: key) }
+                    let after = model.sends.first { $0.id == mySend.id }
+                    check(edited && reread == "edited by usagi" && after?.hasPassword == false && after?.maxAccessCount == 5,
+                          "Send: edit keeps the link, new text, password removed")
+                }
                 if let mySend { await model.deleteSend(mySend) }
                 check(!model.sends.contains { $0.name == "Selftest send" }, "Send: delete")
 

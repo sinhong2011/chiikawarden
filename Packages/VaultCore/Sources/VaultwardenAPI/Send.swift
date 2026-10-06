@@ -76,8 +76,9 @@ public struct SendDraft: Sendable {
         public let encryptedFile: Data?
     }
 
-    public func seal(userKey: SymmetricKeyPair) throws -> Sealed {
-        let material = try SendCrypto.newKeyMaterial()
+    /// `keyMaterial`: an existing Send's, when editing it (the link keeps working); nil makes a new one.
+    public func seal(userKey: SymmetricKeyPair, keyMaterial: Data? = nil) throws -> Sealed {
+        let material = try keyMaterial ?? SendCrypto.newKeyMaterial()
         let key = try SendCrypto.key(from: material)
         func enc(_ s: String) throws -> Any { s.isEmpty ? NSNull() : try EncString.encrypt(Data(s.utf8), with: key).description }
         let iso = ISO8601DateFormatter()

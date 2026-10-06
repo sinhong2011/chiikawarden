@@ -19,8 +19,8 @@ struct SendsPane: View {
                 ScrollView {
                     LazyVStack(spacing: 2) {
                         ForEach(model.sends) { send in
-                            SendRow(send: send, selected: send.id == model.selectedSendID && !model.composingSend)
-                                .onTapGesture { model.composingSend = false; model.selectedSendID = send.id }
+                            SendRow(send: send, selected: send.id == model.selectedSendID && !model.composingSend && model.editingSend == nil)
+                                .onTapGesture { model.composingSend = false; model.editingSend = nil; model.selectedSendID = send.id }
                                 .accessibilityElement(children: .combine)
                                 .accessibilityAddTraits(send.id == model.selectedSendID ? [.isButton, .isSelected] : .isButton)
                                 .accessibilityAction { model.composingSend = false; model.selectedSendID = send.id }
@@ -32,6 +32,7 @@ struct SendsPane: View {
                                             Button("Open Link", systemImage: "safari") { NSWorkspace.shared.open(link) }
                                             Divider()
                                         }
+                                        Button("Edit…", systemImage: "pencil") { model.editingSend = send }
                                         Button("Delete…", systemImage: "trash", role: .destructive) { model.confirmDeleteSend(send) }
                                     }
                                     .labelStyle(.titleAndIcon)
@@ -52,8 +53,9 @@ struct SendsPane: View {
             .frame(width: 300)
 
             Group {
-                if model.composingSend {
-                    SendComposer()
+                if model.composingSend || model.editingSend != nil {
+                    SendComposer(editing: model.editingSend)
+                        .id(model.editingSend?.id ?? "new")
                         .transition(.opacity.combined(with: .offset(y: 8)))
                 } else if let send = model.sends.first(where: { $0.id == model.selectedSendID }) {
                     SendDetail(send: send).id(send.id)
@@ -199,6 +201,8 @@ private struct SendDetail: View {
 
                 HStack {
                     Spacer()
+                    Button("Edit", systemImage: "pencil") { withAnimation(.snappy(duration: 0.25)) { model.editingSend = send } }
+                        .buttonStyle(.appSecondary)
                     Button("Delete Send", role: .destructive) { confirmDelete = true }
                 }
             }
@@ -229,7 +233,11 @@ private struct HeroButtonStyle: ButtonStyle {
 /// New text or file Send, composed in place (no sheet): cards of soft fields, switches at the row ends.
 struct SendComposer: View {
     @Environment(AppModel.self) private var model
+    /// Set to change an existing Send (same link) instead of making a new one.
+    var editing: SendItem?
     enum Kind: Hashable { case text, file }
+    @State private var deletionDate = Date.now.addingTimeInterval(7 * 86_400)
+    @State private var removePassword = false
     @State private var kind = Kind.text
     @State private var name = ""
     @State private var text = ""
@@ -249,18 +257,39 @@ struct SendComposer: View {
     @State private var dropTargeted = false
 
     private var ready: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && (kind == .text ? !text.isEmpty : file != nil)
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && (kind == .text ? !text.isEmpty : (file != nil || editing != nil))
     }
 
-    private func dismiss() { withAnimation(.snappy(duration: 0.25)) { model.composingSend = false } }
+    private func dismiss() {
+        withAnimation(.snappy(duration: 0.25)) {
+            model.composingSend = false
+            model.editingSend = nil
+        }
+    }
+
+    private func prefill() {
+        guard let send = editing else { accountId = model.defaultAccountId; return }
+        kind = send.kind == .file ? .file : .text
+        name = send.name
+        text = send.text ?? ""
+        hideText = send.hideText
+        notes = send.notes ?? ""
+        hideEmail = send.hideEmail
+        deletionDate = send.deletionDate ?? deletionDate
+        if let expiration = send.expirationDate { expires = true; self.expiration = expiration }
+        if let max = send.maxAccessCount { limitViews = true; maxViews = max }
+        accountId = send.accountId
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    FormHeader(symbol: "paperplane.fill", title: "New Send",
-                               subtitle: "Share text or a file through an encrypted link that expires.")
+                    FormHeader(symbol: "paperplane.fill", title: editing == nil ? "New Send" : "Edit Send",
+                               subtitle: editing == nil ? "Share text or a file through an encrypted link that expires."
+                                                        : "Changes apply to the same link.")
 
+                    if editing == nil {
                     HStack(spacing: 12) {
                         AppSegmented(options: [(Kind.text, LocalizedStringKey("Text")), (.file, LocalizedStringKey("File"))],
                                      selection: $kind)
@@ -271,6 +300,7 @@ struct SendComposer: View {
                                      accessibilityLabel: "Account")
                                 .frame(maxWidth: 240)
                         }
+                    }
                     }
 
                     FormCard {
@@ -283,11 +313,23 @@ struct SendComposer: View {
                             }
                             Toggle("Hide the text until the recipient reveals it", isOn: $hideText).toggleStyle(.trailingSwitch)
                         } else {
-                            FormField(label: "File") { fileZone }
+                            FormField(label: "File") {
+                                if let editing {
+                                    // A Send's file can't change; make a new Send for another file.
+                                    Label { Text(verbatim: editing.fileName ?? "") } icon: { Image(systemName: "doc.fill") }
+                                        .font(.system(size: 13)).foregroundStyle(.secondary)
+                                } else {
+                                    fileZone
+                                }
+                            }
                         }
                     }
 
                     FormCard(title: "Availability") {
+                        if editing != nil {
+                            DatePicker("Deletes on", selection: $deletionDate, in: Date.now...Date.now.addingTimeInterval(31 * 86_400))
+                                .font(.system(size: 13))
+                        } else {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Delete after").font(.system(size: 13))
                             // The same sliding segments as Text / File, not a pop-up menu.
@@ -295,6 +337,7 @@ struct SendComposer: View {
                                 (days, days == 1 ? LocalizedStringKey("1 day") : LocalizedStringKey("\(days) days"))
                             }, selection: $deleteAfterDays)
                             .accessibilityLabel(Text("Delete after"))
+                        }
                         }
                         Toggle("Expire earlier", isOn: $expires).toggleStyle(.trailingSwitch)
                         if expires {
@@ -314,7 +357,12 @@ struct SendComposer: View {
 
                     FormCard(title: "Protection") {
                         FormField(label: "Password") {
-                            PasswordField(title: "Password", text: $password, prompt: Text("Optional"))
+                            PasswordField(title: "Password", text: $password,
+                                          prompt: editing?.hasPassword == true ? Text("Leave blank to keep the current one") : Text("Optional"))
+                                .disabled(removePassword)
+                        }
+                        if editing?.hasPassword == true {
+                            Toggle("Remove the password", isOn: $removePassword).toggleStyle(.trailingSwitch)
                         }
                         Toggle("Hide my email address from recipients", isOn: $hideEmail).toggleStyle(.trailingSwitch)
                         FormField(label: "Private notes") {
@@ -328,7 +376,7 @@ struct SendComposer: View {
             }
             .thinScroller()
 
-            FormFooter(action: "Create & Copy Link", busy: saving, disabled: !ready, cancel: dismiss,
+            FormFooter(action: editing == nil ? "Create & Copy Link" : "Save", busy: saving, disabled: !ready, cancel: dismiss,
                        submit: { Task { await create() } }) {
                 Label("The link holds the key; the server never sees your content.", systemImage: "lock.shield")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
@@ -337,7 +385,7 @@ struct SendComposer: View {
         .fileImporter(isPresented: $picking, allowedContentTypes: [.item]) { result in
             if case .success(let url) = result { choose(url) }
         }
-        .onAppear { accountId = model.defaultAccountId }
+        .onAppear(perform: prefill)
     }
 
     private func choose(_ url: URL) {
@@ -376,6 +424,17 @@ struct SendComposer: View {
     private func create() async {
         saving = true
         defer { saving = false }
+        if let editing {
+            let content: SendDraft.Content = kind == .text ? .text(text, hidden: hideText) : .file(name: editing.fileName ?? "", contents: Data())
+            var draft = SendDraft(name: name, content: content, deletionDate: deletionDate)
+            draft.expirationDate = expires ? expiration : nil
+            draft.maxAccessCount = limitViews ? maxViews : nil
+            draft.password = removePassword || password.isEmpty ? nil : password
+            draft.hideEmail = hideEmail
+            draft.notes = notes
+            if await model.updateSend(editing, draft: draft, removePassword: removePassword) { dismiss() }
+            return
+        }
         let content: SendDraft.Content
         if kind == .text {
             content = .text(text, hidden: hideText)

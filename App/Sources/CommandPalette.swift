@@ -167,9 +167,9 @@ struct CommandPalette: View {
             if modifiers.contains(.shift), let host = item.host, let url = URL(string: "https://\(host)") {
                 NSWorkspace.shared.open(url)
             } else if modifiers.contains(.option), let totp = item.totp {
-                model.copy(totp.code(), label: String(localized: "Code"))
+                model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) }
             } else if modifiers.contains(.command), let password = item.password {
-                model.copy(password, label: String(localized: "Password"))
+                model.guarded(item) { model.copy(password, label: String(localized: "Password")) }
             } else {
                 model.showItem(item.id)
             }
