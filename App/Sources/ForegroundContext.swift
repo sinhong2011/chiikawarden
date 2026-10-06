@@ -99,6 +99,29 @@ extension AppModel {
         }
     }
 
+    /// The global "fill" shortcut: types the one login for the page or app you're in. With several (or none),
+    /// or while locked, the palette opens instead, already showing them.
+    func fillForeground() {
+        guard isUnlocked else { openPalette(); return }
+        captureForeground()
+        Task {
+            if let context = foreground, context.isBrowser, context.host == nil {
+                // Wait (briefly) for the browser to say which page it's on.
+                for _ in 0..<20 where foreground?.host == nil && foreground?.pid == context.pid {
+                    try? await Task.sleep(for: .milliseconds(50))
+                }
+            }
+            guard let context = foreground else { openPalette(); return }
+            let logins = context.items(in: self).filter { $0.password != nil }
+            guard logins.count == 1, let item = logins.first else { openPalette(); return }
+            guarded(item) {
+                let steps: [AutoType.Step] = [item.username.map(AutoType.Step.text), item.username != nil ? .tab : nil,
+                                              item.password.map(AutoType.Step.text)].compactMap { $0 }
+                self.autoType(steps, into: context, fallback: item.password.map { (value: $0, label: String(localized: "Password")) })
+            }
+        }
+    }
+
     /// Hands focus back to the app the palette was called from (after copying something for it).
     func returnToForeground() {
         guard let foreground, let app = NSRunningApplication(processIdentifier: foreground.pid) else { return }

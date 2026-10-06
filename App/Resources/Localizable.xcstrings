@@ -4,6 +4,34 @@
     "" : {
       "shouldTranslate" : false
     },
+    "%@ is already used here" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ はほかの操作で使われています"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已用于其他操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已用於其他動作"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已經用咗喺其他動作"
+          }
+        }
+      }
+    },
     "+ submit" : {
       "localizations" : {
         "ja" : {
@@ -88,6 +116,118 @@
         }
       }
     },
+    "Anywhere" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どこでも"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何地方"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何地方"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺任何地方"
+          }
+        }
+      }
+    },
+    "Brings the vault window forward." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫ウインドウを前面に表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将密码库窗口移到最前面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將保險庫視窗移到最前面。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將保險庫視窗擺去最前面。"
+          }
+        }
+      }
+    },
+    "Copy a new password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいパスワードをコピー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝新密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝新密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複製新密碼"
+          }
+        }
+      }
+    },
+    "Fill this page or app" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このページやアプリに入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填充此网页或 App"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填入此網頁或 App"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填入呢個網頁或者 App"
+          }
+        }
+      }
+    },
     "For %@" : {
       "localizations" : {
         "ja" : {
@@ -112,6 +252,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 嘅項目"
+          }
+        }
+      }
+    },
+    "In Triwarden" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 内"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Triwarden 内"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Triwarden 內"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺 Triwarden 入面"
+          }
+        }
+      }
+    },
+    "Lock vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫をロック"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "锁定密码库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鎖定保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鎖定保險庫"
+          }
+        }
+      }
+    },
+    "Locks every account." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのアカウントをロックします。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "锁定所有账户。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鎖定所有帳號。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鎖定所有帳戶。"
+          }
+        }
+      }
+    },
+    "New password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいパスワード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密碼"
           }
         }
       }
@@ -144,6 +396,34 @@
         }
       }
     },
+    "Open Keyboard Settings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボード設定を開く"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开键盘设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開鍵盤設定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開鍵盤設定"
+          }
+        }
+      }
+    },
     "Quit Triwarden" : {
       "localizations" : {
         "ja" : {
@@ -172,30 +452,142 @@
         }
       }
     },
-    "Reset to ⇧⌘Space" : {
+    "Reset to %@" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⇧⌘Space に戻す"
+            "value" : "%@ に戻す"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置为 ⇧⌘Space"
+            "value" : "重置为 %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重設為 ⇧⌘Space"
+            "value" : "重設為 %@"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重設為 ⇧⌘Space"
+            "value" : "重設為 %@"
+          }
+        }
+      }
+    },
+    "Search everything, run any command. Over a browser or an app, its logins come first." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてを検索し、どのコマンドも実行できます。ブラウザやアプリの上では、そのログインが先頭に表示されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索所有项目、执行任何命令。在浏览器或 App 上调出时，会先列出相关的登录信息。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋所有項目、執行任何指令。在瀏覽器或 App 上叫出時，會先列出相關的登入資料。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋所有項目、執行任何指令。喺瀏覽器或者 App 上面叫出嚟時，會先列出相關嘅登入資料。"
+          }
+        }
+      }
+    },
+    "Show Triwarden" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden を表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示 Triwarden"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示 Triwarden"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示 Triwarden"
+          }
+        }
+      }
+    },
+    "To change one, add Triwarden in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts and type the menu item's name exactly." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更するには、システム設定 › キーボード › キーボードショートカット › アプリのショートカット で Triwarden を追加し、メニュー項目の名前を正確に入力します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如要更改，请前往“系统设置”›“键盘”›“键盘快捷键”›“App 快捷键”添加 Triwarden，并准确输入菜单项的名称。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如要更改，請到「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」加入 Triwarden，並準確輸入選單項目的名稱。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "想改嘅話，去「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」加入 Triwarden，再準確輸入選單項目嘅名稱。"
+          }
+        }
+      }
+    },
+    "Turn off" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフにする"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閂咗佢"
           }
         }
       }
@@ -256,6 +648,34 @@
         }
       }
     },
+    "Types the login for the page or app you're in. With more than one (or none), the palette opens." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今いるページやアプリにログインを入力します。複数（またはゼロ）のときはパレットを開きます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为你所在的网页或 App 输入登录信息。如有多个（或没有），则会打开命令面板。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為你所在的網頁或 App 輸入登入資料。如果有多於一個（或沒有），則會開啟命令面板。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "幫你而家所在嘅網頁或者 App 輸入登入資料。如果多過一個（或者冇），就會開指令面板。"
+          }
+        }
+      }
+    },
     "Unavailable" : {
       "localizations" : {
         "ja" : {
@@ -280,6 +700,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用唔到"
+          }
+        }
+      }
+    },
+    "With your generator settings, straight to the clipboard." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ジェネレータの設定で作り、そのままクリップボードへ。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按照你的生成器设置，直接拷贝到剪贴板。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依照你的產生器設定，直接拷貝到剪貼簿。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟你嘅產生器設定，直接複製到剪貼簿。"
           }
         }
       }

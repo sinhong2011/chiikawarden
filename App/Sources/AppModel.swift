@@ -364,18 +364,26 @@ final class AppModel {
     /// Snapshots: keep the context they set instead of reading the real front app.
     @ObservationIgnored var foregroundPinned = false
     @ObservationIgnored private var palette: QuickSearchController?
-    @ObservationIgnored private var paletteKey: GlobalHotKey?
 
-    /// The floating palette and the system-wide shortcut that toggles it.
+    /// The floating palette, and every system-wide shortcut (Settings › Shortcuts).
     func installPalette() {
         guard palette == nil else { return }
         let controller = QuickSearchController(model: self)
         palette = controller
         openPalette = { controller.show() }
-        let key = GlobalHotKey(Shortcut.palette) { controller.toggle() }
-        paletteKey = key
-        GlobalHotKey.palette = key
+        let keys = HotKeys.shared
+        keys.install(.palette) { controller.toggle() }
+        keys.install(.fill) { [weak self] in self?.fillForeground() }
+        keys.install(.showWindow) { [weak self] in self?.bringToFront() }
+        keys.install(.generate) { [weak self] in
+            self?.copy(PasswordGenerator.saved.generate(), label: String(localized: "New password"))
+        }
+        keys.install(.lock) { [weak self] in
+            guard let self, self.isUnlocked else { return }
+            self.lock(animated: true)
+        }
     }
+
     /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
     /// SwiftUI's `openSettings`, captured by the main window (it only exists inside a scene).

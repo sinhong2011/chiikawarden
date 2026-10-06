@@ -51,7 +51,7 @@ struct MenuBarContent: View {
                         NSApp.keyWindow?.orderOut(nil) // the palette takes the panel's place
                         DispatchQueue.main.async { model.openPalette() }
                     } label: {
-                        Text(verbatim: Shortcut.palette.display).font(.system(size: 10, weight: .medium, design: .monospaced))
+                        Text(verbatim: Shortcut.current(for: .palette)?.display ?? "⌘K").font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundStyle(.tertiary)
                     }
                     .buttonStyle(.plain)

@@ -43,50 +43,120 @@ struct Shortcut: Codable, Equatable {
         self.keyCode = keyCode; self.modifiers = modifiers; self.key = key
     }
 
-    static var palette: Shortcut {
-        get {
-            UserDefaults.standard.data(forKey: "paletteShortcut").flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
-                ?? .paletteDefault
-        }
-        set { UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: "paletteShortcut") }
+    /// The shortcut for `action`, or nil when it's off. Unset, the action's default applies.
+    static func current(for action: GlobalAction) -> Shortcut? {
+        guard let data = UserDefaults.standard.data(forKey: action.defaultsKey) else { return action.defaultShortcut }
+        return data.isEmpty ? nil : try? JSONDecoder().decode(Shortcut.self, from: data)
+    }
+
+    static func set(_ shortcut: Shortcut?, for action: GlobalAction) {
+        let data = shortcut.flatMap { try? JSONEncoder().encode($0) } ?? Data() // empty = turned off
+        UserDefaults.standard.set(data, forKey: action.defaultsKey)
     }
 }
 
-/// A system-wide shortcut. Carbon hotkeys work in the sandbox and need no Accessibility permission.
+/// What a system-wide shortcut does. Each has its own Carbon hotkey id.
+enum GlobalAction: String, CaseIterable, Identifiable {
+    case palette, fill, showWindow, generate, lock
+
+    var id: Self { self }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .palette: "Command palette"
+        case .fill: "Fill this page or app"
+        case .showWindow: "Show Triwarden"
+        case .generate: "Copy a new password"
+        case .lock: "Lock vault"
+        }
+    }
+
+    var detail: LocalizedStringKey {
+        switch self {
+        case .palette: "Search everything, run any command. Over a browser or an app, its logins come first."
+        case .fill: "Types the login for the page or app you're in. With more than one (or none), the palette opens."
+        case .showWindow: "Brings the vault window forward."
+        case .generate: "With your generator settings, straight to the clipboard."
+        case .lock: "Locks every account."
+        }
+    }
+
+    var defaultShortcut: Shortcut? {
+        switch self {
+        case .palette: .paletteDefault
+        case .fill: Shortcut(keyCode: UInt32(kVK_ANSI_Backslash), modifiers: UInt32(cmdKey | optionKey), key: "\\")
+        case .showWindow, .generate, .lock: nil
+        }
+    }
+
+    var hotKeyID: UInt32 { UInt32(Self.allCases.firstIndex(of: self)! + 1) }
+
+    fileprivate var defaultsKey: String { self == .palette ? "paletteShortcut" : "shortcut." + rawValue }
+}
+
+/// System-wide shortcuts. Carbon hotkeys work in the sandbox and need no Accessibility permission; one handler
+/// serves them all, by id.
 @MainActor
-final class GlobalHotKey {
-    private var ref: EventHotKeyRef?
+final class HotKeys {
+    static let shared = HotKeys()
+
+    private var refs: [UInt32: EventHotKeyRef] = [:]
+    private var actions: [UInt32: () -> Void] = [:]
+    private var shortcuts: [UInt32: Shortcut] = [:]
     private var handler: EventHandlerRef?
-    private let action: () -> Void
-    /// The app's palette hotkey, so Settings can rebind it.
-    static weak var palette: GlobalHotKey?
 
-    init(_ shortcut: Shortcut, action: @escaping () -> Void) {
-        self.action = action
+    private init() {
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let me = Unmanaged.passUnretained(self).toOpaque()
-        InstallEventHandler(GetApplicationEventTarget(), { _, _, user in
-            guard let user else { return noErr }
-            let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(user).takeUnretainedValue()
-            MainActor.assumeIsolated { hotKey.action() }
+        InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
+            var hotKey = EventHotKeyID()
+            GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil,
+                              MemoryLayout<EventHotKeyID>.size, nil, &hotKey)
+            let id = hotKey.id
+            MainActor.assumeIsolated { HotKeys.shared.actions[id]?() }
             return noErr
-        }, 1, &spec, me, &handler)
-        register(shortcut)
+        }, 1, &spec, nil, &handler)
     }
 
-    /// Stops listening (while Settings records a new shortcut).
-    func pause() {
-        if let ref { UnregisterEventHotKey(ref) }
-        ref = nil
+    /// Sets what `action` does and binds its saved shortcut.
+    func install(_ action: GlobalAction, perform: @escaping () -> Void) {
+        actions[action.hotKeyID] = perform
+        bind(Shortcut.current(for: action), to: action)
     }
 
-    /// Swaps the key combination; false when another app already owns it.
+    /// Binds `shortcut` (nil = none) to `action`; false when another app already owns it (the old one stays).
     @discardableResult
-    func register(_ shortcut: Shortcut) -> Bool {
-        if let ref { UnregisterEventHotKey(ref) }
-        ref = nil
-        return RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, EventHotKeyID(signature: OSType(0x4357_4b59), id: 1),
-                                   GetApplicationEventTarget(), 0, &ref) == noErr
+    func bind(_ shortcut: Shortcut?, to action: GlobalAction) -> Bool {
+        let id = action.hotKeyID
+        let old = shortcuts[id]
+        unbind(id)
+        guard let shortcut else { return true }
+        if register(shortcut, id: id) { return true }
+        if let old { _ = register(old, id: id) }
+        return false
+    }
+
+    /// Lets go of every shortcut (while Settings records a new one) and takes them back.
+    func pause() { for id in Array(refs.keys) { if let ref = refs.removeValue(forKey: id) { UnregisterEventHotKey(ref) } } }
+    func resume() { for (id, shortcut) in shortcuts where refs[id] == nil { _ = register(shortcut, id: id) } }
+
+    /// Whether `shortcut` is already bound to a different action of ours.
+    func owner(of shortcut: Shortcut) -> GlobalAction? {
+        GlobalAction.allCases.first { shortcuts[$0.hotKeyID] == shortcut }
+    }
+
+    private func register(_ shortcut: Shortcut, id: UInt32) -> Bool {
+        var ref: EventHotKeyRef?
+        let status = RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, EventHotKeyID(signature: OSType(0x5457_4B59), id: id),
+                                         GetApplicationEventTarget(), 0, &ref)
+        guard status == noErr, let ref else { return false }
+        refs[id] = ref
+        shortcuts[id] = shortcut
+        return true
+    }
+
+    private func unbind(_ id: UInt32) {
+        if let ref = refs.removeValue(forKey: id) { UnregisterEventHotKey(ref) }
+        shortcuts[id] = nil
     }
 }
 

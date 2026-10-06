@@ -40,6 +40,8 @@
   command. Called over a browser or an app, it puts that page's (or app's) logins first, and ↵ types the username
   and password in, like KeePass auto-type (⌃↵ username, ⌥↵ password, ⇧ also submits). The menu bar panel shows the
   page's logins too.
+- Global shortcuts you set in Settings › Shortcuts: the palette, fill the page or app you're in (⌥⌘\\ types its
+  only login), show the window, copy a new password, lock. Menu shortcuts change in System Settings like any app's.
 - A menu bar panel with the item you need, one-time codes and the generator.
 - Two-finger swipes between sidebar, list and item on narrow windows.
 
