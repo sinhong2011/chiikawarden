@@ -7,562 +7,170 @@
     " " : {
 
     },
-    "%lld of %lld unlocked" : {
+    "^[%lld item](inflect: true)" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld／%lld 件のロックを解除済み"
+            "value" : "%lld 件の項目"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已解锁 %lld／%lld 个"
+            "value" : "%lld 个项目"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已解鎖 %lld／%lld 個"
+            "value" : "%lld 個項目"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解鎖咗 %lld／%lld 個"
+            "value" : "%lld 個項目"
           }
         }
       }
     },
-    "Account Settings…" : {
+    "Emergency access" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アカウント設定…"
+            "value" : "緊急アクセス"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账户设置…"
+            "value" : "紧急访问"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "帳號設定…"
+            "value" : "緊急存取"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "帳戶設定…"
+            "value" : "緊急存取"
           }
         }
       }
     },
-    "All accounts" : {
+    "Lock this account" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのアカウント"
+            "value" : "このアカウントをロック"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有账户"
+            "value" : "锁定此账户"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有帳號"
+            "value" : "鎖定此帳號"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有帳戶"
+            "value" : "鎖定呢個帳戶"
           }
         }
       }
     },
-    "Ask them to read their fingerprint phrase (Settings › Accounts). Confirm only if it matches." : {
+    "Removes the account and its saved vault from this Mac. Your data stays on the server." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相手にフィンガープリントフレーズ（設定 › アカウント）を読み上げてもらい、一致した場合のみ確認してください。"
+            "value" : "この Mac からアカウントと保存された保管庫を削除します。データはサーバーに残ります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请对方读出他们的指纹短语（设置 › 账户），相符时才确认。"
+            "value" : "从这台 Mac 移除账户及其保存的密码库。你的数据仍保留在服务器上。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請對方念出他們的指紋短語（設定 › 帳號），相符時才確認。"
+            "value" : "從這部 Mac 移除帳號及其儲存的保險庫。你的資料仍保留在伺服器上。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "叫對方讀出佢哋嘅指紋短語（設定 › 帳戶），一致先好確認。"
+            "value" : "喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫。你嘅資料仍然留喺伺服器。"
           }
         }
       }
     },
-    "Created" : {
+    "This Mac" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作成日"
+            "value" : "この Mac"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建时间"
+            "value" : "这台 Mac"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立時間"
+            "value" : "這部 Mac"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立時間"
+            "value" : "呢部 Mac"
           }
         }
       }
     },
-    "Hide All" : {
+    "Unlock this account to manage its two-step login, master password, devices and emergency access." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべて隠す"
+            "value" : "このアカウントのロックを解除すると、2段階ログイン、マスターパスワード、デバイス、緊急アクセスを管理できます。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部隐藏"
+            "value" : "解锁此账户以管理其两步登录、主密码、设备和紧急访问。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部隱藏"
+            "value" : "解鎖此帳號以管理其兩步驟登入、主密碼、裝置和緊急存取。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部隱藏"
-          }
-        }
-      }
-    },
-    "Item history" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目の履歴"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "项目记录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目記錄"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "項目紀錄"
-          }
-        }
-      }
-    },
-    "Kept by the server when a password is changed: the last five." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワードを変更するとサーバーが保存します（直近5件）。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改密码时由服务器保留：最近五个。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改密碼時由伺服器保留：最近五個。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "改密碼時由伺服器保留：最近五個。"
-          }
-        }
-      }
-    },
-    "Last edited" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最終編集"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上次编辑"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上次編輯"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上次編輯"
-          }
-        }
-      }
-    },
-    "Locked · %@" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ロック中 · %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已锁定 · %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已鎖定 · %@"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已鎖定 · %@"
-          }
-        }
-      }
-    },
-    "Password found in a data breach" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワードがデータ侵害で見つかりました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密码出现在数据泄露事件中"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼出現在資料外洩事件中"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼喺資料外洩事件出現過"
-          }
-        }
-      }
-    },
-    "Password updated" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワード更新日"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密码更新时间"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼更新時間"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼更新時間"
-          }
-        }
-      }
-    },
-    "Password used on other items too" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ほかの項目でも使われているパスワード"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密码也用于其他项目"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼也用於其他項目"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼都用咗喺其他項目"
-          }
-        }
-      }
-    },
-    "Paste %@" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ をペースト"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "粘贴 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "貼上 %@"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "貼上 %@"
-          }
-        }
-      }
-    },
-    "Replaced %@" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ に置き換え"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "于 %@ 被替换"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "於 %@ 被取代"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喺 %@ 被取代"
-          }
-        }
-      }
-    },
-    "Reveal All" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すべて表示"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全部显示"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全部顯示"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全部顯示"
-          }
-        }
-      }
-    },
-    "Saved for an http:// site, sent unencrypted" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "http:// のサイト用で、暗号化されずに送信されます"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为 http:// 网站保存，传输时未加密"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為 http:// 網站儲存，傳送時未加密"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為 http:// 網站儲存，傳送時冇加密"
-          }
-        }
-      }
-    },
-    "Send a new code" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しいコードを送信"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送新的验证码"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "傳送新的驗證碼"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "再傳送新嘅驗證碼"
-          }
-        }
-      }
-    },
-    "Send again in %lld s" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 秒後に再送信できます"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 秒后可重新发送"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 秒後可重新傳送"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 秒後可以再傳送"
-          }
-        }
-      }
-    },
-    "Unlock this account to manage its two-step login, master password and devices." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このアカウントのロックを解除すると、2段階ログイン、マスターパスワード、デバイスを管理できます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解锁此账户以管理其两步登录、主密码和设备。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖此帳號以管理其兩步驟登入、主密碼和裝置。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖呢個帳戶就可以管理佢嘅兩步驟登入、主密碼同裝置。"
+            "value" : "解鎖呢個帳戶就可以管理佢嘅兩步驟登入、主密碼、裝置同緊急存取。"
           }
         }
       }
@@ -1286,6 +894,34 @@
         }
       }
     },
+    "%lld of %lld unlocked" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld／%lld 件のロックを解除済み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已解锁 %lld／%lld 个"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已解鎖 %lld／%lld 個"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解鎖咗 %lld／%lld 個"
+          }
+        }
+      }
+    },
     "%lld seconds left" : {
       "localizations" : {
         "ja" : {
@@ -1427,6 +1063,7 @@
       }
     },
     "^[%lld earlier password](inflect: true)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3185,6 +2822,34 @@
         }
       }
     },
+    "All accounts" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのアカウント"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有账户"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有帳號"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有帳戶"
+          }
+        }
+      }
+    },
     "All Items" : {
       "localizations" : {
         "ja" : {
@@ -3872,6 +3537,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要求輸入主密碼"
+          }
+        }
+      }
+    },
+    "Ask them to read their fingerprint phrase (Settings › Accounts). Confirm only if it matches." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相手にフィンガープリントフレーズ（設定 › アカウント）を読み上げてもらい、一致した場合のみ確認してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请对方读出他们的指纹短语（设置 › 账户），相符时才确认。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請對方念出他們的指紋短語（設定 › 帳號），相符時才確認。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "叫對方讀出佢哋嘅指紋短語（設定 › 帳戶），一致先好確認。"
           }
         }
       }
@@ -7394,6 +7087,7 @@
       }
     },
     "Copy Server Address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -8202,6 +7896,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建立並複製連結"
+          }
+        }
+      }
+    },
+    "Created" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作成日"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建时间"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建立時間"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建立時間"
           }
         }
       }
@@ -9999,34 +9721,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "電子郵件驗證碼"
-          }
-        }
-      }
-    },
-    "Emergency Access" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "緊急アクセス"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "紧急访问"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "緊急存取"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "緊急存取"
           }
         }
       }
@@ -12368,6 +12062,34 @@
         }
       }
     },
+    "Hide All" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべて隠す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部隐藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部隱藏"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部隱藏"
+          }
+        }
+      }
+    },
     "Hide my email address from recipients" : {
       "localizations" : {
         "ja" : {
@@ -13349,6 +13071,34 @@
         }
       }
     },
+    "Item history" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目の履歴"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目記錄"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目紀錄"
+          }
+        }
+      }
+    },
     "Items" : {
       "localizations" : {
         "ja" : {
@@ -13607,6 +13357,34 @@
     "KeePassXC CSV" : {
 
     },
+    "Kept by the server when a password is changed: the last five." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードを変更するとサーバーが保存します（直近5件）。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改密码时由服务器保留：最近五个。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改密碼時由伺服器保留：最近五個。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改密碼時由伺服器保留：最近五個。"
+          }
+        }
+      }
+    },
     "Key" : {
       "localizations" : {
         "ja" : {
@@ -13719,7 +13497,36 @@
         }
       }
     },
+    "Last edited" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最終編集"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次編輯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次編輯"
+          }
+        }
+      }
+    },
     "Last edited %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -14278,6 +14085,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已鎖定"
+          }
+        }
+      }
+    },
+    "Locked · %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ロック中 · %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已锁定 · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已鎖定 · %@"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已鎖定 · %@"
           }
         }
       }
@@ -18136,6 +17971,7 @@
       }
     },
     "Open Web Vault" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -18872,6 +18708,34 @@
         }
       }
     },
+    "Password found in a data breach" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードがデータ侵害で見つかりました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码出现在数据泄露事件中"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼出現在資料外洩事件中"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼喺資料外洩事件出現過"
+          }
+        }
+      }
+    },
     "Password Generator" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -18954,6 +18818,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼記錄"
+          }
+        }
+      }
+    },
+    "Password updated" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワード更新日"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码更新时间"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼更新時間"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼更新時間"
+          }
+        }
+      }
+    },
+    "Password used on other items too" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほかの項目でも使われているパスワード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码也用于其他项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼也用於其他項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密碼都用咗喺其他項目"
           }
         }
       }
@@ -19067,6 +18987,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼、密碼匙、驗證碼與 SSH 金鑰，原生於你的 Mac。"
+          }
+        }
+      }
+    },
+    "Paste %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ をペースト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上 %@"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "貼上 %@"
           }
         }
       }
@@ -20035,6 +19983,34 @@
         }
       }
     },
+    "Replaced %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ に置き換え"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "于 %@ 被替换"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "於 %@ 被取代"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺 %@ 被取代"
+          }
+        }
+      }
+    },
     "Request Access" : {
       "localizations" : {
         "ja" : {
@@ -20451,6 +20427,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示（撳住 ⌥）"
+          }
+        }
+      }
+    },
+    "Reveal All" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべて表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部顯示"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部顯示"
           }
         }
       }
@@ -20927,6 +20931,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加密儲存喺你嘅保險庫，並同步到你其他裝置。"
+          }
+        }
+      }
+    },
+    "Saved for an http:// site, sent unencrypted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "http:// のサイト用で、暗号化されずに送信されます"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为 http:// 网站保存，传输时未加密"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為 http:// 網站儲存，傳送時未加密"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為 http:// 網站儲存，傳送時冇加密"
           }
         }
       }
@@ -21408,6 +21440,62 @@
         }
       }
     },
+    "Send a new code" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいコードを送信"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送新的验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送新的驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再傳送新嘅驗證碼"
+          }
+        }
+      }
+    },
+    "Send again in %lld s" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒後に再送信できます"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒后可重新发送"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒後可重新傳送"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒後可以再傳送"
+          }
+        }
+      }
+    },
     "Send Code" : {
       "localizations" : {
         "ja" : {
@@ -21881,34 +21969,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定金鑰"
-          }
-        }
-      }
-    },
-    "Several accounts can be open at once, on different servers. Each keeps its own vault, and lists show them together." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "異なるサーバーの複数のアカウントを同時に開けます。それぞれ独自の保管庫を持ち、リストにはまとめて表示されます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可以同时打开多个账户，即使在不同服务器上。每个账户有自己的保险库，列表会一起显示。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可以同時開啟多個帳號，即使在不同伺服器上。每個帳號有自己的保險庫，清單會一起顯示。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可以同時開幾個帳戶，就算喺唔同伺服器。每個帳戶有自己嘅保險庫，清單會一齊顯示。"
           }
         }
       }
@@ -25566,34 +25626,6 @@
         }
       }
     },
-    "Trusted contacts" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "信頼できる連絡先"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "信任的联系人"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "信任的聯絡人"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "信任嘅聯絡人"
-          }
-        }
-      }
-    },
     "Try Touch ID again" : {
       "localizations" : {
         "ja" : {
@@ -26262,34 +26294,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解鎖"
-          }
-        }
-      }
-    },
-    "Unlock an account to manage emergency access." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "緊急アクセスを管理するにはアカウントのロックを解除してください。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解锁账户以管理紧急访问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖帳號以管理緊急存取。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解鎖帳戶就可以管理緊急存取。"
           }
         }
       }

@@ -572,7 +572,7 @@ struct AccountSwitcher: View {
                             if open {
                                 Text(verbatim: account.serverSummary)
                                 Text(verbatim: "·")
-                                Text("\(model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count) items")
+                                Text("^[\(model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count) item](inflect: true)")
                             } else {
                                 Image(systemName: "lock.fill").font(.system(size: 9))
                                 Text("Locked · \(account.serverSummary)")
@@ -596,10 +596,7 @@ struct AccountSwitcher: View {
             action("Sync Now", "arrow.triangle.2.circlepath") { Task { try? await model.refresh() } }
             action("Import…", "square.and.arrow.down") { model.beginImport() }
             action("Export Vault…", "square.and.arrow.up") { model.beginExport() }
-            action("Account Settings…", "gearshape") {
-                UserDefaults.standard.set("accounts", forKey: "settingsPane")
-                model.showSettings()
-            }
+            action("Settings…", "gearshape") { model.showSettings() }
             Divider().padding(.vertical, 4).padding(.horizontal, 8)
             action("Lock Vault", "lock") { model.lock(animated: true) }
             action("Log Out…", "rectangle.portrait.and.arrow.right", destructive: true) {

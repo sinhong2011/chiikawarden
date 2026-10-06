@@ -7,14 +7,12 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, shortcuts, accounts, emergency, security, developer, server, about
+        case general, shortcuts, security, developer, server, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
             case .general: "General"
             case .shortcuts: "Shortcuts"
-            case .accounts: "Accounts"
-            case .emergency: "Emergency Access"
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
@@ -25,8 +23,6 @@ struct SettingsView: View {
             switch self {
             case .general: "gearshape"
             case .shortcuts: "keyboard"
-            case .accounts: "person.2"
-            case .emergency: "cross.case"
             case .security: "lock.shield"
             case .developer: "terminal"
             case .server: "server.rack"
@@ -35,34 +31,78 @@ struct SettingsView: View {
         }
     }
 
+    @Environment(AppModel.self) private var model
+    /// A pane's name, or "account:<id>" for an account's page.
     @AppStorage("settingsPane") private var paneRaw = Pane.general.rawValue
-    private var pane: Binding<Pane?> {
-        Binding(get: { Pane(rawValue: paneRaw) ?? .general }, set: { paneRaw = ($0 ?? .general).rawValue })
+
+    enum Selection: Hashable { case pane(Pane), account(String) }
+
+    private var selection: Binding<Selection?> {
+        Binding(get: {
+            if paneRaw.hasPrefix("account:") {
+                let id = String(paneRaw.dropFirst(8))
+                if model.accounts.contains(where: { $0.id == id }) { return .account(id) }
+            }
+            return .pane(Pane(rawValue: paneRaw) ?? .general)
+        }, set: { new in
+            switch new ?? .pane(.general) {
+            case .pane(let pane): paneRaw = pane.rawValue
+            case .account(let id): paneRaw = "account:" + id
+            }
+        })
     }
 
     var body: some View {
         NavigationSplitView {
-            List(selection: pane) {
-                ForEach(Pane.allCases) { pane in
-                    Label(pane.title, systemImage: pane.symbol).tag(pane)
+            List(selection: selection) {
+                // Each account is its own page, at the top (like the Apple Account in System Settings).
+                Section {
+                    ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+                        SettingsAccountRow(account: account, index: index).tag(Selection.account(account.id))
+                    }
+                    Button {
+                        model.beginAddAccount()
+                        NSApp.activate()
+                        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+                    } label: {
+                        Label("Add Account…", systemImage: "plus.circle").foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                } header: {
+                    Text("Accounts")
+                }
+                Section {
+                    ForEach(Pane.allCases) { pane in
+                        Label(pane.title, systemImage: pane.symbol).tag(Selection.pane(pane))
+                    }
+                } header: {
+                    Text(verbatim: "Triwarden")
                 }
             }
             .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 170, ideal: 190, max: 240)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
         } detail: {
             Group {
-                switch pane.wrappedValue ?? .general {
-                case .general: GeneralSettings()
-                case .shortcuts: ShortcutsSettings()
-                case .accounts: AccountsSettings()
-                case .emergency: EmergencyAccessSettings()
-                case .security: SecuritySettings()
-                case .developer: DeveloperSettings()
-                case .server: ServerSettings()
-                case .about: AboutSettings()
+                switch selection.wrappedValue ?? .pane(.general) {
+                case .account(let id):
+                    if let index = model.accounts.firstIndex(where: { $0.id == id }) {
+                        AccountSettingsPage(account: model.accounts[index], index: index)
+                            .navigationTitle(Text(verbatim: model.accounts[index].email))
+                    }
+                case .pane(let pane):
+                    Group {
+                        switch pane {
+                        case .general: GeneralSettings()
+                        case .shortcuts: ShortcutsSettings()
+                        case .security: SecuritySettings()
+                        case .developer: DeveloperSettings()
+                        case .server: ServerSettings()
+                        case .about: AboutSettings()
+                        }
+                    }
+                    .navigationTitle(pane.title)
                 }
             }
-            .navigationTitle(pane.wrappedValue?.title ?? "General")
             // Every pane's buttons in the app's capsule style (explicit styles, like links, still win).
             .buttonStyle(.appSecondarySmall)
             // …and every switch in the brand colour when on.
@@ -356,194 +396,142 @@ private struct DeveloperSettings: View {
 
 // MARK: Accounts
 
-/// Every account in one place: pick one along the top, then everything about it below — who and where, this Mac
-/// (Touch ID, sync), and, while it's unlocked, its security (two-step login, master password, fingerprint, devices).
-private struct AccountsSettings: View {
+/// An account in the Settings sidebar: avatar with its colour, email, and whether it's open.
+private struct SettingsAccountRow: View {
     @Environment(AppModel.self) private var model
-    @State private var confirmLogOut: SavedAccount?
-    @AppStorage("settingsAccount") private var selectedID = ""
+    let account: SavedAccount
+    let index: Int
 
-    private var selected: (index: Int, account: SavedAccount)? {
-        let all = Array(model.accounts.enumerated())
-        let match = all.first { $0.element.id == selectedID } ?? all.first
-        return match.map { ($0.offset, $0.element) }
+    var body: some View {
+        let open = model.isUnlocked(account.id)
+        HStack(spacing: 9) {
+            Monogram(name: account.email, size: 26)
+                .overlay(alignment: .bottomTrailing) {
+                    Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
+                        .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5))
+                        .offset(x: 2, y: 2)
+                }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: account.email).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                Text(open ? "Unlocked" : "Locked").font(.system(size: 10)).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
+}
+
+/// Everything about one account on one page: who and where; Touch ID and sync on this Mac; and, while it's
+/// unlocked, its security (two-step login, master password, fingerprint, devices) and emergency access; then
+/// export, lock and log out.
+private struct AccountSettingsPage: View {
+    @Environment(AppModel.self) private var model
+    let account: SavedAccount
+    let index: Int
+    @State private var confirmLogOut = false
+
+    private var session: AccountSession? { model.session(for: account.id) }
 
     var body: some View {
         Form {
-            if let selected {
-                if model.accounts.count > 1 {
-                    Section { AccountStrip(selection: $selectedID, current: selected.account.id) }
+            Section {
+                HStack(spacing: 14) {
+                    Monogram(name: account.email, size: 48)
+                        .overlay(alignment: .bottomTrailing) {
+                            Circle().fill(AccountColor.color(index)).frame(width: 14, height: 14)
+                                .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
+                                .offset(x: 3, y: 3)
+                        }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: account.email).font(.system(size: 15, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                            .textSelection(.enabled)
+                        Text(verbatim: "\(account.serverSummary) · \(kdf)").font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    Spacer(minLength: 8)
+                    HStack(spacing: 6) {
+                        Circle().fill(session != nil ? Color.green : Color.secondary.opacity(0.6)).frame(width: 7, height: 7)
+                        Text(session != nil ? "Unlocked" : "Locked")
+                    }
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
-                AccountCard(account: selected.account, index: selected.index, logOut: { confirmLogOut = selected.account })
-                if let session = model.session(for: selected.account.id) {
-                    AccountSecuritySections(session: session).id(session.id)
-                } else {
-                    Section {
-                        Label("Unlock this account to manage its two-step login, master password and devices.", systemImage: "lock")
-                            .foregroundStyle(.secondary)
-                    } header: {
-                        Text("Security")
+                .padding(.vertical, 6)
+            }
+
+            Section {
+                Toggle(isOn: Binding(get: { model.isTouchIDEnabled(account.id) }, set: { model.setTouchID($0, for: account.id) })) {
+                    Text("Unlock with Touch ID")
+                    Text(!AccountStore.isTouchIDAvailable ? "Not available on this Mac."
+                         : session != nil || model.isTouchIDEnabled(account.id) ? "One touch opens every account that has it."
+                         : "Unlock this account once to turn it on.")
+                }
+                .disabled(!AccountStore.isTouchIDAvailable || (session == nil && !model.isTouchIDEnabled(account.id)))
+                if let session {
+                    LabeledContent {
+                        HStack(spacing: 8) {
+                            if session.isSyncing {
+                                ProgressView().controlSize(.small)
+                            } else if let synced = session.lastSynced {
+                                Text(synced, format: .relative(presentation: .named)).foregroundStyle(.secondary)
+                            } else {
+                                Text("Offline").foregroundStyle(.secondary)
+                            }
+                            Button("Sync Now") { Task { try? await session.refresh() } }
+                                .disabled(session.isSyncing)
+                        }
+                    } label: {
+                        Text("Last synced")
                     }
                 }
-            } else {
-                Section { Text("No accounts yet.").foregroundStyle(.secondary) }
+            } header: {
+                Text("This Mac")
             }
-            Section {
-                Button {
-                    model.beginAddAccount()
-                    NSApp.activate()
-                    NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
-                } label: {
-                    Label("Add Account…", systemImage: "plus.circle")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(.rect)
+
+            if let session {
+                AccountSecuritySections(session: session).id("security-" + session.id)
+                EmergencyAccessSections(session: session).id("emergency-" + session.id)
+            } else {
+                Section {
+                    LabeledContent {
+                        Button("Unlock…") { unlockInVault() }
+                    } label: {
+                        Text("Unlock this account to manage its two-step login, master password, devices and emergency access.")
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Security")
                 }
-                .buttonStyle(.plain)
-            } footer: {
-                Text("Several accounts can be open at once, on different servers. Each keeps its own vault, and lists show them together.")
-                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                if session != nil {
+                    LabeledContent("Export this account's vault") {
+                        Button("Export…") { model.beginExport(accountId: account.id) }
+                    }
+                    LabeledContent("Lock this account") {
+                        Button("Lock") { model.lock(account.id) }
+                    }
+                }
+                LabeledContent {
+                    Button("Log Out…", role: .destructive) { confirmLogOut = true }
+                } label: {
+                    Text("Log out")
+                    Text("Removes the account and its saved vault from this Mac. Your data stays on the server.")
+                }
+            } header: {
+                Text("Account")
             }
         }
         .formStyle(.grouped)
-        .animation(.snappy(duration: 0.2), value: selected?.account.id)
-        .confirmationDialog("Log out of \(confirmLogOut?.email ?? "")?", isPresented: Binding(
-            get: { confirmLogOut != nil }, set: { if !$0 { confirmLogOut = nil } })) {
-            Button("Log Out", role: .destructive) {
-                if let id = confirmLogOut?.id { model.logOut(id) }
-            }
+        .confirmationDialog("Log out of \(account.email)?", isPresented: $confirmLogOut) {
+            Button("Log Out", role: .destructive) { model.logOut(account.id) }
         } message: {
             Text("This removes the account and its saved vault from this Mac. Your data stays on the server.")
         }
     }
-}
 
-/// The accounts side by side, one selected: avatar with its colour, email, and whether it's open.
-private struct AccountStrip: View {
-    @Environment(AppModel.self) private var model
-    @Binding var selection: String
-    let current: String
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                    let on = account.id == current
-                    let open = model.session(for: account.id) != nil
-                    Button { selection = account.id } label: {
-                        HStack(spacing: 9) {
-                            Monogram(name: account.email, size: 28)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
-                                        .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5))
-                                        .offset(x: 2, y: 2)
-                                }
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(verbatim: account.email).font(.system(size: 12, weight: .semibold))
-                                    .lineLimit(1).truncationMode(.middle)
-                                HStack(spacing: 4) {
-                                    Circle().fill(open ? Color.green : Color.secondary.opacity(0.6)).frame(width: 5, height: 5)
-                                    Text(open ? "Unlocked" : "Locked")
-                                }
-                                .font(.system(size: 10)).foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.leading, 8).padding(.trailing, 12)
-                        .frame(maxWidth: 220, minHeight: 46, alignment: .leading)
-                        .background(on ? Color.primary.opacity(0.08) : .clear, in: .rect(cornerRadius: 11, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .strokeBorder(Color.primary.opacity(on ? 0.22 : 0.08), lineWidth: 1))
-                        .contentShape(.rect)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(on ? .isSelected : [])
-                }
-            }
-            .padding(.vertical, 2)
-        }
-    }
-}
-
-/// One account: who and where, whether it's open, Touch ID, sync, and the rest in a menu.
-private struct AccountCard: View {
-    @Environment(AppModel.self) private var model
-    let account: SavedAccount
-    let index: Int
-    let logOut: () -> Void
-
-    private var session: AccountSession? { model.session(for: account.id) }
-    private var unlocked: Bool { session != nil }
-
-    var body: some View {
-        Section {
-            // Who and where.
-            HStack(spacing: 12) {
-                Monogram(name: account.email, size: 40)
-                    .overlay(alignment: .bottomTrailing) {
-                        Circle().fill(AccountColor.color(index)).frame(width: 12, height: 12)
-                            .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
-                            .offset(x: 3, y: 3)
-                    }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: account.email).font(.system(size: 14, weight: .semibold)).lineLimit(1).truncationMode(.middle)
-                    Text(verbatim: "\(account.serverSummary) · \(kdf)").font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                // Status, quietly: a dot and a word.
-                HStack(spacing: 6) {
-                    Circle().fill(unlocked ? Color.green : Color.secondary.opacity(0.6)).frame(width: 7, height: 7)
-                    Text(unlocked ? "Unlocked" : "Locked")
-                }
-                .font(.system(size: 12)).foregroundStyle(.secondary)
-                Menu {
-                    if unlocked {
-                        Button("Export Vault…", systemImage: "square.and.arrow.up") { model.beginExport(accountId: account.id) }
-                        Button("Lock", systemImage: "lock") { model.lock(account.id) }
-                    }
-                    Divider()
-                    Button("Log Out…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: logOut)
-                } label: {
-                    Image(systemName: "ellipsis.circle").font(.system(size: 16))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .contentShape(.rect)
-                }
-                .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
-                .help(Text("More"))
-            }
-            .padding(.vertical, 4)
-
-            // Touch ID.
-            Toggle(isOn: Binding(get: { model.isTouchIDEnabled(account.id) }, set: { model.setTouchID($0, for: account.id) })) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Unlock with Touch ID")
-                    Text(!AccountStore.isTouchIDAvailable ? "Not available on this Mac."
-                         : unlocked || model.isTouchIDEnabled(account.id) ? "One touch opens every account that has it."
-                         : "Unlock this account once to turn it on.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            .disabled(!AccountStore.isTouchIDAvailable || (!unlocked && !model.isTouchIDEnabled(account.id)))
-
-            // Sync.
-            if let session {
-                LabeledContent {
-                    HStack(spacing: 8) {
-                        if session.isSyncing {
-                            ProgressView().controlSize(.small)
-                        } else if let synced = session.lastSynced {
-                            Text(synced, format: .relative(presentation: .named)).foregroundStyle(.secondary)
-                        } else {
-                            Text("Offline").foregroundStyle(.secondary)
-                        }
-                        Button("Sync Now") { Task { try? await session.refresh() } }
-                            .disabled(session.isSyncing)
-                    }
-                } label: {
-                    Text("Last synced")
-                }
-            }
-        }
+    /// The vault window, on this account (its list asks for the master password or Touch ID).
+    private func unlockInVault() {
+        model.accountFocus = account.id
+        model.bringToFront()
     }
 
     private var kdf: String {

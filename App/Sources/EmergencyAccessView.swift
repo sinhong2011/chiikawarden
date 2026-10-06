@@ -2,11 +2,11 @@ import TriCrypto
 import SwiftUI
 import VaultwardenAPI
 
-/// Settings › Emergency Access: people who can reach this vault if something happens to you (after a wait you
-/// choose, unless you reject them), and vaults that trust you.
-struct EmergencyAccessSettings: View {
+/// One unlocked account's emergency access, as sections of its Settings page: people who can reach this vault if
+/// something happens to you (after a wait you choose, unless you reject them), and vaults that trust you.
+struct EmergencyAccessSections: View {
     @Environment(AppModel.self) private var model
-    @State private var accountId: String?
+    let session: AccountSession
     @State private var trusted: [EmergencyContact] = []
     @State private var granted: [EmergencyContact] = []
     @State private var loading = false
@@ -22,26 +22,14 @@ struct EmergencyAccessSettings: View {
         }
     }
 
-    private var session: AccountSession? { (accountId ?? model.sessions.first?.id).flatMap { model.session(for: $0) } }
-
     var body: some View {
-        Form {
-            if model.sessions.isEmpty {
-                Section { Text("Unlock an account to manage emergency access.").foregroundStyle(.secondary) }
-            } else if let session {
-                if model.sessions.count > 1 {
-                    Section {
-                        Picker("Account", selection: Binding(get: { session.id }, set: { accountId = $0 })) {
-                            ForEach(model.sessions, id: \.id) { Text(verbatim: $0.account.email).tag($0.id) }
-                        }
-                    }
-                }
+        Group {
                 Section {
                     ForEach(trusted) { contact in trustedRow(contact, session) }
                     if trusted.isEmpty && !loading { Text("No trusted contacts yet.").foregroundStyle(.secondary) }
                     HStack { Spacer(); Button("Add Contact…") { sheet = .add } }
                 } header: {
-                    HStack { Text("Trusted contacts"); if loading { ProgressView().controlSize(.mini) } }
+                    HStack { Text("Emergency access"); if loading { ProgressView().controlSize(.mini) } }
                 } footer: {
                     Text("They can ask for access; if you don't reject the request within the wait time, they can view your vault or set a new master password for it.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -53,28 +41,23 @@ struct EmergencyAccessSettings: View {
                 } header: {
                     Text("Vaults that trust you")
                 }
-            }
             if let error {
                 Section { Label(error, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
             }
         }
-        .formStyle(.grouped)
-        .task(id: session?.id) { await load() }
+        .task(id: session.id) { await load() }
         .sheet(item: $sheet) { sheet in
-            if let session {
-                switch sheet {
-                case .add: AddEmergencyContactSheet(session: session) { Task { await load() } }
-                case .accept: AcceptEmergencyInviteSheet(session: session) { Task { await load() } }
-                case .confirm(let c): ConfirmEmergencyContactSheet(session: session, contact: c) { Task { await load() } }
-                case .view(let c): EmergencyVaultSheet(session: session, contact: c)
-                case .takeover(let c): EmergencyTakeoverSheet(session: session, contact: c) { Task { await load() } }
-                }
+            switch sheet {
+            case .add: AddEmergencyContactSheet(session: session) { Task { await load() } }
+            case .accept: AcceptEmergencyInviteSheet(session: session) { Task { await load() } }
+            case .confirm(let c): ConfirmEmergencyContactSheet(session: session, contact: c) { Task { await load() } }
+            case .view(let c): EmergencyVaultSheet(session: session, contact: c)
+            case .takeover(let c): EmergencyTakeoverSheet(session: session, contact: c) { Task { await load() } }
             }
         }
     }
 
     private func load() async {
-        guard let session else { return }
         loading = true
         defer { loading = false }
         do {

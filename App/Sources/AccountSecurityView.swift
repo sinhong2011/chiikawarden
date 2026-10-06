@@ -2,7 +2,7 @@ import TriCrypto
 import SwiftUI
 import VaultwardenAPI
 
-/// One unlocked account's security, as sections inside Settings › Accounts: the fingerprint phrase, two-step
+/// One unlocked account's security, as sections of its page in Settings: the fingerprint phrase, two-step
 /// login, master password and encryption, devices.
 struct AccountSecuritySections: View {
     @Environment(AppModel.self) private var model
