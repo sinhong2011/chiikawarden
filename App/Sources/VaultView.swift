@@ -170,6 +170,7 @@ struct VaultView: View {
                 // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
                 .toolbar(removing: compact || !vaultOpen ? .sidebarToggle : nil)
         } detail: {
+            VStack(spacing: 8) {
             Group {
                 if compact {
                     PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth)
@@ -181,6 +182,13 @@ struct VaultView: View {
                 } else {
                     sectionPane
                 }
+            }
+            .frame(maxHeight: .infinity)
+            // The window's footer: its own strip under the panels, so it never sits over them.
+            if vaultOpen {
+                // Its right edge under the header's right end: an item's actions, or a page's edge.
+                AppFooter().padding(.trailing, detailHasActions ? ItemDetail.detailInset : Self.pageInset)
+            }
             }
             .padding(8)
             .background(WindowBackdrop())
@@ -501,13 +509,8 @@ private struct SidebarAccountCard: View {
             .popover(isPresented: $switching, arrowEdge: .top) {
                 AccountSwitcher(close: { switching = false })
             }
-
-            HStack(spacing: 0) {
-                SyncFooterButton { sync() }
-                footerButton("lock", help: "Lock Vault") { model.lock(animated: true) }
-            }
         }
-        .padding(.leading, 8).padding(.trailing, 6).padding(.vertical, 8)
+        .padding(.leading, 8).padding(.trailing, 8).padding(.vertical, 8)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(dark ? Color.white.opacity(hovering || switching ? 0.09 : 0.06) : Color.white.opacity(hovering || switching ? 0.75 : 0.55))
@@ -517,21 +520,33 @@ private struct SidebarAccountCard: View {
         .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
     }
 
-    private func sync() { Task { try? await model.refresh() } }
+}
 
-    private func footerButton(_ symbol: String, help: LocalizedStringKey, spinning: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-                .symbolEffect(.rotate, isActive: spinning)
-                .frame(width: 26, height: 26)
-                .contentShape(.rect)
+/// The window's footer, under the panels: Sync Now and Lock at the right end, in the header's pill style.
+private struct AppFooter: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        HStack {
+            Spacer(minLength: 0)
+            HStack(spacing: 0) {
+                SyncFooterButton { Task { try? await model.refresh() } }
+                Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 2)
+                Button { model.lock(animated: true) } label: {
+                    Image(systemName: "lock")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 26, height: 26)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(HeaderIconStyle())
+                .help(Text("Lock Vault (⇧⌘L)"))
+                .accessibilityLabel(Text("Lock Vault"))
+            }
+            .padding(.horizontal, 3)
+            .frame(height: 30)
+            .modifier(HeaderChrome(shape: .capsule))
         }
-        .buttonStyle(HeaderIconStyle())
-        .disabled(spinning)
-        .help(Text(help))
-        .accessibilityLabel(Text(help))
     }
 }
 

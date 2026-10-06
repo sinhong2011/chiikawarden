@@ -177,6 +177,34 @@
         }
       }
     },
+    "“%@” is no longer trusted; a server that relies on it stops connecting." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は信頼されなくなり、これに依存するサーバには接続できなくなります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”将不再受信任；依赖它的服务器将无法连接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」將不再受信任；依賴它的伺服器將無法連線。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」之後唔再受信任；靠佢嘅伺服器會連唔到。"
+          }
+        }
+      }
+    },
     "“%@” is password-protected" : {
       "localizations" : {
         "ja" : {
@@ -5824,6 +5852,34 @@
         }
       }
     },
+    "Clear Clipboard Now" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今すぐクリップボードを消去"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即清除剪贴板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即清除剪貼簿"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即刻清除剪貼簿"
+          }
+        }
+      }
+    },
     "Clear copied items after" : {
       "localizations" : {
         "ja" : {
@@ -6017,6 +6073,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剪貼簿"
+          }
+        }
+      }
+    },
+    "Clipboard cleared" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードを消去しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪贴板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪貼簿"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已清除剪貼簿"
           }
         }
       }
@@ -13602,6 +13686,34 @@
         }
       }
     },
+    "It's no longer sent, and its value is deleted from your Keychain." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今後は送信されず、値はキーチェーンから削除されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将不再发送，其值也会从钥匙串中删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將不再傳送，其值也會從鑰匙圈中刪除。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之後唔會再傳送，個值亦會喺鑰匙圈刪除。"
+          }
+        }
+      }
+    },
     "Item" : {
       "localizations" : {
         "ja" : {
@@ -15691,7 +15803,6 @@
       }
     },
     "Move “%@” to Trash?" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -15860,6 +15971,7 @@
       }
     },
     "Move to Trash (⌘⌫)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -15911,6 +16023,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移去垃圾桶…"
+          }
+        }
+      }
+    },
+    "Move to Trash… (⌘⌫)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゴミ箱に入れる…（⌘⌫）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移到废纸篓…（⌘⌫）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移到垃圾桶…（⌘⌫）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移去垃圾桶…（⌘⌫）"
           }
         }
       }
@@ -20794,6 +20934,34 @@
         }
       }
     },
+    "Remove %@?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ を削除しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除 %@？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除 %@？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除 %@？"
+          }
+        }
+      }
+    },
     "Remove from Favorites" : {
       "localizations" : {
         "ja" : {
@@ -20846,6 +21014,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除密碼"
+          }
+        }
+      }
+    },
+    "Remove this certificate?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この証明書を削除しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除此证书？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除此憑證？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除呢張憑證？"
+          }
+        }
+      }
+    },
+    "Remove this header?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このヘッダを削除しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除此标头？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除此標頭？"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除呢個標頭？"
           }
         }
       }
@@ -25956,6 +26180,34 @@
         }
       }
     },
+    "They can no longer ask for access to your vault. You can invite them again later." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この人はあなたの保管庫へのアクセスを申請できなくなります。あとで再度招待できます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对方将无法再申请访问你的密码库。之后可以再次邀请。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對方將無法再申請存取你的密碼庫。之後可以再次邀請。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對方之後唔可以再申請存取你嘅密碼庫。之後可以再邀請。"
+          }
+        }
+      }
+    },
     "They can see your items, read-only." : {
       "localizations" : {
         "ja" : {
@@ -29894,8 +30146,35 @@
         }
       }
     },
+    "You can restore it from Trash for %lld days." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日間はゴミ箱から戻せます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天内可以从废纸篓恢复。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天內可以從垃圾桶復原。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日內可以喺垃圾桶還原。"
+          }
+        }
+      }
+    },
     "You can restore it from Trash later." : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -30261,282 +30540,30 @@
         }
       }
     },
-    "Clear Clipboard Now" : {
+    "Lock Vault (⇧⌘L)" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今すぐクリップボードを消去"
+            "value" : "保管庫をロック（⇧⌘L）"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "立即清除剪贴板"
+            "value" : "锁定密码库（⇧⌘L）"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "立即清除剪貼簿"
+            "value" : "鎖定保險庫（⇧⌘L）"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "即刻清除剪貼簿"
-          }
-        }
-      }
-    },
-    "Clipboard cleared" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリップボードを消去しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已清除剪贴板"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已清除剪貼簿"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已清除剪貼簿"
-          }
-        }
-      }
-    },
-    "You can restore it from Trash for %lld days." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 日間はゴミ箱から戻せます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 天内可以从废纸篓恢复。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 天內可以從垃圾桶復原。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 日內可以喺垃圾桶還原。"
-          }
-        }
-      }
-    },
-    "Move to Trash… (⌘⌫)" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゴミ箱に入れる…（⌘⌫）"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移到废纸篓…（⌘⌫）"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移到垃圾桶…（⌘⌫）"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移去垃圾桶…（⌘⌫）"
-          }
-        }
-      }
-    },
-    "Remove %@?" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ を削除しますか？"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除 %@？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除 %@？"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除 %@？"
-          }
-        }
-      }
-    },
-    "They can no longer ask for access to your vault. You can invite them again later." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この人はあなたの保管庫へのアクセスを申請できなくなります。あとで再度招待できます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "对方将无法再申请访问你的密码库。之后可以再次邀请。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "對方將無法再申請存取你的密碼庫。之後可以再次邀請。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "對方之後唔可以再申請存取你嘅密碼庫。之後可以再邀請。"
-          }
-        }
-      }
-    },
-    "Remove this certificate?" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この証明書を削除しますか？"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除此证书？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除此憑證？"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除呢張憑證？"
-          }
-        }
-      }
-    },
-    "“%@” is no longer trusted; a server that relies on it stops connecting." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」は信頼されなくなり、これに依存するサーバには接続できなくなります。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”将不再受信任；依赖它的服务器将无法连接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」將不再受信任；依賴它的伺服器將無法連線。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」之後唔再受信任；靠佢嘅伺服器會連唔到。"
-          }
-        }
-      }
-    },
-    "Remove this header?" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このヘッダを削除しますか？"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除此标头？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除此標頭？"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除呢個標頭？"
-          }
-        }
-      }
-    },
-    "It's no longer sent, and its value is deleted from your Keychain." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今後は送信されず、値はキーチェーンから削除されます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将不再发送，其值也会从钥匙串中删除。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將不再傳送，其值也會從鑰匙圈中刪除。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "之後唔會再傳送，個值亦會喺鑰匙圈刪除。"
+            "value" : "鎖定保險庫（⇧⌘L）"
           }
         }
       }
