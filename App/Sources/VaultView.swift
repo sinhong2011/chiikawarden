@@ -47,14 +47,17 @@ struct VaultView: View {
 
 
     /// Below this width the sidebar, list and detail become one sliding strip (Reeder-style).
-    private var compact: Bool { width < 900 }
+    /// The item list's width beside the details (wide windows).
+    static let listWidth: CGFloat = 330
+    /// Below this the panes slide one at a time; it grows with the list so the details keep their room.
+    private var compact: Bool { width < 900 + (Self.listWidth - 300) }
 
     /// Search and + span exactly the list panel below. On wide windows the header's slot starts at the list column
-    /// (300 pt, its panel 6 pt in), so: 6 pt in, and the panel's width less + and its gap. Narrow layouts have the
+    /// (listWidth, its panel 6 pt in), so: 6 pt in, and the panel's width less + and its gap. Narrow layouts have the
     /// window buttons above the list, so they keep a plain width.
     private var searchLayout: (width: CGFloat, inset: CGFloat) {
         guard !compact else { return (width < 560 ? 150 : 228, 0) }
-        return (300 - 12 - 40, 6)
+        return (Self.listWidth - 12 - 40, 6)
     }
     private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
     private var maxDepth: Int { isItemSection ? (model.selectedItem == nil ? 1 : 2) : 1 }
@@ -163,7 +166,7 @@ struct VaultView: View {
                     PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth)
                 } else if isItemSection {
                     HStack(spacing: 8) {
-                        listPane.frame(width: 300)
+                        listPane.frame(width: Self.listWidth)
                         detailPane.frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 } else {
