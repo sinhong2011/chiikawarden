@@ -450,6 +450,39 @@ enum SelfTest {
                 check(!model.items.contains { $0.id == new.id }, "delete forever")
             }
 
+            // Organizations: move a personal item in (re-encrypted with the organization key), change its collections.
+            if let org = model.organizations.first, let collection = org.children.first {
+                _ = await model.createItem(.login, edit: CipherEdit(name: "Selftest share", username: "kurimanju", password: "s3cret-share",
+                                                                uri: "https://share.example"))
+                if let mine = model.items.first(where: { $0.name == "Selftest share" }) {
+                    let ok = await model.share([mine.id], organizationId: org.id, collectionIds: [collection.id])
+                    let moved = model.items.first { $0.id == mine.id }
+                    check(ok && moved?.organizationId == org.id && moved?.password == "s3cret-share" && moved?.username == "kurimanju"
+                          && moved?.uri == "https://share.example" && moved?.collectionIds == [collection.id],
+                          "move to organization: re-encrypted with its key, in \(collection.name)")
+                    let collectionsOK = await model.setCollections(moved ?? mine, collectionIds: [collection.id])
+                    check(collectionsOK, "set an organization item's collections")
+                    if let moved { await model.deleteForever(moved) }
+                }
+            } else {
+                check(false, "move to organization: no organization with a collection")
+            }
+
+            // Many at once: trash, restore, move to a folder, delete forever — one request each.
+            for n in 1...3 { _ = await model.createItem(.secureNote, edit: CipherEdit(name: "Selftest bulk \(n)", notes: "b")) }
+            let bulkIDs = model.items.filter { $0.name.hasPrefix("Selftest bulk") }.map(\.id)
+            await model.bulk(.trash, bulkIDs)
+            check(bulkIDs.count == 3 && bulkIDs.allSatisfy { id in model.items.first { $0.id == id }?.isDeleted == true }, "bulk move to Trash")
+            await model.bulk(.restore, bulkIDs)
+            check(bulkIDs.allSatisfy { id in model.items.first { $0.id == id }?.isDeleted == false }, "bulk restore")
+            if let folderID = await model.createFolder(name: "Selftest bulk folder") {
+                await model.bulk(.move(folderId: folderID), bulkIDs)
+                check(bulkIDs.allSatisfy { id in model.items.first { $0.id == id }?.folderId == folderID }, "bulk move to a folder")
+                await model.bulk(.delete, bulkIDs)
+                check(!model.items.contains { bulkIDs.contains($0.id) }, "bulk delete forever")
+                await model.deleteFolder(folderID)
+            }
+
             // Cards, identities, SSH keys and custom fields.
             do {
                 var cardEdit = CipherEdit(name: "Selftest card")

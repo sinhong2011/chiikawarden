@@ -287,4 +287,44 @@ final class AccountSession {
         try await client.deleteCipher(id: id)
         try await refresh()
     }
+
+    // MARK: Organizations and bulk edits
+
+    /// Moves a personal item into an organization and its collections.
+    func share(_ id: String, organizationId: String, collectionIds: [String]) async throws {
+        guard let client, let raw = rawCiphers[id], let key = itemKey(id), let orgKey = keyring?.orgKeys[organizationId] else {
+            throw WriteError.offline
+        }
+        let cipher = try CipherEditor.sharedCipher(raw: raw, key: key, organizationKey: orgKey, organizationId: organizationId)
+        try await client.shareCipher(id: id, cipher: cipher, collectionIds: collectionIds)
+        try await refresh()
+    }
+
+    func setCollections(_ id: String, collectionIds: [String]) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.setCollections(cipherId: id, collectionIds: collectionIds)
+        try await refresh()
+    }
+
+    /// One request for many items: trash, restore, delete forever, archive, or move to a folder.
+    enum Bulk { case trash, restore, delete, archive, move(folderId: String?) }
+
+    func bulk(_ action: Bulk, ids: [String]) async throws {
+        guard let client else { throw WriteError.offline }
+        guard !ids.isEmpty else { return }
+        switch action {
+        case .trash: try await client.trashCiphers(ids: ids)
+        case .restore: try await client.restoreCiphers(ids: ids)
+        case .delete: try await client.deleteCiphers(ids: ids)
+        case .archive: try await client.archiveCiphers(ids: ids)
+        case .move(let folderId): try await client.moveCiphers(ids: ids, folderId: folderId)
+        }
+        try await refresh()
+    }
+
+    func leaveOrganization(_ id: String) async throws {
+        guard let client else { throw WriteError.offline }
+        try await client.leaveOrganization(id: id)
+        try await refresh()
+    }
 }

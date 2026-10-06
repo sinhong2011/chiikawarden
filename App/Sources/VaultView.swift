@@ -237,6 +237,12 @@ struct VaultView: View {
             if show { section = .generator; model.showingGenerator = false }
         }
         .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .sheet(item: $model.organizationSheet) { sheet in
+            switch sheet {
+            case .share(let ids): MoveToOrganizationSheet(itemIDs: ids)
+            case .collections(let id): CollectionsSheet(itemID: id)
+            }
+        }
         .sheet(item: $model.transfer) { transfer in
             switch transfer {
             case .export(let accountId): ExportSheet(initialAccount: accountId)
@@ -412,6 +418,12 @@ private struct Sidebar: View {
                     Label("All Items", systemImage: "building.2")
                         .badge(count(.organization(org.id)))
                         .tag(SidebarSelection.organization(org.id))
+                        .contextMenu {
+                            Button("Leave Organization…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                                model.leaveOrganization(org.id)
+                            }
+                            .labelStyle(.titleAndIcon)
+                        }
                     ForEach(org.children) { collection in
                         Label(collection.name, systemImage: "rectangle.stack")
                             .badge(count(.collection(collection.id)))
@@ -798,6 +810,29 @@ private struct ItemColumn: View {
     @Binding var sort: String
     @Binding var ascending: Bool
 
+    @Environment(AppModel.self) private var model
+
+    private func picked(_ item: VaultItem) -> Bool {
+        model.multiSelection.isEmpty ? item.id == selection : model.multiSelection.contains(item.id)
+    }
+
+    /// A click: plain selects one; ⌘ adds or removes; ⇧ extends from the selected item in list order.
+    private func click(_ item: VaultItem, ordered: [VaultItem]) {
+        let flags = NSEvent.modifierFlags
+        if flags.contains(.command) {
+            var picked = model.multiSelection.isEmpty ? Set(selection.map { [$0] } ?? []) : model.multiSelection
+            if picked.contains(item.id) { picked.remove(item.id) } else { picked.insert(item.id) }
+            withAnimation(.snappy(duration: 0.2)) { model.multiSelection = picked.count > 1 ? picked : [] }
+            if picked.count <= 1 { selection = picked.first ?? item.id }
+        } else if flags.contains(.shift), let anchor = selection, let a = ordered.firstIndex(where: { $0.id == anchor }),
+                  let b = ordered.firstIndex(where: { $0.id == item.id }), a != b {
+            withAnimation(.snappy(duration: 0.2)) { model.multiSelection = Set(ordered[min(a, b)...max(a, b)].map(\.id)) }
+        } else {
+            if !model.multiSelection.isEmpty { withAnimation(.snappy(duration: 0.2)) { model.multiSelection = [] } }
+            selection = item.id
+        }
+    }
+
     private func step(_ delta: Int, _ proxy: ScrollViewProxy) {
         guard !items.isEmpty else { return }
         let current = items.firstIndex { $0.id == selection } ?? (delta > 0 ? -1 : items.count)
@@ -846,8 +881,8 @@ private struct ItemColumn: View {
                     ForEach(ItemSort.sections(items, by: order), id: \.title) { group in
                         Section {
                             ForEach(group.items) { item in
-                                ItemRow(item: item, isSelected: item.id == selection, highlight: query)
-                                    .onTapGesture { selection = item.id }
+                                ItemRow(item: item, isSelected: picked(item), highlight: query)
+                                    .onTapGesture { click(item, ordered: ItemSort.sections(items, by: order).flatMap(\.items)) }
                                     .accessibilityElement(children: .combine)
                                     .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
                                     .accessibilityAction { selection = item.id }
@@ -869,6 +904,16 @@ private struct ItemColumn: View {
             .focusEffectDisabled()
             .onKeyPress(.downArrow) { step(1, proxy); return .handled }
             .onKeyPress(.upArrow) { step(-1, proxy); return .handled }
+            .onKeyPress(.escape) {
+                guard !model.multiSelection.isEmpty else { return .ignored }
+                withAnimation(.snappy(duration: 0.2)) { model.multiSelection = [] }
+                return .handled
+            }
+            .onKeyPress(characters: ["a"], phases: .down) { press in
+                guard press.modifiers.contains(.command), items.count > 1 else { return .ignored }
+                withAnimation(.snappy(duration: 0.2)) { model.multiSelection = Set(items.map(\.id)) }
+                return .handled
+            }
             }
             .thinScroller() // the app's slim scroller: on hover and while scrolling
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
@@ -877,6 +922,15 @@ private struct ItemColumn: View {
                     ContentUnavailableView(query.isEmpty ? "No Items" : "No Results", systemImage: "tray")
                 }
             }
+            .overlay(alignment: .bottom) {
+                let picked = items.filter { model.multiSelection.contains($0.id) }
+                if picked.count > 1 {
+                    SelectionBar(items: picked)
+                        .padding(10)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.snappy(duration: 0.25), value: model.multiSelection.count > 1)
         }
         .padding(.horizontal, 6)
     }

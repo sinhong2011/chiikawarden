@@ -78,6 +78,30 @@ public enum CipherEditor {
         return try JSONSerialization.data(withJSONObject: dict)
     }
 
+    /// A personal item re-encrypted for an organization, as `PUT /ciphers/{id}/share` takes it: every field decrypted
+    /// with the item's current key and encrypted again with the organization's key (the per-item key is dropped).
+    /// Items with attachments can't move this way (their files are encrypted with keys this doesn't re-wrap).
+    public static func sharedCipher(raw: Data, key: SymmetricKeyPair, organizationKey: SymmetricKeyPair,
+                                    organizationId: String) throws -> [String: Any] {
+        guard let dict = normalize(try JSONSerialization.jsonObject(with: raw)) as? [String: Any] else {
+            throw APIError.http(status: -1, message: "Malformed cipher")
+        }
+        if let attachments = dict["attachments"] as? [Any], !attachments.isEmpty { throw ShareError.hasAttachments }
+        let fields = ["type", "folderId", "name", "notes", "fields", "login", "card", "identity", "secureNote", "sshKey",
+                      "favorite", "reprompt", "passwordHistory"]
+        var plain: [String: Any] = [:]
+        for k in fields { if let v = dict[k], !(v is NSNull) { plain[k] = CipherFields.decrypt(v, key: key, field: k) } }
+        guard var out = try CipherFields.encrypt(plain, key: organizationKey) as? [String: Any] else {
+            throw APIError.http(status: -1, message: "encode")
+        }
+        out["organizationId"] = organizationId
+        out["key"] = NSNull()
+        if let revision = dict["revisionDate"] { out["lastKnownRevisionDate"] = revision }
+        return out
+    }
+
+    public enum ShareError: Error { case hasAttachments }
+
     /// Extracts each cipher's raw JSON from a sync payload, keyed by id.
     public static func rawCiphers(fromSync data: Data) -> [String: Data] {
         guard let root = normalize(try? JSONSerialization.jsonObject(with: data)) as? [String: Any],

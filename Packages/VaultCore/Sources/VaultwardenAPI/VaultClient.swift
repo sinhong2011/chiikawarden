@@ -258,7 +258,7 @@ public actor VaultClient {
 
     // MARK: Item writes
 
-    private func authorized(_ r: URLRequest) -> URLRequest {
+    func authorized(_ r: URLRequest) -> URLRequest {
         var r = r
         if let accessToken { r.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
         return r
@@ -509,7 +509,7 @@ public actor VaultClient {
 
     // MARK: Plumbing
 
-    private func request(_ base: URL, _ path: String) throws(APIError) -> URLRequest {
+    func request(_ base: URL, _ path: String) throws(APIError) -> URLRequest {
         guard let url = URL(string: path, relativeTo: base.appendingSlash) else { throw .invalidServerURL }
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -547,7 +547,7 @@ public actor VaultClient {
         do { return try JSONEncoder().encode(object) } catch { throw .http(status: -1, message: "encode") }
     }
 
-    private func sendRaw(_ request: URLRequest) async throws(APIError) -> Data {
+    func sendRaw(_ request: URLRequest) async throws(APIError) -> Data {
         let data: Data
         let response: URLResponse
         do { (data, response) = try await session.data(for: request) } catch {

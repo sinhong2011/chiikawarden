@@ -124,3 +124,32 @@ import Testing
         #expect(preview.problems == [.unknownType(item: 1)])
     }
 }
+
+@Suite struct ShareCipherTests {
+    let userKey = try! SymmetricKeyPair(combined: Data((0..<64).map { UInt8($0) }))
+    let orgKey = try! SymmetricKeyPair(combined: Data((0..<64).map { UInt8(200 - $0) }))
+
+    @Test func sharedCipherIsReencryptedForTheOrganization() throws {
+        var edit = CipherEdit(name: "GitHub", notes: "n", username: "usagi", password: "pw", totp: "JBSW", uri: "https://github.com")
+        edit.customFields = [CustomField(name: "PIN", value: "0420", kind: .hidden)]
+        var raw = try JSONSerialization.jsonObject(with: CipherEditor.newCipher(kind: .login, edit: edit, key: userKey)) as! [String: Any]
+        raw["id"] = "c1"; raw["revisionDate"] = "2026-01-01T00:00:00Z"; raw["folderId"] = "f1"
+        let shared = try CipherEditor.sharedCipher(raw: JSONSerialization.data(withJSONObject: raw), key: userKey,
+                                                   organizationKey: orgKey, organizationId: "o1")
+        #expect(shared["organizationId"] as? String == "o1" && shared["key"] is NSNull)
+        #expect(shared["lastKnownRevisionDate"] as? String == "2026-01-01T00:00:00Z")
+        // Readable with the organization key only.
+        let back = try #require(CipherFields.decrypt(shared, key: orgKey) as? [String: Any])
+        let login = back["login"] as? [String: Any]
+        #expect(back["name"] as? String == "GitHub" && login?["password"] as? String == "pw" && login?["totp"] as? String == "JBSW")
+        #expect((back["fields"] as? [[String: Any]])?.first?["value"] as? String == "0420")
+        #expect((CipherFields.decrypt(shared, key: userKey) as? [String: Any])?["name"] as? String != "GitHub")
+    }
+
+    @Test func itemsWithAttachmentsAreRefused() throws {
+        let raw: [String: Any] = ["id": "c1", "type": 2, "name": "x", "attachments": [["id": "a1"]]]
+        #expect(throws: CipherEditor.ShareError.self) {
+            try CipherEditor.sharedCipher(raw: JSONSerialization.data(withJSONObject: raw), key: userKey, organizationKey: orgKey, organizationId: "o1")
+        }
+    }
+}

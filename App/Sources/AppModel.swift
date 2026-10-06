@@ -83,6 +83,18 @@ final class AppModel {
     /// True while adding another account from an unlocked vault (login screen can be cancelled).
     var addingAccount = false
     var items: [VaultItem] = []
+    /// Items picked together in the list (⌘-click, ⇧-click, ⌘A) for one action on all of them.
+    var multiSelection: Set<String> = []
+
+    /// Moving items into an organization, or changing an organization item's collections.
+    enum OrganizationSheet: Identifiable {
+        case share([String]), collections(String)
+        var id: String {
+            switch self { case .share(let ids): "share:" + ids.joined(separator: ","); case .collections(let id): "collections:" + id }
+        }
+    }
+    var organizationSheet: OrganizationSheet?
+
     /// Selected item, shared by the list, detail and the Item menu commands.
     var selectedID: VaultItem.ID?
     var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
@@ -792,6 +804,109 @@ final class AppModel {
             do { try await session.update(id, edit: CipherEdit(folderId: .some(folderId))); moved += 1 } catch { _ = failed(error); return }
         }
         if moved > 0 { flash(String(localized: "Moved \(moved) item(s)")) }
+    }
+
+    // MARK: Organizations and bulk edits
+
+    /// Moves personal items into an organization's collections (one request each; the server needs every item
+    /// re-encrypted with the organization key).
+    func share(_ itemIDs: [String], organizationId: String, collectionIds: [String]) async -> Bool {
+        var moved = 0
+        for id in itemIDs {
+            guard let item = items.first(where: { $0.id == id }), let session = session(for: item) else { continue }
+            do {
+                try await session.share(id, organizationId: organizationId, collectionIds: collectionIds)
+                moved += 1
+            } catch CipherEditor.ShareError.hasAttachments {
+                flash(String(localized: "“\(item.name)” has attachments; move it from the web vault."))
+                return false
+            } catch {
+                _ = failed(error); return false
+            }
+        }
+        if moved > 0 {
+            let org = organizations.first { $0.id == organizationId }?.name ?? ""
+            flash(String(localized: "Moved \(moved) item(s) to \(org)"))
+        }
+        return true
+    }
+
+    func setCollections(_ item: VaultItem, collectionIds: [String]) async -> Bool {
+        guard let session = session(for: item) else { return offline() }
+        do {
+            try await session.setCollections(item.id, collectionIds: collectionIds)
+            flash(String(localized: "Collections updated"))
+            return true
+        } catch { return failed(error) }
+    }
+
+    /// The same action on many items, one request per account; shown at once and rolled back if it fails.
+    func bulk(_ action: AccountSession.Bulk, _ itemIDs: [String]) async {
+        let chosen = items.filter { itemIDs.contains($0.id) }
+        withAnimation(.snappy(duration: 0.3)) {
+            switch action {
+            case .trash: for i in items.indices where itemIDs.contains(items[i].id) { items[i].isDeleted = true }
+            case .restore: for i in items.indices where itemIDs.contains(items[i].id) { items[i].isDeleted = false }
+            case .archive: for i in items.indices where itemIDs.contains(items[i].id) { items[i].archived = .now }
+            case .delete: items.removeAll { itemIDs.contains($0.id) }
+            case .move: break
+            }
+            // Items that leave the current list take the selection with them (a move keeps them listed).
+            var stays = false
+            if case .move = action { stays = true }
+            if !stays, let id = selectedID, itemIDs.contains(id) { selectedID = nil }
+        }
+        if sessions.isEmpty, previewUnlocked { return }
+        do {
+            for session in sessions {
+                let ids = chosen.filter { $0.accountId == session.id }.map(\.id)
+                if case .move(let folderId) = action {
+                    // A folder belongs to one account; only that account's personal items move.
+                    guard folderId == nil || session.folders.contains(where: { $0.id == folderId }) else { continue }
+                    try await session.bulk(action, ids: chosen.filter { $0.accountId == session.id && $0.organizationId == nil }.map(\.id))
+                } else {
+                    try await session.bulk(action, ids: ids)
+                }
+            }
+            let n = chosen.count
+            switch action {
+            case .trash: flash(String(localized: "Moved \(n) item(s) to Trash"))
+            case .restore: flash(String(localized: "Restored \(n) item(s)"))
+            case .delete: flash(String(localized: "Deleted \(n) item(s) permanently"))
+            case .archive: flash(String(localized: "Archived \(n) item(s)"))
+            case .move: flash(String(localized: "Moved \(n) item(s)"))
+            }
+        } catch {
+            revert(); _ = failed(error)
+        }
+    }
+
+    func confirmBulk(_ action: AccountSession.Bulk, _ itemIDs: [String], then done: @escaping () -> Void = {}) {
+        let n = itemIDs.count
+        switch action {
+        case .trash:
+            confirm(String(localized: "Move \(n) item(s) to Trash?"), message: String(localized: "You can restore them from Trash later."),
+                    action: String(localized: "Move to Trash")) { [weak self] in await self?.bulk(.trash, itemIDs); done() }
+        case .delete:
+            confirm(String(localized: "Delete \(n) item(s) forever?"), message: String(localized: "This can't be undone."),
+                    action: String(localized: "Delete Forever")) { [weak self] in await self?.bulk(.delete, itemIDs); done() }
+        default:
+            Task { await bulk(action, itemIDs); done() }
+        }
+    }
+
+    func leaveOrganization(_ id: String) {
+        guard let org = organizations.first(where: { $0.id == id }),
+              let session = sessions.first(where: { $0.organizations.contains { $0.id == id } }) else { return }
+        confirm(String(localized: "Leave “\(org.name)”?"),
+                message: String(localized: "Its items leave this Mac. An admin has to invite you again to get them back."),
+                action: String(localized: "Leave Organization")) { [weak self] in
+            do {
+                try await session.leaveOrganization(id)
+                if case .organization(id) = self?.vaultFilter { self?.vaultFilter = .all }
+                self?.flash(String(localized: "Left “\(org.name)”"))
+            } catch { _ = self?.failed(error) }
+        }
     }
 
     // MARK: Send
