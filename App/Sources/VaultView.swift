@@ -631,7 +631,7 @@ private struct NewItemButton: View {
                 Button("New Login", systemImage: "key") { model.editing = EditRequest(mode: .create(.login)) }
                 Button("New Secure Note", systemImage: "note.text") { model.editing = EditRequest(mode: .create(.secureNote)) }
                 Button("New Card", systemImage: "creditcard") { model.editing = EditRequest(mode: .create(.card)) }
-                Button("New Identity", systemImage: "person.text.rectangle") { model.editing = EditRequest(mode: .create(.identity)) }
+                Button("New Identity", systemImage: "person.vcard") { model.editing = EditRequest(mode: .create(.identity)) }
                 Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
                 Divider()
                 Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }

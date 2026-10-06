@@ -60,7 +60,7 @@ struct EditItemSheet: View {
     private var symbol: String {
         switch kind {
         case .login: "key.fill"; case .note: "note.text"; case .card: "creditcard.fill"
-        case .identity: "person.text.rectangle.fill"; case .sshKey: "terminal.fill"
+        case .identity: "person.vcard.fill"; case .sshKey: "terminal.fill"
         }
     }
 

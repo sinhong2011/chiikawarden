@@ -188,7 +188,7 @@ struct CommandPalette: View {
                 PaletteCommand(id: "new-note", title: String(localized: "New Secure Note"), symbol: "note.text", shortcut: "⇧⌘N",
                                keywords: ["add", "create"]) { create(.secureNote) },
                 PaletteCommand(id: "new-card", title: String(localized: "New Card"), symbol: "creditcard", keywords: ["add", "credit"]) { create(.card) },
-                PaletteCommand(id: "new-identity", title: String(localized: "New Identity"), symbol: "person.text.rectangle",
+                PaletteCommand(id: "new-identity", title: String(localized: "New Identity"), symbol: "person.vcard",
                                keywords: ["add", "address"]) { create(.identity) },
                 PaletteCommand(id: "new-ssh", title: String(localized: "New SSH Key"), symbol: "terminal", keywords: ["add", "ed25519"]) { create(.sshKey) },
                 PaletteCommand(id: "new-folder", title: String(localized: "New Folder…"), symbol: "folder.badge.plus", shortcut: "⌥⌘N") {
