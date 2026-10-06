@@ -207,7 +207,7 @@ private struct SecuritySettings: View {
     @AppStorage(Pref.lockAnimations) private var lockAnimations = true
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
     @AppStorage(Pref.codeAfterPassword) private var codeAfterPassword = true
-    @AppStorage(Pref.hideFromCapture) private var hideFromCapture = true
+    @AppStorage(Pref.hideFromCapture) private var hideFromCapture = false
 
     var body: some View {
         Form {
