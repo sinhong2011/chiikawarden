@@ -100,8 +100,10 @@ fi
 
 echo "== Package"
 ditto -c -k --keepParent "$APP" "$ZIP"
-STAGE=$OUT/dmg && mkdir -p "$STAGE" && cp -R "$APP" "$STAGE/" && ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "Triwarden $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+# Styled window: background, icon positions and volume icon from scripts/dmg-settings.py (Design/DMG/generate.py).
+command -v dmgbuild >/dev/null || { echo "dmgbuild not found: pipx install dmgbuild (or uv tool install dmgbuild)"; exit 1; }
+dmgbuild -s scripts/dmg-settings.py -D app="$APP" "Triwarden $VERSION" "$DMG" 2>&1 | grep -v "is deprecated" || true
+[[ -f $DMG ]] || { echo "dmgbuild failed"; exit 1; }
 if [[ $NOTARIZE == 1 ]]; then
   xcrun notarytool submit "$DMG" "${NOTARY[@]}" --wait
   xcrun stapler staple "$DMG"
