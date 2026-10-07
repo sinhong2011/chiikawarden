@@ -363,6 +363,12 @@ enum Snapshot {
             render(AccountSwitcher(close: {}).environment(people).background(.regularMaterial),
                    size: CGSize(width: 300, height: 420), appearance: appearance,
                    to: dir.appending(path: "account-switcher-\(name).png"))
+            if let first = people.accounts.first {
+                render(AccountUnlockPane(account: first).environment(people).padding(.vertical, 6)
+                    .background(Color(nsColor: .windowBackgroundColor)),
+                       size: CGSize(width: 270, height: 520), appearance: appearance,
+                       to: dir.appending(path: "account-unlock-\(name).png"))
+            }
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
             for pane in ["general", "shortcuts", "server", "account:a", "account:b", "security", "developer", "about"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")

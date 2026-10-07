@@ -582,14 +582,27 @@ final class AppModel {
         }
     }
 
-    /// Opens the login screen to add another account (cancellable back to the vault).
-    func beginAddAccount() {
+    /// Opens the login screen to add another account (cancellable back to the vault, or the unlock screen).
+    /// With `sameServerAs`, the server fields start out as that account's, so only the email is new.
+    func beginAddAccount(sameServerAs account: SavedAccount? = nil) {
         addingAccount = true
         client = nil
         errorMessage = nil
         email = ""
         serverURL = "https://"
         (customWebVault, customAPI, customIdentity, customIcons, customNotifications) = ("", "", "", "", "")
+        if let account, let kind = ServerKind(rawValue: account.serverKind) {
+            serverKind = kind
+            if kind == .selfHosted {
+                serverURL = account.serverURL
+                if let c = account.customURLs {
+                    if let base = c.base { serverURL = base.absoluteString }
+                    let text = { (url: URL?) in url?.absoluteString ?? "" }
+                    (customWebVault, customAPI, customIdentity, customIcons, customNotifications) =
+                        (text(c.webVault), text(c.api), text(c.identity), text(c.icons), text(c.notifications))
+                }
+            }
+        }
         phase = .login
     }
 
