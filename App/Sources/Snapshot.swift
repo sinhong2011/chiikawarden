@@ -400,6 +400,13 @@ enum Snapshot {
             UserDefaults.standard.set("license", forKey: "settingsPane")
             render(SettingsView().environment(model).tint(.controlTint), size: CGSize(width: 820, height: 640),
                    appearance: appearance, to: dir.appending(path: "settings-license-registered-\(name).png"))
+            // The celebration, caught mid-burst and as the confetti falls.
+            for moment in [0.35, 0.8] {
+                render(desktop(LicenseSettings(celebrationFrozenAt: moment).environment(model).tint(.controlTint)
+                    .frame(width: 600, height: 420), dark: name == "dark"),
+                       size: CGSize(width: 600, height: 420), appearance: appearance,
+                       to: dir.appending(path: "license-celebrate-\(Int(moment * 100))-\(name).png"))
+            }
             model.license.preview(nil)
             UserDefaults.standard.set(saved, forKey: "settingsPane")
             // The menu bar panel with two accounts: the account button beside search and lock.

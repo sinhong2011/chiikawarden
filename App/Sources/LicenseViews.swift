@@ -101,7 +101,10 @@ struct LicenseSettings: View {
     @State private var problem: String?
     @State private var working = false
     @State private var confirmRemove = false
-    @State private var justRegistered = false
+    /// When a key was just registered here: the badge celebrates once.
+    @State private var celebration: Date?
+    /// Snapshots: draw the celebration at this moment.
+    var celebrationFrozenAt: Double?
     @FocusState private var keyFocused: Bool
 
     var body: some View {
@@ -122,7 +125,7 @@ struct LicenseSettings: View {
             if wants { keyFocused = true; license.wantsKeyEntry = false }
         }
         .confirmationDialog("Remove the license from this Mac?", isPresented: $confirmRemove) {
-            Button("Remove License", role: .destructive) { license.remove(); justRegistered = false }
+            Button("Remove License", role: .destructive) { license.remove(); celebration = nil }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Triwarden keeps working. You can register again with the same key at any time.")
@@ -203,13 +206,7 @@ struct LicenseSettings: View {
     @ViewBuilder private func registered(_ registration: License.Registration, key: String) -> some View {
         Section {
             VStack(spacing: 0) {
-                ZStack {
-                    Circle().fill(Color.brandFill).frame(width: 64, height: 64)
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(Color.onBrandFill)
-                        .symbolEffect(.bounce, value: justRegistered)
-                }
+                RegistrationBadge(celebration: celebrationFrozenAt == nil ? celebration : .now, frozenAt: celebrationFrozenAt)
                 Text("Thank you!")
                     .font(.system(size: 20, weight: .bold)).tracking(-0.2)
                     .padding(.top, 12)
@@ -257,7 +254,7 @@ struct LicenseSettings: View {
             do {
                 try await model.license.register(key)
                 key = ""
-                justRegistered.toggle()
+                celebration = .now
             } catch {
                 withAnimation(.snappy) { problem = error.localizedDescription }
             }
