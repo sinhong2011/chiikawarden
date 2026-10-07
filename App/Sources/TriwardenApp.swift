@@ -13,6 +13,7 @@ struct TriwardenApp: App {
         // One window with its own toolbar: no system tab bar (and no View › Show Tab Bar to turn it on).
         NSWindow.allowsAutomaticWindowTabbing = false
         #if DEBUG
+        Bench.runUnlockIfRequested()
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
         CloudSelfTest.runIfRequested()
@@ -48,7 +49,7 @@ struct TriwardenApp: App {
             RootView()
                 .environment(model)
                 .preferredColorScheme(appearance.scheme)
-                .onAppear { appDelegate.model = model }
+                .onAppear { appDelegate.model = model; Bench.markAfterCommit("first-frame") }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
                 }

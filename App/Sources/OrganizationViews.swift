@@ -37,7 +37,7 @@ struct SelectionBar: View {
                 .help(Text("Move to Folder"))
                 .accessibilityLabel(Text("Move to Folder"))
                 if shareable {
-                    button("building.2", "Move to Organization…") { model.organizationSheet = .share(ids) }
+                    button("building.2", "Move to Shared Vault…") { model.organizationSheet = .share(ids) }
                 }
                 button("archivebox", "Archive") { model.confirmBulk(.archive, ids, then: clear) }
                 button("trash", "Move to Trash…", role: .destructive) { model.confirmBulk(.trash, ids, then: clear) }
@@ -94,7 +94,7 @@ private struct CollectionChecklist: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
             if collections.isEmpty {
-                Text("This organization has no collections you can add to.").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("This shared vault has no shared folders you can add to.").font(.system(size: 12)).foregroundStyle(.secondary)
             }
         }
     }
@@ -117,9 +117,9 @@ struct MoveToOrganizationSheet: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    FormHeader(symbol: "building.2", title: "Move to Organization",
-                               subtitle: items.count == 1 ? "Share this item with the organization's members."
-                                                          : "Share these items with the organization's members.")
+                    FormHeader(symbol: "building.2", title: "Move to Shared Vault",
+                               subtitle: items.count == 1 ? "Share this item with the shared vault's members."
+                                                          : "Share these items with the shared vault's members.")
                     FormCard {
                         if items.count == 1, let item = items.first {
                             HStack(spacing: 10) {
@@ -129,15 +129,15 @@ struct MoveToOrganizationSheet: View {
                         } else {
                             Text("\(items.count) items").font(.system(size: 13, weight: .semibold))
                         }
-                        FormField(label: "Organization") {
+                        FormField(label: "Shared vault") {
                             SoftMenu(options: organizations.map { (String?.some($0.id), $0.name) }, selection: $orgId,
-                                     accessibilityLabel: "Organization")
+                                     accessibilityLabel: "Shared vault")
                         }
                     }
-                    FormCard(title: "Collections") {
+                    FormCard(title: "Shared Folders") {
                         CollectionChecklist(collections: collections, chosen: $chosen)
                     }
-                    Label("Moving is one way: the organization owns the items afterwards.", systemImage: "info.circle")
+                    Label("Moving is one way: the shared vault owns the items afterwards.", systemImage: "info.circle")
                         .font(.system(size: 11)).foregroundStyle(.secondary).padding(.horizontal, 4)
                 }
                 .padding(20)
@@ -175,7 +175,7 @@ struct CollectionsSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
-                FormHeader(symbol: "rectangle.stack", title: "Collections",
+                FormHeader(symbol: "rectangle.stack", title: "Shared Folders",
                            subtitle: "Who in \(organization?.name ?? "") can see this item.")
                 FormCard {
                     CollectionChecklist(collections: organization?.children ?? [], chosen: $chosen)

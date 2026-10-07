@@ -40,9 +40,9 @@ struct ItemContextMenu: View {
                     Task { await model.setArchived(item, !item.isArchived) }
                 }
                 if item.organizationId != nil {
-                    Button("Collections…", systemImage: "rectangle.stack") { model.organizationSheet = .collections(item.id) }
+                    Button("Shared Folders…", systemImage: "rectangle.stack") { model.organizationSheet = .collections(item.id) }
                 } else if model.session(for: item.accountId)?.organizations.isEmpty == false {
-                    Button("Move to Organization…", systemImage: "building.2") { model.organizationSheet = .share([item.id]) }
+                    Button("Move to Shared Vault…", systemImage: "building.2") { model.organizationSheet = .share([item.id]) }
                 }
                 Divider()
                 Button("Move to Trash…", systemImage: "trash", role: .destructive) { model.confirmTrash(item) }

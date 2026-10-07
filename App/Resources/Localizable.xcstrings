@@ -530,34 +530,6 @@
         }
       }
     },
-    "%lld collections" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 個のコレクション"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 个集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 個集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 個集合"
-          }
-        }
-      }
-    },
     "%lld days" : {
       "localizations" : {
         "ja" : {
@@ -1668,6 +1640,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "30 秒"
+          }
+        }
+      }
+    },
+    "%lld shared folders" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個の共有フォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個共享資料夾"
+          }
+        }
+      }
+    },
+    "%lld on" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件オン"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已开启 %lld 个"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已開啟 %lld 個"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開咗 %lld 個"
           }
         }
       }
@@ -3166,6 +3194,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回應 tw 指令"
+          }
+        }
+      }
+    },
+    "Any folder" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのフォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任意文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何資料夾"
+          }
+        }
+      }
+    },
+    "Any type" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての種類"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任意类型"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何類型"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何類型"
           }
         }
       }
@@ -4980,34 +5064,6 @@
         }
       }
     },
-    "Change collections" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクションを変更"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "變更集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改集合"
-          }
-        }
-      }
-    },
     "Change in System Settings…" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5149,6 +5205,90 @@
         }
       }
     },
+    "Change shared folders" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダを変更"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改共享資料夾"
+          }
+        }
+      }
+    },
+    "Changed the shared folders of %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の共有フォルダを変更しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改了 %@ 的共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更了 %@ 的共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改咗 %@ 嘅共享資料夾"
+          }
+        }
+      }
+    },
+    "Changed the shared vault's settings" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫の設定を変更しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改了共享保险库设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更了共享保險庫設定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改咗共享保險庫設定"
+          }
+        }
+      }
+    },
     "Change…" : {
       "localizations" : {
         "ja" : {
@@ -5257,62 +5397,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改咗政策"
-          }
-        }
-      }
-    },
-    "Changed the collections of %@" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ のコレクションを変更しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改了 %@ 的集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "變更了 %@ 的集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改咗 %@ 嘅集合"
-          }
-        }
-      }
-    },
-    "Changed the organization's settings" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織の設定を変更しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改了组织设置"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "變更了組織設定"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改咗組織設定"
           }
         }
       }
@@ -6020,6 +6104,34 @@
         }
       }
     },
+    "Clear Filters" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絞り込みを解除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除篩選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除篩選"
+          }
+        }
+      }
+    },
     "Clear generator history?" : {
       "localizations" : {
         "ja" : {
@@ -6083,6 +6195,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "検索をクリア"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜索"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜尋"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜尋"
+          }
+        }
+      }
+    },
+    "Clear Search" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索を消去"
           }
         },
         "zh-Hans" : {
@@ -6466,90 +6606,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "登入時，驗證碼會寄去呢個地址。"
-          }
-        }
-      }
-    },
-    "Collections" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクション"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合"
-          }
-        }
-      }
-    },
-    "Collections updated" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクションを更新しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新集合"
-          }
-        }
-      }
-    },
-    "Collections…" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクション…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合…"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "集合…"
           }
         }
       }
@@ -8461,30 +8517,30 @@
         }
       }
     },
-    "Created a collection" : {
+    "Created a shared folder" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コレクションを作成しました"
+            "value" : "共有フォルダを作成しました"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建了集合"
+            "value" : "创建了共享文件夹"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立了集合"
+            "value" : "建立了共享資料夾"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立咗集合"
+            "value" : "建立咗共享資料夾"
           }
         }
       }
@@ -9276,6 +9332,34 @@
         }
       }
     },
+    "Deleted a shared folder" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダを削除しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除了共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除了共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除咗共享資料夾"
+          }
+        }
+      }
+    },
     "Delete…" : {
       "localizations" : {
         "ja" : {
@@ -9384,34 +9468,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已永久刪除 %lld 個項目"
-          }
-        }
-      }
-    },
-    "Deleted a collection" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクションを削除しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除了集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刪除了集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刪除咗集合"
           }
         }
       }
@@ -10342,6 +10398,34 @@
         }
       }
     },
+    "Edited a shared folder" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダを編集しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑了共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯了共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯咗共享資料夾"
+          }
+        }
+      }
+    },
     "Edit…" : {
       "localizations" : {
         "ja" : {
@@ -10422,34 +10506,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "編輯咗 %@"
-          }
-        }
-      }
-    },
-    "Edited a collection" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクションを編集しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑了集合"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "編輯了集合"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "編輯咗集合"
           }
         }
       }
@@ -12171,6 +12227,90 @@
         }
       }
     },
+    "Filters" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絞り込み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選"
+          }
+        }
+      }
+    },
+    "Filters are on." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絞り込みがオンです。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选已开启。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選已開啟。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選開咗。"
+          }
+        }
+      }
+    },
+    "Filters, %lld items" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絞り込み、%lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选，%lld 个项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選，%lld 個項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選，%lld 個項目"
+          }
+        }
+      }
+    },
     "Fingerprint" : {
       "localizations" : {
         "ja" : {
@@ -12391,34 +12531,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已建立資料夾"
-          }
-        }
-      }
-    },
-    "Folders" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォルダ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "資料夾"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "資料夾"
           }
         }
       }
@@ -14902,6 +15014,62 @@
     "LastPass CSV" : {
 
     },
+    "Leave Shared Vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫を退出"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离开共享保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離開共享保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離開共享保險庫"
+          }
+        }
+      }
+    },
+    "Leave Shared Vault…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫を退出…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离开共享保险库…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離開共享保險庫…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離開共享保險庫…"
+          }
+        }
+      }
+    },
     "Leave “%@”?" : {
       "localizations" : {
         "ja" : {
@@ -14954,62 +15122,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "留空就保留而家嘅密碼"
-          }
-        }
-      }
-    },
-    "Leave Organization" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織を退出"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "离开组织"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "離開組織"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "離開組織"
-          }
-        }
-      }
-    },
-    "Leave Organization…" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織を退出…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "离开组织…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "離開組織…"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "離開組織…"
           }
         }
       }
@@ -16419,6 +16531,62 @@
         }
       }
     },
+    "Move to Shared Vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫へ移動"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保險庫"
+          }
+        }
+      }
+    },
+    "Move to Shared Vault…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫へ移動…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保险库…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保險庫…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至共享保險庫…"
+          }
+        }
+      }
+    },
     "Move “%@” to Trash?" : {
       "localizations" : {
         "ja" : {
@@ -16499,62 +16667,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移至資料夾"
-          }
-        }
-      }
-    },
-    "Move to Organization" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織へ移動"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至组织"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至組織"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至組織"
-          }
-        }
-      }
-    },
-    "Move to Organization…" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織へ移動…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至组织…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至組織…"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移至組織…"
           }
         }
       }
@@ -16672,6 +16784,34 @@
         }
       }
     },
+    "Moved %@ into a shared vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ を共有保管庫に移動しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 %@ 移入共享保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將 %@ 移入共享保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將 %@ 移入咗共享保險庫"
+          }
+        }
+      }
+    },
     "Moved “%@” to Trash" : {
       "localizations" : {
         "ja" : {
@@ -16696,34 +16836,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已將「%@」移到垃圾桶"
-          }
-        }
-      }
-    },
-    "Moved %@ into the organization" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ を組織に移動しました"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将 %@ 移入组织"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將 %@ 移入組織"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將 %@ 移入咗組織"
           }
         }
       }
@@ -16925,30 +17037,58 @@
         }
       }
     },
-    "Moving is one way: the organization owns the items afterwards." : {
+    "Moving is one way: the shared vault owns the items afterwards." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移動は一方向です。以後、項目は組織のものになります。"
+            "value" : "移動は一方向です。以後、項目は共有保管庫のものになります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移动是单向的：之后项目将归该组织所有。"
+            "value" : "移动是单向的：之后项目将归该共享保险库所有。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移動是單向的：之後項目將屬於該組織。"
+            "value" : "移動是單向的：之後項目將屬於該共享保險庫。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移動係單向嘅：之後項目會屬於個組織。"
+            "value" : "移動係單向嘅：之後項目會屬於個共享保險庫。"
+          }
+        }
+      }
+    },
+    "My Folders" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイフォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我嘅資料夾"
           }
         }
       }
@@ -19903,34 +20043,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "次序"
-          }
-        }
-      }
-    },
-    "Organization" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "组织"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "組織"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "機構"
           }
         }
       }
@@ -23204,6 +23316,62 @@
         }
       }
     },
+    "Search all vaults" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての保管庫を検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索所有保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋所有保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋所有保險庫"
+          }
+        }
+      }
+    },
+    "Search by name, username or website. Filter with type:card, is:favorite, has:otp, has:passkey, is:weak, folder:Work or vault:personal." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名前、ユーザー名、Web サイトで検索。type:card、is:favorite、has:otp、has:passkey、is:weak、folder:Work、vault:personal で絞り込めます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名称、用户名或网站搜索。可用 type:card、is:favorite、has:otp、has:passkey、is:weak、folder:Work 或 vault:personal 筛选。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依名稱、使用者名稱或網站搜尋。可用 type:card、is:favorite、has:otp、has:passkey、is:weak、folder:Work 或 vault:personal 篩選。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名稱、用戶名稱或者網站搜尋。可以用 type:card、is:favorite、has:otp、has:passkey、is:weak、folder:Work 或者 vault:personal 篩選。"
+          }
+        }
+      }
+    },
     "Search everything, run any command. Over a browser or an app, its logins come first." : {
       "localizations" : {
         "ja" : {
@@ -24214,58 +24382,170 @@
         }
       }
     },
-    "Share these items with the organization's members." : {
+    "Share these items with the shared vault's members." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "これらの項目を組織のメンバーと共有します。"
+            "value" : "これらの項目を共有保管庫のメンバーと共有します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "与组织成员共享这些项目。"
+            "value" : "与共享保险库的成员共享这些项目。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "與組織成員共享這些項目。"
+            "value" : "與共享保險庫的成員共享這些項目。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同組織成員共享呢啲項目。"
+            "value" : "同共享保險庫嘅成員共享呢啲項目。"
           }
         }
       }
     },
-    "Share this item with the organization's members." : {
+    "Share this item with the shared vault's members." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この項目を組織のメンバーと共有します。"
+            "value" : "この項目を共有保管庫のメンバーと共有します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "与组织成员共享这个项目。"
+            "value" : "与共享保险库的成员共享这个项目。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "與組織成員共享這個項目。"
+            "value" : "與共享保險庫的成員共享這個項目。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同組織成員共享呢個項目。"
+            "value" : "同共享保險庫嘅成員共享呢個項目。"
+          }
+        }
+      }
+    },
+    "Shared Folders" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享資料夾"
+          }
+        }
+      }
+    },
+    "Shared folders updated" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダを更新しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新共享文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新共享資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新共享資料夾"
+          }
+        }
+      }
+    },
+    "Shared Folders…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有フォルダ…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享文件夹…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享資料夾…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享資料夾…"
+          }
+        }
+      }
+    },
+    "Shared vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有保管庫"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享保險庫"
           }
         }
       }
@@ -24522,30 +24802,30 @@
         }
       }
     },
-    "Show just one vault while this Focus is on, like your work organization." : {
+    "Show just one vault while this Focus is on, like your team's shared vault." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この集中モードの間は、仕事の組織など1つの保管庫だけを表示します。"
+            "value" : "この集中モードの間は、チームの共有保管庫など1つの保管庫だけを表示します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此专注模式开启时只显示一个保险库，例如工作组织。"
+            "value" : "此专注模式开启时只显示一个保险库，例如团队的共享保险库。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此專注模式開啟時只顯示一個保險庫，例如工作組織。"
+            "value" : "此專注模式開啟時只顯示一個保險庫，例如團隊的共享保險庫。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "呢個專注模式開咗嘅時候只顯示一個保險庫，例如公司嘅組織。"
+            "value" : "呢個專注模式開咗嘅時候只顯示一個保險庫，例如團隊嘅共享保險庫。"
           }
         }
       }
@@ -24602,6 +24882,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只顯示一個保險庫"
+          }
+        }
+      }
+    },
+    "Show only" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次のみ表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅顯示"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只顯示"
           }
         }
       }
@@ -27610,34 +27918,6 @@
         }
       }
     },
-    "This organization has no collections you can add to." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この組織には追加できるコレクションがありません。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这个组织没有你可以添加到的集合。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這個組織沒有你可以加入的集合。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "呢個組織冇你可以加入嘅集合。"
-          }
-        }
-      }
-    },
     "This passkey can't be used here." : {
       "localizations" : {
         "ja" : {
@@ -27746,6 +28026,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "呢部伺服器暫時未支援封存。"
+          }
+        }
+      }
+    },
+    "This shared vault has no shared folders you can add to." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この共有保管庫には追加できる共有フォルダがありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个共享保险库没有你可以添加到的共享文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個共享保險庫沒有你可以加入的共享資料夾。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個共享保險庫冇你可以加入嘅共享資料夾。"
           }
         }
       }
@@ -30675,6 +30983,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安全監測"
+          }
+        }
+      }
+    },
+    "Watchtower issue" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォッチタワーの問題"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全监测问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全監測問題"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全監測問題"
+          }
+        }
+      }
+    },
+    "Watchtower issues" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォッチタワーの問題"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全监测问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全監測問題"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全監測問題"
           }
         }
       }

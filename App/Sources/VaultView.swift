@@ -40,6 +40,8 @@ struct VaultView: View {
     var initialSection: SidebarSelection?
     /// Narrow windows: the strip's starting pane (snapshots and previews).
     var initialDepth = 1
+    /// Search text to start with (snapshots).
+    var initialQuery = ""
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var query = ""
@@ -86,11 +88,8 @@ struct VaultView: View {
     private var filtered: [VaultItem] {
         let matching = model.vaultItems
             .filter(section.includes)
-            .filter { item in
-                query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-                    || (item.username?.localizedCaseInsensitiveContains(query) ?? false)
-                    || (item.host?.localizedCaseInsensitiveContains(query) ?? false)
-            }
+            .filter(model.passesSearchFilters)
+            .filter { AppModel.searchMatches($0, query) }
         return ItemSort.sorted(matching, by: sort, ascending: ascending)
     }
 
@@ -258,10 +257,10 @@ struct VaultView: View {
                 .sharedBackgroundVisibility(.hidden)
             }
             .background {
-                // Keyboard: ⌘K / ⌘F open the command palette, ⌘G the generator.
+                // Keyboard: ⌘K opens the command palette, ⌘F the list's search, ⌘G the generator.
                 Group {
                     Button("") { model.openPalette() }.keyboardShortcut("k", modifiers: .command)
-                    Button("") { model.openPalette() }.keyboardShortcut("f", modifiers: .command)
+                    Button("") { focusSearch() }.keyboardShortcut("f", modifiers: .command)
                     Button("") { section = .generator }.keyboardShortcut("g", modifiers: .command)
                 }
                 .hidden()
@@ -329,10 +328,18 @@ struct VaultView: View {
         .overlay(alignment: .bottom) { ToastView() }
         .onAppear {
             if let initialSection { section = initialSection }
+            if !initialQuery.isEmpty { query = initialQuery }
             selectFirst()
         }
         // Under the lock layer the vault starts empty; pick an item once unlocking fills it.
         .onChange(of: model.items.isEmpty) { _, empty in if !empty { selectFirst() } }
+    }
+
+    /// ⌘F: to the list's search field (from a tool page, back to All Items first).
+    private func focusSearch() {
+        if !isItemSection { section = .section(.all) }
+        if compact { depth = 1 }
+        model.wantsSearchFocus = true
     }
 
     private func selectFirst() {
@@ -435,7 +442,7 @@ private struct Sidebar: View {
                                 FolderRow(node: node, count: count)
                             }
                         } label: {
-                            SidebarLabel("Folders", symbol: "folder")
+                            SidebarLabel("My Folders", symbol: "folder")
                         }
                     }
                 } label: {
@@ -472,7 +479,7 @@ private struct Sidebar: View {
                         .contextMenu {
                             Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
                                 .labelStyle(.titleAndIcon)
-                            Button("Leave Organization…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                            Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
                                 model.leaveOrganization(org.id)
                             }
                             .labelStyle(.titleAndIcon)
@@ -1073,48 +1080,6 @@ private struct SectionHeader: View {
     }
 }
 
-/// Filters the list in place: by name, username or website. Esc clears it, ↓ moves into the list.
-private struct ListFilterField: View {
-    @Binding var query: String
-    var focused: FocusState<Bool>.Binding
-    var moveToList: () -> Void = {}
-    @State private var hovering = false
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: "line.3.horizontal.decrease")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            TextField("Filter", text: $query, prompt: Text("Filter"))
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .focused(focused)
-                .onKeyPress(.escape) {
-                    guard !query.isEmpty else { return .ignored }
-                    query = ""
-                    return .handled
-                }
-                .onKeyPress(.downArrow) { moveToList(); return .handled }
-            if !query.isEmpty {
-                Button { query = ""; focused.wrappedValue = true } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
-                }
-                .buttonStyle(.plain)
-                .help(Text("Clear Filter"))
-                .accessibilityLabel(Text("Clear Filter"))
-                .transition(.opacity.combined(with: .scale(scale: 0.6)))
-            }
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 32)
-        .modifier(HeaderChrome(shape: .capsule, hovering: hovering || focused.wrappedValue))
-        .contentShape(.capsule)
-        .onTapGesture { focused.wrappedValue = true }
-        .onHover { hovering = $0 }
-        .animation(.easeOut(duration: 0.15), value: query.isEmpty)
-    }
-}
-
 private struct ItemColumn: View {
     let items: [VaultItem]
     /// The Trash: a note on when its items go for good.
@@ -1164,10 +1129,11 @@ private struct ItemColumn: View {
         VStack(spacing: 10) {
             // Narrow the list by typing, and choose its order.
             HStack(spacing: 6) {
-                ListFilterField(query: $query, focused: $filterFocused) {
+                VaultSearchField(query: $query, focused: $filterFocused) {
                     listFocused = true
                     if selection == nil || !items.contains(where: { $0.id == selection }) { selection = items.first?.id }
                 }
+                SearchFilterMenu()
                 Menu {
                     Picker("Sort By", selection: $sort) {
                         ForEach(ItemSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
@@ -1192,7 +1158,14 @@ private struct ItemColumn: View {
                 .help(Text("Sort"))
                 .accessibilityLabel(Text("Sort"))
             }
-            .padding(.leading, 6) // the filter and sort line up with the list's edge
+            .padding(.leading, 6) // the search and sort line up with the list's edge
+
+            // The filters that are on, under the field, until they're cleared.
+            if model.hasSearchFilters {
+                SearchFilterBar(resultCount: items.count)
+                    .padding(.leading, 6)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
 
             if isTrash, !items.isEmpty { TrashNotice(items: items) }
 
@@ -1245,8 +1218,15 @@ private struct ItemColumn: View {
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
             .overlay {
                 if items.isEmpty {
+                    let searching = !query.isEmpty || model.hasSearchFilters
                     ContentUnavailableView {
-                        Label(query.isEmpty ? "No Items" : "No Results", systemImage: query.isEmpty ? "tray" : "magnifyingglass")
+                        Label(searching ? "No Results" : "No Items", systemImage: searching ? "magnifyingglass" : "tray")
+                    } description: {
+                        if model.hasSearchFilters { Text("Filters are on.") }
+                    } actions: {
+                        if model.hasSearchFilters {
+                            Button("Clear Filters") { withAnimation(.snappy(duration: 0.25)) { model.clearSearchFilters() } }
+                        }
                     }
                     .modifier(WindowCentered())
                 }
@@ -1262,6 +1242,14 @@ private struct ItemColumn: View {
             .animation(.snappy(duration: 0.25), value: model.multiSelection.count > 1)
         }
         .padding(.horizontal, 6)
+        .animation(.snappy(duration: 0.25), value: model.hasSearchFilters)
+        .onChange(of: items.isEmpty, initial: true) { _, empty in if !empty { Bench.markAfterCommit("vault-ready") } }
+        // ⌘F, also when the list has only just appeared for it.
+        .onChange(of: model.wantsSearchFocus, initial: true) { _, wants in
+            guard wants else { return }
+            model.wantsSearchFocus = false
+            Task { @MainActor in filterFocused = true } // after the field is in the window
+        }
     }
 }
 
@@ -1434,7 +1422,7 @@ struct ItemDetail: View {
                         }
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
-                        DetailRow(symbol: "building.2", title: "Organization") {
+                        DetailRow(symbol: "building.2", title: "Shared vault") {
                             let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
                             Button { model.organizationSheet = .collections(item.id) } label: {
                                 HStack(spacing: 5) {
@@ -1444,7 +1432,7 @@ struct ItemDetail: View {
                                 .foregroundStyle(.secondary).contentShape(.rect)
                             }
                             .buttonStyle(.plain)
-                            .help(Text("Change collections"))
+                            .help(Text("Change shared folders"))
                         }
                     } else if let folderId = item.folderId, let folder = model.folders.first(where: { $0.id == folderId }) {
                         DetailRow(symbol: "folder", title: "Folder") {
@@ -2064,15 +2052,16 @@ struct AccountUnlockPane: View {
 enum Highlight {
     static func marked(_ text: String, _ query: String) -> AttributedString {
         var out = AttributedString(text)
-        let q = query.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return out }
-        var start = text.startIndex
-        while let range = text.range(of: q, options: [.caseInsensitive, .diacriticInsensitive], range: start..<text.endIndex) {
-            if let r = Range(range, in: out) {
-                out[r].backgroundColor = Color.brand.opacity(0.22)
-                out[r].foregroundColor = .primary
+        // Each word on its own: the list matches them anywhere, in any order.
+        for q in query.split(separator: " ").map(String.init) {
+            var start = text.startIndex
+            while let range = text.range(of: q, options: [.caseInsensitive, .diacriticInsensitive], range: start..<text.endIndex) {
+                if let r = Range(range, in: out) {
+                    out[r].backgroundColor = Color.brand.opacity(0.22)
+                    out[r].foregroundColor = .primary
+                }
+                start = range.upperBound
             }
-            start = range.upperBound
         }
         return out
     }

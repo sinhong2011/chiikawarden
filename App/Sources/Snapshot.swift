@@ -188,6 +188,41 @@ enum Snapshot {
             renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
                          appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
         }
+        // Shared vaults and folders, under their plain names: My Folders in the sidebar, a shared vault's section with
+        // its shared folders, an item's Shared vault row, and the move and shared-folder sheets.
+        let plainItems = vault.items
+        vault.folders = [Grouping(id: "f-personal", name: "Personal"), Grouping(id: "f-work", name: "Work")]
+        vault.organizations = [Grouping(id: "org-nw", name: "Northwind", children: [
+            Grouping(id: "col-eng", name: "Engineering"), Grouping(id: "col-ops", name: "Operations")])]
+        vault.items = vault.items.map { item in
+            var item = item
+            if item.id == "1" { item.organizationId = "org-nw"; item.collectionIds = ["col-ops"] }
+            if item.id == "2" { item.folderId = "f-work"; item.folderName = "Work" }
+            if item.id == "3" { item.folderId = "f-personal"; item.folderName = "Personal" }
+            return item
+        }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            render(MoveToOrganizationSheet(itemIDs: ["2"]).environment(vault).tint(.brand), size: CGSize(width: 520, height: 600),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-move-\(name).png"))
+            render(CollectionsSheet(itemID: "1").environment(vault).tint(.brand), size: CGSize(width: 480, height: 420),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-folders-\(name).png"))
+        }
+        vault.items = plainItems
+        vault.folders = []
+        vault.organizations = []
+
+        // The list's search with filters on: chips under the field, the filter menu filled; and filters that leave nothing.
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            vault.searchFilters = SearchFilters(type: .login, hasCode: true)
+            renderWindow(VaultView(initialQuery: "git").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-search-\(name).png"))
+            vault.searchFilters = SearchFilters(type: .card, favorites: true, hasPasskey: true)
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-search-empty-\(name).png"))
+            vault.searchFilters = SearchFilters()
+        }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 760, height: 620), appearance: appearance,

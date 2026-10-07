@@ -75,6 +75,33 @@ final class AppModel {
         didSet { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") }
     }
 
+    /// The vault list's search filters (type, folder, favorites, codes, passkeys, Watchtower issues), kept between
+    /// launches. Snapshot runs start clear and leave the saved ones alone.
+    var searchFilters = AppModel.keepsSearchFilters ? SearchFilters.load() : SearchFilters() {
+        didSet { if Self.keepsSearchFilters { searchFilters.save() } }
+    }
+    private static let keepsSearchFilters = !CommandLine.arguments.contains("--snapshot")
+    /// Set by ⌘F: the vault list's search field takes focus (and clears it).
+    var wantsSearchFocus = false
+
+    /// Whether an item passes the search filters (the vault itself is `vaultFilter`'s).
+    func passesSearchFilters(_ item: VaultItem) -> Bool {
+        let f = searchFilters
+        if let type = f.type, item.kind != VaultItem.Kind(type) { return false }
+        if let folder = f.folder, !(item.folderName == folder || item.folderName?.hasPrefix(folder + "/") == true) { return false }
+        if f.favorites, !item.favorite { return false }
+        if f.hasCode, !item.hasTOTP { return false }
+        if f.hasPasskey, !item.hasPasskey { return false }
+        if f.hasIssue, item.passwordIssue(breaches: breachCounts) == nil { return false }
+        return true
+    }
+
+    /// Clears every search filter and shows every vault again.
+    func clearSearchFilters() {
+        searchFilters = SearchFilters()
+        if vaultFilter != .all { vaultFilter = .all }
+    }
+
     /// The vault a Focus asked for (Focus filter), and the one chosen before it, to go back to when the Focus ends.
     private var focusVault: String?
     private var vaultBeforeFocus: VaultFilter?
@@ -1078,7 +1105,10 @@ final class AppModel {
         errorMessage = nil
         defer { isBusy = false }
         let id = target.id
+        Bench.begin("unlock-password-key")
+        Bench.begin("unlock-password-open")
         let derived = await Task.detached(priority: .userInitiated) { AccountStore.unlock(id, password: password) }.value
+        Bench.end("unlock-password-key")
         guard let derived else {
             errorMessage = String(localized: "Wrong master password.")
             return
@@ -1091,8 +1121,10 @@ final class AppModel {
     func unlockWithTouchID(context: LAContext = LAContext()) async {
         errorMessage = nil
         let locked = accounts.map(\.id).filter { !isUnlocked($0) }
+        Bench.begin("unlock-touchid-prompt") // includes the person's finger: not the app's own time
         let keys = await AccountStore.unlockAllWithTouchID(locked, reason: String(localized: "unlock your vault"), context: context)
-        if !keys.isEmpty { finishUnlock(keys) }
+        Bench.end("unlock-touchid-prompt")
+        if !keys.isEmpty { Bench.begin("unlock-touchid-open"); finishUnlock(keys) }
     }
 
     private func finishUnlock(_ keys: [String: SymmetricKeyPair]) {
@@ -1116,6 +1148,7 @@ final class AppModel {
             phase = .vault
             accountDoor = nil
             updateAccountDoor()
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
             return
         }
         unlockOpenedAt = .now
@@ -1146,6 +1179,7 @@ final class AppModel {
             unlockOpening = false
             unlockOpenedAt = nil
             updateAccountDoor() // still focused on a locked account (another was unlocked): its door
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
         }
     }
 
@@ -1349,7 +1383,7 @@ final class AppModel {
         guard let session = session(for: item) else { return offline() }
         do {
             try await session.setCollections(item.id, collectionIds: collectionIds)
-            flash(String(localized: "Collections updated"))
+            flash(String(localized: "Shared folders updated"))
             return true
         } catch { return failed(error) }
     }
@@ -1443,7 +1477,7 @@ final class AppModel {
               let session = sessions.first(where: { $0.organizations.contains { $0.id == id } }) else { return }
         confirm(String(localized: "Leave “\(org.name)”?"),
                 message: String(localized: "Its items leave this Mac. An admin has to invite you again to get them back."),
-                action: String(localized: "Leave Organization")) { [weak self] in
+                action: String(localized: "Leave Shared Vault")) { [weak self] in
             do {
                 try await session.leaveOrganization(id)
                 if case .organization(id) = self?.vaultFilter { self?.vaultFilter = .all }
