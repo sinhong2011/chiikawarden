@@ -2,31 +2,31 @@
   "encrypted": false,
   "folders": [
     {
-      "id": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "id": "bcebff56-0204-4459-a0db-d44485d889c7",
       "name": "Work"
     },
     {
-      "id": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "id": "73b06842-33f2-4a19-8d5c-93a0f8f338ac",
       "name": "Work/Servers"
     },
     {
-      "id": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "id": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "name": "Personal"
     },
     {
-      "id": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "id": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "name": "Finance"
     },
     {
-      "id": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "id": "50d2b870-209d-463f-a1c6-72f37063937c",
       "name": "家族"
     }
   ],
   "items": [
     {
-      "id": "77764a59-d60a-4db4-b35c-8b8abdaf8c7b",
+      "id": "e272e9f7-f1d2-4886-ba42-509eb05218e8",
       "organizationId": null,
-      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "folderId": "bcebff56-0204-4459-a0db-d44485d889c7",
       "type": 1,
       "reprompt": 0,
       "name": "GitHub",
@@ -63,26 +63,26 @@
         "username": "usagi@example.com",
         "password": "m7Kq#vR2!tLp9wZe$Hu4",
         "totp": "JBSWY3DPEHPK3PXP",
-        "passwordRevisionDate": "2026-09-24T14:36:41.000Z"
+        "passwordRevisionDate": "2026-09-24T14:48:12.000Z"
       },
       "passwordHistory": [
         {
-          "lastUsedDate": "2026-09-24T14:36:41.000Z",
+          "lastUsedDate": "2026-09-24T14:48:12.000Z",
           "password": "7m4Gv%Y6A56NAMPBz#aoTX"
         },
         {
-          "lastUsedDate": "2025-09-01T14:36:41.000Z",
+          "lastUsedDate": "2025-09-01T14:48:12.000Z",
           "password": "OldGitHub!2023"
         }
       ],
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "6775120d-a8a8-47a3-b332-743a0a8e9a51",
+      "id": "2ef18818-958e-4467-9027-974ba139023d",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Google",
@@ -102,14 +102,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "8817f2e5-218c-4292-8290-0d2917d6bb0c",
+      "id": "bd74e1e0-54e6-424b-a862-24e5a0428d48",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "YouTube (shares Google's sign-in)",
@@ -129,14 +129,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "d52af24f-2936-45ab-956c-e083dd579ce5",
+      "id": "beb3b33f-092b-4fbc-8a9b-eed193c64f5b",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Discord",
@@ -156,14 +156,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "105503e6-43d8-4a4f-a5ed-4d5accd56b72",
+      "id": "e0128543-d549-46e6-b238-59e520f81780",
       "organizationId": null,
-      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "folderId": "bcebff56-0204-4459-a0db-d44485d889c7",
       "type": 1,
       "reprompt": 0,
       "name": "Cloudflare",
@@ -183,14 +183,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "f1d16522-8e2a-4d36-aeef-bab6ec5c4cb8",
+      "id": "bb34f3f6-35d4-428f-9e1e-6542c906586d",
       "organizationId": null,
-      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "folderId": "73b06842-33f2-4a19-8d5c-93a0f8f338ac",
       "type": 1,
       "reprompt": 0,
       "name": "Tailscale",
@@ -210,14 +210,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "c1ce65c1-8fe4-442a-a22f-6ba747d76457",
+      "id": "a9c2d262-e8e3-4f96-aa69-251b7467d9cc",
       "organizationId": null,
-      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "folderId": "73b06842-33f2-4a19-8d5c-93a0f8f338ac",
       "type": 1,
       "reprompt": 0,
       "name": "Synology NAS (LAN, http is fine)",
@@ -237,14 +237,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "5863103c-829b-4b9c-b588-679793c14c57",
+      "id": "abe95c41-51bd-444f-b51f-35e64780ac42",
       "organizationId": null,
-      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "folderId": "73b06842-33f2-4a19-8d5c-93a0f8f338ac",
       "type": 1,
       "reprompt": 1,
       "name": "Proxmox",
@@ -264,14 +264,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "a292c8e7-2140-4260-bc9a-fd7f34b5939f",
+      "id": "d83d4adf-ade2-4948-a805-c477915c59d7",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Old forum (http://, unencrypted)",
@@ -291,14 +291,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "0789ffcb-0e2c-4c9e-a18c-f24be4281e9f",
+      "id": "9d30ea3f-6838-4f24-9eee-2ebe25783bf3",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Weak: pizza shop",
@@ -318,14 +318,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "29825e2b-3908-47a5-9287-34798067b96a",
+      "id": "d5eac7f3-a875-4080-ac3e-f032e6965200",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Reused: Netflix",
@@ -345,14 +345,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "956a8369-73fd-4baa-b86c-265d6673544a",
+      "id": "604670a7-f836-4c05-9971-5f0653dc8aa9",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 1,
       "reprompt": 0,
       "name": "Reused: Spotify",
@@ -372,14 +372,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "98ce2f44-b871-4595-bd1c-1b838ca4bbb2",
+      "id": "100d59c4-1f50-4072-b9e2-34804d854ce1",
       "organizationId": null,
-      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "folderId": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "type": 1,
       "reprompt": 0,
       "name": "Duplicate: Amazon",
@@ -399,14 +399,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "59cdc8a2-6e98-43a1-a92b-2f25dcbbd739",
+      "id": "29f9f004-2a94-474e-a04f-566e289dd3c7",
       "organizationId": null,
-      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "folderId": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "type": 1,
       "reprompt": 0,
       "name": "Duplicate: Amazon (older copy)",
@@ -426,14 +426,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2025-05-24T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2025-05-24T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "6f3fe41f-eec4-48bb-b7a6-2acd5024398c",
+      "id": "628757ac-aab6-47f0-bb13-4c6de5295b91",
       "organizationId": null,
-      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "folderId": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "type": 1,
       "reprompt": 0,
       "name": "Not changed in years: bank",
@@ -450,17 +450,17 @@
         "username": "88123456",
         "password": "Bk#6vQ!9tR@2wLz$8m",
         "totp": null,
-        "passwordRevisionDate": "2022-08-28T14:36:41.000Z"
+        "passwordRevisionDate": "2022-08-28T14:48:12.000Z"
       },
       "passwordHistory": null,
-      "creationDate": "2022-05-20T14:36:41.000Z",
-      "revisionDate": "2022-08-28T14:36:41.000Z",
+      "creationDate": "2022-05-20T14:48:12.000Z",
+      "revisionDate": "2022-08-28T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "672d27de-2735-4163-811f-919052f54f33",
+      "id": "690ac2df-2222-4c5b-b8d7-7e73e0d513ba",
       "organizationId": null,
-      "folderId": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "folderId": "50d2b870-209d-463f-a1c6-72f37063937c",
       "type": 1,
       "reprompt": 0,
       "name": "樂天市場 🛍️",
@@ -480,14 +480,14 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "bc4b13d3-6e2e-4f2d-a567-3fffa6787e35",
+      "id": "f57eb79d-23c8-49b4-bf40-0c42bb87e458",
       "organizationId": null,
-      "folderId": "cfc62a6d-e30d-4919-95b3-711b4d7eaf3d",
+      "folderId": "50d2b870-209d-463f-a1c6-72f37063937c",
       "type": 1,
       "reprompt": 0,
       "name": "ちいかわ ショップ",
@@ -507,56 +507,56 @@
         "passwordRevisionDate": null
       },
       "passwordHistory": null,
-      "creationDate": "2025-09-01T14:36:41.000Z",
-      "revisionDate": "2026-09-06T14:36:41.000Z",
+      "creationDate": "2025-09-01T14:48:12.000Z",
+      "revisionDate": "2026-09-06T14:48:12.000Z",
       "collectionIds": null
     },
     {
-      "id": "8e1124d5-96b7-4ded-ad0c-b4f7ad111e46",
+      "id": "a89bb0a3-5e9e-4a02-a28b-13a6ed27a84e",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 2,
       "reprompt": 0,
       "name": "Wi-Fi at home",
       "notes": "SSID: pochi-net\nPassword: correct-horse-battery-staple",
       "favorite": false,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "secureNote": {
         "type": 0
       }
     },
     {
-      "id": "60cad0ae-4281-4bbc-868d-e02712d2d9a8",
+      "id": "ac78b6e4-1c33-476f-914a-118e7295fc62",
       "organizationId": null,
-      "folderId": "59b20083-c92f-4c71-a0f3-91ff23963c36",
+      "folderId": "bcebff56-0204-4459-a0db-d44485d889c7",
       "type": 2,
       "reprompt": 0,
       "name": "GitHub recovery",
       "notes": "a1b2-c3d4\ne5f6-g7h8\ni9j0-k1l2",
       "favorite": false,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "secureNote": {
         "type": 0
       }
     },
     {
-      "id": "f7e2e17c-d2a5-4ec2-9e18-fc9c33f82a65",
+      "id": "eed423c0-24fa-4d24-8935-144e3e9153e8",
       "organizationId": null,
-      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "folderId": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "type": 3,
       "reprompt": 0,
       "name": "Visa (expiring soon)",
       "notes": null,
       "favorite": true,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "card": {
         "cardholderName": "Usagi Test",
@@ -568,17 +568,17 @@
       }
     },
     {
-      "id": "7140331b-c6c1-4698-b68d-2e424b4e722a",
+      "id": "b2ee9ae8-278e-491d-a408-12f06181be5a",
       "organizationId": null,
-      "folderId": "b5049aa5-8432-4723-a95c-832d652f69a1",
+      "folderId": "39399dc9-ff01-49ce-a184-c59cff347d85",
       "type": 3,
       "reprompt": 0,
       "name": "Mastercard",
       "notes": null,
       "favorite": false,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "card": {
         "cardholderName": "Usagi Test",
@@ -590,17 +590,17 @@
       }
     },
     {
-      "id": "7208c932-11f6-4cf8-9349-bbcb46ee4058",
+      "id": "14d603b1-73f8-42a8-acb8-49de235881d3",
       "organizationId": null,
-      "folderId": "a61f33ec-afd0-4553-85fd-9362784c02d9",
+      "folderId": "aa96d62b-0c01-4014-ae25-8fcad643f8f3",
       "type": 4,
       "reprompt": 0,
       "name": "Me",
       "notes": null,
       "favorite": false,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "identity": {
         "title": "Ms",
@@ -624,22 +624,22 @@
       }
     },
     {
-      "id": "8a63a0b9-6bab-45ac-b4fb-e0a154e53bd8",
+      "id": "af755ace-220b-4c8e-9c72-5dd65031e610",
       "organizationId": null,
-      "folderId": "74d18575-b553-4f1b-b5b9-09b608463b45",
+      "folderId": "73b06842-33f2-4a19-8d5c-93a0f8f338ac",
       "type": 5,
       "reprompt": 0,
       "name": "Sample SSH key (Ed25519)",
       "notes": "Made by generate.py; safe to delete.",
       "favorite": false,
       "fields": [],
-      "creationDate": "2026-03-20T14:36:41.000Z",
-      "revisionDate": "2026-09-26T14:36:41.000Z",
+      "creationDate": "2026-03-20T14:48:12.000Z",
+      "revisionDate": "2026-09-26T14:48:12.000Z",
       "collectionIds": null,
       "sshKey": {
-        "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACA0i+M3C9CclxlDxK//m261jYzgPve90jGGxOIQAA6gqwAAAJjWihZd1ooW\nXQAAAAtzc2gtZWQyNTUxOQAAACA0i+M3C9CclxlDxK//m261jYzgPve90jGGxOIQAA6gqw\nAAAEDJCABk6Fp6LPQJXfXZQPH12frAM+e6MH1v2Bjizm0YnDSL4zcL0JyXGUPEr/+bbrWN\njOA+973SMYbE4hAADqCrAAAAFXNhbXBsZUB0cml3YXJkZW4udGVzdA==\n-----END OPENSSH PRIVATE KEY-----\n",
-        "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDSL4zcL0JyXGUPEr/+bbrWNjOA+973SMYbE4hAADqCr sample@triwarden.test",
-        "keyFingerprint": "SHA256:oUnWPZVPOZHoQwNqvehTKLvbX/ZbNhM2gEN6TYFQvYk"
+        "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACBqDUI/XUArlHobPjyWE53df4UANRfiHj3bZZvGc1IdIwAAAJhXQ78nV0O/\nJwAAAAtzc2gtZWQyNTUxOQAAACBqDUI/XUArlHobPjyWE53df4UANRfiHj3bZZvGc1IdIw\nAAAEDtqUfFVWWtbbmoW9ZjlC9WDpYPHN2eAaCkkG19qfXzE2oNQj9dQCuUehs+PJYTnd1/\nhQA1F+IePdtlm8ZzUh0jAAAAFXNhbXBsZUB0cml3YXJkZW4udGVzdA==\n-----END OPENSSH PRIVATE KEY-----\n",
+        "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGoNQj9dQCuUehs+PJYTnd1/hQA1F+IePdtlm8ZzUh0j sample@triwarden.test",
+        "keyFingerprint": "SHA256:2M9KXTNTwyfBcJBEM4+UEmaEAOE/FfmLQbs1g6HSArw"
       }
     }
   ]
