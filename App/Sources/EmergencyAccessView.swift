@@ -162,7 +162,7 @@ private struct AddEmergencyContactSheet: View {
                            subtitle: "Someone with an account on this server who can ask for access in an emergency.")
                 FormCard {
                     FormField(label: "Email") {
-                        TextField("Email", text: $email, prompt: Text(verbatim: "hachiware@example.com")).textFieldStyle(SoftFieldStyle())
+                        TextField("Email", text: $email, prompt: Text(verbatim: "name@example.com")).textFieldStyle(SoftFieldStyle())
                     }
                     FormField(label: "Access") {
                         AppSegmented(options: [(false, LocalizedStringKey("View")), (true, "Takeover")], selection: $takeover)

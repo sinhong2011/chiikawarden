@@ -16,17 +16,24 @@ struct TriwardenApp: App {
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
         CloudSelfTest.runIfRequested()
-        // `--demo`: open straight into the vault with demo items, for UI review.
-        if CommandLine.arguments.contains("--demo") {
+        // `--demo`: open straight into the vault with demo items, for UI review. `--demo-full`: a lived-in vault of
+        // 200+ items in folders, for screenshots.
+        let full = CommandLine.arguments.contains("--demo-full")
+        if full || CommandLine.arguments.contains("--demo") {
             let demo = AppModel()
-            demo.items = Snapshot.demoItems
+            demo.items = full ? DemoVault.items : Snapshot.demoItems
+            if full {
+                demo.folders = DemoVault.folders
+                IconStore.shared.fallbackEnvironment = .bitwardenUS // real site icons, from Bitwarden's public service
+            }
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
-            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
+            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "alex@example.com", serverKind: "selfHosted",
                                                   serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
                                                   protectedUserKey: "")])
             demo.previewUnlocked = true
             demo.phase = .vault
             _model = State(initialValue: demo)
+            DemoShots.runIfRequested(demo)
         }
         #endif
     }

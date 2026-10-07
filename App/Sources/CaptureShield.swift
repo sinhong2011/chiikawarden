@@ -22,7 +22,7 @@ enum CaptureShield {
 
     static func apply(_ window: NSWindow) {
         // The demo vault has nothing to hide, and UI tests drive it.
-        let hide = UserDefaults.standard.bool(forKey: Pref.hideFromCapture) && !CommandLine.arguments.contains("--demo")
+        let hide = UserDefaults.standard.bool(forKey: Pref.hideFromCapture) && !CommandLine.arguments.contains { $0.hasPrefix("--demo") }
         window.sharingType = hide ? .none : .readOnly
     }
 }

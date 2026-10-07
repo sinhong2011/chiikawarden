@@ -274,7 +274,7 @@ final class AppModel {
 
     init() {
         // No updater while testing, rendering snapshots, previewing or showing the demo vault.
-        let quiet = CommandLine.arguments.contains { ["--selftest", "--snapshot", "--demo"].contains($0) || $0.hasPrefix("--selftest") }
+        let quiet = CommandLine.arguments.contains { ["--selftest", "--snapshot"].contains($0) || $0.hasPrefix("--selftest") || $0.hasPrefix("--demo") }
             || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         updates = Updater(start: !quiet)
         AttachmentFiles.wipe() // leftovers from a crash
