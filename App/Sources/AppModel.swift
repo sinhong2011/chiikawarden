@@ -392,6 +392,8 @@ final class AppModel {
 
     /// Bumped each time Quick Search opens, so the panel resets and focuses.
     var quickSearchNonce = 0
+    /// Bumped when Quick Search closes, so the palette plays its way out before the panel hides.
+    var quickSearchDismissNonce = 0
     /// Where the palette or the menu bar panel was called from (see ForegroundContext).
     var foreground: ForegroundContext?
     /// The last app the user was in other than Triwarden.
