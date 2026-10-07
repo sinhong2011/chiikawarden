@@ -1800,13 +1800,13 @@ private struct ClipboardCountdown: View {
                                     .transition(.opacity.combined(with: .move(edge: .trailing)))
                             }
                             // The same ring as a one-time code's: draining, the seconds inside.
-                            CountdownRing(fraction: remaining / total, seconds: left, size: 25)
+                            CountdownRing(fraction: remaining / total, seconds: left, size: 20, digits: 0.46)
                         }
                         .animation(.snappy, value: left)
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .padding(.leading, hovering ? 10 : 2).padding(.trailing, 2).frame(height: 26)
+                    .padding(.leading, hovering ? 10 : 3).padding(.trailing, 3).frame(height: 26)
                     .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .capsule)
                     .contentShape(.capsule)
                 }

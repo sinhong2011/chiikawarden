@@ -77,6 +77,8 @@ struct CountdownRing: View {
     let fraction: Double
     let seconds: Int
     var size: CGFloat = 38
+    /// The seconds' size against the ring's: larger for a small ring that stands on its own.
+    var digits: CGFloat = 0.32
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var beat = 0
     @State private var beatScale = 1.0
@@ -90,7 +92,7 @@ struct CountdownRing: View {
                 .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text(verbatim: "\(seconds)")
-                .font(.system(size: size * 0.32, weight: .semibold, design: .rounded))
+                .font(.system(size: size * digits, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(urgent ? Color.orange : .secondary)
                 .contentTransition(.numericText(countsDown: true))
