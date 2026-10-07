@@ -56,7 +56,9 @@ struct VaultDoorStage: View {
             } else {
                 let still = reduceMotion || !animates
                 // Inside the gate's halves the door holds still (one frame), so the halves are cheap to move.
-                TimelineView(.animation(paused: still || gatePassing)) { context in
+                // Inside the gate's halves: still while closing (cheap to move); opening keeps playing, so the last
+                // pieces fly out as the halves part.
+                TimelineView(.animation(paused: still || (gatePassing && openedAt == nil))) { context in
                     let now = context.date
                     art(time: still ? 0 : now.timeIntervalSince(start),
                         opened: openedAt.map { now.timeIntervalSince($0) },
@@ -121,8 +123,9 @@ private struct Mechanism {
     func piece(_ k: Int, _ i: Int) -> Double {
         let n = Double(Self.pieceCount[k])
         if let e = openT {
-            // Every piece has landed by ~1.12 (0.93 s at play speed), before the gate takes over with a still copy.
-            let start = [0.52, 0.6, 0.68, 0.76][k] + Double(i) / n * 0.1
+            // A tight cascade (every piece is out by ~1.05, 0.87 s at play speed). The gate starts parting while the
+            // outer rings are still flying out, and its halves keep playing them, so it all reads as one movement.
+            let start = [0.52, 0.58, 0.64, 0.7][k] + Double(i) / n * 0.08
             return Ease.inOut(Self.seg(e, start, start + 0.28)) // soft in, soft out: no snap at either end
         }
         if let e = closeT {

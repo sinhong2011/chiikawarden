@@ -1040,7 +1040,8 @@ final class AppModel {
         Task {
             // The door transforms open (~0.85 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
             // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out into the light.
-            try? await Task.sleep(for: .milliseconds(940)) // the door's last piece lands at 1.12 / 1.2 s
+            // The gate starts while the outer rings are still flying out (they finish at 1.05 / 1.2 s): no pause between.
+            try? await Task.sleep(for: .milliseconds(720))
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
                 // under them, and the plates part over the vault (GatePlates).
@@ -1049,8 +1050,8 @@ final class AppModel {
                 try? await Task.sleep(for: .milliseconds(30))
                 phase = .vault
                 await Task.yield()
-                // Leaves with the door's momentum (a quick start, a long glide), not from a standstill.
-                withAnimation(.timingCurve(0.4, 0, 0.12, 1, duration: 0.6)) { gateApart = true }
+                // Leaves with the door's momentum (already moving, then a long glide), not from a standstill.
+                withAnimation(.timingCurve(0.22, 0.5, 0.12, 1, duration: 0.62)) { gateApart = true }
                 try? await Task.sleep(for: .milliseconds(620))
                 gate = nil
             } else {
