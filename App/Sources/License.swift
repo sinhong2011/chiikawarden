@@ -55,6 +55,10 @@ final class License {
 
     /// Set when "I Have a License Key" opens Settings: the key field takes focus.
     var wantsKeyEntry = false
+    /// The version this launch updated to (nil when it isn't the first launch after an update); the reminder says so.
+    private(set) var updatedTo: String?
+    /// Whether the reminder for this update is still to be shown.
+    private var updateReminderPending = false
 
     var isConfigured: Bool { storeURL != nil && (publicKey != nil || productID != nil) }
     var isRegistered: Bool { registration != nil }
@@ -69,7 +73,8 @@ final class License {
     private static let firstLaunchKey = "licenseFirstLaunch"
     private static let lastReminderKey = "licenseLastReminder"
     private static let instanceKey = "licenseInstance"
-    /// No reminder in the first week, then at most one a week.
+    private static let versionKey = "licenseLastVersion"
+    /// No reminder in the first week; then at most one a week, and one on the first launch after each update.
     private static let grace: TimeInterval = 7 * 86_400
     private static let interval: TimeInterval = 7 * 86_400
 
@@ -84,22 +89,36 @@ final class License {
             key = stored.key
             self.registration = registration
         }
-        if UserDefaults.standard.object(forKey: Self.firstLaunchKey) == nil {
-            UserDefaults.standard.set(Date.now, forKey: Self.firstLaunchKey)
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: Self.firstLaunchKey) == nil {
+            defaults.set(Date.now, forKey: Self.firstLaunchKey)
         }
+        // A new version since the last launch (not a first install): remind once, whatever the weekly schedule says.
+        let version = info["CFBundleShortVersionString"] as? String ?? ""
+        if let last = defaults.string(forKey: Self.versionKey), last != version {
+            updatedTo = version
+            updateReminderPending = true
+        }
+        defaults.set(version, forKey: Self.versionKey)
+        #if DEBUG
+        if CommandLine.arguments.contains("--license-review-update") { updatedTo = version }
+        #endif
     }
 
     /// Whether to show the reminder now (and, if so, note that it was shown).
     func takeReminder(now: Date = .now) -> Bool {
         #if DEBUG
-        // `--license-review`: show it now, to review the purchase flow.
-        return CommandLine.arguments.contains("--license-review") && isConfigured && !isRegistered
+        // `--license-review` (or `--license-review-update`, as after an update): show it now, to review the flow.
+        return CommandLine.arguments.contains { $0.hasPrefix("--license-review") } && isConfigured && !isRegistered
         #else
         guard isConfigured, !isRegistered else { return false }
         let defaults = UserDefaults.standard
         let first = defaults.object(forKey: Self.firstLaunchKey) as? Date ?? now
         guard now.timeIntervalSince(first) >= Self.grace else { return false }
-        if let last = defaults.object(forKey: Self.lastReminderKey) as? Date, now.timeIntervalSince(last) < Self.interval {
+        let afterUpdate = updateReminderPending
+        updateReminderPending = false
+        if !afterUpdate, let last = defaults.object(forKey: Self.lastReminderKey) as? Date,
+           now.timeIntervalSince(last) < Self.interval {
             return false
         }
         defaults.set(now, forKey: Self.lastReminderKey)

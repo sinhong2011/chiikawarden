@@ -8,6 +8,14 @@ struct LicenseReminderView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if let version = model.license.updatedTo {
+                Label("Updated to \(version)", systemImage: "sparkles")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10).frame(height: 24)
+                    .background(Color.primary.opacity(0.06), in: .capsule)
+                    .padding(.bottom, 14)
+            }
             Image(nsImage: NSApplication.shared.applicationIconImage)
                 .resizable().frame(width: 76, height: 76)
                 .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
