@@ -43,12 +43,13 @@ struct LicenseReminderView: View {
     static let windowID = "license-reminder"
 }
 
-/// Settings › Registration: buy, paste a key, or see who it's registered to. Nothing here goes online: the key is
-/// checked against its signature on this Mac.
+/// Settings › Registration: buy, paste a key, or see who it's registered to. Only Register goes online, and only for
+/// a key from a Lemon Squeezy receipt (once); an offline key is checked on this Mac.
 struct LicenseSettings: View {
     @Environment(AppModel.self) private var model
     @State private var key = ""
     @State private var problem: String?
+    @State private var working = false
     @State private var confirmRemove = false
 
     var body: some View {
@@ -99,13 +100,14 @@ struct LicenseSettings: View {
                             Text(problem).font(.caption).foregroundStyle(.red)
                         }
                         Spacer()
+                        if working { ProgressView().controlSize(.small) }
                         Button("Register", action: register)
-                            .disabled(key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .disabled(working || key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 } header: {
                     Text("Already bought one?")
                 } footer: {
-                    Text("The key is checked on this Mac. Triwarden never contacts a license server.")
+                    Text("Registering a key from your receipt confirms it with Lemon Squeezy once; nothing is checked after that. If you'd rather nothing went online, ask for an offline key, which is checked on this Mac only.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -120,12 +122,17 @@ struct LicenseSettings: View {
     }
 
     private func register() {
-        do {
-            try model.license.register(key)
-            key = ""
-            problem = nil
-        } catch {
-            problem = error.localizedDescription
+        guard !working else { return }
+        working = true
+        problem = nil
+        Task {
+            do {
+                try await model.license.register(key)
+                key = ""
+            } catch {
+                problem = error.localizedDescription
+            }
+            working = false
         }
     }
 }

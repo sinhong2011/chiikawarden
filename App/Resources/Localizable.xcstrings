@@ -31017,34 +31017,6 @@
         }
       }
     },
-    "The key is checked on this Mac. Triwarden never contacts a license server." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キーはこの Mac 上で確認されます。Triwarden がライセンスサーバに接続することはありません。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "授權碼只會喺呢部 Mac 驗證，Triwarden 唔會連去任何授權伺服器。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密钥只在此 Mac 上验证，Triwarden 不会连接任何授权服务器。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "金鑰只在此 Mac 上驗證，Triwarden 不會連線任何授權伺服器。"
-          }
-        }
-      }
-    },
     "This license key isn't valid. Paste the whole key from your receipt." : {
       "localizations" : {
         "ja" : {
@@ -31153,6 +31125,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Triwarden 仍可繼續使用。你隨時可以用同一組金鑰重新註冊。"
+          }
+        }
+      }
+    },
+    "Registering a key from your receipt confirms it with Lemon Squeezy once; nothing is checked after that. If you'd rather nothing went online, ask for an offline key, which is checked on this Mac only." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "領収書のキーを登録すると、Lemon Squeezy で一度だけ確認します。その後は確認しません。通信を避けたい場合は、この Mac 上だけで確認されるオフラインキーをお申し込みください。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "註冊收據入面嘅授權碼時，會向 Lemon Squeezy 確認一次，之後唔會再檢查。如果你唔想有任何連線，可以索取離線授權碼，佢只會喺呢部 Mac 驗證。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注册收据中的密钥时，会向 Lemon Squeezy 确认一次，之后不再检查。如果你不希望有任何联网，可以索取离线密钥，它只在此 Mac 上验证。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "註冊收據中的金鑰時，會向 Lemon Squeezy 確認一次，之後不再檢查。如果你不想有任何連線，可以索取離線金鑰，它只在此 Mac 上驗證。"
+          }
+        }
+      }
+    },
+    "This license key is for a different product." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このライセンスキーは別の製品用です。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個授權碼屬於其他產品。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此授权密钥属于其他产品。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此授權金鑰屬於其他產品。"
+          }
+        }
+      }
+    },
+    "Couldn't reach Lemon Squeezy. Check your connection and try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lemon Squeezy に接続できませんでした。接続を確認して、もう一度お試しください。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連唔到 Lemon Squeezy。請檢查網絡連線再試。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接 Lemon Squeezy。请检查网络连接后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線 Lemon Squeezy。請檢查網絡連線後再試。"
+          }
+        }
+      }
+    },
+    "This license key couldn't be activated." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このライセンスキーを有効にできませんでした。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "呢個授權碼啟用唔到。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法激活此授权密钥。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法啟用此授權金鑰。"
           }
         }
       }
