@@ -1784,37 +1784,42 @@ struct ToastView: View {
 /// counting down. Clicking clears it now.
 private struct ClipboardCountdown: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovering = false
+    @State private var labelWidth: CGFloat = 0
 
     var body: some View {
-        ZStack {
-            if let clears = model.clipboardClearsAt, let total = model.clipboardHoldSeconds {
-                Button { model.clearClipboardNow() } label: {
+        if let clears = model.clipboardClearsAt, let total = model.clipboardHoldSeconds {
+            Button { model.clearClipboardNow() } label: {
+                HStack(spacing: 0) {
+                    // Hovering unrolls the label leftwards out of the ring: its width opens from 0 (clipped, so the
+                    // words are revealed rather than squeezed) while it fades in, all on one spring.
+                    Text("Clear Clipboard Now")
+                        .font(.system(size: 11, weight: .medium))
+                        .fixedSize()
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelWidth = $0 }
+                        .padding(.leading, 9).padding(.trailing, 6)
+                        .frame(width: hovering ? labelWidth + 15 : 0, alignment: .trailing)
+                        .clipped()
+                        .opacity(hovering ? 1 : 0)
+                    // The same ring as a one-time code's: draining, the seconds inside. Only it redraws with the clock.
                     TimelineView(.animation(minimumInterval: 1 / 15)) { context in
                         let remaining = max(0, clears.timeIntervalSince(context.date))
-                        let left = Int(remaining.rounded(.up))
-                        HStack(spacing: 7) {
-                            // Just the ring; hovering it says what it is and what a click does.
-                            if hovering {
-                                Text("Clear Clipboard Now")
-                                    .transition(.opacity.combined(with: .move(edge: .trailing)))
-                            }
-                            // The same ring as a one-time code's: draining, the seconds inside.
-                            CountdownRing(fraction: remaining / total, seconds: left, size: 20, digits: 0.46)
-                        }
-                        .animation(.snappy, value: left)
+                        CountdownRing(fraction: remaining / total, seconds: Int(remaining.rounded(.up)), size: 20, digits: 0.46)
                     }
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, hovering ? 10 : 3).padding(.trailing, 3).frame(height: 26)
-                    .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .capsule)
-                    .contentShape(.capsule)
+                    .padding(3)
                 }
-                .buttonStyle(.plain)
-                .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
-                .help(Text("Clipboard clears"))
-                .accessibilityLabel(Text("Clear Clipboard Now"))
+                .foregroundStyle(.secondary)
+                .frame(height: 26)
+                .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .capsule)
+                .contentShape(.capsule)
             }
+            .buttonStyle(.plain)
+            .onHover { h in
+                withAnimation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(duration: 0.34, bounce: 0)) { hovering = h }
+            }
+            .help(Text("Clipboard clears"))
+            .accessibilityLabel(Text("Clear Clipboard Now"))
         }
     }
 }
