@@ -8,6 +8,12 @@ name: Release
 on:
   push:
     branches: [main]
+  # Builds and uploads an existing tag again (e.g. after a failed build): Actions › Release › Run workflow.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build, e.g. v0.1.0
+        required: true
 
 permissions:
   contents: write
@@ -15,6 +21,7 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       created: ${{ steps.rp.outputs.release_created }}
@@ -29,16 +36,22 @@ jobs:
 
   build:
     needs: release-please
-    if: needs.release-please.outputs.created == 'true'
+    # A release-please release, or a tag asked for by hand (release-please is skipped then).
+    if: always() && (needs.release-please.outputs.created == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: macos-26
     environment: release # secrets live here, so only this job can read them
     env:
-      VERSION: ${{ needs.release-please.outputs.version }}
+      TAG: ${{ inputs.tag || needs.release-please.outputs.tag }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Version
+        run: |
+          [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a version tag: $TAG"; exit 1; }
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release-please.outputs.tag }}
+          ref: ${{ env.TAG }}
           fetch-depth: 0 # build number = commit count
 
       - name: Tools
@@ -63,6 +76,9 @@ jobs:
         run: |
           xcodegen generate
           xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDataPath build -resolvePackageDependencies
+          # In a fresh checkout Xcode adds the app's pins (Sparkle) to the local package's Package.resolved; that isn't
+          # a source change, and release.sh wants a clean tree.
+          git checkout -- Packages/VaultCore/Package.resolved
 
       - name: Build, sign, notarize, publish
         env:
