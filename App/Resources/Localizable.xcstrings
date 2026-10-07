@@ -2484,6 +2484,34 @@
         }
       }
     },
+    "Add filter %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絞り込み %@ を追加"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加筛选 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入篩選 %@"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入篩選 %@"
+          }
+        }
+      }
+    },
     "Add Header" : {
       "localizations" : {
         "ja" : {
@@ -12279,6 +12307,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "篩選開咗。"
+          }
+        }
+      }
+    },
+    "Filters that stay on" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オンのままの絞り込み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持开启的筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持開啟的篩選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會保持開啟嘅篩選"
           }
         }
       }
@@ -29094,6 +29150,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "撳快速鍵…"
+          }
+        }
+      }
+    },
+    "Type a filter like type:card, has:otp or #Work, or pick one from the filter menu. Filters stay on until you clear them; ⌫ takes the last one off." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "type:card、is:favorite、has:otp、#Work と入力するか、絞り込みメニューから選びます。解除するまでオンのままで、⌫ で最後の 1 つを外せます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入 type:card、is:favorite、has:otp 或 #Work，或从筛选菜单中选择。筛选会保持开启直到你清除；按 ⌫ 移除最后一个。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入 type:card、is:favorite、has:otp 或 #Work，或從篩選選單中選擇。篩選會保持開啟直到你清除；按 ⌫ 移除最後一個。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入 type:card、is:favorite、has:otp 或者 #Work，或者喺篩選選單揀。篩選會一直開住，直到你清除；撳 ⌫ 移走最後一個。"
           }
         }
       }

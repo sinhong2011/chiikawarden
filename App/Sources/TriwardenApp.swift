@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 import VaultwardenAPI
 
 @main
@@ -10,6 +11,11 @@ struct TriwardenApp: App {
 
     init() {
         Pref.register()
+        // Tips (the vault search's, once): not in renders, self-tests or benchmarks, which must look the same every run.
+        if !CommandLine.arguments.contains(where: { $0 == "--snapshot" || $0.hasPrefix("--selftest") || $0.hasPrefix("--bench") }),
+           !Bench.on {
+            try? Tips.configure()
+        }
         // One window with its own toolbar: no system tab bar (and no View › Show Tab Bar to turn it on).
         NSWindow.allowsAutomaticWindowTabbing = false
         #if DEBUG

@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 import VaultwardenAPI
 
 // The vault window's search: one field over every vault, plus filters that stay on between launches.
@@ -102,6 +103,38 @@ extension AppModel {
         return true
     }
 
+    /// Filters to offer for the word being typed (`type:c` → Cards, `#wo` → Work, `has:` → codes and passkeys), so the
+    /// tokens can be learned by typing. Nothing once the word is finished (a space after it) or isn't a token's start.
+    func searchSuggestions(for query: String) -> [SearchSuggestion] {
+        guard !query.hasSuffix(" "), let last = SearchToken.words(query).last else { return [] }
+        let fold = { (s: String) in PaletteQuery.fold(s).replacingOccurrences(of: "\"", with: "") }
+        var typed = fold(last)
+        if typed.hasPrefix("#") { typed = "folder:" + typed.dropFirst() }
+        guard let colon = typed.firstIndex(of: ":") else { return [] }
+        let aliases = ["kind": "type", "t": "type", "f": "folder", "in": "vault", "org": "vault", "v": "vault"]
+        let key = String(typed[..<colon])
+        typed = (aliases[key] ?? key) + typed[colon...]
+
+        var candidates: [SearchToken] = SearchFilters.ItemType.allCases.map(SearchToken.type)
+            + [.favorites, .hasCode, .hasPasskey, .hasIssue]
+            + folders.map(\.name).sorted { $0.localizedStandardCompare($1) == .orderedAscending }.map(SearchToken.folder)
+        if !visibleOrganizations.isEmpty {
+            candidates += [.vault("personal")] + visibleOrganizations.map { .vault($0.name) }
+        }
+        let on = Set(searchFilters.tokens)
+        return candidates
+            .filter { !on.contains($0) && fold($0.text).hasPrefix(typed) }
+            .prefix(8)
+            .map { token in
+                switch token {
+                case .vault(let name) where name == "personal":
+                    SearchSuggestion(token: token, label: String(localized: "My vault"), symbol: "person")
+                default:
+                    SearchSuggestion(token: token, label: SearchChip.filter(token).label(self), symbol: SearchChip.filter(token).symbol)
+                }
+            }
+    }
+
     /// Whether an item matches the typed text: every word in its name, username, website or folder.
     static func searchMatches(_ item: VaultItem, _ query: String) -> Bool {
         let words = query.split(separator: " ")
@@ -115,6 +148,27 @@ extension AppModel {
     }
 }
 
+/// A filter offered while its token is being typed.
+struct SearchSuggestion: Identifiable, Equatable {
+    let token: SearchToken
+    let label: String
+    let symbol: String
+    var id: String { token.text }
+}
+
+/// Shown once, the first time the search is used: filters can be typed, and they stay on. Gone for good once a filter
+/// is on or it's closed.
+struct SearchFiltersTip: Tip {
+    static let searched = Event(id: "vaultSearchFocused")
+
+    var title: Text { Text("Filters that stay on") }
+    var message: Text? {
+        Text("Type a filter like type:card, has:otp or #Work, or pick one from the filter menu. Filters stay on until you clear them; ⌫ takes the last one off.")
+    }
+    var image: Image? { Image(systemName: "line.3.horizontal.decrease.circle") }
+    var rules: [Rule] { [#Rule(Self.searched) { $0.donations.count >= 1 }] }
+}
+
 /// The list's search field: a magnifier, the text, a clear button. Finished tokens leave the text for chips; ⌫ in an
 /// empty field removes the last chip; Esc clears the text; ↓ moves into the list.
 struct VaultSearchField: View {
@@ -123,6 +177,24 @@ struct VaultSearchField: View {
     var focused: FocusState<Bool>.Binding
     var moveToList: () -> Void = {}
     @State private var hovering = false
+    /// The highlighted suggestion.
+    @State private var pick = 0
+    /// Esc closed the suggestions for this text.
+    @State private var dismissedFor: String?
+
+    private var suggestions: [SearchSuggestion] {
+        guard focused.wrappedValue, dismissedFor != query else { return [] }
+        return model.searchSuggestions(for: query)
+    }
+
+    /// Takes a suggestion: its filter goes on, the half-typed word comes out of the text.
+    private func accept(_ suggestion: SearchSuggestion) {
+        withAnimation(.snappy(duration: 0.25)) { _ = model.applySearchToken(suggestion.token) }
+        var words = SearchToken.words(query)
+        if !words.isEmpty { words.removeLast() }
+        query = words.isEmpty ? "" : words.joined(separator: " ") + " "
+        pick = 0
+    }
 
     private var prompt: Text {
         model.vaultFilter == .all && (!model.visibleOrganizations.isEmpty || model.focusedAccountID == nil && model.accounts.count > 1)
@@ -139,18 +211,40 @@ struct VaultSearchField: View {
                 .font(.system(size: 13))
                 .focused(focused)
                 .onKeyPress(.escape) {
+                    if !suggestions.isEmpty { dismissedFor = query; return .handled }
                     guard !query.isEmpty else { return .ignored }
                     query = ""
                     return .handled
                 }
-                .onKeyPress(.downArrow) { moveToList(); return .handled }
+                .onKeyPress(.downArrow) {
+                    let list = suggestions
+                    if list.isEmpty { moveToList() } else { pick = min(pick + 1, list.count - 1) }
+                    return .handled
+                }
+                .onKeyPress(.upArrow) {
+                    guard !suggestions.isEmpty else { return .ignored }
+                    pick = max(pick - 1, 0)
+                    return .handled
+                }
+                .onKeyPress(.tab) {
+                    let list = suggestions
+                    guard !list.isEmpty else { return .ignored }
+                    accept(list[min(pick, list.count - 1)])
+                    return .handled
+                }
+                .onKeyPress(.return) {
+                    let list = suggestions
+                    guard !list.isEmpty else { return .ignored }
+                    accept(list[min(pick, list.count - 1)])
+                    return .handled
+                }
                 .onKeyPress(.delete) {
                     guard query.isEmpty, let last = model.searchChips.last else { return .ignored }
                     withAnimation(.snappy(duration: 0.25)) { model.removeSearchChip(last) }
                     return .handled
                 }
                 .onSubmit { promote(finishedOnly: false) }
-                .onChange(of: query) { promote(finishedOnly: true) }
+                .onChange(of: query) { pick = 0; promote(finishedOnly: true) }
             if !query.isEmpty {
                 Button { query = ""; focused.wrappedValue = true } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
@@ -168,6 +262,17 @@ struct VaultSearchField: View {
         .onTapGesture { focused.wrappedValue = true }
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.15), value: query.isEmpty)
+        // Filters offered for the word being typed, in a list hanging under the field.
+        .overlay(alignment: .topLeading) {
+            let list = suggestions
+            if !list.isEmpty {
+                SearchSuggestionList(suggestions: list, pick: min(pick, list.count - 1), accept: accept)
+                    .offset(y: 38)
+                    .transition(.opacity.combined(with: .offset(y: -4)))
+            }
+        }
+        .animation(.snappy(duration: 0.18), value: suggestions.isEmpty)
+        .onChange(of: focused.wrappedValue) { _, now in if now { SearchFiltersTip.searched.sendDonation() } }
         .help(Text("Search by name, username or website. Filter with type:card, is:favorite, has:otp, has:passkey, is:weak, folder:Work or vault:personal."))
     }
 
@@ -184,15 +289,55 @@ struct VaultSearchField: View {
     }
 }
 
+/// The suggestions under the search field: each filter with its name and how it's typed. ↑↓ pick, Return or Tab take
+/// one, a click too.
+struct SearchSuggestionList: View {
+    let suggestions: [SearchSuggestion]
+    let pick: Int
+    let accept: (SearchSuggestion) -> Void
+    @State private var hovered: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
+                Button { accept(suggestion) } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: suggestion.symbol).font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary).frame(width: 16)
+                        Text(verbatim: suggestion.label).font(.system(size: 13)).lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text(verbatim: suggestion.token.text).font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    .padding(.horizontal, 9).frame(height: 28)
+                    .background(Color.primary.opacity(index == pick ? 0.09 : hovered == suggestion.id ? 0.05 : 0),
+                                in: .rect(cornerRadius: 8, style: .continuous))
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .onHover { hovered = $0 ? suggestion.id : nil }
+                .accessibilityLabel(Text("Add filter \(suggestion.label)"))
+            }
+        }
+        .padding(5)
+        .frame(width: 260)
+        .background(.regularMaterial, in: .rect(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+        .shadow(color: .black.opacity(0.16), radius: 14, y: 6)
+    }
+}
+
 /// The filter menu beside the search field: every filter, a click away. Filled while any is on.
 struct SearchFilterMenu: View {
     @Environment(AppModel.self) private var model
 
-    private func toggle(_ title: LocalizedStringKey, _ symbol: String, _ on: Bool, _ set: @escaping (Bool) -> Void) -> some View {
+    /// A filter that turns on and off; its token as the subtitle, so the menu teaches how to type it.
+    private func toggle(_ title: LocalizedStringKey, _ symbol: String, token: SearchToken, _ on: Bool,
+                        _ set: @escaping (Bool) -> Void) -> some View {
         Button {
             withAnimation(.snappy(duration: 0.25)) { set(!on) }
         } label: {
-            Label(title, systemImage: on ? "checkmark" : symbol)
+            Label { Text(title); Text(verbatim: token.text) } icon: { Image(systemName: on ? "checkmark" : symbol) }
         }
     }
 
@@ -207,17 +352,17 @@ struct SearchFilterMenu: View {
                 ForEach(SearchFilters.ItemType.allCases, id: \.self) { type in
                     let kind = VaultItem.Kind(type)
                     Button { withAnimation(.snappy(duration: 0.25)) { model.searchFilters.type = type } } label: {
-                        Label { Text(verbatim: kind.paletteLabel) } icon: {
+                        Label { Text(verbatim: kind.paletteLabel); Text(verbatim: SearchToken.type(type).text) } icon: {
                             Image(systemName: model.searchFilters.type == type ? "checkmark" : kind.paletteSymbol)
                         }
                     }
                 }
             }
             Section("Show only") {
-                toggle("Favorites", "star", model.searchFilters.favorites) { model.searchFilters.favorites = $0 }
-                toggle("Has a one-time code", "clock.badge.checkmark", model.searchFilters.hasCode) { model.searchFilters.hasCode = $0 }
-                toggle("Has a passkey", "person.badge.key", model.searchFilters.hasPasskey) { model.searchFilters.hasPasskey = $0 }
-                toggle("Watchtower issues", "exclamationmark.shield", model.searchFilters.hasIssue) { model.searchFilters.hasIssue = $0 }
+                toggle("Favorites", "star", token: .favorites, model.searchFilters.favorites) { model.searchFilters.favorites = $0 }
+                toggle("Has a one-time code", "clock.badge.checkmark", token: .hasCode, model.searchFilters.hasCode) { model.searchFilters.hasCode = $0 }
+                toggle("Has a passkey", "person.badge.key", token: .hasPasskey, model.searchFilters.hasPasskey) { model.searchFilters.hasPasskey = $0 }
+                toggle("Watchtower issues", "exclamationmark.shield", token: .hasIssue, model.searchFilters.hasIssue) { model.searchFilters.hasIssue = $0 }
             }
             if !model.folders.isEmpty {
                 Menu {
@@ -227,7 +372,7 @@ struct SearchFilterMenu: View {
                     Divider()
                     ForEach(model.folders.map(\.name).sorted { $0.localizedStandardCompare($1) == .orderedAscending }, id: \.self) { path in
                         Button { withAnimation(.snappy(duration: 0.25)) { model.searchFilters.folder = path } } label: {
-                            Label { Text(verbatim: path) } icon: {
+                            Label { Text(verbatim: path); Text(verbatim: SearchToken.folder(path).text) } icon: {
                                 Image(systemName: model.searchFilters.folder == path ? "checkmark" : "folder")
                             }
                         }

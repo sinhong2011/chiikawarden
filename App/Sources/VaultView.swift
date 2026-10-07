@@ -2,6 +2,7 @@ import AppKit
 import TriCrypto
 import QuickLook
 import SwiftUI
+import TipKit
 import UniformTypeIdentifiers
 
 // Implements the "Vault window (static spec)" artboard: floating glass sidebar, rounded item list,
@@ -1159,6 +1160,12 @@ private struct ItemColumn: View {
                 .accessibilityLabel(Text("Sort"))
             }
             .padding(.leading, 6) // the search and sort line up with the list's edge
+            .zIndex(1) // the search's suggestions hang over the list
+
+            // Once, the first time the search is used: filters can be typed and they stay on.
+            TipView(SearchFiltersTip())
+                .tipImageStyle(.secondary)
+                .padding(.leading, 6)
 
             // The filters that are on, under the field, until they're cleared.
             if model.hasSearchFilters {
@@ -1243,6 +1250,7 @@ private struct ItemColumn: View {
         }
         .padding(.horizontal, 6)
         .animation(.snappy(duration: 0.25), value: model.hasSearchFilters)
+        .onChange(of: model.hasSearchFilters) { _, on in if on { SearchFiltersTip().invalidate(reason: .actionPerformed) } }
         .onChange(of: items.isEmpty, initial: true) { _, empty in if !empty { Bench.markAfterCommit("vault-ready") } }
         // ⌘F, also when the list has only just appeared for it.
         .onChange(of: model.wantsSearchFocus, initial: true) { _, wants in

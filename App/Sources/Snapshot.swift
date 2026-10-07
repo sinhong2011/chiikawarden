@@ -5,6 +5,7 @@ import AuthenticationServices
 import AppKit
 import TriCrypto
 import SwiftUI
+import TipKit
 import VaultwardenAPI
 
 /// Debug-only: `Triwarden --snapshot` renders key screens offscreen in light and dark
@@ -212,6 +213,27 @@ enum Snapshot {
         vault.items = plainItems
         vault.folders = []
         vault.organizations = []
+
+        // The one-time search tip, as the list shows it (TipKit forced on, in a throwaway store).
+        try? Tips.configure([.datastoreLocation(.url(dir.appending(path: "tips", directoryHint: .isDirectory)))])
+        Tips.showAllTipsForTesting()
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(TipView(SearchFiltersTip()).tipImageStyle(.secondary).frame(width: 318).padding(20), dark: name == "dark"),
+                   size: CGSize(width: 360, height: 200), appearance: appearance,
+                   to: dir.appending(path: "vault-search-tip-\(name).png"))
+        }
+
+        // Suggestions while a token is typed: types, then folders.
+        vault.folders = [Grouping(id: "f-personal", name: "Personal"), Grouping(id: "f-work", name: "Work")]
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            for (slug, typed) in [("type", "type:"), ("folder", "#w"), ("is", "has:")] {
+                render(desktop(SearchSuggestionList(suggestions: vault.searchSuggestions(for: typed), pick: 0, accept: { _ in })
+                    .padding(20), dark: name == "dark"),
+                       size: CGSize(width: 320, height: 300), appearance: appearance,
+                       to: dir.appending(path: "vault-search-suggest-\(slug)-\(name).png"))
+            }
+        }
+        vault.folders = []
 
         // The list's search with filters on: chips under the field, the filter menu filled; and filters that leave nothing.
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
