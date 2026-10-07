@@ -64,7 +64,7 @@ struct VaultView: View {
     /// The command palette's trigger: centred over the window when it's wide, beside the back button when narrow.
     /// The header's leading slot starts this far into the detail column.
     static let headerSlotInset: CGFloat = 8
-    private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(420, max(260, width * 0.3)) }
+    private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(320, max(280, width * 0.24)) }
     /// The window's footer (Sync, Lock) on its own strip under `content`, so it never sits over a panel; its right edge
     /// under the header's right end (an item's actions, or a page's edge).
     private func withFooter(_ content: some View) -> some View {
@@ -100,6 +100,7 @@ struct VaultView: View {
             content
                 .frame(width: geo.size.width, height: geo.size.height)
                 .onChange(of: geo.size.width, initial: true) { old, new in resized(from: initialMeasure ? 1120 : old, to: new) }
+                .environment(\.windowMidY, geo.frame(in: .global).midY)
         }
     }
 
@@ -147,8 +148,8 @@ struct VaultView: View {
 
     /// The locked account the list column asks to unlock, if any.
     private var lockedFocus: SavedAccount? {
-        guard let id = model.focusedAccountID ?? { if case .account(let id) = section { id } else { nil } }(),
-              !model.isUnlocked(id) else { return nil }
+        // The focused account's door covers the window (RootView); this pane is for the sidebar's account section.
+        guard case .account(let id) = section, model.accountDoor == nil, !model.isUnlocked(id) else { return nil }
         return model.accounts.first { $0.id == id }
     }
 
@@ -181,13 +182,14 @@ struct VaultView: View {
                 .transition(.opacity.combined(with: .offset(y: 8)))
         } else {
             ContentUnavailableView {
-                Label("No Item Selected", systemImage: "key.viewfinder").modifier(Floating())
+                Label("No Item Selected", systemImage: "key.viewfinder")
             }
+            .modifier(WindowCentered())
         }
     }
 
     /// False while the lock layer lies over the vault: the header's controls are kept in place but out of sight.
-    private var vaultOpen: Bool { model.phase.id == AppModel.Phase.vault.id }
+    private var vaultOpen: Bool { model.phase.id == AppModel.Phase.vault.id && model.accountDoor == nil }
 
     private var content: some View {
         @Bindable var model = model
@@ -285,10 +287,17 @@ struct VaultView: View {
         .onChange(of: model.requestedSection) { _, requested in
             if let requested { section = requested; model.requestedSection = nil }
         }
+        .onChange(of: model.requestedFilter) { _, requested in
+            guard let requested else { return }
+            model.requestedFilter = nil
+            section = .section(.all)
+            // After the section change has cleared the old filter.
+            Task { @MainActor in query = requested }
+        }
         .onChange(of: model.showingGenerator) { _, show in
             if show { section = .generator; model.showingGenerator = false }
         }
-        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode, prefill: request.prefill) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
         .sheet(isPresented: Binding(get: { model.eventLogFor != nil }, set: { if !$0 { model.eventLogFor = nil } })) {
@@ -436,12 +445,13 @@ private struct Sidebar: View {
                 row(.trash)
             } header: {
                 HStack(spacing: 6) {
-                    Text("Vault")
+                    Text("Vault").font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 6)
                     NewItemButton(inline: true) // new items of every kind, at the end of the Vault row
-                        .padding(.trailing, 10) // its edge under the counts' edge
+                        .padding(.trailing, 13) // its edge under the counts' edge
                 }
-                .frame(height: 22)
+                .frame(height: 26)
+                .padding(.bottom, 6)
             }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
@@ -476,6 +486,7 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .thinScroller() // the app's slim scroller, not the system's wide track
         .environment(\.sidebarCurrent, section)
         // Switching accounts or vaults: sections and counts move rather than jump.
         .animation(.snappy(duration: 0.3), value: model.focusedAccountID)
@@ -519,9 +530,9 @@ private struct SidebarAccountCard: View {
             Button { switching.toggle() } label: {
                 HStack(spacing: 10) {
                     if let account {
-                        AccountAvatar(email: account.account.email, index: account.index, size: 30)
+                        AccountAvatar(account: account.account, size: 30)
                     } else {
-                        StackedAvatars(accounts: model.accounts)
+                        AccountAvatarStack(accounts: model.accounts, size: 24)
                     }
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
@@ -546,9 +557,12 @@ private struct SidebarAccountCard: View {
         }
         .padding(.leading, 8).padding(.trailing, 8).padding(.vertical, 8)
         .background {
+            // Frosted underneath: rows scrolling below the card blur away instead of showing through its text.
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(dark ? Color.white.opacity(hovering || switching ? 0.09 : 0.06) : Color.white.opacity(hovering || switching ? 0.75 : 0.55))
+                .background(.thickMaterial, in: .rect(cornerRadius: 14, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
+                .shadow(color: .black.opacity(dark ? 0.25 : 0.06), radius: 8, y: 2)
         }
         .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
         .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
@@ -632,59 +646,11 @@ private struct SyncFooterButton: View {
 private struct SidebarWidth: ViewModifier {
     func body(content: Content) -> some View {
         if Motion.plays {
-            content.navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+            // Wide enough that names and counts never crowd (e.g. "Browser extensions" with its count).
+            content.navigationSplitViewColumnWidth(min: 230, ideal: 250, max: 320)
         } else {
-            content.navigationSplitViewColumnWidth(220)
+            content.navigationSplitViewColumnWidth(240)
         }
-    }
-}
-
-/// An account's monogram with its colour dot.
-struct AccountAvatar: View {
-    let email: String
-    let index: Int
-    var size: CGFloat = 28
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        Monogram(name: email, size: size)
-            .overlay(alignment: .bottomTrailing) {
-                Circle().fill(AccountColor.color(index))
-                    .frame(width: size * 0.32, height: size * 0.32)
-                    .overlay(Circle().strokeBorder(scheme == .dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
-                    .offset(x: 2, y: 2)
-            }
-    }
-}
-
-/// Several accounts at once: their monograms fanned out.
-/// "All accounts": one tile the size of an account's, with a people glyph and every account's colour dot where a
-/// single account shows its own.
-private struct StackedAvatars: View {
-    let accounts: [SavedAccount]
-    var size: CGFloat = 30
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        let dark = scheme == .dark
-        let dot = size * 0.32
-        Image(systemName: "person.2.fill")
-            .font(.system(size: size * 0.36, weight: .semibold))
-            .foregroundStyle(Color.black.opacity(0.62))
-            .frame(width: size, height: size)
-            .background(dark ? Color(white: 0.96) : .white, in: .rect(cornerRadius: size * 0.29, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: size * 0.29, style: .continuous).strokeBorder(.black.opacity(0.08)))
-            .overlay(alignment: .bottomTrailing) {
-                HStack(spacing: -dot * 0.45) {
-                    ForEach(Array(accounts.prefix(3).indices), id: \.self) { index in
-                        Circle().fill(AccountColor.color(index))
-                            .frame(width: dot, height: dot)
-                            .overlay(Circle().strokeBorder(dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
-                    }
-                }
-                .offset(x: 2, y: 2)
-            }
-            .accessibilityHidden(true)
     }
 }
 
@@ -693,12 +659,15 @@ private struct StackedAvatars: View {
 struct AccountSwitcher: View {
     @Environment(AppModel.self) private var model
     let close: () -> Void
+    /// The avatars' column: wide enough for the "All accounts" stack, so every row's text starts together.
+    static let leadingWidth: CGFloat = 40
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             if model.accounts.count > 1 {
                 row(selected: model.focusedAccountID == nil, action: { focus(nil) }) {
-                    StackedAvatars(accounts: model.accounts)
+                    AccountAvatarStack(accounts: model.accounts, size: 22)
+                        .frame(width: Self.leadingWidth, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("All accounts").font(.system(size: 13, weight: .semibold))
                         Text("\(model.sessions.count) of \(model.accounts.count) unlocked")
@@ -707,10 +676,11 @@ struct AccountSwitcher: View {
                 }
                 Divider().padding(.vertical, 4).padding(.horizontal, 8)
             }
-            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+            ForEach(model.accounts) { account in
                 let open = model.isUnlocked(account.id)
                 row(selected: model.focusedAccountID == account.id || model.accounts.count == 1, action: { focus(account.id) }) {
-                    AccountAvatar(email: account.email, index: index, size: 30)
+                    AccountAvatar(account: account, size: 30, showsLock: true)
+                        .frame(width: Self.leadingWidth, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                         HStack(spacing: 4) {
@@ -982,9 +952,9 @@ private struct NewItemButton: View {
         } label: {
             if inline {
                 // A small round control, always visible but quiet; it firms up on hover.
-                Image(systemName: "plus").font(.system(size: 9.5, weight: .bold))
+                Image(systemName: "plus").font(.system(size: 11, weight: .bold))
                     .foregroundStyle(hovering ? .primary : .secondary)
-                    .frame(width: 18, height: 18)
+                    .frame(width: 22, height: 22)
                     .background(Color.primary.opacity(hovering ? 0.14 : 0.07), in: .circle)
                     .contentShape(.circle)
                     .animation(.easeOut(duration: 0.12), value: hovering)
@@ -1277,8 +1247,8 @@ private struct ItemColumn: View {
                 if items.isEmpty {
                     ContentUnavailableView {
                         Label(query.isEmpty ? "No Items" : "No Results", systemImage: query.isEmpty ? "tray" : "magnifyingglass")
-                            .modifier(Floating())
                     }
+                    .modifier(WindowCentered())
                 }
             }
             .overlay(alignment: .bottom) {
@@ -1303,24 +1273,16 @@ struct ItemRow: View {
     var highlight = ""
     @State private var hovered = false
 
-    /// Account colour, only when more than one account is open.
-    private var accountDot: Color? {
-        guard model.sessions.count > 1, let i = model.accounts.firstIndex(where: { $0.id == item.accountId }) else { return nil }
-        return AccountColor.color(i)
-    }
-
     var body: some View {
         HStack(spacing: 12) {
             ItemIcon(item: item, size: 38)
-                .overlay(alignment: .bottomTrailing) {
-                    if let accountDot {
-                        Circle().fill(accountDot).frame(width: 11, height: 11)
-                            .overlay(Circle().strokeBorder(Color.windowBase, lineWidth: 2))
-                            .offset(x: 3, y: 3)
-                    }
-                }
             VStack(alignment: .leading, spacing: 1) {
-                Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                // Whose it is, when several accounts are open: the account's letters at the end of the name.
+                HStack(spacing: 6) {
+                    Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                    Spacer(minLength: 0)
+                    AccountTag(accountId: item.accountId)
+                }
                 if let username = item.username {
                     Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
@@ -1383,6 +1345,23 @@ struct ItemRow: View {
 extension EnvironmentValues {
     /// False while the detail pane sits off-screen on the narrow-window strip.
     @Entry var showsDetailToolbar = true
+    /// The vault window's vertical middle, in window coordinates: empty states line up on it across columns.
+    @Entry var windowMidY: CGFloat?
+}
+
+/// An empty state centred on the window's middle rather than its own column's, so the list's and the detail's sit on
+/// one line however their panels are inset (the filter bar above one, the footer below the other).
+struct WindowCentered: ViewModifier {
+    @Environment(\.windowMidY) private var windowMidY
+
+    func body(content: Content) -> some View {
+        GeometryReader { geo in
+            let own = geo.frame(in: .global).midY
+            content
+                .frame(width: geo.size.width, height: geo.size.height)
+                .offset(y: windowMidY.map { $0 - own } ?? 0)
+        }
+    }
 }
 
 struct ItemDetail: View {
@@ -1575,7 +1554,7 @@ struct ItemDetail: View {
         .toolbar {
             // Item actions sit in the header, top right (Liquid layout) — only while this detail is in view, and not
             // under the lock layer.
-            if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
+            if showsToolbar, model.phase.id == AppModel.Phase.vault.id, model.accountDoor == nil {
                 ToolbarSpacer(.flexible)
                 // Inset by the detail's own side padding, so the pill's edge lines up with the cards below.
                 ToolbarItem { actions }
@@ -1988,21 +1967,10 @@ struct AccountUnlockPane: View {
 
     private var hasPIN: Bool { model.isPINEnabled(account.id) }
     private var pinMode: Bool { hasPIN && !usePassword }
-    private var index: Int { model.accounts.firstIndex { $0.id == account.id } ?? 0 }
-
     var body: some View {
         VStack(spacing: 0) {
-            // Whose vault: the account's own tile (and colour), so it reads as the one picked in the switcher.
-            AccountAvatar(email: account.email, index: index, size: 52)
-                .overlay(alignment: .topTrailing) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 20, height: 20)
-                        .background(.regularMaterial, in: .circle)
-                        .overlay(Circle().strokeBorder(Color.primary.opacity(0.1)))
-                        .offset(x: 7, y: -7)
-                }
+            // Whose vault: the account's own avatar, so it reads as the one picked in the switcher.
+            AccountAvatar(account: account, size: 52, showsLock: true)
                 .padding(.bottom, 14)
             Text(verbatim: account.email)
                 .font(.system(size: 14, weight: .semibold))
@@ -2195,14 +2163,35 @@ struct HeaderChrome: ViewModifier {
 
     func body(content: Content) -> some View {
         let dark = scheme == .dark
-        let fill = dark ? Color.white.opacity(hovering ? 0.14 : 0.10) : Color.white.opacity(hovering ? 1 : 0.88)
-        let edge = dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)
-        Group {
-            switch shape {
-            case .capsule: content.background(fill, in: .capsule).overlay(Capsule().strokeBorder(edge, lineWidth: 0.5))
-            case .circle: content.background(fill, in: .circle).overlay(Circle().strokeBorder(edge, lineWidth: 0.5))
-            }
+        switch shape {
+        case .capsule: chrome(content, Capsule(), dark: dark)
+        case .circle: chrome(content, Circle(), dark: dark)
         }
+    }
+
+    /// Dark: a quiet translucent fill. Light: glass — a bright top edge fading to a faint shade below, and a soft
+    /// shadow like the cards'. Composited as one layer so the toolbar's vibrancy can't wash the edge and fill out.
+    private func chrome<S: InsettableShape>(_ content: Content, _ shape: S, dark: Bool) -> some View {
+        let fill = dark ? Color.white.opacity(hovering ? 0.14 : 0.10) : Color.white.opacity(hovering ? 0.95 : 0.78)
+        return content
+            .background {
+                if dark {
+                    shape.fill(fill)
+                } else {
+                    shape.fill(fill)
+                        .background(.ultraThinMaterial, in: shape)
+                        .shadow(color: .black.opacity(hovering ? 0.10 : 0.07), radius: 6, y: 2)
+                }
+            }
+            .overlay {
+                if dark {
+                    shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+                } else {
+                    shape.strokeBorder(LinearGradient(colors: [.white, .white.opacity(0.4), .black.opacity(0.07)],
+                                                      startPoint: .top, endPoint: .bottom), lineWidth: 1)
+                }
+            }
+            .compositingGroup()
     }
 }
 

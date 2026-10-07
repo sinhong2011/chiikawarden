@@ -46,6 +46,8 @@ struct VaultDoorStage: View {
     @Environment(\.vaultDoorFrozen) private var frozen
     @Environment(\.gatePassing) private var gatePassing
     @AppStorage(Pref.lockAnimations) private var animates = true
+    /// Behind other windows or apps: the idle drift rests (the open and close sequences always play).
+    @Environment(\.controlActiveState) private var activeState
     @State private var start = Date()
 
     var body: some View {
@@ -58,7 +60,8 @@ struct VaultDoorStage: View {
                 // Inside the gate's halves the door holds still (one frame), so the halves are cheap to move.
                 // Inside the gate's halves: still while closing (cheap to move); opening keeps playing, so the last
                 // pieces fly out as the halves part.
-                TimelineView(.animation(paused: still || (gatePassing && openedAt == nil))) { context in
+                let resting = activeState == .inactive && openedAt == nil && closedAt == nil && errorAt == nil
+                TimelineView(.animation(paused: still || resting || (gatePassing && openedAt == nil))) { context in
                     let now = context.date
                     art(time: still ? 0 : now.timeIntervalSince(start),
                         opened: openedAt.map { now.timeIntervalSince($0) },
@@ -123,7 +126,7 @@ private struct Mechanism {
     func piece(_ k: Int, _ i: Int) -> Double {
         let n = Double(Self.pieceCount[k])
         if let e = openT {
-            // A tight cascade (every piece is out by ~1.05, 0.87 s at play speed). The gate starts parting while the
+            // A tight cascade (every piece is out by ~1.05, ~1.17 s at play speed: DoorMotion). The gate starts parting while the
             // outer rings are still flying out, and its halves keep playing them, so it all reads as one movement.
             let start = [0.52, 0.58, 0.64, 0.7][k] + Double(i) / n * 0.08
             return Ease.inOut(Self.seg(e, start, start + 0.28)) // soft in, soft out: no snap at either end
@@ -259,6 +262,18 @@ enum DoorGeometry {
     static let core = 0.58
 }
 
+/// The unlock sequence's tempo, shared by the door and the gate (AppModel) so they stay in step.
+enum DoorMotion {
+    /// How fast the written opening plays (it's written over ~1.05 s): below 1 is slower, unhurried.
+    static let openSpeed = 0.9
+    /// When the gate starts parting: while the outer rings are still flying out (0.864 s into the written sequence).
+    static var gateDelay: Double { 0.864 / openSpeed }
+    /// How long the gate's halves take to part.
+    static let gateParting = 0.85
+    /// The hub's release as the door starts to open.
+    static let release = 0.6
+}
+
 private struct VaultDoorArt: View, Animatable {
     var steps: Double
     var busy: Double
@@ -284,8 +299,7 @@ private struct VaultDoorArt: View, Animatable {
     /// The twelve pins, one Elder Futhark rune each.
     private static let runes = Array("ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛉ")
 
-    /// How much faster than written the opening plays; AppModel waits `1.12 / openSpeed` before the gate.
-    static let openSpeed = 1.2
+    static var openSpeed: Double { DoorMotion.openSpeed }
 
     private static let runeSymbols = ["key.fill", "person.badge.key.fill", "terminal.fill",
                                       "creditcard.fill", "envelope.fill", "note.text"]

@@ -5,6 +5,8 @@ import VaultwardenAPI
 struct TriwardenApp: App {
     @State private var model = AppModel()
     @AppStorage(Pref.appearance) private var appearance = AppearanceSetting.system
+    @AppStorage(Pref.showMenuBar) private var showMenuBar = true
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     init() {
         Pref.register()
@@ -32,12 +34,14 @@ struct TriwardenApp: App {
     private let services = ServicesProvider()
 
     var body: some Scene {
-        WindowGroup {
+        // One vault window: reopening (menu bar, palette, Dock, opening the app again) brings this one back.
+        Window("Triwarden", id: AppModel.mainWindowID) {
             // No window-wide tint: a tint colours menu icons, and a highlighted row would then hide its own icon.
             // System controls take the neutral global accent (ControlAccent); the app's switches set their own.
             RootView()
                 .environment(model)
                 .preferredColorScheme(appearance.scheme)
+                .onAppear { appDelegate.model = model }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
                 }
@@ -51,8 +55,9 @@ struct TriwardenApp: App {
                 .containerBackground(for: .window) { WindowBackdrop() }
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1120, height: 720)
 
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $showMenuBar) {
             MenuBarContent()
                 .environment(model)
         } label: {
@@ -145,6 +150,7 @@ struct TriwardenApp: App {
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The login and lock screens leave like a vault's inner gate: split along the middle, halves retracting up and down.
@@ -155,7 +161,7 @@ struct RootView: View {
 
     /// Into the vault: the gate's heavy ease. Locking: the gate closing. Elsewhere: smooth, nothing wobbles into place.
     private var phaseAnimation: Animation {
-        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.55) }
+        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.75) }
         return .smooth(duration: 0.45)
     }
 
@@ -182,10 +188,12 @@ struct RootView: View {
         // The lock lies over the window as an overlay (not a sibling): it reaches under the title bar without
         // stretching the vault's layout there, so nothing moves when it lifts.
         .overlay {
-            if model.phase.id == AppModel.Phase.locked.id {
+            // The whole vault locked, or one locked account picked while the others are open.
+            if model.phase.id == AppModel.Phase.locked.id || model.accountDoor != nil {
                 UnlockView()
-                    // Appears and leaves at once: when animated, the gate's plates cover it while it does.
-                    .transition(reduceMotion ? .opacity : .identity)
+                    // Appears and leaves at once: when animated, the gate's plates cover it while it does. An account's
+                    // door fades in and out (switching to it, or leaving it for all accounts).
+                    .transition(reduceMotion || model.accountDoor != nil ? .opacity : .identity)
             }
         }
         // The gate: plates over everything, only while they move (locking and unlocking).
@@ -193,7 +201,11 @@ struct RootView: View {
             if model.gate != nil { GatePlates() }
         }
         .animation(phaseAnimation, value: model.phase.id)
-        .onAppear { model.openSettingsAction = { openSettings() } }
+        .onAppear {
+            model.openSettingsAction = { openSettings() }
+            model.openMainWindowAction = { openWindow(id: AppModel.mainWindowID) }
+            model.windowDidOpen()
+        }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
             get: { model.confirming != nil }, set: { if !$0 { model.confirming = nil } }), presenting: model.confirming) { request in
@@ -303,5 +315,27 @@ enum DemoLaunch {
         let args = CommandLine.arguments
         guard let at = args.firstIndex(of: flag), at + 1 < args.count else { return nil }
         return args[at + 1]
+    }
+}
+
+/// Opening Triwarden again (Finder, Spotlight, the Dock) while it waits in the menu bar brings the vault window back.
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    var model: AppModel?
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        guard !hasVisibleWindows, let model else { return true }
+        model.bringToFront()
+        return false
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // The last window closing: with "Keep running in the menu bar" on, Triwarden leaves the Dock.
+        NotificationCenter.default.addObserver(self, selector: #selector(windowWillClose(_:)),
+                                               name: NSWindow.willCloseNotification, object: nil)
+    }
+
+    @objc private func windowWillClose(_ note: Notification) {
+        model?.windowWillClose(note.object as? NSWindow)
     }
 }

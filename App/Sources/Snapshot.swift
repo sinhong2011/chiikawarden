@@ -196,6 +196,20 @@ enum Snapshot {
                    size: CGSize(width: 380, height: 760), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
+        // The palette's states: ranked and loose matches, an item's actions, the generator, a new login from the query,
+        // a type scope, commands only, and a locked vault.
+        for (slug, query, actions) in [("query", "git", false), ("fuzzy", "gthb", false), ("actions", "git", true),
+                                       ("gen", "gen 24", false), ("create", "acme.com", false), ("scope", "card: ", false),
+                                       ("commands", ">account", false)] {
+            render(desktop(CommandPalette(close: {}, initialQuery: query, initialActions: actions).environment(vault).tint(.brand), dark: true),
+                   size: CGSize(width: 760, height: 720), appearance: .darkAqua,
+                   to: dir.appending(path: "palette-\(slug)-dark.png"))
+        }
+        let lockedPalette = AppModel()
+        lockedPalette.setPreviewAccounts(vault.accounts)
+        lockedPalette.phase = .locked
+        render(desktop(CommandPalette(close: {}).environment(lockedPalette).tint(.brand), dark: true),
+               size: CGSize(width: 760, height: 420), appearance: .darkAqua, to: dir.appending(path: "palette-locked-dark.png"))
         // Called over a browser on github.com: that site's login first, in the palette and the menu bar panel.
         let browser = NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == "com.apple.finder" }
         vault.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: browser?.processIdentifier ?? 0,
@@ -370,13 +384,24 @@ enum Snapshot {
                        to: dir.appending(path: "account-unlock-\(name).png"))
             }
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["general", "shortcuts", "server", "account:a", "account:b", "security", "developer", "about"] {
+            for pane in ["accounts", "general", "shortcuts", "server", "security", "developer", "about"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(people).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
                        to: dir.appending(path: "settings-\(pane.replacingOccurrences(of: ":", with: "-"))-\(name).png"))
             }
             UserDefaults.standard.set(saved, forKey: "settingsPane")
+            // The menu bar panel with two accounts: the account button beside search and lock.
+            render(MenuBarContent().environment(people).tint(.brand).background(.regularMaterial),
+                   size: CGSize(width: 380, height: 360), appearance: appearance,
+                   to: dir.appending(path: "menubar-accounts-\(name).png"))
+            // An account's details, as the sheet over Settings › Accounts shows them.
+            for account in people.accounts {
+                render(AccountDetailsSheet(accountId: account.id).environment(people).tint(.controlTint)
+                    .background(Color(nsColor: .windowBackgroundColor)),
+                       size: CGSize(width: 620, height: 620), appearance: appearance,
+                       to: dir.appending(path: "settings-account-\(account.id)-\(name).png"))
+            }
         }
         print(dir.path)
         exit(0)

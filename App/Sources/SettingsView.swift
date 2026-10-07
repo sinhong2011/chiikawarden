@@ -7,10 +7,12 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, shortcuts, security, developer, server, about
+        // Everyday first, then who and how it's protected, then the keys, the connection, the tools, and about.
+        case general, accounts, security, shortcuts, server, developer, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
+            case .accounts: "Accounts"
             case .general: "General"
             case .shortcuts: "Shortcuts"
             case .security: "Security"
@@ -21,6 +23,7 @@ struct SettingsView: View {
         }
         var symbol: String {
             switch self {
+            case .accounts: "person.2"
             case .general: "gearshape"
             case .shortcuts: "keyboard"
             case .security: "lock.shield"
@@ -32,88 +35,150 @@ struct SettingsView: View {
     }
 
     @Environment(AppModel.self) private var model
-    /// A pane's name, or "account:<id>" for an account's page.
+    /// The chosen pane's name (an older "account:<id>" means Accounts).
     @AppStorage("settingsPane") private var paneRaw = Pane.general.rawValue
 
-    enum Selection: Hashable { case pane(Pane), account(String) }
-
-    private var selection: Binding<Selection?> {
-        Binding(get: {
-            if paneRaw.hasPrefix("account:") {
-                let id = String(paneRaw.dropFirst(8))
-                if model.accounts.contains(where: { $0.id == id }) { return .account(id) }
-            }
-            return .pane(Pane(rawValue: paneRaw) ?? .general)
-        }, set: { new in
-            switch new ?? .pane(.general) {
-            case .pane(let pane): paneRaw = pane.rawValue
-            case .account(let id): paneRaw = "account:" + id
-            }
-        })
+    private var selection: Binding<Pane?> {
+        Binding(get: { paneRaw.hasPrefix("account:") ? .accounts : Pane(rawValue: paneRaw) ?? .general },
+                set: { paneRaw = ($0 ?? .general).rawValue })
     }
 
     var body: some View {
         NavigationSplitView {
-            List(selection: selection) {
-                // Each account is its own page, at the top (like the Apple Account in System Settings).
-                Section {
-                    ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
-                        SettingsAccountRow(account: account, index: index).tag(Selection.account(account.id))
-                    }
-                    Button {
-                        model.beginAddAccount()
-                        NSApp.activate()
-                        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
-                    } label: {
-                        Label("Add Account…", systemImage: "plus.circle").foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                } header: {
-                    Text("Accounts")
-                }
-                Section {
-                    ForEach(Pane.allCases) { pane in
-                        Label(pane.title, systemImage: pane.symbol).tag(Selection.pane(pane))
-                    }
-                } header: {
-                    Text(verbatim: "Triwarden")
-                }
+            List(Pane.allCases, selection: selection) { pane in
+                Label(pane.title, systemImage: pane.symbol).tag(pane)
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
             // Settings always shows its sidebar, like System Settings: no button to fold it away.
             .toolbar(removing: .sidebarToggle)
         } detail: {
+            let pane = selection.wrappedValue ?? .general
             Group {
-                switch selection.wrappedValue ?? .pane(.general) {
-                case .account(let id):
-                    if let index = model.accounts.firstIndex(where: { $0.id == id }) {
-                        AccountSettingsPage(account: model.accounts[index], index: index)
-                            .navigationTitle(Text(verbatim: model.accounts[index].email))
-                    }
-                case .pane(let pane):
-                    Group {
-                        switch pane {
-                        case .general: GeneralSettings()
-                        case .shortcuts: ShortcutsSettings()
-                        case .security: SecuritySettings()
-                        case .developer: DeveloperSettings()
-                        case .server: ServerSettings()
-                        case .about: AboutSettings()
-                        }
-                    }
-                    .navigationTitle(pane.title)
+                switch pane {
+                case .accounts: AccountsSettings()
+                case .general: GeneralSettings()
+                case .shortcuts: ShortcutsSettings()
+                case .security: SecuritySettings()
+                case .developer: DeveloperSettings()
+                case .server: ServerSettings()
+                case .about: AboutSettings()
                 }
             }
-            // Every pane's buttons in the app's capsule style (explicit styles, like links, still win).
-            .buttonStyle(.appSecondarySmall)
-            // …and every switch in the brand colour when on.
-            .toggleStyle(.brandSwitch)
-            // …and every row's label centred on its control.
-            .labeledContentStyle(.centeredRow)
+            .navigationTitle(pane.title)
+            .settingsControlStyles()
         }
         // Opens roomy and resizes freely; forms scroll when the window is shorter than their content.
         .frame(minWidth: 680, idealWidth: 820, maxWidth: .infinity, minHeight: 460, idealHeight: 640, maxHeight: .infinity)
+    }
+}
+
+extension View {
+    /// Settings' controls: buttons in the app's capsule style (explicit styles, like links, still win), switches in the
+    /// brand colour when on, and every row's label centred on its control.
+    func settingsControlStyles() -> some View {
+        buttonStyle(.appSecondarySmall)
+            .toggleStyle(.brandSwitch)
+            .labeledContentStyle(.centeredRow)
+    }
+}
+
+// MARK: Accounts
+
+/// Every account on this Mac; one opens its details in a sheet. Then adding another.
+private struct AccountsSettings: View {
+    @Environment(AppModel.self) private var model
+    @State private var shown: SavedAccount?
+
+    var body: some View {
+        Form {
+            Section {
+                ForEach(model.accounts) { account in
+                    Button { shown = account } label: { AccountListRow(account: account) }
+                        .buttonStyle(.plain)
+                }
+            } footer: {
+                Text("Each account keeps its own vault, Touch ID, PIN and timeout. Choose one for its details.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
+                HStack {
+                    Spacer()
+                    Button {
+                        model.beginAddAccount()
+                        model.bringToFront()
+                    } label: {
+                        Label("Add Account…", systemImage: "plus.circle")
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .sheet(item: $shown) { account in AccountDetailsSheet(accountId: account.id) }
+    }
+}
+
+/// An account in the list: avatar, email, where it lives, and whether it's open (with its item count).
+private struct AccountListRow: View {
+    @Environment(AppModel.self) private var model
+    let account: SavedAccount
+    @State private var hovering = false
+
+    var body: some View {
+        let open = model.isUnlocked(account.id)
+        let count = model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count
+        HStack(spacing: 12) {
+            AccountAvatar(account: account, size: 34, showsLock: true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                HStack(spacing: 4) {
+                    Text(verbatim: account.serverSummary)
+                    Text(verbatim: "·")
+                    if open {
+                        Text("^[\(count) item](inflect: true)")
+                    } else {
+                        Text("Locked")
+                    }
+                }
+                .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 3)
+        .contentShape(.rect)
+        .background(Color.primary.opacity(hovering ? 0.04 : 0).padding(.horizontal, -8).padding(.vertical, -4))
+        .onHover { hovering = $0 }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// One account's details, in a sheet over the list: everything that was its own page. Closes by itself if the
+/// account is logged out from inside.
+struct AccountDetailsSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let accountId: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if let account = model.accounts.first(where: { $0.id == accountId }) {
+                AccountSettingsPage(account: account)
+                    .settingsControlStyles()
+            } else {
+                Color.clear.onAppear { dismiss() }
+            }
+            Divider()
+            HStack {
+                Spacer()
+                Button("Done") { dismiss() }
+                    .buttonStyle(.appPrimary)
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding(12)
+        }
+        .frame(minWidth: 560, idealWidth: 620, minHeight: 480, idealHeight: 620)
     }
 }
 
@@ -125,6 +190,8 @@ private struct GeneralSettings: View {
     @State private var autoFillOn: Bool?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
+    @AppStorage(Pref.showMenuBar) private var showMenuBar = true
+    @AppStorage(Pref.closeToMenuBar) private var closeToMenuBar = false
 
     var body: some View {
         Form {
@@ -149,6 +216,20 @@ private struct GeneralSettings: View {
                 if let loginError {
                     Text(verbatim: loginError).font(.caption).foregroundStyle(.red)
                 }
+            }
+
+            Section {
+                Toggle("Show Triwarden in the menu bar", isOn: $showMenuBar)
+                    .onChange(of: showMenuBar) { _, on in if !on { closeToMenuBar = false } }
+                Toggle("Keep running in the menu bar when the window is closed", isOn: $closeToMenuBar)
+                    .disabled(!showMenuBar)
+            } header: {
+                Text("Menu Bar")
+            } footer: {
+                Text(showMenuBar
+                     ? "With the window closed, Triwarden leaves the Dock and waits in the menu bar. Shortcuts, AutoFill and the command palette keep working."
+                     : "Without the menu bar icon, open Triwarden from the Dock, Spotlight or its shortcuts.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {
@@ -380,37 +461,12 @@ private struct DeveloperSettings: View {
 
 // MARK: Accounts
 
-/// An account in the Settings sidebar: avatar with its colour, email, and whether it's open.
-private struct SettingsAccountRow: View {
-    @Environment(AppModel.self) private var model
-    let account: SavedAccount
-    let index: Int
-
-    var body: some View {
-        let open = model.isUnlocked(account.id)
-        HStack(spacing: 9) {
-            Monogram(name: account.email, size: 26)
-                .overlay(alignment: .bottomTrailing) {
-                    Circle().fill(AccountColor.color(index)).frame(width: 9, height: 9)
-                        .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5))
-                        .offset(x: 2, y: 2)
-                }
-            VStack(alignment: .leading, spacing: 0) {
-                Text(verbatim: account.email).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
-                Text(open ? "Unlocked" : "Locked").font(.system(size: 10)).foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 2)
-    }
-}
-
 /// Everything about one account on one page: who and where; Touch ID and sync on this Mac; and, while it's
 /// unlocked, its security (two-step login, master password, fingerprint, devices) and emergency access; then
 /// export, lock and log out.
 private struct AccountSettingsPage: View {
     @Environment(AppModel.self) private var model
     let account: SavedAccount
-    let index: Int
     @State private var confirmLogOut = false
     @State private var settingPIN = false
 
@@ -420,12 +476,7 @@ private struct AccountSettingsPage: View {
         Form {
             Section {
                 HStack(spacing: 14) {
-                    Monogram(name: account.email, size: 48)
-                        .overlay(alignment: .bottomTrailing) {
-                            Circle().fill(AccountColor.color(index)).frame(width: 14, height: 14)
-                                .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
-                                .offset(x: 3, y: 3)
-                        }
+                    AccountAvatar(account: account, size: 48)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(verbatim: account.email).font(.system(size: 15, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                             .textSelection(.enabled)
@@ -574,11 +625,6 @@ private struct AccountSettingsPage: View {
     }
 }
 
-/// Stable colour per account position, used for dots in the sidebar and lists.
-enum AccountColor {
-    static let palette: [Color] = [.blue, .orange, .green, .purple, .pink, .teal, .indigo, .brown]
-    static func color(_ index: Int) -> Color { palette[index % palette.count] }
-}
 
 // MARK: Server
 

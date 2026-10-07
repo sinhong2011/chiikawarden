@@ -9,10 +9,13 @@ struct MenuBarContent: View {
     @State private var query = ""
     @FocusState private var searching: Bool
 
+    /// The account in focus (from the switcher) is open; with none in focus, any is.
+    private var focusedOpen: Bool { model.focusedAccountID.map(model.isUnlocked) ?? true }
+
     var body: some View {
         VStack(spacing: 8) {
             topRow
-            if model.isUnlocked {
+            if model.isUnlocked, focusedOpen {
                 if query.trimmingCharacters(in: .whitespaces).isEmpty {
                     SiteCard()
                     ShelfCard()
@@ -23,7 +26,7 @@ struct MenuBarContent: View {
                     SearchResults(query: query)
                 }
             } else {
-                LockedCard()
+                LockedCard(account: model.focusedAccountID.flatMap { id in model.accounts.first { $0.id == id } })
             }
             footer
         }
@@ -43,16 +46,16 @@ struct MenuBarContent: View {
                     .focused($searching)
                     .disabled(!model.isUnlocked)
                     .onSubmit {
-                        // Return copies the top result's password (or the palette takes over for more).
-                        if let first = SearchResults.matches(model.items, query).first { QuickCopy.primary(first, model) }
+                        // Return fills the top login into the app the panel was opened over, else copies its password.
+                        guard let first = SearchResults.matches(model.focusedItems, query).first else { return }
+                        if QuickCopy.canFill(first, model) { QuickCopy.fill(first, model) } else { QuickCopy.primary(first, model) }
                     }
                 if query.isEmpty {
                     Button {
                         NSApp.keyWindow?.orderOut(nil) // the palette takes the panel's place
                         DispatchQueue.main.async { model.openPalette() }
                     } label: {
-                        Text(verbatim: Shortcut.current(for: .palette)?.display ?? "⌘K").font(.system(size: 10, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.tertiary)
+                        ShortcutKeycaps(keys: Shortcut.current(for: .palette)?.parts ?? ["⌘", "K"])
                     }
                     .buttonStyle(.plain)
                     .help(Text("Open the command palette"))
@@ -69,6 +72,7 @@ struct MenuBarContent: View {
             .overlay(Capsule().strokeBorder(searching ? Color.primary.opacity(0.3) : Color.panelEdge, lineWidth: searching ? 1.5 : 1))
             .animation(.easeOut(duration: 0.15), value: searching)
 
+            if model.accounts.count > 1 { AccountMenu() }
             if model.isUnlocked {
                 CircleButton(symbol: "lock", help: "Lock Vault") { model.lock(animated: true) }
             }
@@ -105,8 +109,45 @@ struct MenuBarContent: View {
     }
 }
 
-/// What a click copies, and how the panel says so.
+/// A shortcut as keycaps, one per key (⇧ ⌘ Space), like the palette's hints; it brightens on hover.
+private struct ShortcutKeycaps: View {
+    let keys: [String]
+    @State private var hovering = false
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
+                Text(verbatim: key)
+                    .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(hovering ? .primary : .secondary)
+                    .padding(.horizontal, key.count > 1 ? 6 : 0)
+                    .frame(minWidth: 18, minHeight: 18)
+                    .background(Color.primary.opacity(scheme == .dark ? (hovering ? 0.16 : 0.10) : (hovering ? 0.10 : 0.06)),
+                                in: .rect(cornerRadius: 5, style: .continuous))
+                    .fixedSize()
+            }
+        }
+        .contentShape(.rect)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+    }
+}
+
+/// What a click copies (or fills), and how the panel says so.
 enum QuickCopy {
+    /// A login, and an app or page to type it into.
+    @MainActor static func canFill(_ item: VaultItem, _ model: AppModel) -> Bool {
+        model.foreground != nil && item.kind == .login && (item.username != nil || item.password != nil)
+    }
+
+    /// Closes the panel and types the login into the app it was opened over.
+    @MainActor static func fill(_ item: VaultItem, _ model: AppModel) {
+        guard let context = model.foreground else { return }
+        NSApp.keyWindow?.orderOut(nil)
+        model.fillLogin(item, into: context)
+    }
+
     /// The most useful secret: the password, else the code, else the username.
     @MainActor static func primary(_ item: VaultItem, _ model: AppModel) {
         if item.password != nil { model.copyPassword(item) }
@@ -200,13 +241,14 @@ private func codeFraction(_ totp: TOTP, _ date: Date) -> Double {
     return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
 }
 
-/// The logins for the page (or app) the panel was opened over; a click copies the password and goes back there.
+/// The logins for the page (or app) the panel was opened over; a click types it in there.
 private struct SiteCard: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         if let context = model.foreground {
-            let items = context.items(in: model)
+            let focus = model.focusedAccountID
+            let items = context.items(in: model).filter { focus == nil || $0.accountId == focus }
             if !items.isEmpty {
                 PanelCard(padding: 8) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -216,15 +258,14 @@ private struct SiteCard: View {
                             }
                             Text(context.host != nil ? "On \(context.label)" : "For \(context.label)")
                                 .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                            Spacer()
+                            Text("Click to fill").font(.system(size: 10)).foregroundStyle(.tertiary)
                         }
                         .padding(.horizontal, 8).padding(.top, 2)
                         TimelineView(.animation(minimumInterval: 1 / 30, paused: !items.contains { $0.totp != nil })) { time in
                             VStack(spacing: 0) {
                                 ForEach(items) { item in
-                                    QuickRow(item: item, date: time.date) {
-                                        NSApp.keyWindow?.orderOut(nil)
-                                        model.returnToForeground()
-                                    }
+                                    QuickRow(item: item, date: time.date, fillsOnClick: true)
                                 }
                             }
                         }
@@ -248,7 +289,7 @@ private struct ShelfCard: View {
     }
 
     private var items: [VaultItem] {
-        let live = model.items.filter { !$0.isDeleted && !$0.isArchived }
+        let live = model.focusedItems.filter { !$0.isDeleted && !$0.isArchived }
         switch tab.wrappedValue {
         case .favorites: return Array(live.filter(\.favorite).prefix(6))
         case .codes: return Array(live.filter { $0.totp != nil }.prefix(6))
@@ -287,8 +328,8 @@ private struct QuickRow: View {
     let item: VaultItem
     let date: Date
     var preferCode = false
-    /// After a click copies: e.g. close the panel and go back to the page it was opened over.
-    var afterCopy: (() -> Void)?
+    /// A click types the login into the app the panel was opened over (the site card), rather than copying.
+    var fillsOnClick = false
     @State private var hovering = false
 
     var body: some View {
@@ -303,6 +344,9 @@ private struct QuickRow: View {
             Spacer(minLength: 6)
             if hovering {
                 HStack(spacing: 4) {
+                    if QuickCopy.canFill(item, model), !fillsOnClick, let context = model.foreground {
+                        CopyIcon(symbol: "keyboard", help: "Fill into \(context.app)") { QuickCopy.fill(item, model) }
+                    }
                     if let username = item.username {
                         CopyIcon(symbol: "person", help: "Copy Username") { model.copy(username, label: String(localized: "Username")) }
                     }
@@ -333,8 +377,13 @@ private struct QuickRow: View {
         .background(hovering ? Color.primary.opacity(0.05) : .clear, in: .rect(cornerRadius: 11, style: .continuous))
         .contentShape(.rect)
         .onTapGesture {
-            if preferCode, let totp = item.totp { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } } else { QuickCopy.primary(item, model) }
-            afterCopy?()
+            if fillsOnClick, QuickCopy.canFill(item, model) {
+                QuickCopy.fill(item, model)
+            } else if preferCode, let totp = item.totp {
+                model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) }
+            } else {
+                QuickCopy.primary(item, model)
+            }
         }
         .onHover { inside in withAnimation(.snappy(duration: 0.15)) { hovering = inside } }
         .contextMenu { ItemContextMenu(item: item) }
@@ -348,21 +397,15 @@ private struct SearchResults: View {
     @Environment(AppModel.self) private var model
     let query: String
 
+    /// Ranked like the command palette (name, word, website, username, then loose matches).
     static func matches(_ items: [VaultItem], _ query: String) -> [VaultItem] {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return [] }
-        return Array(items.filter { !$0.isDeleted && !$0.isArchived }
-            .filter { $0.name.localizedCaseInsensitiveContains(q) || ($0.username?.localizedCaseInsensitiveContains(q) ?? false)
-                || ($0.host?.localizedCaseInsensitiveContains(q) ?? false) }
-            .sorted { a, b in
-                let ap = a.name.lowercased().hasPrefix(q.lowercased()), bp = b.name.lowercased().hasPrefix(q.lowercased())
-                return ap != bp ? ap : a.name.localizedStandardCompare(b.name) == .orderedAscending
-            }
-            .prefix(8))
+        return Array(PaletteRank.rank(items.filter { !$0.isDeleted && !$0.isArchived }, q, recents: PaletteRecents.ids).prefix(8))
     }
 
     var body: some View {
-        let results = Self.matches(model.items, query)
+        let results = Self.matches(model.focusedItems, query)
         PanelCard(padding: 8) {
             if results.isEmpty {
                 Text("No results").font(.system(size: 12)).foregroundStyle(.secondary).frame(maxWidth: .infinity, minHeight: 64)
@@ -370,7 +413,8 @@ private struct SearchResults: View {
                 TimelineView(.animation(minimumInterval: 1 / 30, paused: !results.contains { $0.totp != nil })) { context in
                     VStack(spacing: 0) {
                         ForEach(results) { QuickRow(item: $0, date: context.date) }
-                        Text("Return copies the first password · hover for more")
+                        Text(model.foreground != nil && results.first.map { QuickCopy.canFill($0, model) } == true
+                             ? "Return fills the first login · hover for more" : "Return copies the first password · hover for more")
                             .font(.system(size: 10)).foregroundStyle(.tertiary).padding(.top, 6)
                     }
                 }
@@ -514,20 +558,79 @@ private struct SSHRow: View {
 
 private struct LockedCard: View {
     @Environment(AppModel.self) private var model
+    /// The account in focus, when it's the one that's locked (others may be open).
+    var account: SavedAccount?
 
     var body: some View {
         PanelCard {
             VStack(spacing: 10) {
-                Image(systemName: "lock.fill").font(.system(size: 20)).foregroundStyle(.secondary)
-                    .frame(width: 44, height: 44)
-                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 12, style: .continuous))
-                Text("Vault locked").font(.system(size: 14, weight: .semibold))
+                if let account {
+                    AccountAvatar(account: account, size: 44, showsLock: true)
+                    Text(verbatim: account.email).font(.system(size: 14, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                } else {
+                    Image(systemName: "lock.fill").font(.system(size: 20)).foregroundStyle(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 12, style: .continuous))
+                    Text("Vault locked").font(.system(size: 14, weight: .semibold))
+                }
                 Button("Unlock…") { model.bringToFront() }
                     .buttonStyle(.appPrimarySmall)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
         }
+    }
+}
+
+/// Which account the panel shows: its avatar (or the accounts together) as a round button; the menu switches, like
+/// the vault window's account switcher (the two stay in step).
+private struct AccountMenu: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let focused = model.focusedAccountID.flatMap { id in model.accounts.first { $0.id == id } }
+        Menu {
+            Button {
+                model.accountFocus = nil
+            } label: {
+                if focused == nil { Label("All accounts", systemImage: "checkmark") } else { Text("All accounts") }
+            }
+            Divider()
+            ForEach(model.accounts) { account in
+                let title = model.isUnlocked(account.id) ? account.email : String(localized: "\(account.email) — Locked")
+                Button {
+                    model.accountFocus = account.id
+                } label: {
+                    if focused?.id == account.id { Label(title, systemImage: "checkmark") } else { Text(verbatim: title) }
+                }
+            }
+            Divider()
+            Button("Add Account…") {
+                NSApp.keyWindow?.orderOut(nil)
+                model.beginAddAccount()
+                model.bringToFront()
+            }
+        } label: {
+            Group {
+                if let focused {
+                    AccountAvatar(account: focused, size: 26, showsLock: true)
+                } else {
+                    AccountAvatarStack(accounts: model.accounts, size: 20)
+                }
+            }
+            .frame(minWidth: 36, minHeight: 36)
+            .padding(.horizontal, focused == nil ? 6 : 0)
+            .background(Color.panelStrong, in: .capsule)
+            .overlay(Capsule().strokeBorder(Color.panelEdge))
+            .contentShape(.capsule)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(Text(focused?.email ?? String(localized: "All accounts")))
+        .accessibilityLabel(Text("Accounts"))
+        .accessibilityValue(Text(verbatim: focused?.email ?? String(localized: "All accounts")))
     }
 }
 

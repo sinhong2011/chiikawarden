@@ -191,10 +191,19 @@ final class QuickSearchController {
         if let panel, panel.isVisible, closing == nil { close() } else { show() }
     }
 
+    /// Builds the panel ahead of time, so the first shortcut opens it as fast as every later one.
+    func prepare() {
+        guard panel == nil else { return }
+        let panel = makePanel()
+        self.panel = panel
+        panel.contentView?.layoutSubtreeIfNeeded()
+    }
+
     func show() {
         // Called from another app: note it (and its page) before we take focus. From our own window there is no
         // detour to return from.
-        if NSApp.isActive, NSApp.keyWindow?.canBecomeMain == true { model.foreground = nil } else { model.captureForeground() }
+        let fromOwnWindow = NSApp.isActive && NSApp.keyWindow?.canBecomeMain == true
+        if fromOwnWindow { model.foreground = nil } else { model.captureForeground() }
         let panel = self.panel ?? makePanel()
         self.panel = panel
         // Follow the app's Appearance setting, not just the system's.
@@ -213,10 +222,15 @@ final class QuickSearchController {
         }
         closing?.cancel(); closing = nil
         panel.ignoresMouseEvents = false
-        NSApp.activate()
+        // Over another app the panel takes the keyboard without activating Triwarden (it's a non-activating panel,
+        // like Spotlight): activating would be slower and would bring the vault window forward too.
+        if fromOwnWindow { NSApp.activate() }
         panel.makeKeyAndOrderFront(nil)
         model.quickSearchNonce += 1 // resets query and focuses the field
     }
+
+    /// Returns once the panel is gone (now, if it isn't closing).
+    func waitUntilClosed() async { await closing?.value }
 
     /// The palette shrinks back to the top and fades (see CommandPalette), then the panel hides.
     func close() {
@@ -232,7 +246,7 @@ final class QuickSearchController {
     }
 
     private func makePanel() -> QuickSearchPanel {
-        let panel = QuickSearchPanel(contentRect: NSRect(x: 0, y: 0, width: 700, height: 620),
+        let panel = QuickSearchPanel(contentRect: NSRect(x: 0, y: 0, width: 760, height: 660),
                                      styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
                                      backing: .buffered, defer: false)
         panel.isFloatingPanel = true
@@ -243,8 +257,9 @@ final class QuickSearchController {
         panel.isOpaque = false
         panel.hasShadow = false // the palette draws its own soft shadow
         panel.isMovableByWindowBackground = true
-        panel.hidesOnDeactivate = true
-        // Clicking anywhere else (another window of ours, the desktop, another app) closes it.
+        // Not hidesOnDeactivate: that hides it at once. Losing key (another window of ours, the desktop, another app)
+        // closes it through close(), so it plays its way out.
+        panel.hidesOnDeactivate = false
         resignObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel,
                                                                 queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.close() }

@@ -39,7 +39,7 @@ struct UnlockView: View {
                 VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
                                busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: model.lockClosedAt)
 
-                DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN,
+                DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN, accountDoor: model.accountDoor != nil,
                          switchMode: { usePassword.toggle(); password = ""; model.errorMessage = nil; focused = true },
                          submit: submit)
                     .shake(on: errorAt)
@@ -63,6 +63,17 @@ struct UnlockView: View {
             .animation(.easeIn(duration: 0.28), value: opening)
         }
         .ignoresSafeArea()
+        // An account's door (other accounts open behind it): Esc goes back to all of them.
+        .background {
+            if model.accountDoor != nil {
+                Button("") { model.accountFocus = nil }.keyboardShortcut(.cancelAction).hidden()
+            }
+        }
+        // Switched to another locked account from the pill: start clean.
+        .onChange(of: model.accountDoor) { _, door in
+            guard door != nil else { return }
+            password = ""; usePassword = false; focused = true
+        }
         .onAppear {
             focused = true
             // Locked from the vault: the door closes over it.
@@ -111,6 +122,8 @@ private struct DoorCore: View {
     /// Asking for the PIN rather than the master password.
     var pinMode = false
     var hasPIN = false
+    /// One account's door over the open vault: the way out is back to all accounts, not logging out.
+    var accountDoor = false
     var switchMode: () -> Void = {}
     let submit: () -> Void
 
@@ -146,9 +159,15 @@ private struct DoorCore: View {
                         .buttonStyle(.plain).foregroundStyle(.primary).underline()
                     Text(verbatim: "·").foregroundStyle(.tertiary)
                 }
-                Text("Not you?").foregroundStyle(.secondary)
-                Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
-                    .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                if accountDoor {
+                    Button("Show all accounts") { model.accountFocus = nil }
+                        .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                        .help(Text("Back to the open accounts (Esc)"))
+                } else {
+                    Text("Not you?").foregroundStyle(.secondary)
+                    Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
+                        .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                }
             }
             .font(.system(size: 11))
             .padding(.top, -4)
@@ -212,7 +231,12 @@ private struct AccountLine: View {
             if model.accounts.count > 1 {
                 ForEach(model.accounts, id: \.id) { account in
                     Button {
-                        model.unlockTargetID = account.id
+                        if model.accountDoor != nil {
+                            // Over the open vault: switch the focus (an open account just lifts the door).
+                            model.accountFocus = account.id
+                        } else {
+                            model.unlockTargetID = account.id
+                        }
                         model.errorMessage = nil
                     } label: {
                         if account.id == model.unlockTarget?.id {
@@ -241,7 +265,7 @@ private struct AccountLine: View {
         let account = model.unlockTarget
         let dark = scheme == .dark
         return HStack(spacing: 8) {
-            Monogram(name: account?.email ?? "?", size: 24)
+            if let account { AccountAvatar(account: account, size: 24) }
             VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: account?.email ?? "").font(.system(size: 12, weight: .semibold))
                     .lineLimit(1).truncationMode(.middle)

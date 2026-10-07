@@ -229,17 +229,3 @@ struct Burst<Trigger: Equatable>: View {
     }
 }
 
-/// An empty state's symbol, drifting gently up and down.
-struct Floating: ViewModifier {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func body(content: Content) -> some View {
-        if reduceMotion || !Motion.plays {
-            content
-        } else {
-            content.phaseAnimator([false, true]) { view, up in
-                view.offset(y: up ? -4 : 2)
-            } animation: { _ in .easeInOut(duration: 1.8) }
-        }
-    }
-}
