@@ -111,7 +111,8 @@ struct CommandPalette: View {
                     }
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 8)
-                    .animation(.spring(duration: 0.4, bounce: 0.2).delay(0.04 * Double(min(i, 6))), value: appeared)
+                    .animation(appeared ? .spring(duration: 0.4, bounce: 0.2).delay(0.04 * Double(min(i, 6))) : .easeIn(duration: 0.12),
+                               value: appeared) // staggered in, all together out
                     .contentShape(.rect)
                     .onTapGesture { index = i; run([]) }
                     .onHover { if $0 { index = i } }
@@ -152,6 +153,10 @@ struct CommandPalette: View {
             query = ""; index = 0; focused = true
             appeared = false
             withAnimation(.spring(duration: 0.5, bounce: 0.3)) { appeared = true }
+        }
+        .onChange(of: model.quickSearchDismissNonce) {
+            focused = false
+            withAnimation(.easeIn(duration: 0.16)) { appeared = false }
         }
         .onChange(of: query) { index = 0 }
     }

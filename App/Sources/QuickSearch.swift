@@ -183,11 +183,12 @@ final class QuickSearchController {
     private var panel: QuickSearchPanel?
     private let model: AppModel
     private var resignObserver: NSObjectProtocol?
+    private var closing: Task<Void, Never>?
 
     init(model: AppModel) { self.model = model }
 
     func toggle() {
-        if let panel, panel.isVisible { close() } else { show() }
+        if let panel, panel.isVisible, closing == nil { close() } else { show() }
     }
 
     func show() {
@@ -210,12 +211,25 @@ final class QuickSearchController {
             let f = screen.visibleFrame
             panel.setFrameTopLeftPoint(NSPoint(x: f.midX - panel.frame.width / 2, y: f.maxY - f.height * 0.14))
         }
+        closing?.cancel(); closing = nil
+        panel.ignoresMouseEvents = false
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
         model.quickSearchNonce += 1 // resets query and focuses the field
     }
 
-    func close() { panel?.orderOut(nil) }
+    /// The palette shrinks back to the top and fades (see CommandPalette), then the panel hides.
+    func close() {
+        guard let panel, panel.isVisible, closing == nil else { return }
+        panel.ignoresMouseEvents = true
+        model.quickSearchDismissNonce += 1
+        closing = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(180))
+            guard !Task.isCancelled, let self else { return }
+            self.panel?.orderOut(nil)
+            self.closing = nil
+        }
+    }
 
     private func makePanel() -> QuickSearchPanel {
         let panel = QuickSearchPanel(contentRect: NSRect(x: 0, y: 0, width: 700, height: 620),
