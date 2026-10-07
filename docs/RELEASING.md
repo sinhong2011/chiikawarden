@@ -10,7 +10,9 @@ Releases are automatic once the one-time setup is done:
 3. Merging the release PR tags `vX.Y.Z` and creates the GitHub release. The `build` job in
    `.github/workflows/release.yml` then runs `scripts/release.sh X.Y.Z --publish`:
    - archive a Release build (build number = commit count);
-   - Developer ID export, signature check, notarize and staple the app and the DMG;
+   - Developer ID export, signature check, notarize and staple the app and the DMG (built with
+     [dmgbuild](https://github.com/dmgbuild/dmgbuild) from `scripts/dmg-settings.py`; the window background comes
+     from `python3 Design/DMG/generate.py`; by hand you need `pipx install dmgbuild`);
    - sign the zip for Sparkle and write `appcast.xml`, with this version's `CHANGELOG.md` section embedded as the
      release notes the update window shows (`scripts/release-notes.py`);
    - upload the DMG, the zip, `appcast.xml` and the Homebrew cask (`triwarden.rb`) to the release;

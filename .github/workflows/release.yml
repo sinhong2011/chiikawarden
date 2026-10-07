@@ -55,7 +55,9 @@ jobs:
           fetch-depth: 0 # build number = commit count
 
       - name: Tools
-        run: brew install xcodegen
+        run: |
+          brew install xcodegen
+          pipx install dmgbuild # styled DMG window (scripts/dmg-settings.py)
 
       - name: Developer ID certificate
         uses: apple-actions/import-codesign-certs@v3
