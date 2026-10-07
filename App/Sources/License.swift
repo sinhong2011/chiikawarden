@@ -89,7 +89,8 @@ final class License {
     /// Whether to show the reminder now (and, if so, note that it was shown).
     func takeReminder(now: Date = .now) -> Bool {
         #if DEBUG
-        return false
+        // `--license-review`: show it now, to review the purchase flow.
+        return CommandLine.arguments.contains("--license-review") && isConfigured && !isRegistered
         #else
         guard isConfigured, !isRegistered else { return false }
         let defaults = UserDefaults.standard
