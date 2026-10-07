@@ -4,6 +4,10 @@
 // it sits in, signed by the same team. It keeps nothing, and quits with Triwarden.
 import AppKit
 import ApplicationServices
+import os
+
+/// Diagnostics only (no secrets): who's in front when typing, and why a request failed.
+let log = Logger(subsystem: "io.github.sinhong2011.triwarden", category: "autotype-helper")
 import Security
 import SSHAgent
 
@@ -48,14 +52,34 @@ func isHost(_ peer: FramedSocketServer.Peer) -> Bool {
 /// Events from a private source, so keys the user still holds (⌃ from ⌃↵) don't leak into the text.
 nonisolated(unsafe) let source = CGEventSource(stateID: .privateState)
 
-func post(_ key: CGKeyCode, text: [UniChar] = []) {
+/// Where typed keys go: the system's keyboard focus (nil), or straight to one app's process when the focus is stuck
+/// elsewhere (a closed panel of Triwarden's can keep it, though the app itself is in front).
+func post(_ key: CGKeyCode, text: [UniChar] = [], to pid: pid_t? = nil) {
     for down in [true, false] {
         guard let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down) else { continue }
         event.flags = []
         if !text.isEmpty { event.keyboardSetUnicodeString(stringLength: text.count, unicodeString: text) }
-        event.post(tap: .cghidEventTap)
+        if let pid { event.postToPid(pid) } else { event.post(tap: .cghidEventTap) }
     }
     usleep(7_000)
+}
+
+/// The app that has the keyboard right now, system-wide, and the role of its focused element (diagnostics).
+func keyboardFocus() -> (pid: pid_t?, role: String) {
+    let system = AXUIElementCreateSystemWide()
+    var app: CFTypeRef?
+    guard AXUIElementCopyAttributeValue(system, kAXFocusedApplicationAttribute as CFString, &app) == .success, let app,
+          CFGetTypeID(app) == AXUIElementGetTypeID() else { return (nil, "?") }
+    let appElement = app as! AXUIElement
+    var pid: pid_t = 0
+    AXUIElementGetPid(appElement, &pid)
+    var element: CFTypeRef?
+    var role: CFTypeRef?
+    if AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &element) == .success,
+       let element, CFGetTypeID(element) == AXUIElementGetTypeID() {
+        AXUIElementCopyAttributeValue(element as! AXUIElement, kAXRoleAttribute as CFString, &role)
+    }
+    return (pid, (role as? String) ?? "none")
 }
 
 /// Waits (briefly) for the user to let go of ⌘ ⌥ ⌃ ⇧ from the shortcut that asked for typing.
@@ -76,6 +100,7 @@ func bringForward(_ pid: pid_t) async -> Bool {
 func waitUntilFront(_ pid: pid_t) async -> Bool {
     for _ in 0..<50 {
         if await MainActor.run(body: { NSWorkspace.shared.frontmostApplication?.processIdentifier == pid }) {
+            refocus(pid)
             try? await Task.sleep(for: .milliseconds(120)) // let its window take focus
             return true
         }
@@ -84,13 +109,37 @@ func waitUntilFront(_ pid: pid_t) async -> Bool {
     return false
 }
 
-func type(_ steps: [AutoTypeProtocol.Request.Step]) {
+/// Gives the app's window the keyboard again. A panel of ours (the menu bar's) can take it from the front app
+/// without that app ever losing the front; when the panel goes, nothing hands it back, and typing then lands in a
+/// window that isn't listening (a beep). Through Accessibility: the app frontmost, its window main and raised.
+func refocus(_ pid: pid_t) {
+    let app = AXUIElementCreateApplication(pid)
+    AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+    var value: CFTypeRef?
+    let focused = AXUIElementCopyAttributeValue(app, kAXFocusedWindowAttribute as CFString, &value) == .success && value != nil
+    if !focused { AXUIElementCopyAttributeValue(app, kAXMainWindowAttribute as CFString, &value) }
+    guard let value, CFGetTypeID(value) == AXUIElementGetTypeID() else {
+        log.error("refocus: \(pid) has no window to focus")
+        return
+    }
+    let window = value as! AXUIElement
+    AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+    AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+    AXUIElementPerformAction(window, kAXRaiseAction as CFString)
+    log.debug("refocus: \(pid) window \(focused ? "was focused" : "had lost focus", privacy: .public)")
+}
+
+func type(_ steps: [AutoTypeProtocol.Request.Step], into pid: pid_t) {
     waitForModifiers()
+    let focus = keyboardFocus()
+    // The keyboard is with someone else (Triwarden's closed panel): deliver to the app itself.
+    let direct: pid_t? = focus.pid == pid ? nil : pid
+    log.debug("type: keyboard with \(focus.pid ?? -1) (role \(focus.role, privacy: .public)), target \(pid), \(direct == nil ? "system-wide" : "direct to app", privacy: .public)")
     for step in steps {
         switch step {
-        case .text(let text): for character in text { post(0, text: Array(String(character).utf16)) }
-        case .tab: post(0x30)
-        case .enter: post(0x24)
+        case .text(let text): for character in text { post(0, text: Array(String(character).utf16), to: direct) }
+        case .tab: post(0x30, to: direct)
+        case .enter: post(0x24, to: direct)
         }
     }
 }
@@ -117,9 +166,13 @@ func handle(_ data: Data, _ peer: FramedSocketServer.Peer) async -> Data {
         _ = AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary) // kAXTrustedCheckOptionPrompt
         return reply()
     case .type:
-        guard AXIsProcessTrusted() else { return reply(.permission) }
-        guard await bringForward(request.pid) else { return reply(.target) }
-        type(request.steps)
+        guard AXIsProcessTrusted() else { log.error("type: no Accessibility permission"); return reply(.permission) }
+        guard await bringForward(request.pid) else {
+            let front = await MainActor.run { NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?" }
+            log.error("type: target \(request.pid) never came to the front (front: \(front, privacy: .public))")
+            return reply(.target)
+        }
+        type(request.steps, into: request.pid)
         return reply()
     }
 }

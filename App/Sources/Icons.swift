@@ -1,5 +1,6 @@
 import AppKit
 import CryptoKit
+import ImageIO
 import Observation
 import SwiftUI
 import VaultwardenAPI
@@ -49,7 +50,7 @@ final class IconStore {
             defer { inflight.remove(host) }
             guard let (data, response) = try? await session.data(from: source),
                   (response as? HTTPURLResponse)?.statusCode == 200,
-                  let image = NSImage(data: data), image.size.width >= 8,
+                  let image = Self.thumbnail(data), image.size.width >= 8,
                   await placeholder.value != Data(SHA256.hash(data: data)) else {
                 missing.insert(host)
                 return
@@ -94,7 +95,22 @@ final class IconStore {
         guard let sealed = try? Data(contentsOf: fileURL(host)),
               let box = try? AES.GCM.SealedBox(combined: sealed),
               let data = try? AES.GCM.open(box, using: key) else { return nil }
-        return NSImage(data: data)
+        return Self.thumbnail(data)
+    }
+
+    /// The icon decoded at no more than 128 px (it's never drawn larger than ~60 pt), so a site's 512 px favicon
+    /// doesn't sit in memory at full size. Kept at its own size when smaller.
+    static func thumbnail(_ data: Data, maxPixels: Int = 128) -> NSImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return NSImage(data: data) }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return NSImage(data: data) }
+        // Points at 2×, so it stays sharp on Retina.
+        return NSImage(cgImage: image, size: NSSize(width: CGFloat(image.width) / 2, height: CGFloat(image.height) / 2))
     }
 
     private func writeCache(_ host: String, _ data: Data) {

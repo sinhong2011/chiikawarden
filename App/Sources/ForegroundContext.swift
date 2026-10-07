@@ -114,11 +114,19 @@ extension AppModel {
             guard let context = foreground else { openPalette(); return }
             let logins = context.items(in: self).filter { $0.password != nil }
             guard logins.count == 1, let item = logins.first else { openPalette(); return }
-            guarded(item) {
-                let steps: [AutoType.Step] = [item.username.map(AutoType.Step.text), item.username != nil ? .tab : nil,
-                                              item.password.map(AutoType.Step.text)].compactMap { $0 }
-                self.autoType(steps, into: context, fallback: item.password.map { (value: $0, label: String(localized: "Password")) })
-            }
+            fillLogin(item, into: context)
+        }
+    }
+
+    /// Types a login into the app (or page) it's for: username, Tab, password, and Return when `submit`.
+    /// Without Accessibility for the helper yet, the password is copied instead.
+    func fillLogin(_ item: VaultItem, into context: ForegroundContext, submit: Bool = false) {
+        var steps: [AutoType.Step] = [item.username.map(AutoType.Step.text), item.username != nil && item.password != nil ? .tab : nil,
+                                      item.password.map(AutoType.Step.text)].compactMap { $0 }
+        guard !steps.isEmpty else { return }
+        if submit { steps.append(.enter) }
+        guarded(item) {
+            self.autoType(steps, into: context, fallback: item.password.map { (value: $0, label: String(localized: "Password")) })
         }
     }
 

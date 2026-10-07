@@ -12,9 +12,17 @@ struct EditItemSheet: View {
         case clone(VaultItem)
     }
 
+    /// A new item's starting name, website and password.
+    struct Prefill: Equatable {
+        var name = ""
+        var uri = ""
+        var password = ""
+    }
+
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     let mode: Mode
+    var prefill: Prefill?
 
     @State private var name = ""
     @State private var username = ""
@@ -410,7 +418,9 @@ struct EditItemSheet: View {
         accountId = model.defaultAccountId
         let source: VaultItem
         switch mode {
-        case .create: return
+        case .create:
+            if let prefill { name = prefill.name; uri = prefill.uri; password = prefill.password }
+            return
         case .edit(let item): source = item
         case .clone(let item): source = item
         }

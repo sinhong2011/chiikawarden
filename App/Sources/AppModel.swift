@@ -10,6 +10,8 @@ import VaultwardenAPI
 struct EditRequest: Identifiable {
     let id = UUID()
     let mode: EditItemSheet.Mode
+    /// For a new item: what to start the form with (the command palette's "New Login “acme.com”").
+    var prefill: EditItemSheet.Prefill?
 }
 
 @MainActor @Observable
@@ -91,12 +93,39 @@ final class AppModel {
 
     /// One account in focus (picked in the sidebar's account switcher), or nil for every open account together.
     var accountFocus: String? = UserDefaults.standard.string(forKey: "accountFocus") {
-        didSet { UserDefaults.standard.set(accountFocus, forKey: "accountFocus") }
+        didSet {
+            UserDefaults.standard.set(accountFocus, forKey: "accountFocus")
+            updateAccountDoor()
+        }
+    }
+    /// A locked account picked while the vault is open: its vault door lies over the window until it's unlocked (the
+    /// door opens onto its vault) or left (Show all accounts, Esc).
+    var accountDoor: String?
+
+    /// Shows the door for the focused account when it's locked; lifts it when the focus moves to an open one.
+    func updateAccountDoor() {
+        guard !unlockOpening else { return } // mid-opening: enterVault lifts it
+        guard phase.id == Phase.vault.id, let id = focusedAccountID, !isUnlocked(id) else {
+            if accountDoor != nil { withAnimation(.easeOut(duration: 0.25)) { accountDoor = nil } }
+            return
+        }
+        if accountDoor != id { errorMessage = nil }
+        unlockTargetID = id
+        if accountDoor == nil {
+            withAnimation(.easeOut(duration: 0.25)) { accountDoor = id }
+        } else {
+            accountDoor = id
+        }
     }
     /// The focused account, while it still exists and there's more than one to choose from.
     var focusedAccountID: String? {
         guard accounts.count > 1, let id = accountFocus, accounts.contains(where: { $0.id == id }) else { return nil }
         return id
+    }
+    /// The items of the account in focus (every open account's when none is).
+    var focusedItems: [VaultItem] {
+        guard let id = focusedAccountID else { return items }
+        return items.filter { $0.accountId == id }
     }
     /// The organizations of the account in focus (all of them when none is).
     var visibleOrganizations: [Grouping] {
@@ -407,7 +436,9 @@ final class AppModel {
         guard palette == nil else { return }
         let controller = QuickSearchController(model: self)
         palette = controller
+        controller.prepare()
         openPalette = { controller.show() }
+        paletteClosed = { await controller.waitUntilClosed() }
         let keys = HotKeys.shared
         keys.install(.palette) { controller.toggle() }
         keys.install(.fill) { [weak self] in self?.fillForeground() }
@@ -423,16 +454,21 @@ final class AppModel {
 
     /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
+    /// Waits for the palette to finish closing: it holds the keyboard until then, even over another app.
+    @ObservationIgnored var paletteClosed: () async -> Void = {}
     /// SwiftUI's `openSettings`, captured by the main window (it only exists inside a scene).
     @ObservationIgnored var openSettingsAction: () -> Void = {}
 
     /// Brings the app forward and opens Settings (from the menu bar, the palette, the account menu).
     func showSettings() {
+        if NSApp.activationPolicy() != .regular { NSApp.setActivationPolicy(.regular) }
         NSApp.activate()
         openSettingsAction()
     }
     /// Sidebar destination asked for from outside the vault view (palette commands).
     var requestedSection: SidebarSelection?
+    /// Asks the vault window to show its list filtered by this text (the palette's "Show all results").
+    var requestedFilter: String?
     var showingGenerator = false
 
     /// A destructive action waiting for “Are you sure?” (one dialog for the whole app).
@@ -495,10 +531,35 @@ final class AppModel {
         if generatorHistory.count > 50 { generatorHistory.removeLast() }
     }
 
-    /// Shows the main window, e.g. after a palette command run from another app.
+    static let mainWindowID = "main"
+    /// Opens (or brings back) the vault window; set by the window's scene.
+    @ObservationIgnored var openMainWindowAction: () -> Void = {}
+
+    /// Shows the main window, e.g. after a palette command run from another app — reopening it if it was closed, and
+    /// back in the Dock if it was waiting in the menu bar.
     func bringToFront() {
+        if NSApp.activationPolicy() != .regular { NSApp.setActivationPolicy(.regular) }
         NSApp.activate()
-        NSApp.windows.first { $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+        openMainWindowAction()
+    }
+
+    /// The vault window is showing: Triwarden belongs in the Dock again.
+    func windowDidOpen() {
+        if NSApp.activationPolicy() != .regular { NSApp.setActivationPolicy(.regular) }
+    }
+
+    /// A window is closing. If it was the last ordinary one and "Keep running in the menu bar" is on, leave the Dock
+    /// (the menu bar icon, shortcuts, AutoFill and the palette keep working).
+    func windowWillClose(_ window: NSWindow?) {
+        guard UserDefaults.standard.bool(forKey: Pref.closeToMenuBar), UserDefaults.standard.bool(forKey: Pref.showMenuBar),
+              let window, window.canBecomeMain else { return }
+        let others = NSApp.windows.contains { $0 !== window && $0.isVisible && $0.canBecomeMain }
+        guard !others else { return }
+        // After the window has gone, so the switch doesn't fight its closing.
+        DispatchQueue.main.async {
+            guard !NSApp.windows.contains(where: { $0.isVisible && $0.canBecomeMain }) else { return }
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     /// Selects an item in the vault list.
@@ -574,6 +635,7 @@ final class AppModel {
         unlockTargetID = nil
         refreshAccounts()
         rebuild()
+        updateAccountDoor()
         if accounts.isEmpty {
             AutoFillIdentities.clear()
             email = ""
@@ -584,14 +646,27 @@ final class AppModel {
         }
     }
 
-    /// Opens the login screen to add another account (cancellable back to the vault).
-    func beginAddAccount() {
+    /// Opens the login screen to add another account (cancellable back to the vault, or the unlock screen).
+    /// With `sameServerAs`, the server fields start out as that account's, so only the email is new.
+    func beginAddAccount(sameServerAs account: SavedAccount? = nil) {
         addingAccount = true
         client = nil
         errorMessage = nil
         email = ""
         serverURL = "https://"
         (customWebVault, customAPI, customIdentity, customIcons, customNotifications) = ("", "", "", "", "")
+        if let account, let kind = ServerKind(rawValue: account.serverKind) {
+            serverKind = kind
+            if kind == .selfHosted {
+                serverURL = account.serverURL
+                if let c = account.customURLs {
+                    if let base = c.base { serverURL = base.absoluteString }
+                    let text = { (url: URL?) in url?.absoluteString ?? "" }
+                    (customWebVault, customAPI, customIdentity, customIcons, customNotifications) =
+                        (text(c.webVault), text(c.api), text(c.identity), text(c.icons), text(c.notifications))
+                }
+            }
+        }
         phase = .login
     }
 
@@ -1031,38 +1106,43 @@ final class AppModel {
     /// Instant for tooling, Reduce Motion, and when already in the vault.
     private func enterVault() {
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
-        let fromDoor = phase.id == Phase.locked.id || phase.id == Phase.login.id
+        // An account's own door, over the open vault: it opens the same way, then lifts instead of changing phase.
+        let fromAccountDoor = phase.id == Phase.vault.id && accountDoor != nil
+        let fromDoor = phase.id == Phase.locked.id || phase.id == Phase.login.id || fromAccountDoor
         guard fromDoor, !tooling, Self.doorAnimates else {
             phase = .vault
+            accountDoor = nil
+            updateAccountDoor()
             return
         }
         unlockOpenedAt = .now
-        withAnimation(.spring(duration: 0.45, bounce: 0.35)) { unlockOpening = true }
-        let fromLock = phase.id == Phase.locked.id
+        withAnimation(.spring(duration: DoorMotion.release, bounce: 0.3)) { unlockOpening = true }
+        let fromLock = phase.id == Phase.locked.id || fromAccountDoor
         Task {
-            // The door transforms open (~0.85 s, VaultDoorStage): pins light in turn and energy runs the seams, the rings
+            // The door transforms open (~1.2 s, DoorMotion): pins light in turn and energy runs the seams, the rings
             // ratchet to their stops, the bolts snap back, then the pieces cascade out inside-out into the light.
-            // The gate starts while the outer rings are still flying out (they finish at 1.05 / 1.2 s): no pause between.
-            try? await Task.sleep(for: .milliseconds(720))
+            // The gate starts while the outer rings are still flying out (they finish at 1.05 / openSpeed s): no pause between.
+            try? await Task.sleep(for: .seconds(DoorMotion.gateDelay))
             if fromLock {
                 // Then the gate: plates that look exactly like the lock screen go on top, the lock screen leaves
                 // under them, and the plates part over the vault (GatePlates).
                 gateApart = false
                 gate = .opening
                 try? await Task.sleep(for: .milliseconds(30))
-                phase = .vault
+                if fromAccountDoor { accountDoor = nil } else { phase = .vault }
                 await Task.yield()
                 // Leaves with the door's momentum (already moving, then a long glide), not from a standstill.
-                withAnimation(.timingCurve(0.22, 0.5, 0.12, 1, duration: 0.62)) { gateApart = true }
-                try? await Task.sleep(for: .milliseconds(620))
+                withAnimation(.timingCurve(0.22, 0.5, 0.12, 1, duration: DoorMotion.gateParting)) { gateApart = true }
+                try? await Task.sleep(for: .seconds(DoorMotion.gateParting))
                 gate = nil
             } else {
                 // Login: its screen parts like a gate (RootView's transition).
                 phase = .vault
-                try? await Task.sleep(for: .milliseconds(650))
+                try? await Task.sleep(for: .seconds(0.85))
             }
             unlockOpening = false
             unlockOpenedAt = nil
+            updateAccountDoor() // still focused on a locked account (another was unlocked): its door
         }
     }
 
@@ -1708,6 +1788,7 @@ final class AppModel {
     /// Locks every account. `animated` (a lock the user asked for): the keys go at once, but the vault's contents stay
     /// on screen a moment longer, so the door can close over them before they're cleared.
     func lock(animated: Bool = false) {
+        accountDoor = nil
         previewURL = nil
         forgetUndo()
         LargeType.close()
