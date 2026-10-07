@@ -41,6 +41,7 @@ struct VaultView: View {
     /// Narrow windows: the strip's starting pane (snapshots and previews).
     var initialDepth = 1
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var query = ""
     @State private var section: SidebarSelection = .section(.all)
     @AppStorage("itemSort") private var sortRaw = ItemSort.title.rawValue
@@ -48,6 +49,8 @@ struct VaultView: View {
     /// Window width, to adapt from three columns down to a single phone-width column.
     @State private var width: CGFloat = 1120
     @State private var columns = NavigationSplitViewVisibility.all
+    /// Where the detail column (and so the header's leading slot) starts in the window.
+    @State private var detailX: CGFloat = 0
     /// Narrow windows: which pane of the strip is in view (0 sidebar, 1 list or page, 2 detail).
     @State private var depth = 1
 
@@ -58,13 +61,10 @@ struct VaultView: View {
     /// Below this the panes slide one at a time; it grows with the list so the details keep their room.
     private var compact: Bool { width < 900 + (Self.listWidth - 300) }
 
-    /// Search and + span exactly the list panel below. On wide windows the header's slot starts at the list column
-    /// (listWidth, its panel 6 pt in), so: 6 pt in, and the panel's width less + and its gap. Narrow layouts have the
-    /// window buttons above the list, so they keep a plain width.
-    private var searchLayout: (width: CGFloat, inset: CGFloat) {
-        guard !compact else { return (width < 560 ? 150 : 228, 0) }
-        return (Self.listWidth - 12 - 40, 6)
-    }
+    /// The command palette's trigger: centred over the window when it's wide, beside the back button when narrow.
+    /// The header's leading slot starts this far into the detail column.
+    static let headerSlotInset: CGFloat = 8
+    private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(320, max(280, width * 0.24)) }
     /// The window's footer (Sync, Lock) on its own strip under `content`, so it never sits over a panel; its right edge
     /// under the header's right end (an item's actions, or a page's edge).
     private func withFooter(_ content: some View) -> some View {
@@ -100,6 +100,7 @@ struct VaultView: View {
             content
                 .frame(width: geo.size.width, height: geo.size.height)
                 .onChange(of: geo.size.width, initial: true) { old, new in resized(from: initialMeasure ? 1120 : old, to: new) }
+                .environment(\.windowMidY, geo.frame(in: .global).midY)
         }
     }
 
@@ -145,18 +146,34 @@ struct VaultView: View {
         }
     }
 
-    @ViewBuilder private var listPane: some View {
-        if let id = model.focusedAccountID ?? { if case .account(let id) = section { id } else { nil } }(),
-           !model.isUnlocked(id), let account = model.accounts.first(where: { $0.id == id }) {
-            AccountUnlockPane(account: account) // the account in focus is locked: unlock it right here
-        } else {
-            ItemColumn(items: filtered, isTrash: section == .section(.trash), selection: Binding(get: { model.selectedID }, set: { id in
-                model.selectedID = id
-                if compact, id != nil { depth = 2 } // tapping an item slides to it
-            }), query: $query, sort: $sortRaw, ascending: $ascending)
-
-        }
+    /// The locked account the list column asks to unlock, if any.
+    private var lockedFocus: SavedAccount? {
+        // The focused account's door covers the window (RootView); this pane is for the sidebar's account section.
+        guard case .account(let id) = section, model.accountDoor == nil, !model.isUnlocked(id) else { return nil }
+        return model.accounts.first { $0.id == id }
     }
+
+    private var listPane: some View {
+        let locked = lockedFocus
+        return ZStack {
+            if let account = locked {
+                AccountUnlockPane(account: account) // the account in focus is locked: unlock it right here
+                    .id(account.id)
+                    .transition(.opacity)
+            } else {
+                ItemColumn(items: filtered, isTrash: section == .section(.trash), selection: Binding(get: { model.selectedID }, set: { id in
+                    model.selectedID = id
+                    if compact, id != nil { depth = 2 } // tapping an item slides to it
+                }), query: $query, sort: $sortRaw, ascending: $ascending, listID: section)
+                    .transition(.opacity)
+            }
+        }
+        .animation(pageAnimation, value: locked?.id)
+    }
+
+    /// Sidebar page changes: a plain crossfade.
+    private var pageTransition: AnyTransition { .opacity }
+    private var pageAnimation: Animation { .easeInOut(duration: reduceMotion ? 0.15 : 0.22) }
 
     @ViewBuilder private var detailPane: some View {
         if let item = model.selectedItem {
@@ -165,24 +182,25 @@ struct VaultView: View {
                 .transition(.opacity.combined(with: .offset(y: 8)))
         } else {
             ContentUnavailableView {
-                Label("No Item Selected", systemImage: "key.viewfinder").modifier(Floating())
+                Label("No Item Selected", systemImage: "key.viewfinder")
             }
+            .modifier(WindowCentered())
         }
     }
 
     /// False while the lock layer lies over the vault: the header's controls are kept in place but out of sight.
-    private var vaultOpen: Bool { model.phase.id == AppModel.Phase.vault.id }
+    private var vaultOpen: Bool { model.phase.id == AppModel.Phase.vault.id && model.accountDoor == nil }
 
     private var content: some View {
         @Bindable var model = model
         return NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+                .modifier(SidebarWidth())
                 // Narrow windows navigate with the strip's own back button; one sidebar control is enough. None under
                 // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
                 .toolbar(removing: compact || !vaultOpen ? .sidebarToggle : nil)
         } detail: {
-            Group {
+            ZStack {
                 if compact {
                     withFooter(PaneStrip(panes: compactPanes, depth: $depth, maxDepth: maxDepth))
                 } else if isItemSection {
@@ -190,15 +208,22 @@ struct VaultView: View {
                         listPane.frame(width: Self.listWidth) // full height: the footer stays under the right column
                         withFooter(detailPane.frame(maxWidth: .infinity, maxHeight: .infinity))
                     }
+                    .transition(pageTransition)
                 } else {
-                    withFooter(sectionPane)
+                    // A tool (Send, Generator, Codes, Watchtower): each one its own page.
+                    withFooter(sectionPane.id(section))
+                        .transition(pageTransition)
                 }
             }
+            .animation(compact ? nil : pageAnimation, value: compact ? nil : section)
             .padding(8)
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minX } action: { detailX = $0 }
             .background(WindowBackdrop())
             .toolbar(removing: .title)
+            // The header stays clear over the backdrop (a wide item in it would otherwise bring up a tinted bar).
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
             .toolbar {
-                // Search and + live in the header, over the item list (Liquid layout).
+                // Back (narrow windows) and search at the header's start.
                 ToolbarItem(placement: .navigation) {
                     HStack(spacing: 8) {
                         if compact && depth > 0 {
@@ -215,12 +240,13 @@ struct VaultView: View {
                         }
                         // On a phone-width detail, the header belongs to the item's actions (search and + are the list's).
                         if !(compact && width < PaneStrip.pairWidth && depth == 2) {
-                            let layout = searchLayout
-                            PaletteTrigger()
-                                .frame(width: layout.width)
-                                .padding(.leading, layout.inset)
-
-                            NewItemButton()
+                            // Wide windows: centred on the window (`.principal` isn't honoured in a split view's header, so
+                            // this leading slot is inset to the middle).
+                            PaletteTrigger(compactLabel: searchWidth < 260)
+                                .frame(width: searchWidth)
+                                .padding(.leading, compact ? 0 : max(0, width / 2 - detailX - Self.headerSlotInset - searchWidth / 2))
+                            // A slot holding a single view lays it out at zero size; a zero-width sibling keeps it measured.
+                            Text(verbatim: " ").frame(width: 0).accessibilityHidden(true)
                         }
                     }
                     // Under the lock layer: present (so the header keeps its height and nothing moves on unlock)
@@ -242,7 +268,10 @@ struct VaultView: View {
             }
         }
         .animation(.snappy(duration: 0.25), value: model.selectedID)
-        .onChange(of: section) { if compact { depth = 1 } } // picked a section: slide to it
+        .onChange(of: section) {
+            query = "" // a filter belongs to the list it was typed in
+            if compact { depth = 1 } // picked a section: slide to it
+        }
         .onChange(of: model.selectedItem == nil) { _, none in if none, depth == 2 { depth = 1 } }
         // The system sidebar toggle on a narrow window: show the strip's sidebar pane instead.
         .onChange(of: columns) { _, new in
@@ -258,10 +287,17 @@ struct VaultView: View {
         .onChange(of: model.requestedSection) { _, requested in
             if let requested { section = requested; model.requestedSection = nil }
         }
+        .onChange(of: model.requestedFilter) { _, requested in
+            guard let requested else { return }
+            model.requestedFilter = nil
+            section = .section(.all)
+            // After the section change has cleared the old filter.
+            Task { @MainActor in query = requested }
+        }
         .onChange(of: model.showingGenerator) { _, show in
             if show { section = .generator; model.showingGenerator = false }
         }
-        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode) }
+        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode, prefill: request.prefill) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
         .sheet(isPresented: Binding(get: { model.eventLogFor != nil }, set: { if !$0 { model.eventLogFor = nil } })) {
@@ -389,7 +425,7 @@ private struct Sidebar: View {
 
     var body: some View {
         List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
-            Section("Vault") {
+            Section {
                 // All Items, with its narrower views folded under it: favorites, each type, then the folders.
                 DisclosureGroup(isExpanded: $typesExpanded) {
                     ForEach(VaultSection.underAll, id: \.self) { row($0) }
@@ -407,6 +443,15 @@ private struct Sidebar: View {
                 }
                 row(.archive)
                 row(.trash)
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Vault").font(.system(size: 13, weight: .semibold))
+                    Spacer(minLength: 6)
+                    NewItemButton(inline: true) // new items of every kind, at the end of the Vault row
+                        .padding(.trailing, 13) // its edge under the counts' edge
+                }
+                .frame(height: 26)
+                .padding(.bottom, 6)
             }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
@@ -441,6 +486,7 @@ private struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .thinScroller() // the app's slim scroller, not the system's wide track
         .environment(\.sidebarCurrent, section)
         // Switching accounts or vaults: sections and counts move rather than jump.
         .animation(.snappy(duration: 0.3), value: model.focusedAccountID)
@@ -484,9 +530,9 @@ private struct SidebarAccountCard: View {
             Button { switching.toggle() } label: {
                 HStack(spacing: 10) {
                     if let account {
-                        AccountAvatar(email: account.account.email, index: account.index, size: 30)
+                        AccountAvatar(account: account.account, size: 30)
                     } else {
-                        StackedAvatars(accounts: model.accounts)
+                        AccountAvatarStack(accounts: model.accounts, size: 24)
                     }
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: title).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
@@ -511,9 +557,12 @@ private struct SidebarAccountCard: View {
         }
         .padding(.leading, 8).padding(.trailing, 8).padding(.vertical, 8)
         .background {
+            // Frosted underneath: rows scrolling below the card blur away instead of showing through its text.
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(dark ? Color.white.opacity(hovering || switching ? 0.09 : 0.06) : Color.white.opacity(hovering || switching ? 0.75 : 0.55))
+                .background(.thickMaterial, in: .rect(cornerRadius: 14, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
+                .shadow(color: .black.opacity(dark ? 0.25 : 0.06), radius: 8, y: 2)
         }
         .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
         .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
@@ -593,37 +642,15 @@ private struct SyncFooterButton: View {
     }
 }
 
-/// An account's monogram with its colour dot.
-private struct AccountAvatar: View {
-    let email: String
-    let index: Int
-    var size: CGFloat = 28
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        Monogram(name: email, size: size)
-            .overlay(alignment: .bottomTrailing) {
-                Circle().fill(AccountColor.color(index))
-                    .frame(width: size * 0.32, height: size * 0.32)
-                    .overlay(Circle().strokeBorder(scheme == .dark ? Color.black.opacity(0.6) : .white, lineWidth: 1.5))
-                    .offset(x: 2, y: 2)
-            }
-    }
-}
-
-/// Several accounts at once: their monograms fanned out.
-private struct StackedAvatars: View {
-    let accounts: [SavedAccount]
-
-    var body: some View {
-        ZStack(alignment: .leading) {
-            ForEach(Array(accounts.prefix(3).enumerated().reversed()), id: \.element.id) { index, account in
-                Monogram(name: account.email, size: 24)
-                    .overlay(Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 1.5).padding(-0.75))
-                    .offset(x: CGFloat(index) * 8, y: CGFloat(index) * -3)
-            }
+/// The sidebar column: 200–280 pt, 220 to start. Snapshots pin it at 220 (an offscreen window has no width to start from).
+private struct SidebarWidth: ViewModifier {
+    func body(content: Content) -> some View {
+        if Motion.plays {
+            // Wide enough that names and counts never crowd (e.g. "Browser extensions" with its count).
+            content.navigationSplitViewColumnWidth(min: 230, ideal: 250, max: 320)
+        } else {
+            content.navigationSplitViewColumnWidth(240)
         }
-        .frame(width: 30 + CGFloat(min(accounts.count, 3) - 1) * 4, height: 30, alignment: .leading)
     }
 }
 
@@ -632,12 +659,15 @@ private struct StackedAvatars: View {
 struct AccountSwitcher: View {
     @Environment(AppModel.self) private var model
     let close: () -> Void
+    /// The avatars' column: wide enough for the "All accounts" stack, so every row's text starts together.
+    static let leadingWidth: CGFloat = 40
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             if model.accounts.count > 1 {
                 row(selected: model.focusedAccountID == nil, action: { focus(nil) }) {
-                    StackedAvatars(accounts: model.accounts)
+                    AccountAvatarStack(accounts: model.accounts, size: 22)
+                        .frame(width: Self.leadingWidth, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("All accounts").font(.system(size: 13, weight: .semibold))
                         Text("\(model.sessions.count) of \(model.accounts.count) unlocked")
@@ -646,23 +676,23 @@ struct AccountSwitcher: View {
                 }
                 Divider().padding(.vertical, 4).padding(.horizontal, 8)
             }
-            ForEach(Array(model.accounts.enumerated()), id: \.element.id) { index, account in
+            ForEach(model.accounts) { account in
                 let open = model.isUnlocked(account.id)
                 row(selected: model.focusedAccountID == account.id || model.accounts.count == 1, action: { focus(account.id) }) {
-                    AccountAvatar(email: account.email, index: index, size: 30)
+                    AccountAvatar(account: account, size: 30, showsLock: true)
+                        .frame(width: Self.leadingWidth, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                         HStack(spacing: 4) {
-                            if open {
-                                Text(verbatim: account.serverSummary)
-                                Text(verbatim: "·")
-                                Text("^[\(model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count) item](inflect: true)")
-                            } else {
-                                Image(systemName: "lock.fill").font(.system(size: 9))
-                                Text("Locked · \(account.serverSummary)")
-                            }
+                            if !open { Image(systemName: "lock.fill").font(.system(size: 9)) }
+                            Text(verbatim: open ? account.serverSummary : String(localized: "Locked · \(account.serverSummary)"))
                         }
                         .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        if open {
+                            let count = model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count
+                            Text(count == 1 ? String(localized: "1 item") : String(localized: "\(count) items"))
+                                .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        }
                     }
                 }
                 .contextMenu {
@@ -768,6 +798,8 @@ private struct SyncStatusText: View {
     var body: some View {
         if model.isSyncing {
             Text("Syncing…")
+        } else if model.previewUnlocked {
+            Text("Synced just now") // the demo vault (screenshots, UI tests): there's no server to be offline from
         } else if let date = model.lastSynced {
             TimelineView(.periodic(from: .now, by: 30)) { context in
                 if context.date.timeIntervalSince(date) < 60 {
@@ -860,35 +892,43 @@ private struct FolderRow: View {
 /// Looks like a search field; opens the command palette (⌘K / ⌘F).
 private struct PaletteTrigger: View {
     @Environment(AppModel.self) private var model
+    /// A narrow header: just "Search".
+    var compactLabel = false
     @State private var hovering = false
 
+    /// A tappable view rather than a `Button`: a toolbar slot holding only a button is replaced by a native toolbar
+    /// button, which loses this capsule.
     var body: some View {
-        Button { model.openPalette() } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium))
-                Text("Search").font(.system(size: 13))
-                Spacer()
-                Text(verbatim: "⌘K")
-                    .font(.system(size: 10, weight: .medium))
-                    .padding(.horizontal, 5).padding(.vertical, 1.5)
-                    .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 4))
-            }
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .frame(height: 32)
-            .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
-            .contentShape(.capsule)
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium))
+            Text(compactLabel ? "Search" : "Search or run a command").font(.system(size: 13)).lineLimit(1)
+            Spacer()
+            Text(verbatim: "⌘K")
+                .font(.system(size: 10, weight: .medium))
+                .padding(.horizontal, 5).padding(.vertical, 1.5)
+                .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 4))
         }
-        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
+        .frame(height: 32)
+        .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+        .contentShape(.capsule)
+        .onTapGesture { model.openPalette() }
         .onHover { hovering = $0 }
         .help(Text("Search or run a command (⌘K)"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(Text("Search or run a command"))
+        .accessibilityAction { model.openPalette() }
     }
 }
 
-/// The round + next to search: new items of every kind.
+/// The + for new items of every kind: a small glyph at the end of the sidebar's Vault row.
 private struct NewItemButton: View {
     @Environment(AppModel.self) private var model
+    /// Sized for a sidebar section header rather than the window's header.
+    var inline = false
+    @State private var hovering = false
 
     var body: some View {
         Menu {
@@ -910,15 +950,26 @@ private struct NewItemButton: View {
             }
             .labelStyle(.titleAndIcon)
         } label: {
-            Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
-                .frame(width: 32, height: 32)
-                .modifier(HeaderChrome(shape: .circle))
-                .contentShape(.circle)
+            if inline {
+                // A small round control, always visible but quiet; it firms up on hover.
+                Image(systemName: "plus").font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(hovering ? .primary : .secondary)
+                    .frame(width: 22, height: 22)
+                    .background(Color.primary.opacity(hovering ? 0.14 : 0.07), in: .circle)
+                    .contentShape(.circle)
+                    .animation(.easeOut(duration: 0.12), value: hovering)
+            } else {
+                Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
+                    .frame(width: 32, height: 32)
+                    .modifier(HeaderChrome(shape: .circle))
+                    .contentShape(.circle)
+            }
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
+        .onHover { hovering = $0 }
         .help(Text("New Item (⌘N)"))
         .accessibilityLabel(Text("New Item"))
     }
@@ -1022,6 +1073,48 @@ private struct SectionHeader: View {
     }
 }
 
+/// Filters the list in place: by name, username or website. Esc clears it, ↓ moves into the list.
+private struct ListFilterField: View {
+    @Binding var query: String
+    var focused: FocusState<Bool>.Binding
+    var moveToList: () -> Void = {}
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Image(systemName: "line.3.horizontal.decrease")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+            TextField("Filter", text: $query, prompt: Text("Filter"))
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .focused(focused)
+                .onKeyPress(.escape) {
+                    guard !query.isEmpty else { return .ignored }
+                    query = ""
+                    return .handled
+                }
+                .onKeyPress(.downArrow) { moveToList(); return .handled }
+            if !query.isEmpty {
+                Button { query = ""; focused.wrappedValue = true } label: {
+                    Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help(Text("Clear Filter"))
+                .accessibilityLabel(Text("Clear Filter"))
+                .transition(.opacity.combined(with: .scale(scale: 0.6)))
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 32)
+        .modifier(HeaderChrome(shape: .capsule, hovering: hovering || focused.wrappedValue))
+        .contentShape(.capsule)
+        .onTapGesture { focused.wrappedValue = true }
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.15), value: query.isEmpty)
+    }
+}
+
 private struct ItemColumn: View {
     let items: [VaultItem]
     /// The Trash: a note on when its items go for good.
@@ -1030,8 +1123,12 @@ private struct ItemColumn: View {
     @Binding var query: String
     @Binding var sort: String
     @Binding var ascending: Bool
+    /// What the list shows (the sidebar section): another one fades the rows, while the filter and sort stay put.
+    var listID: SidebarSelection? = nil
 
     @Environment(AppModel.self) private var model
+    @FocusState private var filterFocused: Bool
+    @FocusState private var listFocused: Bool
 
     private func picked(_ item: VaultItem) -> Bool {
         model.multiSelection.isEmpty ? item.id == selection : model.multiSelection.contains(item.id)
@@ -1065,10 +1162,12 @@ private struct ItemColumn: View {
     var body: some View {
         let order = ItemSort(rawValue: sort) ?? .title
         VStack(spacing: 10) {
-            // How many, and how they're ordered (the sidebar filters; this only sorts).
+            // Narrow the list by typing, and choose its order.
             HStack(spacing: 6) {
-                Text("\(items.count) items").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                Spacer()
+                ListFilterField(query: $query, focused: $filterFocused) {
+                    listFocused = true
+                    if selection == nil || !items.contains(where: { $0.id == selection }) { selection = items.first?.id }
+                }
                 Menu {
                     Picker("Sort By", selection: $sort) {
                         ForEach(ItemSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
@@ -1093,7 +1192,7 @@ private struct ItemColumn: View {
                 .help(Text("Sort"))
                 .accessibilityLabel(Text("Sort"))
             }
-            .padding(.leading, 6) // the sort button lines up with the list's edge (and + above it)
+            .padding(.leading, 6) // the filter and sort line up with the list's edge
 
             if isTrash, !items.isEmpty { TrashNotice(items: items) }
 
@@ -1122,9 +1221,12 @@ private struct ItemColumn: View {
                     }
                 }
                 .padding(6)
+                .id(listID) // another section: only the rows crossfade; the panel, filter and sort stay
+                .transition(.opacity)
             }
-            // ↑/↓ move the selection; the search field hands focus here with ↓ too.
+            // ↑/↓ move the selection; the filter field hands focus here with ↓ too.
             .focusable()
+            .focused($listFocused)
             .focusEffectDisabled()
             .onKeyPress(.downArrow) { step(1, proxy); return .handled }
             .onKeyPress(.upArrow) { step(-1, proxy); return .handled }
@@ -1145,8 +1247,8 @@ private struct ItemColumn: View {
                 if items.isEmpty {
                     ContentUnavailableView {
                         Label(query.isEmpty ? "No Items" : "No Results", systemImage: query.isEmpty ? "tray" : "magnifyingglass")
-                            .modifier(Floating())
                     }
+                    .modifier(WindowCentered())
                 }
             }
             .overlay(alignment: .bottom) {
@@ -1171,24 +1273,16 @@ struct ItemRow: View {
     var highlight = ""
     @State private var hovered = false
 
-    /// Account colour, only when more than one account is open.
-    private var accountDot: Color? {
-        guard model.sessions.count > 1, let i = model.accounts.firstIndex(where: { $0.id == item.accountId }) else { return nil }
-        return AccountColor.color(i)
-    }
-
     var body: some View {
         HStack(spacing: 12) {
             ItemIcon(item: item, size: 38)
-                .overlay(alignment: .bottomTrailing) {
-                    if let accountDot {
-                        Circle().fill(accountDot).frame(width: 11, height: 11)
-                            .overlay(Circle().strokeBorder(Color.windowBase, lineWidth: 2))
-                            .offset(x: 3, y: 3)
-                    }
-                }
             VStack(alignment: .leading, spacing: 1) {
-                Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                // Whose it is, when several accounts are open: the account's letters at the end of the name.
+                HStack(spacing: 6) {
+                    Text(Highlight.marked(item.name, highlight)).font(.system(size: 14, weight: .bold)).lineLimit(1)
+                    Spacer(minLength: 0)
+                    AccountTag(accountId: item.accountId)
+                }
                 if let username = item.username {
                     Text(Highlight.marked(username, highlight)).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
@@ -1251,6 +1345,23 @@ struct ItemRow: View {
 extension EnvironmentValues {
     /// False while the detail pane sits off-screen on the narrow-window strip.
     @Entry var showsDetailToolbar = true
+    /// The vault window's vertical middle, in window coordinates: empty states line up on it across columns.
+    @Entry var windowMidY: CGFloat?
+}
+
+/// An empty state centred on the window's middle rather than its own column's, so the list's and the detail's sit on
+/// one line however their panels are inset (the filter bar above one, the footer below the other).
+struct WindowCentered: ViewModifier {
+    @Environment(\.windowMidY) private var windowMidY
+
+    func body(content: Content) -> some View {
+        GeometryReader { geo in
+            let own = geo.frame(in: .global).midY
+            content
+                .frame(width: geo.size.width, height: geo.size.height)
+                .offset(y: windowMidY.map { $0 - own } ?? 0)
+        }
+    }
 }
 
 struct ItemDetail: View {
@@ -1443,7 +1554,7 @@ struct ItemDetail: View {
         .toolbar {
             // Item actions sit in the header, top right (Liquid layout) — only while this detail is in view, and not
             // under the lock layer.
-            if showsToolbar, model.phase.id == AppModel.Phase.vault.id {
+            if showsToolbar, model.phase.id == AppModel.Phase.vault.id, model.accountDoor == nil {
                 ToolbarSpacer(.flexible)
                 // Inset by the detail's own side padding, so the pill's edge lines up with the cards below.
                 ToolbarItem { actions }
@@ -1845,46 +1956,102 @@ struct Monogram: View {
 }
 
 /// Unlock one locked account in place (from the sidebar), without leaving the vault.
-private struct AccountUnlockPane: View {
+struct AccountUnlockPane: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
     let account: SavedAccount
     @State private var password = ""
     @State private var usePassword = false
     @State private var refusals = 0
+    @FocusState private var focused: Bool
 
-    private var pinMode: Bool { model.isPINEnabled(account.id) && !usePassword }
-
+    private var hasPIN: Bool { model.isPINEnabled(account.id) }
+    private var pinMode: Bool { hasPIN && !usePassword }
     var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "lock.fill").font(.system(size: 24)).foregroundStyle(.secondary)
-            Text("Account locked").font(.system(size: 16, weight: .semibold))
-            Text(verbatim: "\(account.email) · \(account.serverSummary)")
-                .font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            if model.isTouchIDEnabled(account.id) {
-                Button { Task { await model.unlockWithTouchID() } } label: { Label("Unlock with Touch ID", systemImage: "touchid") }
-            }
-            PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, onSubmit: submit)
-                .frame(width: 260)
+        VStack(spacing: 0) {
+            // Whose vault: the account's own avatar, so it reads as the one picked in the switcher.
+            AccountAvatar(account: account, size: 52, showsLock: true)
+                .padding(.bottom, 14)
+            Text(verbatim: account.email)
+                .font(.system(size: 14, weight: .semibold))
+                .lineLimit(1).truncationMode(.middle)
+            Text("Locked · \(account.serverSummary)")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.middle)
+                .padding(.top, 2)
+
+            UnlockCapsuleField(pinMode: pinMode, password: $password, focused: $focused.wrappedBinding, submit: submit)
                 .shake(on: refusals)
-                .onChange(of: model.errorMessage) { _, message in if message != nil { refusals += 1 } }
-            if model.isPINEnabled(account.id) {
-                Button(pinMode ? "Use master password" : "Use PIN") { usePassword.toggle(); password = ""; model.errorMessage = nil }
-                    .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary).underline()
+                .padding(.top, 20)
+
+            status
+                .font(.system(size: 11, weight: .medium))
+                .lineLimit(2).multilineTextAlignment(.center)
+                .frame(minHeight: 28)
+                .padding(.top, 6)
+                .animation(.easeOut(duration: 0.2), value: model.errorMessage)
+
+            if model.isTouchIDEnabled(account.id) {
+                Button { Task { await model.unlockWithTouchID() } } label: {
+                    Label("Unlock with Touch ID", systemImage: "touchid")
+                        .font(.system(size: 12, weight: .medium))
+                        .frame(maxWidth: .infinity).frame(height: 32)
+                        .background(Color.primary.opacity(0.06), in: .capsule)
+                        .contentShape(.capsule)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
             }
-            if let error = model.errorMessage {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+
+            HStack(spacing: 6) {
+                if hasPIN {
+                    Button(pinMode ? "Use master password" : "Use PIN") {
+                        usePassword.toggle(); password = ""; model.errorMessage = nil; focused = true
+                    }
+                }
+                if hasPIN && canShowAll { Text(verbatim: "·").foregroundStyle(.tertiary) }
+                if canShowAll {
+                    Button("Show all accounts") {
+                        model.errorMessage = nil
+                        withAnimation(.snappy(duration: 0.3)) { model.accountFocus = nil }
+                    }
+                }
             }
-            Button("Unlock") { submit() }
-                .buttonStyle(.appPrimary)
-                .disabled(password.isEmpty || model.isBusy)
+            .buttonStyle(.plain)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+            .padding(.top, 14)
         }
-        .padding(24)
+        .frame(maxWidth: 280)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
         .padding(.horizontal, 6)
+        .onAppear { focused = true }
+        .onChange(of: account.id) { password = ""; usePassword = false; model.errorMessage = nil; focused = true }
+        .onChange(of: model.errorMessage) { _, message in
+            guard message != nil else { return }
+            refusals += 1
+            password = ""
+        }
+        .onChange(of: password) { _, typed in if !typed.isEmpty, model.errorMessage != nil { model.errorMessage = nil } }
+    }
+
+    /// Only when this account is in focus (picked in the switcher) and there are others to go back to.
+    private var canShowAll: Bool { model.focusedAccountID == account.id && model.accounts.count > 1 }
+
+    @ViewBuilder private var status: some View {
+        if let message = model.errorMessage {
+            Text(verbatim: message).foregroundStyle(scheme == .dark ? Color(red: 1, green: 0.55, blue: 0.55) : Color(red: 0.8, green: 0.2, blue: 0.2))
+        } else if model.isBusy {
+            Text("Unlocking…").foregroundStyle(.secondary)
+        } else {
+            Text("Press Return to unlock").foregroundStyle(.tertiary)
+        }
     }
 
     private func submit() {
+        guard !password.isEmpty, !model.isBusy else { return }
         let typed = password
         Task {
             if pinMode { await model.unlockWithPIN(typed, accountId: account.id) } else { await model.unlock(password: typed, accountId: account.id) }
@@ -1996,14 +2163,35 @@ struct HeaderChrome: ViewModifier {
 
     func body(content: Content) -> some View {
         let dark = scheme == .dark
-        let fill = dark ? Color.white.opacity(hovering ? 0.14 : 0.10) : Color.white.opacity(hovering ? 1 : 0.88)
-        let edge = dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06)
-        Group {
-            switch shape {
-            case .capsule: content.background(fill, in: .capsule).overlay(Capsule().strokeBorder(edge, lineWidth: 0.5))
-            case .circle: content.background(fill, in: .circle).overlay(Circle().strokeBorder(edge, lineWidth: 0.5))
-            }
+        switch shape {
+        case .capsule: chrome(content, Capsule(), dark: dark)
+        case .circle: chrome(content, Circle(), dark: dark)
         }
+    }
+
+    /// Dark: a quiet translucent fill. Light: glass — a bright top edge fading to a faint shade below, and a soft
+    /// shadow like the cards'. Composited as one layer so the toolbar's vibrancy can't wash the edge and fill out.
+    private func chrome<S: InsettableShape>(_ content: Content, _ shape: S, dark: Bool) -> some View {
+        let fill = dark ? Color.white.opacity(hovering ? 0.14 : 0.10) : Color.white.opacity(hovering ? 0.95 : 0.78)
+        return content
+            .background {
+                if dark {
+                    shape.fill(fill)
+                } else {
+                    shape.fill(fill)
+                        .background(.ultraThinMaterial, in: shape)
+                        .shadow(color: .black.opacity(hovering ? 0.10 : 0.07), radius: 6, y: 2)
+                }
+            }
+            .overlay {
+                if dark {
+                    shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+                } else {
+                    shape.strokeBorder(LinearGradient(colors: [.white, .white.opacity(0.4), .black.opacity(0.07)],
+                                                      startPoint: .top, endPoint: .bottom), lineWidth: 1)
+                }
+            }
+            .compositingGroup()
     }
 }
 

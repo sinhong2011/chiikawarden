@@ -18,11 +18,11 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/vault-light.jpg" width="820" alt="The vault: item list and a login with its password, live one-time code and details">
+  <img src="docs/images/vault-light.jpg" width="820" alt="The vault: sidebar, item list, and a login with its password, live one-time code and details">
 </p>
 
-> **Status:** in active development, before the first release. It works with real Vaultwarden and Bitwarden accounts
-> and is tested against both, but keep your usual client around until 1.0.
+> **Status:** early releases (0.x). It works with real Vaultwarden and Bitwarden accounts and is tested against both,
+> but keep your usual client around until 1.0. Screenshots show the built-in demo vault, not a real account.
 
 ## Features
 
@@ -33,6 +33,7 @@
 - Organizations and collections: a vault switcher (All vaults, My vault, each organization), move items into an
   organization, change collections, event logs for admins; live sync over WebSocket.
 - Pick many items (⌘-click, ⇧-click, ⌘A) to move, archive, trash or restore them at once.
+- Item history: when it was created and last edited, when its password changed, and its earlier passwords.
 - Works offline from the encrypted cache; edits go straight to the server.
 
 **Fast to reach**
@@ -48,13 +49,16 @@
 **Deep macOS integration**
 - System AutoFill for passwords, **passkeys** and one-time codes, in Safari, Chrome and apps; equivalent domains
   (a google.com login fills on youtube.com).
-- Touch ID unlock, one touch for every account.
+- Touch ID or PIN unlock, one touch for every account; a lock timeout per account, and log out instead of lock if you
+  prefer.
+- Copied secrets clear themselves from the clipboard, with a countdown in the window's footer.
 - An SSH agent backed by your vault's SSH keys (sign git commits too).
 - A Safari extension and a Chrome native host; App Intents and Shortcuts; a `tw` command-line tool.
 
 **Security tools**
 - Watchtower: weak, reused, breached and unsecured (http://) passwords, and sites that offer two-step login you
-  haven't set up (k-anonymity for breaches; nothing leaves in the clear).
+  haven't set up (k-anonymity for breaches; nothing leaves in the clear). The list marks each item's issue, and
+  "Change on Site" opens the site's own change-password page.
 - Account security: fingerprint phrase, two-step login (authenticator app, email, recovery code), change the master
   password or KDF, devices, sign out everywhere, and approve sign-ins from your other devices.
 - Emergency access: trusted contacts who can view or take over your vault after a wait you choose.
@@ -66,18 +70,26 @@
 <table>
   <tr>
     <td><img src="docs/images/palette.jpg" alt="Command palette"></td>
-    <td><img src="docs/images/codes.jpg" alt="One-time codes with countdown rings"></td>
+    <td><img src="docs/images/palette-site.jpg" alt="The palette over Safari, putting the page's login first to type it in"></td>
   </tr>
   <tr>
     <td align="center"><sub>Command palette</sub></td>
-    <td align="center"><sub>One-time codes</sub></td>
+    <td align="center"><sub>Over a browser: the page's logins first, ↵ types them in</sub></td>
   </tr>
   <tr>
+    <td><img src="docs/images/codes.jpg" alt="One-time codes with countdown rings"></td>
     <td><img src="docs/images/generator.jpg" alt="Generator"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>One-time codes</sub></td>
+    <td align="center"><sub>Generator</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/watchtower.jpg" alt="Watchtower with its score and a reused password"></td>
     <td><img src="docs/images/vault-dark.jpg" alt="The vault in dark mode"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Generator</sub></td>
+    <td align="center"><sub>Watchtower</sub></td>
     <td align="center"><sub>Dark mode</sub></td>
   </tr>
 </table>
@@ -92,8 +104,14 @@ only then does the door take itself apart, and the screen parts like a vault's i
 
 ## Install
 
-Signed and notarized releases, with in-app updates and a Homebrew cask, come with the first release. Until then,
-build it from source (below).
+Requires macOS 26 (Tahoe) or later.
+
+```bash
+brew install --cask sinhong2011/tap/triwarden
+```
+
+Or download the signed, notarized DMG from the [latest release](https://github.com/sinhong2011/triwarden/releases/latest).
+Triwarden updates itself (Settings › About), and Homebrew keeps the cask current.
 
 ## Build from source
 

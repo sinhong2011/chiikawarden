@@ -39,7 +39,7 @@ struct UnlockView: View {
                 VaultDoorStage(radius: radius, center: center, typed: frozen?.typed ?? password.count, turns: turns,
                                busy: frozen?.busy ?? model.isBusy, errorAt: errorAt, openedAt: model.unlockOpenedAt, closedAt: model.lockClosedAt)
 
-                DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN,
+                DoorCore(password: $password, focused: $focused, pinMode: pinMode, hasPIN: hasPIN, accountDoor: model.accountDoor != nil,
                          switchMode: { usePassword.toggle(); password = ""; model.errorMessage = nil; focused = true },
                          submit: submit)
                     .shake(on: errorAt)
@@ -63,6 +63,17 @@ struct UnlockView: View {
             .animation(.easeIn(duration: 0.28), value: opening)
         }
         .ignoresSafeArea()
+        // An account's door (other accounts open behind it): Esc goes back to all of them.
+        .background {
+            if model.accountDoor != nil {
+                Button("") { model.accountFocus = nil }.keyboardShortcut(.cancelAction).hidden()
+            }
+        }
+        // Switched to another locked account from the pill: start clean.
+        .onChange(of: model.accountDoor) { _, door in
+            guard door != nil else { return }
+            password = ""; usePassword = false; focused = true
+        }
         .onAppear {
             focused = true
             // Locked from the vault: the door closes over it.
@@ -111,6 +122,8 @@ private struct DoorCore: View {
     /// Asking for the PIN rather than the master password.
     var pinMode = false
     var hasPIN = false
+    /// One account's door over the open vault: the way out is back to all accounts, not logging out.
+    var accountDoor = false
     var switchMode: () -> Void = {}
     let submit: () -> Void
 
@@ -123,38 +136,7 @@ private struct DoorCore: View {
                 .contentTransition(.symbolEffect(.replace))
                 .accessibilityHidden(true)
 
-            HStack(spacing: 4) {
-                PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, look: .plain,
-                              prompt: pinMode ? Text("PIN") : Text("Master password"),
-                              isFocused: focused.wrappedBinding, onSubmit: submit)
-                    .font(.system(size: 13))
-                    .disabled(model.isBusy)
-                Button(action: submit) {
-                    ZStack {
-                        if model.isBusy {
-                            ProgressView().controlSize(.mini).tint(.white)
-                        } else {
-                            Image(systemName: "arrow.right").font(.system(size: 11, weight: .bold))
-                        }
-                    }
-                    .foregroundStyle(password.isEmpty ? Color.secondary : Color.white)
-                    .frame(width: 26, height: 26)
-                    .background(password.isEmpty ? Color.primary.opacity(0.08) : Color.brandButton, in: .circle)
-                    .contentShape(.circle)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.defaultAction)
-                .disabled(password.isEmpty || model.isBusy)
-                .help(Text("Unlock"))
-                .accessibilityLabel(Text("Unlock"))
-                .animation(.easeOut(duration: 0.15), value: password.isEmpty)
-            }
-            .padding(.leading, 14).padding(.trailing, 5)
-            .frame(height: 36)
-            .background(dark ? Color.black.opacity(0.35) : Color.white.opacity(0.9), in: .capsule)
-            .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.primary.opacity(dark ? 0.35 : 0.3) : Color.primary.opacity(0.1),
-                                            lineWidth: focused.wrappedValue ? 1.5 : 1))
-            .animation(.easeOut(duration: 0.15), value: focused.wrappedValue)
+            UnlockCapsuleField(pinMode: pinMode, password: $password, focused: focused.wrappedBinding, submit: submit)
 
             Group {
                 if let message = model.errorMessage {
@@ -177,9 +159,15 @@ private struct DoorCore: View {
                         .buttonStyle(.plain).foregroundStyle(.primary).underline()
                     Text(verbatim: "·").foregroundStyle(.tertiary)
                 }
-                Text("Not you?").foregroundStyle(.secondary)
-                Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
-                    .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                if accountDoor {
+                    Button("Show all accounts") { model.accountFocus = nil }
+                        .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                        .help(Text("Back to the open accounts (Esc)"))
+                } else {
+                    Text("Not you?").foregroundStyle(.secondary)
+                    Button("Log out") { model.confirmLogOut(model.unlockTarget?.id) }
+                        .buttonStyle(.plain).foregroundStyle(.primary).underline()
+                }
             }
             .font(.system(size: 11))
             .padding(.top, -4)
@@ -187,17 +175,68 @@ private struct DoorCore: View {
     }
 }
 
-/// Whose vault this is, as a quiet pill; with several accounts on this Mac, a menu to pick which one to unlock.
+/// The master password (or PIN) in a capsule with its unlock arrow: the door's hub and a locked account's pane.
+struct UnlockCapsuleField: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    var pinMode = false
+    @Binding var password: String
+    var focused: Binding<Bool>
+    let submit: () -> Void
+
+    var body: some View {
+        let dark = scheme == .dark
+        HStack(spacing: 4) {
+            PasswordField(title: pinMode ? "PIN" : "Master password", text: $password, look: .plain,
+                          prompt: pinMode ? Text("PIN") : Text("Master password"),
+                          isFocused: focused, onSubmit: submit)
+                .font(.system(size: 13))
+                .disabled(model.isBusy)
+            Button(action: submit) {
+                ZStack {
+                    if model.isBusy {
+                        ProgressView().controlSize(.mini).tint(.white)
+                    } else {
+                        Image(systemName: "arrow.right").font(.system(size: 11, weight: .bold))
+                    }
+                }
+                .foregroundStyle(password.isEmpty ? Color.secondary : Color.white)
+                .frame(width: 26, height: 26)
+                .background(password.isEmpty ? Color.primary.opacity(0.08) : Color.brandButton, in: .circle)
+                .contentShape(.circle)
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(.defaultAction)
+            .disabled(password.isEmpty || model.isBusy)
+            .help(Text("Unlock"))
+            .accessibilityLabel(Text("Unlock"))
+            .animation(.easeOut(duration: 0.15), value: password.isEmpty)
+        }
+        .padding(.leading, 14).padding(.trailing, 5)
+        .frame(height: 36)
+        .background(dark ? Color.black.opacity(0.35) : Color.white.opacity(0.9), in: .capsule)
+        .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.primary.opacity(dark ? 0.35 : 0.3) : Color.primary.opacity(0.1),
+                                        lineWidth: focused.wrappedValue ? 1.5 : 1))
+        .animation(.easeOut(duration: 0.15), value: focused.wrappedValue)
+    }
+}
+
+/// Whose vault this is, as a quiet pill that opens a menu: the other accounts on this Mac, and adding one.
 private struct AccountLine: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        if model.accounts.count > 1 {
-            Menu {
+        Menu {
+            if model.accounts.count > 1 {
                 ForEach(model.accounts, id: \.id) { account in
                     Button {
-                        model.unlockTargetID = account.id
+                        if model.accountDoor != nil {
+                            // Over the open vault: switch the focus (an open account just lifts the door).
+                            model.accountFocus = account.id
+                        } else {
+                            model.unlockTargetID = account.id
+                        }
                         model.errorMessage = nil
                     } label: {
                         if account.id == model.unlockTarget?.id {
@@ -207,33 +246,33 @@ private struct AccountLine: View {
                         }
                     }
                 }
-            } label: {
-                label(chevron: true)
+                Divider()
             }
-            .menuStyle(.button)
-            .buttonStyle(.plain)
-            .menuIndicator(.hidden)
-            .fixedSize(horizontal: false, vertical: true)
-            .help(Text("Choose an account"))
-        } else {
-            label(chevron: false)
+            Button("Add Account…", systemImage: "person.badge.plus") {
+                model.beginAddAccount(sameServerAs: model.unlockTarget)
+            }
+        } label: {
+            label
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize(horizontal: false, vertical: true)
+        .help(Text(model.accounts.count > 1 ? "Switch account" : "Add another account"))
     }
 
-    private func label(chevron: Bool) -> some View {
+    private var label: some View {
         let account = model.unlockTarget
         let dark = scheme == .dark
         return HStack(spacing: 8) {
-            Monogram(name: account?.email ?? "?", size: 24)
+            if let account { AccountAvatar(account: account, size: 24) }
             VStack(alignment: .leading, spacing: 0) {
                 Text(verbatim: account?.email ?? "").font(.system(size: 12, weight: .semibold))
                     .lineLimit(1).truncationMode(.middle)
                 Text(verbatim: account?.serverSummary ?? "").font(.system(size: 10)).foregroundStyle(.secondary)
                     .lineLimit(1).truncationMode(.middle)
             }
-            if chevron {
-                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
-            }
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
         }
         .padding(.leading, 6).padding(.trailing, 14).padding(.vertical, 5)
         .background(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.7), in: .capsule)

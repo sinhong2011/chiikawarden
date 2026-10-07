@@ -38,7 +38,8 @@ struct ThinScroller: ViewModifier {
                 .contentShape(.rect.inset(by: -6))
                 .onHover { thumbHover = $0 }
                 .gesture(
-                    DragGesture(minimumDistance: 0)
+                    // Measured in window space: the thumb moves under the pointer, so its own space would cancel the drag out.
+                    DragGesture(minimumDistance: 0, coordinateSpace: .global)
                         .onChanged { drag in
                             let start = dragStart ?? (g.contentOffset.y + g.contentInsets.top)
                             if dragStart == nil { dragStart = start }

@@ -74,11 +74,30 @@ extension AppModel {
     /// is missing), copies `fallback` instead and goes back there so it can be pasted.
     func autoType(_ steps: [AutoType.Step], into context: ForegroundContext, fallback: (value: String, label: String)?) {
         Task {
+            // Called from the palette: keystrokes would reach it while it's still closing.
+            await paletteClosed()
+            await handFocus(to: context.pid)
             let outcome = await AutoType.type(steps, into: context.pid)
             noteActivity()
             guard outcome != .typed else { return }
             if let fallback { copy(fallback.value, label: fallback.label) }
             if outcome == .failed { returnToForeground() }
         }
+    }
+
+    /// Gives the keyboard back to the app being typed into before the helper types. Only the active app may hand
+    /// activation on (the helper can't take it from us), and after one of our panels held the keyboard that app's
+    /// window needs a moment to take it back; typing sooner lands nowhere (a beep).
+    private func handFocus(to pid: pid_t) async {
+        guard let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else { return }
+        // Our floating panels (the menu bar's, the palette's) step aside first.
+        for window in NSApp.windows where window.isVisible && window is NSPanel { window.orderOut(nil) }
+        if NSApp.isActive { NSApp.yieldActivation(to: app) }
+        app.activate()
+        for _ in 0..<40 {
+            if NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, !NSApp.isActive, NSApp.keyWindow == nil { break }
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+        try? await Task.sleep(for: .milliseconds(120)) // its window takes focus
     }
 }

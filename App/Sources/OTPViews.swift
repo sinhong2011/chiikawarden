@@ -22,21 +22,17 @@ struct OTPCode: View {
 }
 
 extension OTPCode {
-    /// Each half keeps the width of its digit count, so the dot never shifts while digits roll over.
-    /// A new code rolls in digit by digit, left to right, like a flip clock (`from`: the first digit's place in the code).
+    /// Each half keeps the width of its digit count, so the dot never shifts while digits roll over (each digit rolls
+    /// on its own, like a flip clock).
     fileprivate func half(_ digits: String, from start: Int) -> some View {
         Text(verbatim: String(repeating: "0", count: digits.count))
             .fixedSize() // never squeezed narrower than the digits drawn over it
             .hidden()
             .overlay(alignment: .leading) {
-                HStack(spacing: 0) {
-                    ForEach(Array(digits.enumerated()), id: \.offset) { index, digit in
-                        Text(verbatim: String(digit))
-                            .contentTransition(.numericText())
-                            .animation(.spring(duration: 0.45, bounce: 0.2).delay(Double(start + index) * 0.04), value: digit)
-                    }
-                }
-                .fixedSize()
+                Text(verbatim: digits)
+                    .contentTransition(.numericText())
+                    .fixedSize()
+                    .animation(Motion.plays ? .spring(duration: 0.45, bounce: 0.2).delay(Double(start) * 0.06) : nil, value: digits)
             }
     }
 }
@@ -48,7 +44,7 @@ struct BreathingDot: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if reduceMotion {
+        if reduceMotion || !Motion.plays {
             Circle().fill(color).frame(width: diameter, height: diameter)
         } else {
             PhaseAnimator([false, true]) { inhale in
@@ -95,10 +91,10 @@ struct CountdownRing: View {
                 .font(.system(size: size * digits, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(urgent ? Color.orange : .secondary)
-                .contentTransition(.numericText(countsDown: true))
+                .contentTransition(Motion.plays ? .numericText(countsDown: true) : .identity)
         }
         .frame(width: size, height: size)
-        .animation(.snappy, value: seconds)
+        .animation(Motion.plays ? .snappy : nil, value: seconds)
         .keyframeAnimator(initialValue: 1.0, trigger: beat) { ring, scale in
             ring.scaleEffect(scale)
         } keyframes: { _ in

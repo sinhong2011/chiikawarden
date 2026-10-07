@@ -19,11 +19,14 @@ enum Pref {
     static let codeAfterPassword = "codeAfterPassword"   // after a password is pasted, the clipboard holds its code
     static let hideFromCapture = "hideFromCapture"       // windows stay out of screen sharing, recordings and screenshots
     static let timeoutAction = "timeoutAction"           // after inactivity: "lock" or "logOut" (accounts may override)
+    static let showMenuBar = "showMenuBar"               // the menu bar icon and its panel
+    static let closeToMenuBar = "closeToMenuBar"         // closing the window leaves the Dock; Triwarden waits in the menu bar
 
     static func register() {
         UserDefaults.standard.register(defaults: [
             appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
             codeAfterPassword: true, hideFromCapture: false, timeoutAction: "lock", // opt-in: some screen tools and recordings need the window
+            showMenuBar: true, closeToMenuBar: false,
         ])
     }
 

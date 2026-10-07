@@ -9,6 +9,8 @@ struct AccountSecuritySections: View {
     let session: AccountSession
     @State private var providers: [Int: Bool] = [:]
     @State private var devices: [DeviceInfo] = []
+    /// The device list shows a few until opened: accounts collect many sign-ins over the years.
+    @State private var showsAllDevices = false
     @State private var loading = false
     @State private var devicesLoading = false
     /// Why two-step login couldn't load, and why the devices couldn't (each its own, with the server's words).
@@ -219,7 +221,27 @@ struct AccountSecuritySections: View {
             } else if devices.isEmpty {
                 Text(devicesLoading ? "Loading devices…" : "No devices found.").foregroundStyle(.secondary)
             }
-            ForEach(devices) { device in deviceRow(device) }
+            // This Mac first, then the rest; a few until the list is opened.
+            let ordered = devices.filter(\.isCurrent) + devices.filter { !$0.isCurrent }
+            let collapsedCount = 3
+            ForEach(showsAllDevices ? ordered : Array(ordered.prefix(collapsedCount))) { device in deviceRow(device) }
+            if ordered.count > collapsedCount {
+                Button {
+                    withAnimation(.snappy(duration: 0.25)) { showsAllDevices.toggle() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(showsAllDevices ? "Show fewer" : "Show all \(ordered.count) devices")
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .rotationEffect(.degrees(showsAllDevices ? 180 : 0))
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+            }
             HStack {
                 Spacer()
                 Button("Sign Out Everywhere…", role: .destructive) { sheet = .signOutEverywhere }

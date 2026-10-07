@@ -5,6 +5,8 @@ import VaultwardenAPI
 struct TriwardenApp: App {
     @State private var model = AppModel()
     @AppStorage(Pref.appearance) private var appearance = AppearanceSetting.system
+    @AppStorage(Pref.showMenuBar) private var showMenuBar = true
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     init() {
         Pref.register()
@@ -19,7 +21,7 @@ struct TriwardenApp: App {
             let demo = AppModel()
             demo.items = Snapshot.demoItems
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
-            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@chiikawarden.test", serverKind: "selfHosted",
+            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
                                                   serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
                                                   protectedUserKey: "")])
             demo.previewUnlocked = true
@@ -32,12 +34,14 @@ struct TriwardenApp: App {
     private let services = ServicesProvider()
 
     var body: some Scene {
-        WindowGroup {
+        // One vault window: reopening (menu bar, palette, Dock, opening the app again) brings this one back.
+        Window("Triwarden", id: AppModel.mainWindowID) {
             // No window-wide tint: a tint colours menu icons, and a highlighted row would then hide its own icon.
             // System controls take the neutral global accent (ControlAccent); the app's switches set their own.
             RootView()
                 .environment(model)
                 .preferredColorScheme(appearance.scheme)
+                .onAppear { appDelegate.model = model }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
                 }
@@ -51,8 +55,9 @@ struct TriwardenApp: App {
                 .containerBackground(for: .window) { WindowBackdrop() }
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1120, height: 720)
 
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $showMenuBar) {
             MenuBarContent()
                 .environment(model)
         } label: {
@@ -169,7 +174,7 @@ struct RootView: View {
 
     /// Into the vault: the gate's heavy ease. Locking: the gate closing. Elsewhere: smooth, nothing wobbles into place.
     private var phaseAnimation: Animation {
-        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.55) }
+        if model.phase.id == AppModel.Phase.vault.id { return .easeInOut(duration: 0.75) }
         return .smooth(duration: 0.45)
     }
 
@@ -184,7 +189,7 @@ struct RootView: View {
                     .zIndex(1) // the gate opens over the vault
             case .locked, .vault:
                 // Signed in: the vault is always the window; while locked, the lock lies over it as one layer.
-                VaultView()
+                VaultView(initialSelection: DemoLaunch.item, initialSection: DemoLaunch.section)
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
                     // No blur or scaling of its own behind the lock (the lock's frosted layer blurs it): a blur would lay
                     // it out under the title bar, and it would jump into place on unlock.
@@ -196,10 +201,12 @@ struct RootView: View {
         // The lock lies over the window as an overlay (not a sibling): it reaches under the title bar without
         // stretching the vault's layout there, so nothing moves when it lifts.
         .overlay {
-            if model.phase.id == AppModel.Phase.locked.id {
+            // The whole vault locked, or one locked account picked while the others are open.
+            if model.phase.id == AppModel.Phase.locked.id || model.accountDoor != nil {
                 UnlockView()
-                    // Appears and leaves at once: when animated, the gate's plates cover it while it does.
-                    .transition(reduceMotion ? .opacity : .identity)
+                    // Appears and leaves at once: when animated, the gate's plates cover it while it does. An account's
+                    // door fades in and out (switching to it, or leaving it for all accounts).
+                    .transition(reduceMotion || model.accountDoor != nil ? .opacity : .identity)
             }
         }
         // The gate: plates over everything, only while they move (locking and unlocking).
@@ -209,6 +216,8 @@ struct RootView: View {
         .animation(phaseAnimation, value: model.phase.id)
         .onAppear {
             model.openSettingsAction = { openSettings() }
+            model.openMainWindowAction = { openWindow(id: AppModel.mainWindowID) }
+            model.windowDidOpen()
             // Fork-style: an unregistered official build asks now and then at launch, in a window of its own.
             if model.license.takeReminder() {
                 Task { try? await Task.sleep(for: .seconds(1)); openWindow(id: LicenseReminderView.windowID) }
@@ -291,5 +300,59 @@ enum AppearanceSetting: String {
     case system, light, dark
     var scheme: ColorScheme? {
         switch self { case .system: nil; case .light: .light; case .dark: .dark }
+    }
+}
+
+/// `--demo` extras for screenshots: `--demo-section codes|generator|watchtower|sends` opens that page,
+/// `--demo-item <id>` selects a demo item. Nil in release builds and normal runs.
+enum DemoLaunch {
+    static var section: SidebarSelection? {
+        #if DEBUG
+        switch value(after: "--demo-section") {
+        case "codes": return .codes
+        case "generator": return .generator
+        case "watchtower": return .watchtower
+        case "sends": return .sends
+        default: return nil
+        }
+        #else
+        return nil
+        #endif
+    }
+
+    static var item: VaultItem.ID? {
+        #if DEBUG
+        return value(after: "--demo-item")
+        #else
+        return nil
+        #endif
+    }
+
+    private static func value(after flag: String) -> String? {
+        let args = CommandLine.arguments
+        guard let at = args.firstIndex(of: flag), at + 1 < args.count else { return nil }
+        return args[at + 1]
+    }
+}
+
+/// Opening Triwarden again (Finder, Spotlight, the Dock) while it waits in the menu bar brings the vault window back.
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    var model: AppModel?
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        guard !hasVisibleWindows, let model else { return true }
+        model.bringToFront()
+        return false
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // The last window closing: with "Keep running in the menu bar" on, Triwarden leaves the Dock.
+        NotificationCenter.default.addObserver(self, selector: #selector(windowWillClose(_:)),
+                                               name: NSWindow.willCloseNotification, object: nil)
+    }
+
+    @objc private func windowWillClose(_ note: Notification) {
+        model?.windowWillClose(note.object as? NSWindow)
     }
 }

@@ -11,7 +11,7 @@ enum PreviewModels {
         model.phase = .login
         model.serverKind = .selfHosted
         model.serverURL = "https://vault.home.arpa"
-        model.email = "usagi@chiikawarden.test"
+        model.email = "usagi@triwarden.test"
         model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
         return model
     }
@@ -19,7 +19,7 @@ enum PreviewModels {
     static var locked: AppModel {
         let model = login
         model.setPreviewAccounts([
-            SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+            SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
                          kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
         ])
         model.phase = .locked

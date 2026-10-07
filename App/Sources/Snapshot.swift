@@ -29,7 +29,7 @@ enum Snapshot {
         let model = AppModel()
         model.serverKind = .selfHosted
         model.serverURL = "https://vault.home.arpa"
-        model.email = "usagi@chiikawarden.test"
+        model.email = "usagi@triwarden.test"
         model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
         model.touchIDEnabled = true
 
@@ -40,7 +40,7 @@ enum Snapshot {
         }
         // The emailed-code step, and the code cells part-typed, full and refused.
         let verifying = AppModel()
-        verifying.email = "usagi@chiikawarden.test"
+        verifying.email = "usagi@triwarden.test"
         verifying.phase = .deviceVerification
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(LoginView().environment(verifying).tint(.brand), dark: name == "dark"),
@@ -103,7 +103,7 @@ enum Snapshot {
 
         // The unlock animation's open moment, and Settings at its default size.
         let opening = AppModel()
-        opening.setPreviewAccounts([SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted",
+        opening.setPreviewAccounts([SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted",
                                                  serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000), protectedUserKey: "")])
         opening.unlockOpening = true
         render(desktop(UnlockView().environment(opening).tint(.brand), dark: false),
@@ -115,7 +115,7 @@ enum Snapshot {
 
         let multi = AppModel()
         multi.setPreviewAccounts([
-            SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+            SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
                          kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
             SavedAccount(id: "b", email: "usagi@work.example", serverKind: "bitwardenUS", serverURL: "",
                          kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
@@ -135,6 +135,10 @@ enum Snapshot {
             return item
         }
         vault.previewUnlocked = true
+        // The demo account only: never the accounts saved on this Mac (renders end up in the README).
+        vault.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
+                                               serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
+                                               protectedUserKey: "")])
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 1180, height: 760), appearance: appearance,
@@ -148,9 +152,10 @@ enum Snapshot {
             vault.clipboardHoldSeconds = 30
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-page-item-\(name).png"))
-            for page in [SidebarSelection.codes, .generator] {
+            vault.clipboardClearsAt = nil // the pages as they usually look (they end up in the README)
+            for (page, slug) in [(SidebarSelection.codes, "codes"), (.generator, "generator"), (.watchtower, "watchtower")] {
                 renderWindow(VaultView(initialSection: page).environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
-                             appearance: appearance, to: dir.appending(path: "window-page-\(page == .codes ? "codes" : "generator")-\(name).png"))
+                             appearance: appearance, to: dir.appending(path: "window-page-\(slug)-\(name).png"))
             }
             vault.clipboardClearsAt = nil
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 430, height: 760),
@@ -191,6 +196,20 @@ enum Snapshot {
                    size: CGSize(width: 380, height: 760), appearance: appearance,
                    to: dir.appending(path: "menubar-\(name).png"))
         }
+        // The palette's states: ranked and loose matches, an item's actions, the generator, a new login from the query,
+        // a type scope, commands only, and a locked vault.
+        for (slug, query, actions) in [("query", "git", false), ("fuzzy", "gthb", false), ("actions", "git", true),
+                                       ("gen", "gen 24", false), ("create", "acme.com", false), ("scope", "card: ", false),
+                                       ("commands", ">account", false)] {
+            render(desktop(CommandPalette(close: {}, initialQuery: query, initialActions: actions).environment(vault).tint(.brand), dark: true),
+                   size: CGSize(width: 760, height: 720), appearance: .darkAqua,
+                   to: dir.appending(path: "palette-\(slug)-dark.png"))
+        }
+        let lockedPalette = AppModel()
+        lockedPalette.setPreviewAccounts(vault.accounts)
+        lockedPalette.phase = .locked
+        render(desktop(CommandPalette(close: {}).environment(lockedPalette).tint(.brand), dark: true),
+               size: CGSize(width: 760, height: 420), appearance: .darkAqua, to: dir.appending(path: "palette-locked-dark.png"))
         // Called over a browser on github.com: that site's login first, in the palette and the menu bar panel.
         let browser = NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == "com.apple.finder" }
         vault.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: browser?.processIdentifier ?? 0,
@@ -269,7 +288,7 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let locked = AutoFillState()
             locked.domains = ["github.com"]
-            locked.email = "usagi@chiikawarden.test"
+            locked.email = "usagi@triwarden.test"
             locked.touchIDEnabled = true
             locked.hasAccount = true
             render(AutoFillView(state: locked).background(Color.windowBase), size: CGSize(width: 440, height: 520),
@@ -339,7 +358,7 @@ enum Snapshot {
             // Each pane, so its controls can be checked. Demo accounts only: never the Mac's real ones.
             let people = AppModel()
             people.setPreviewAccounts([
-                SavedAccount(id: "a", email: "usagi@chiikawarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+                SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
                              kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
                 SavedAccount(id: "b", email: "hachiware@work.example", serverKind: "bitwardenEU", serverURL: "",
                              kdf: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4), protectedUserKey: ""),
@@ -358,8 +377,14 @@ enum Snapshot {
             render(AccountSwitcher(close: {}).environment(people).background(.regularMaterial),
                    size: CGSize(width: 300, height: 420), appearance: appearance,
                    to: dir.appending(path: "account-switcher-\(name).png"))
+            if let first = people.accounts.first {
+                render(AccountUnlockPane(account: first).environment(people).padding(.vertical, 6)
+                    .background(Color(nsColor: .windowBackgroundColor)),
+                       size: CGSize(width: 270, height: 520), appearance: appearance,
+                       to: dir.appending(path: "account-unlock-\(name).png"))
+            }
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["general", "shortcuts", "server", "account:a", "account:b", "security", "developer", "license", "about"] {
+            for pane in ["accounts", "general", "shortcuts", "server", "security", "developer", "license", "about"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(people).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
@@ -369,6 +394,17 @@ enum Snapshot {
             render(desktop(LicenseReminderView().environment(model).tint(.brand), dark: name == "dark"),
                    size: CGSize(width: 380, height: 300), appearance: appearance,
                    to: dir.appending(path: "license-reminder-\(name).png"))
+            // The menu bar panel with two accounts: the account button beside search and lock.
+            render(MenuBarContent().environment(people).tint(.brand).background(.regularMaterial),
+                   size: CGSize(width: 380, height: 360), appearance: appearance,
+                   to: dir.appending(path: "menubar-accounts-\(name).png"))
+            // An account's details, as the sheet over Settings › Accounts shows them.
+            for account in people.accounts {
+                render(AccountDetailsSheet(accountId: account.id).environment(people).tint(.controlTint)
+                    .background(Color(nsColor: .windowBackgroundColor)),
+                       size: CGSize(width: 620, height: 620), appearance: appearance,
+                       to: dir.appending(path: "settings-account-\(account.id)-\(name).png"))
+            }
         }
         print(dir.path)
         exit(0)
@@ -436,6 +472,8 @@ enum Snapshot {
         guard wanted(url) else { return }
         let controller = NSHostingController(rootView: view.frame(minWidth: 380, maxWidth: .infinity, minHeight: 520, maxHeight: .infinity))
         controller.sceneBridgingOptions = [.toolbars, .title]
+        // Laid out at its size from the start: built at its minimum first, the split view keeps a cramped sidebar.
+        controller.view.frame = CGRect(origin: .zero, size: resizeFrom ?? size)
         let window = NSWindow(contentViewController: controller)
         window.styleMask = [.titled, .fullSizeContentView, .closable, .miniaturizable, .resizable]
         window.titleVisibility = .hidden
@@ -443,16 +481,43 @@ enum Snapshot {
         window.setContentSize(resizeFrom ?? size)
         window.orderFrontRegardless()
         window.makeKey()
-        RunLoop.main.run(until: .now + 1.5)
+        RunLoop.main.run(until: .now + 0.5)
+        // Outside a WindowGroup the split view ignores the sidebar's column width; put the divider where the app has it.
+        if size.width >= 900, let split = Self.firstSplitView(in: window.contentView) {
+            split.setPosition(220, ofDividerAt: 0)
+        }
+        RunLoop.main.run(until: .now + 1)
         if resizeFrom != nil {
             window.setContentSize(size)
             RunLoop.main.run(until: .now + 1.5)
         }
-        guard let frame = window.contentView?.superview,
-              let rep = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) else { return }
-        frame.cacheDisplay(in: frame.bounds, to: rep)
-        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        // The window as the screen shows it (glass and all), when the window server lets the app capture its own
+        // window; otherwise its views drawn offscreen (glass comes out black).
+        if let image = Self.capture(window) {
+            try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?.write(to: url)
+        } else if let frame = window.contentView?.superview,
+                  let rep = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) {
+            frame.cacheDisplay(in: frame.bounds, to: rep)
+            try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        }
         window.orderOut(nil)
+    }
+
+    private static func firstSplitView(in view: NSView?) -> NSSplitView? {
+        guard let view else { return nil }
+        if let split = view as? NSSplitView { return split }
+        for child in view.subviews { if let found = firstSplitView(in: child) { return found } }
+        return nil
+    }
+
+    /// CGWindowListCreateImage of one of our own windows (no screen-recording permission needed for those). Hidden from
+    /// Swift in the current SDK, so it's looked up at run time; debug snapshots only.
+    private static func capture(_ window: NSWindow) -> CGImage? {
+        typealias Create = @convention(c) (CGRect, UInt32, UInt32, UInt32) -> Unmanaged<CGImage>?
+        guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CGWindowListCreateImage") else { return nil }
+        let create = unsafeBitCast(symbol, to: Create.self)
+        // .null rect = the window's bounds; 1<<3 = including this window only; 1<<0 | 1<<3 = ignore framing, best resolution.
+        return create(.null, 1 << 3, UInt32(window.windowNumber), (1 << 0) | (1 << 3))?.takeRetainedValue()
     }
 
     private static func render(_ view: some View, size: CGSize, appearance: NSAppearance.Name, to url: URL) {

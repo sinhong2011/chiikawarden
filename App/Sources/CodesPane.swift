@@ -17,7 +17,7 @@ struct CodesPane: View {
                 Text("One-Time Codes").font(.system(size: 22, weight: .bold)).tracking(-0.3)
                 if items.isEmpty {
                     ContentUnavailableView {
-                        Label("No one-time codes", systemImage: "clock.badge.checkmark").modifier(Floating())
+                        Label("No one-time codes", systemImage: "clock.badge.checkmark")
                     } description: {
                         Text("Add a code secret to a login to see it here.")
                     }
