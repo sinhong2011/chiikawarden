@@ -1794,28 +1794,26 @@ private struct ClipboardCountdown: View {
                         let remaining = max(0, clears.timeIntervalSince(context.date))
                         let left = Int(remaining.rounded(.up))
                         HStack(spacing: 7) {
-                            // The same ring as a one-time code's: draining, the seconds inside.
-                            CountdownRing(fraction: remaining / total, seconds: left, size: 22)
-                            Group {
-                                if hovering {
-                                    Text("Clear Clipboard Now")
-                                } else {
-                                    Text("Clipboard clears")
-                                }
+                            // Just the ring; hovering it says what it is and what a click does.
+                            if hovering {
+                                Text("Clear Clipboard Now")
+                                    .transition(.opacity.combined(with: .move(edge: .trailing)))
                             }
-                            .transition(.opacity)
+                            // The same ring as a one-time code's: draining, the seconds inside.
+                            CountdownRing(fraction: remaining / total, seconds: left, size: 25)
                         }
                         .animation(.snappy, value: left)
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8).frame(height: 26)
+                    .padding(.leading, hovering ? 10 : 2).padding(.trailing, 2).frame(height: 26)
                     .background(Color.primary.opacity(hovering ? 0.07 : 0), in: .capsule)
                     .contentShape(.capsule)
                 }
                 .buttonStyle(.plain)
                 .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
-                .help(Text("Clear Clipboard Now"))
+                .help(Text("Clipboard clears"))
+                .accessibilityLabel(Text("Clear Clipboard Now"))
             }
         }
     }
