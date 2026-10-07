@@ -23,7 +23,7 @@ for arg in "$@"; do
 done
 [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "version must look like 1.2.3"; exit 64; }
 PROFILE=${NOTARY_PROFILE:-triwarden-notary}
-# App Store Connect API key (CI): lets xcodebuild fetch Developer ID profiles and notarytool submit, without an Apple ID.
+# App Store Connect API key (CI, Admin access): fetches Developer ID profiles and lets notarytool submit, without an Apple ID.
 AUTH=(); NOTARY=(--keychain-profile "$PROFILE")
 if [[ -n ${ASC_KEY_PATH:-} ]]; then
   AUTH=(-authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
@@ -45,7 +45,29 @@ xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -configuration Release
   MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" archive | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)"
 
 echo "== Export with Developer ID"
-cat > "$OUT/ExportOptions.plist" <<PLIST
+if [[ -n ${ASC_KEY_PATH:-} ]]; then
+  # CI: manual signing with the imported Developer ID certificate and profiles fetched (or made) with the API key.
+  # (Automatic signing would go through Apple's cloud signing, which only the Account Holder may use.)
+  # Only the targets with the AutoFill entitlement need a profile; the rest sign without one.
+  PROFILES=""
+  while IFS=$'\t' read -r bundle name; do
+    PROFILES+="    <key>$bundle</key><string>$name</string>"$'\n'
+  done < <(scripts/developer-id-profiles.py io.github.sinhong2011.triwarden io.github.sinhong2011.triwarden.autofill)
+  cat > "$OUT/ExportOptions.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>developer-id</string>
+  <key>teamID</key><string>FX3VR69P5K</string>
+  <key>signingStyle</key><string>manual</string>
+  <key>signingCertificate</key><string>Developer ID Application</string>
+  <key>provisioningProfiles</key><dict>
+$PROFILES  </dict>
+</dict></plist>
+PLIST
+else
+  # Local: your Xcode account signs (and makes the profiles) automatically.
+  cat > "$OUT/ExportOptions.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -54,6 +76,7 @@ cat > "$OUT/ExportOptions.plist" <<PLIST
   <key>signingStyle</key><string>automatic</string>
 </dict></plist>
 PLIST
+fi
 xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$OUT/export" \
   -exportOptionsPlist "$OUT/ExportOptions.plist" -allowProvisioningUpdates "${AUTH[@]}" | grep -E "error:|EXPORT (SUCCEEDED|FAILED)"
 APP=$OUT/export/Triwarden.app
