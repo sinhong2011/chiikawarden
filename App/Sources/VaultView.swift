@@ -325,7 +325,9 @@ struct VaultView: View {
         .onChange(of: model.previewURL) { old, _ in
             if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
         }
-        .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
+        .sheet(isPresented: $model.promptingNewFolder, onDismiss: { model.newFolderParent = nil }) {
+            NewFolderSheet(parent: model.newFolderParent)
+        }
         .overlay(alignment: .bottom) { ToastView() }
         .onAppear {
             if let initialSection { section = initialSection }
@@ -444,6 +446,10 @@ private struct Sidebar: View {
                             }
                         } label: {
                             SidebarLabel("My Folders", symbol: "folder")
+                                .contextMenu {
+                                    Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
+                                        .labelStyle(.titleAndIcon)
+                                }
                         }
                     }
                 } label: {
@@ -877,7 +883,10 @@ private struct FolderRow: View {
                 return true
             } isTargeted: { targeted = $0 }
             .contextMenu {
+                Button("New Subfolder…", systemImage: "folder.badge.plus") { model.promptNewFolder(in: node.path) }
+                    .labelStyle(.titleAndIcon)
                 if !node.folderIds.isEmpty {
+                    Divider()
                     Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
                         model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
                     }
@@ -953,7 +962,7 @@ private struct NewItemButton: View {
                     model.requestedSection = .sends
                     model.composingSend = true
                 }
-                Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }
+                Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
                     .keyboardShortcut("n", modifiers: [.command, .option])
             }
             .labelStyle(.titleAndIcon)
@@ -2212,29 +2221,37 @@ struct HeaderIconStyle: ButtonStyle {
 }
 
 /// New Folder, in the same form language as the item and Send forms.
-private struct NewFolderSheet: View {
+struct NewFolderSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    /// The folder it goes inside (a path), or nil for the top level.
+    var parent: String?
     @State private var name = ""
     @State private var accountId: String?
     @State private var saving = false
     @FocusState private var focused: Bool
 
     private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+    /// The whole path to create: the parent's, then what was typed.
+    private var fullName: String { parent.map { $0 + "/" + trimmed } ?? trimmed }
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
-                FormHeader(symbol: "folder.badge.plus", title: "New Folder", subtitle: "Group items; folders can nest.")
+                if let parent {
+                    FormHeader(symbol: "folder.badge.plus", title: "New Subfolder", subtitle: "Inside “\(parent)”.")
+                } else {
+                    FormHeader(symbol: "folder.badge.plus", title: "New Folder", subtitle: "Group items; folders can nest.")
+                }
                 FormCard {
-                    if model.sessions.count > 1 {
+                    if model.sessions.count > 1 && parent == nil {
                         FormField(label: "Account") {
                             SoftMenu(options: model.sessions.map { (String?.some($0.id), $0.account.email) }, selection: $accountId,
                                      accessibilityLabel: "Account")
                         }
                     }
-                    FormField(label: "Name", note: "Use / to nest, e.g. Work/Servers.") {
-                        TextField("Name", text: $name, prompt: Text("e.g. Work/Servers"))
+                    FormField(label: "Name", note: parent == nil ? "Use / to nest, e.g. Work/Servers." : nil) {
+                        TextField("Name", text: $name, prompt: parent == nil ? Text("e.g. Work/Servers") : Text("e.g. Servers"))
                             .textFieldStyle(SoftFieldStyle())
                             .focused($focused)
                             .onSubmit(create)
@@ -2247,7 +2264,10 @@ private struct NewFolderSheet: View {
         .frame(width: 440)
         .background(Color.windowBase)
         .onAppear {
-            accountId = model.defaultAccountId
+            // Inside a folder: the account that folder belongs to.
+            accountId = parent.flatMap { path in
+                model.sessions.first { $0.folders.contains { $0.name == path || $0.name.hasPrefix(path + "/") } }?.id
+            } ?? model.defaultAccountId
             focused = true
         }
     }
@@ -2256,7 +2276,7 @@ private struct NewFolderSheet: View {
         guard !trimmed.isEmpty, !saving else { return }
         saving = true
         Task {
-            if await model.createFolder(name: trimmed, accountId: accountId) != nil { dismiss() }
+            if await model.createFolder(name: fullName, accountId: accountId) != nil { dismiss() }
             saving = false
         }
     }

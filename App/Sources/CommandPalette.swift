@@ -627,7 +627,7 @@ struct CommandPalette: View {
                                keywords: ["add", "address"]) { create(.identity) },
                 PaletteCommand(id: "new-ssh", title: String(localized: "New SSH Key"), symbol: "terminal", keywords: ["add", "ed25519"]) { create(.sshKey) },
                 PaletteCommand(id: "new-folder", title: String(localized: "New Folder…"), symbol: "folder.badge.plus", shortcut: "⌥⌘N") {
-                    model.bringToFront(); model.promptingNewFolder = true
+                    model.bringToFront(); model.promptNewFolder()
                 },
                 PaletteCommand(id: "new-send", title: String(localized: "New Send"), symbol: "paperplane", keywords: ["share", "link"]) {
                     model.bringToFront(); model.requestedSection = .sends; model.composingSend = true

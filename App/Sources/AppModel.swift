@@ -197,6 +197,14 @@ final class AppModel {
     var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
     /// True while the New Folder prompt is showing.
     var promptingNewFolder = false
+    /// The folder a new one goes inside (its path), when it was asked for from that folder's menu.
+    var newFolderParent: String?
+
+    /// The New Folder prompt, for a folder inside `parent` (a path like "Work/Servers"), or at the top.
+    func promptNewFolder(in parent: String? = nil) {
+        newFolderParent = parent
+        promptingNewFolder = true
+    }
     /// Non-nil while the create/edit sheet is open.
     var editing: EditRequest?
     /// The import or export sheet; an import may start with a file (dropped on the window).

@@ -210,6 +210,10 @@ enum Snapshot {
             render(CollectionsSheet(itemID: "1").environment(vault).tint(.brand), size: CGSize(width: 480, height: 420),
                    appearance: appearance, to: dir.appending(path: "vault-shared-folders-\(name).png"))
         }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(NewFolderSheet(parent: "Work").environment(vault).tint(.brand), size: CGSize(width: 440, height: 300),
+                   appearance: appearance, to: dir.appending(path: "vault-subfolder-\(name).png"))
+        }
         vault.items = plainItems
         vault.folders = []
         vault.organizations = []

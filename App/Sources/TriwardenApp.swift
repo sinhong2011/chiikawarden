@@ -111,7 +111,7 @@ struct TriwardenApp: App {
                     Button("SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
                 }
                 .disabled(!model.isUnlocked)
-                Button("New Folder…") { model.promptingNewFolder = true }
+                Button("New Folder…") { model.promptNewFolder() }
                     .keyboardShortcut("n", modifiers: [.command, .option])
                     .disabled(!model.isUnlocked)
                 Divider()
