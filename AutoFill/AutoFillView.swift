@@ -117,7 +117,12 @@ final class AutoFillState {
         unlocked = true
         error = nil
         if mode == .registration, let request = passkeyRequest,
-           items.contains(where: { $0.passkeys.contains { pk in pk.rawId.map(request.credentialIDs.contains) == true } }) {
+           items.contains(where: { item in
+               item.passkeys.contains { passkey in
+                   guard let rawId = passkey.rawId else { return false }
+                   return request.credentialIDs.contains(rawId)
+               }
+           }) {
             fail(.matchedExcludedCredential) // the site already has one of our passkeys for this account
             return
         }
@@ -136,10 +141,18 @@ final class AutoFillState {
     /// Passkeys for the requesting site that it will accept.
     var passkeyCandidates: [(item: VaultItem, passkey: PasskeyCredential)] {
         guard let request = passkeyRequest else { return [] }
-        return items.flatMap { item in item.passkeys.map { (item, $0) } }.filter { _, pk in
-            pk.rpId.caseInsensitiveCompare(request.rpId) == .orderedSame
-                && (request.credentialIDs.isEmpty || pk.rawId.map(request.credentialIDs.contains) == true)
+        // Spelled out step by step: as one chained expression the Release build's type-checker gave up on it.
+        var found: [(item: VaultItem, passkey: PasskeyCredential)] = []
+        for item in items {
+            for passkey in item.passkeys where passkey.rpId.caseInsensitiveCompare(request.rpId) == .orderedSame {
+                if request.credentialIDs.isEmpty {
+                    found.append((item, passkey))
+                } else if let rawId = passkey.rawId, request.credentialIDs.contains(rawId) {
+                    found.append((item, passkey))
+                }
+            }
         }
+        return found
     }
 
     func signIn(_ item: VaultItem, _ passkey: PasskeyCredential) async {
