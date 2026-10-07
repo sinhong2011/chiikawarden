@@ -1802,7 +1802,7 @@ private struct FieldLine: View {
     @State private var copied = false
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        HStack(spacing: 12) {
             Text(verbatim: field.label)
                 .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                 .frame(width: 110, alignment: .leading)
