@@ -62,6 +62,42 @@ gh secret set SPARKLE_PRIVATE_KEY --env release < sparkle-private-key.txt
 The API key lets CI create the Developer ID provisioning profiles (App Group, AutoFill, Safari extension) and
 notarize, without an Apple ID or password.
 
+### 3. Licenses (Fork-style: paid, never locked)
+
+Every feature works unregistered and there's no time limit. An unregistered official build asks at launch, no
+more than once a week and never in the first week, whether the user wants to buy a license. Debug builds, and
+any build without `TW_STORE_URL`, never ask.
+
+Two kinds of key register (see `App/Sources/License.swift`):
+
+- **Receipt keys**: Lemon Squeezy generates them and puts them in the receipt email, so you don't need to do
+  anything. Pressing Register sends the key and a random install id to Lemon Squeezy once; nothing is checked
+  after that.
+- **Offline keys**: you sign them yourself, and they're checked on the Mac only. They're for buyers who'd rather
+  nothing went online, and a fallback if Lemon Squeezy ever goes away.
+
+1. In Lemon Squeezy, create the product as a one-time purchase with **license keys on, activation limit
+   unlimited, and no expiry**. Removing a license in the app doesn't free an activation, so a limit would
+   eventually lock buyers out. Turn on Alipay and WeChat Pay under Settings › Payments. In `project.yml`, set
+   `TW_STORE_URL` to the checkout link and `TW_LEMON_PRODUCT_ID` to the product's id.
+2. Create the offline-key signing key:
+
+   ```bash
+   make license-keys
+   ```
+
+   This keeps an Ed25519 private key in your login keychain (`triwarden-license-signing`) and writes the public
+   key to `project.yml` (`TW_LICENSE_PUBLIC_KEY`). Commit that change and back up the private key. If you lose
+   it, you can't sign new offline keys that this build accepts.
+
+3. When a buyer asks for an offline key, sign one for their order and email it to them:
+
+   ```bash
+   make license NAME="Usagi" EMAIL=usagi@example.com ORDER=1001
+   ```
+
+Either kind of key works on all of the buyer's Macs.
+
 ## Releasing by hand (fallback)
 
 On your Mac, with an Xcode account for team `FX3VR69P5K` and notary credentials in your keychain:

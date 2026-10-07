@@ -85,12 +85,20 @@
     <td align="center"><sub>Generator</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/images/watchtower.jpg" alt="Watchtower with its score and a reused password"></td>
+    <td><img src="docs/images/watchtower.jpg" alt="Watchtower with its score, breached and reused passwords"></td>
     <td><img src="docs/images/vault-dark.jpg" alt="The vault in dark mode"></td>
   </tr>
   <tr>
     <td align="center"><sub>Watchtower</sub></td>
     <td align="center"><sub>Dark mode</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/menubar.jpg" width="240" alt="The menu bar panel: the page's login first, favorites with live codes, quick actions and the generator"></td>
+    <td><img src="docs/images/signin.jpg" alt="Signing in to a self-hosted Vaultwarden"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Menu bar</sub></td>
+    <td align="center"><sub>Sign in to Vaultwarden or Bitwarden</sub></td>
   </tr>
 </table>
 

@@ -29,7 +29,7 @@ enum Snapshot {
         let model = AppModel()
         model.serverKind = .selfHosted
         model.serverURL = "https://vault.home.arpa"
-        model.email = "usagi@triwarden.test"
+        model.email = "alex@example.com"
         model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
         model.touchIDEnabled = true
 
@@ -40,7 +40,7 @@ enum Snapshot {
         }
         // The emailed-code step, and the code cells part-typed, full and refused.
         let verifying = AppModel()
-        verifying.email = "usagi@triwarden.test"
+        verifying.email = "alex@example.com"
         verifying.phase = .deviceVerification
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(LoginView().environment(verifying).tint(.brand), dark: name == "dark"),
@@ -103,7 +103,7 @@ enum Snapshot {
 
         // The unlock animation's open moment, and Settings at its default size.
         let opening = AppModel()
-        opening.setPreviewAccounts([SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted",
+        opening.setPreviewAccounts([SavedAccount(id: "a", email: "alex@example.com", serverKind: "selfHosted",
                                                  serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000), protectedUserKey: "")])
         opening.unlockOpening = true
         render(desktop(UnlockView().environment(opening).tint(.brand), dark: false),
@@ -115,9 +115,9 @@ enum Snapshot {
 
         let multi = AppModel()
         multi.setPreviewAccounts([
-            SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+            SavedAccount(id: "a", email: "alex@example.com", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
                          kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
-            SavedAccount(id: "b", email: "usagi@work.example", serverKind: "bitwardenUS", serverURL: "",
+            SavedAccount(id: "b", email: "alex@work.example", serverKind: "bitwardenUS", serverURL: "",
                          kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
         ])
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -136,7 +136,7 @@ enum Snapshot {
         }
         vault.previewUnlocked = true
         // The demo account only: never the accounts saved on this Mac (renders end up in the README).
-        vault.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
+        vault.setPreviewAccounts([SavedAccount(id: "demo", email: "alex@example.com", serverKind: "selfHosted",
                                                serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
                                                protectedUserKey: "")])
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -230,7 +230,7 @@ enum Snapshot {
                    size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-\(name).png"))
             var card = demoItems.first { $0.kind == .card }!
-            card.properties = ["cardholderName": "Usagi", "brand": "Visa", "number": "4111111111116411", "expMonth": "8", "expYear": "2029", "code": "123"]
+            card.properties = ["cardholderName": "Alex Chen", "brand": "Visa", "number": "4111111111116411", "expMonth": "8", "expYear": "2029", "code": "123"]
             card.customFields = [CustomField(name: "PIN", value: "0420", kind: .hidden), CustomField(name: "Virtual", value: "true", kind: .boolean)]
             render(EditItemSheet(mode: .edit(card)).environment(vault).tint(.brand),
                    size: CGSize(width: 580, height: 700), appearance: appearance,
@@ -244,7 +244,7 @@ enum Snapshot {
             if vault.generatorHistory.isEmpty {
                 vault.rememberGenerated("correct-Horse-battery-staple4", kind: "passphrase")
                 vault.rememberGenerated("k#9vR!2mWq$7zLp", kind: "password")
-                vault.rememberGenerated("usagi+k3x9q2ma@proton.me", kind: "username")
+                vault.rememberGenerated("alex+k3x9q2ma@proton.me", kind: "username")
             }
             // Each format, so the sheet's height can be checked to stay the same.
             let savedFormat = UserDefaults.standard.string(forKey: "exportFormat")
@@ -266,7 +266,7 @@ enum Snapshot {
         }
         vault.sends = [
             SendItem(id: "s1", accountId: "", accessId: "a1", kind: .text, name: "Wi-Fi for guests", notes: nil,
-                     text: "pochi-net / yaha-1234", hideText: true, fileName: nil, sizeName: nil, keyMaterial: Data(count: 16),
+                     text: "maple-guest / sunny-4821", hideText: true, fileName: nil, sizeName: nil, keyMaterial: Data(count: 16),
                      accessCount: 1, maxAccessCount: 3, hasPassword: true, disabled: false,
                      deletionDate: .now.addingTimeInterval(5 * 86_400), expirationDate: nil),
             SendItem(id: "s2", accountId: "", accessId: "a2", kind: .file, name: "Lease scan", notes: "for the agent",
@@ -288,7 +288,7 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let locked = AutoFillState()
             locked.domains = ["github.com"]
-            locked.email = "usagi@triwarden.test"
+            locked.email = "alex@example.com"
             locked.touchIDEnabled = true
             locked.hasAccount = true
             render(AutoFillView(state: locked).background(Color.windowBase), size: CGSize(width: 440, height: 520),
@@ -301,7 +301,7 @@ enum Snapshot {
             render(AutoFillView(state: open).background(Color.windowBase), size: CGSize(width: 440, height: 520),
                    appearance: appearance, to: dir.appending(path: "autofill-list-\(name).png"))
             let register = AutoFillState()
-            register.begin(passkey: .init(rpId: "github.com", clientDataHash: Data(), userName: "usagi"), registering: true)
+            register.begin(passkey: .init(rpId: "github.com", clientDataHash: Data(), userName: "alexchen"), registering: true)
             register.items = demoItems.filter { $0.kind == .login }
             register.unlocked = true
             register.hasAccount = true
@@ -333,7 +333,7 @@ enum Snapshot {
         }
         // The Trash on a Bitwarden cloud account: the 30-day note, and when each item goes for good.
         let trash = AppModel()
-        trash.setPreviewAccounts([SavedAccount(id: "cloud", email: "usagi@example.com", serverKind: "bitwardenUS", serverURL: "",
+        trash.setPreviewAccounts([SavedAccount(id: "cloud", email: "alex@example.com", serverKind: "bitwardenUS", serverURL: "",
                                                kdf: .pbkdf2(iterations: 600_000), protectedUserKey: "")])
         trash.previewUnlocked = true
         trash.phase = .vault
@@ -358,9 +358,9 @@ enum Snapshot {
             // Each pane, so its controls can be checked. Demo accounts only: never the Mac's real ones.
             let people = AppModel()
             people.setPreviewAccounts([
-                SavedAccount(id: "a", email: "usagi@triwarden.test", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
+                SavedAccount(id: "a", email: "alex@example.com", serverKind: "selfHosted", serverURL: "https://vault.home.arpa",
                              kdf: .pbkdf2(iterations: 600_000), protectedUserKey: ""),
-                SavedAccount(id: "b", email: "hachiware@work.example", serverKind: "bitwardenEU", serverURL: "",
+                SavedAccount(id: "b", email: "sam@work.example", serverKind: "bitwardenEU", serverURL: "",
                              kdf: .argon2id(iterations: 3, memoryMiB: 64, parallelism: 4), protectedUserKey: ""),
             ])
             var historic = demoItems[1]
@@ -384,12 +384,30 @@ enum Snapshot {
                        to: dir.appending(path: "account-unlock-\(name).png"))
             }
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["accounts", "general", "shortcuts", "server", "security", "developer", "about"] {
+            for pane in ["accounts", "general", "shortcuts", "server", "security", "developer", "license", "about"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(people).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
                        to: dir.appending(path: "settings-\(pane.replacingOccurrences(of: ":", with: "-"))-\(name).png"))
             }
+            UserDefaults.standard.set(saved, forKey: "settingsPane")
+            render(desktop(LicenseReminderView().environment(model).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 460, height: 450), appearance: appearance,
+                   to: dir.appending(path: "license-reminder-\(name).png"))
+            // Registered: the thank-you page.
+            model.license.preview(License.Registration(name: "Alex Chen", email: "alex@example.com", order: "1840221",
+                                                       date: "2026-10-07"), key: "3C30C6C1-6296-4FC0-B465-BD762ACED135")
+            UserDefaults.standard.set("license", forKey: "settingsPane")
+            render(SettingsView().environment(model).tint(.controlTint), size: CGSize(width: 820, height: 640),
+                   appearance: appearance, to: dir.appending(path: "settings-license-registered-\(name).png"))
+            // The celebration, caught mid-burst and as the confetti falls.
+            for moment in [0.35, 0.8] {
+                render(desktop(LicenseSettings(celebrationFrozenAt: moment).environment(model).tint(.controlTint)
+                    .frame(width: 600, height: 420), dark: name == "dark"),
+                       size: CGSize(width: 600, height: 420), appearance: appearance,
+                       to: dir.appending(path: "license-celebrate-\(Int(moment * 100))-\(name).png"))
+            }
+            model.license.preview(nil)
             UserDefaults.standard.set(saved, forKey: "settingsPane")
             // The menu bar panel with two accounts: the account button beside search and lock.
             render(MenuBarContent().environment(people).tint(.brand).background(.regularMaterial),
@@ -437,18 +455,18 @@ enum Snapshot {
     }
 
     static let demoItems: [VaultItem] = [
-        VaultItem(id: "1", name: "Cloudflare", username: "ops@momonga.dev", host: "dash.cloudflare.com",
+        VaultItem(id: "1", name: "Cloudflare", username: "ops@northwind.example", host: "dash.cloudflare.com",
                   password: "cf-9xQ!m2Lp#Vt7", totp: TOTP("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"), notes: nil, favorite: false),
-        VaultItem(id: "2", name: "GitHub", username: "usagi", host: "github.com", password: "m7Kq#vR2!tLp9wZe$Hu",
+        VaultItem(id: "2", name: "GitHub", username: "alexchen", host: "github.com", password: "m7Kq#vR2!tLp9wZe$Hu",
                   totp: TOTP("JBSWY3DPEHPK3PXP"), notes: "Recovery codes are in the “GitHub recovery” note.", favorite: true,
                   hasPasskey: true,
-                  passkeys: [PasskeyCredential(credentialId: "demo", keyValue: "", rpId: "github.com", userName: "usagi",
+                  passkeys: [PasskeyCredential(credentialId: "demo", keyValue: "", rpId: "github.com", userName: "alexchen",
                                                creationDate: Date(timeIntervalSince1970: 1_780_000_000))],
                   attachments: [VaultItem.Attachment(id: "a1", fileName: "github-recovery-codes.txt", size: 912, sizeName: "912 bytes",
                                                      fileKey: try! SymmetricKeyPair(combined: Data(count: 64))),
                                 VaultItem.Attachment(id: "a2", fileName: "2fa-backup.pdf", size: 48_000, sizeName: "48 KB",
                                                      fileKey: try! SymmetricKeyPair(combined: Data(count: 64)))]),
-        VaultItem(id: "3", name: "Proton Mail", username: "usagi@proton.me", host: "account.proton.me",
+        VaultItem(id: "3", name: "Proton Mail", username: "alex.chen@proton.me", host: "account.proton.me",
                   password: "pm-4Rt$w8Nq!zK", totp: nil, notes: nil, favorite: false, hasPasskey: true),
         VaultItem(id: "4", name: "Synology NAS", username: "admin", host: "nas.home.arpa", password: "reused-password",
                   totp: nil, notes: nil, favorite: false, reuseCount: 1),
@@ -457,9 +475,9 @@ enum Snapshot {
         VaultItem(id: "7", kind: .card, name: "Travel Visa", username: "•••• 6411", host: nil, password: nil,
                   totp: nil, notes: nil, favorite: false,
                   fields: [ItemField(label: "Card number", value: "4111111111116411", secret: true, monospaced: true),
-                           ItemField(label: "Cardholder", value: "Usagi"), ItemField(label: "Expires", value: "08/2029"),
+                           ItemField(label: "Cardholder", value: "Alex Chen"), ItemField(label: "Expires", value: "08/2029"),
                            ItemField(label: "Security code", value: "123", secret: true, monospaced: true)]),
-        VaultItem(id: "5", name: "Tailscale", username: "usagi", host: "login.tailscale.com", password: "ts-Lw8!r2Kq$7m",
+        VaultItem(id: "5", name: "Tailscale", username: "alexchen", host: "login.tailscale.com", password: "ts-Lw8!r2Kq$7m",
                   totp: TOTP("JBSWY3DPEHPK3PXQ"), notes: nil, favorite: true),
     ]
 

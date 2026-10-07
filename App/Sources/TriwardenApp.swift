@@ -16,17 +16,24 @@ struct TriwardenApp: App {
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
         CloudSelfTest.runIfRequested()
-        // `--demo`: open straight into the vault with demo items, for UI review.
-        if CommandLine.arguments.contains("--demo") {
+        // `--demo`: open straight into the vault with demo items, for UI review. `--demo-full`: a lived-in vault of
+        // 200+ items in folders, for screenshots.
+        let full = CommandLine.arguments.contains("--demo-full")
+        if full || CommandLine.arguments.contains("--demo") {
             let demo = AppModel()
-            demo.items = Snapshot.demoItems
+            demo.items = full ? DemoVault.items : Snapshot.demoItems
+            if full {
+                demo.folders = DemoVault.folders
+                IconStore.shared.fallbackEnvironment = .bitwardenUS // real site icons, from Bitwarden's public service
+            }
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
-            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
+            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "alex@example.com", serverKind: "selfHosted",
                                                   serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
                                                   protectedUserKey: "")])
             demo.previewUnlocked = true
             demo.phase = .vault
             _model = State(initialValue: demo)
+            DemoShots.runIfRequested(demo)
         }
         #endif
     }
@@ -66,6 +73,16 @@ struct TriwardenApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        Window("Triwarden", id: LicenseReminderView.windowID) {
+            LicenseReminderView()
+                .environment(model)
+                .preferredColorScheme(appearance.scheme)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(model)
@@ -97,6 +114,9 @@ struct TriwardenApp: App {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { model.updates.checkForUpdates() }
                     .disabled(!model.updates.canCheck)
+                if model.license.isConfigured && !model.license.isRegistered {
+                    Button("Buy License…") { model.showSettings(.license) }
+                }
             }
             CommandGroup(replacing: .importExport) {
                 Button("Import…") { model.beginImport() }
@@ -205,6 +225,10 @@ struct RootView: View {
             model.openSettingsAction = { openSettings() }
             model.openMainWindowAction = { openWindow(id: AppModel.mainWindowID) }
             model.windowDidOpen()
+            // Fork-style: an unregistered official build asks now and then at launch, in a window of its own.
+            if model.license.takeReminder() {
+                Task { try? await Task.sleep(for: .seconds(1)); openWindow(id: LicenseReminderView.windowID) }
+            }
         }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(

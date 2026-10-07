@@ -13,7 +13,7 @@ XCB     := xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDat
 DEV_CA  := $(CURDIR)/DevServer/data/root.crt
 
 .DEFAULT_GOAL := help
-.PHONY: help project build run test test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
+.PHONY: help project build run test license license-keys test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
 
 help: ## Show this list
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  \033[1m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -53,6 +53,18 @@ sparkle-keys: build ## One-time: create the update-signing key (kept in your key
 	sed -i '' -E "s|^( *SPARKLE_PUBLIC_KEY: )\"[^\"]*\"|\1\"$$KEY\"|" project.yml; \
 	echo "Public key $$KEY written to project.yml — commit it."; \
 	echo "For CI, export the private key and store it as the SPARKLE_PRIVATE_KEY secret (see docs/RELEASING.md)."
+
+license-keys: ## One-time: create the license-signing key (kept in your keychain) and put its public half in project.yml
+	@security find-generic-password -s triwarden-license-signing >/dev/null 2>&1 && { echo "A signing key already exists in your keychain."; exit 1; } || true
+	@set -- $$(swift scripts/license.swift keygen); \
+	security add-generic-password -s triwarden-license-signing -a triwarden -w "$$1"; \
+	sed -i '' -E "s|^( *TW_LICENSE_PUBLIC_KEY: )\"[^\"]*\"|\1\"$$2\"|" project.yml; \
+	echo "Public key $$2 written to project.yml — commit it. Back up the private key: security find-generic-password -s triwarden-license-signing -w"
+
+license: ## Sign a license key: make license NAME="…" EMAIL=… ORDER=…
+	@test -n "$(EMAIL)" -a -n "$(ORDER)" || { echo 'usage: make license NAME="Usagi" EMAIL=u@example.com ORDER=12345'; exit 64; }
+	@TRIWARDEN_LICENSE_PRIVATE_KEY=$$(security find-generic-password -s triwarden-license-signing -w) \
+		swift scripts/license.swift sign "$(NAME)" "$(EMAIL)" "$(ORDER)"
 
 uitest: ## Click-through UI tests in --demo mode (quit any running Triwarden first)
 	@xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDataPath build -allowProvisioningUpdates \

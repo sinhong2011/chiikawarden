@@ -18,6 +18,8 @@ final class IconStore {
     /// Per icon server: hash of its generic "no icon" placeholder, so we show our own initial instead.
     @ObservationIgnored private var placeholders: [String: Task<Data?, Never>] = [:]
     @ObservationIgnored var makeSession: () -> URLSession = { .shared }
+    /// Where icons come from for items without a signed-in account (the full demo vault, for screenshots).
+    @ObservationIgnored var fallbackEnvironment: ServerEnvironment?
 
     private let cacheDir: URL = {
         let d = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appending(path: "Icons", directoryHint: .isDirectory)
@@ -145,7 +147,7 @@ struct ItemIcon: View {
         .animation(.easeOut(duration: 0.2), value: item.host.flatMap(store.image(for:)) != nil)
         .task(id: item.host) {
             guard let host = item.host else { return }
-            store.request(host: host, environment: model.session(for: item.accountId)?.environment)
+            store.request(host: host, environment: model.session(for: item.accountId)?.environment ?? store.fallbackEnvironment)
         }
     }
 }

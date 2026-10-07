@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
         // Everyday first, then who and how it's protected, then the keys, the connection, the tools, and about.
-        case general, accounts, security, shortcuts, server, developer, about
+        case general, accounts, security, shortcuts, server, developer, license, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
@@ -18,6 +18,7 @@ struct SettingsView: View {
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
+            case .license: "Registration"
             case .about: "About"
             }
         }
@@ -29,6 +30,7 @@ struct SettingsView: View {
             case .security: "lock.shield"
             case .developer: "terminal"
             case .server: "server.rack"
+            case .license: "checkmark.seal"
             case .about: "info.circle"
             }
         }
@@ -36,7 +38,8 @@ struct SettingsView: View {
 
     @Environment(AppModel.self) private var model
     /// The chosen pane's name (an older "account:<id>" means Accounts).
-    @AppStorage("settingsPane") private var paneRaw = Pane.general.rawValue
+    static let paneKey = "settingsPane"
+    @AppStorage(paneKey) private var paneRaw = Pane.general.rawValue
 
     private var selection: Binding<Pane?> {
         Binding(get: { paneRaw.hasPrefix("account:") ? .accounts : Pane(rawValue: paneRaw) ?? .general },
@@ -62,6 +65,7 @@ struct SettingsView: View {
                 case .security: SecuritySettings()
                 case .developer: DeveloperSettings()
                 case .server: ServerSettings()
+                case .license: LicenseSettings()
                 case .about: AboutSettings()
                 }
             }

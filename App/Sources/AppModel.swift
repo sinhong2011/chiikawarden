@@ -266,13 +266,15 @@ final class AppModel {
     @ObservationIgnored private(set) var sshAgent: SSHAgentService!
     @ObservationIgnored private(set) var cli: CLIBridge!
     let updates: Updater
+    /// Fork-style licensing: everything works unregistered; official builds remind now and then.
+    let license = License()
 
     /// The app's live model, for App Intents and the CLI bridge.
     nonisolated(unsafe) static weak var current: AppModel?
 
     init() {
         // No updater while testing, rendering snapshots, previewing or showing the demo vault.
-        let quiet = CommandLine.arguments.contains { ["--selftest", "--snapshot", "--demo"].contains($0) || $0.hasPrefix("--selftest") }
+        let quiet = CommandLine.arguments.contains { ["--selftest", "--snapshot"].contains($0) || $0.hasPrefix("--selftest") || $0.hasPrefix("--demo") }
             || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         updates = Updater(start: !quiet)
         AttachmentFiles.wipe() // leftovers from a crash
@@ -460,7 +462,8 @@ final class AppModel {
     @ObservationIgnored var openSettingsAction: () -> Void = {}
 
     /// Brings the app forward and opens Settings (from the menu bar, the palette, the account menu).
-    func showSettings() {
+    func showSettings(_ pane: SettingsView.Pane? = nil) {
+        if let pane { UserDefaults.standard.set(pane.rawValue, forKey: SettingsView.paneKey) }
         if NSApp.activationPolicy() != .regular { NSApp.setActivationPolicy(.regular) }
         NSApp.activate()
         openSettingsAction()
