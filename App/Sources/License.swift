@@ -53,6 +53,9 @@ final class License {
     /// The registered key, for showing its last characters.
     private(set) var key: String?
 
+    /// Set when "I Have a License Key" opens Settings: the key field takes focus.
+    var wantsKeyEntry = false
+
     var isConfigured: Bool { storeURL != nil && (publicKey != nil || productID != nil) }
     var isRegistered: Bool { registration != nil }
 
@@ -119,6 +122,14 @@ final class License {
             throw Problem.invalid
         }
     }
+
+    #if DEBUG
+    /// Snapshots: show a registration without a key or the Keychain.
+    func preview(_ registration: Registration?, key: String? = nil) {
+        self.registration = registration
+        self.key = key
+    }
+    #endif
 
     /// Forgets the key on this Mac. Nothing is sent: receipt keys are sold without an activation limit, so there's no
     /// seat to give back.

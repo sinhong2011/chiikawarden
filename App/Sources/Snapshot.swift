@@ -392,8 +392,16 @@ enum Snapshot {
             }
             UserDefaults.standard.set(saved, forKey: "settingsPane")
             render(desktop(LicenseReminderView().environment(model).tint(.brand), dark: name == "dark"),
-                   size: CGSize(width: 380, height: 300), appearance: appearance,
+                   size: CGSize(width: 460, height: 450), appearance: appearance,
                    to: dir.appending(path: "license-reminder-\(name).png"))
+            // Registered: the thank-you page.
+            model.license.preview(License.Registration(name: "Alex Chen", email: "alex@example.com", order: "1840221",
+                                                       date: "2026-10-07"), key: "3C30C6C1-6296-4FC0-B465-BD762ACED135")
+            UserDefaults.standard.set("license", forKey: "settingsPane")
+            render(SettingsView().environment(model).tint(.controlTint), size: CGSize(width: 820, height: 640),
+                   appearance: appearance, to: dir.appending(path: "settings-license-registered-\(name).png"))
+            model.license.preview(nil)
+            UserDefaults.standard.set(saved, forKey: "settingsPane")
             // The menu bar panel with two accounts: the account button beside search and lock.
             render(MenuBarContent().environment(people).tint(.brand).background(.regularMaterial),
                    size: CGSize(width: 380, height: 360), appearance: appearance,
