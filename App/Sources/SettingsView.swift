@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, shortcuts, security, developer, server, about
+        case general, shortcuts, security, developer, server, license, about
         var id: Self { self }
         var title: LocalizedStringKey {
             switch self {
@@ -16,6 +16,7 @@ struct SettingsView: View {
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
+            case .license: "Registration"
             case .about: "About"
             }
         }
@@ -26,6 +27,7 @@ struct SettingsView: View {
             case .security: "lock.shield"
             case .developer: "terminal"
             case .server: "server.rack"
+            case .license: "checkmark.seal"
             case .about: "info.circle"
             }
         }
@@ -33,7 +35,8 @@ struct SettingsView: View {
 
     @Environment(AppModel.self) private var model
     /// A pane's name, or "account:<id>" for an account's page.
-    @AppStorage("settingsPane") private var paneRaw = Pane.general.rawValue
+    static let paneKey = "settingsPane"
+    @AppStorage(paneKey) private var paneRaw = Pane.general.rawValue
 
     enum Selection: Hashable { case pane(Pane), account(String) }
 
@@ -99,6 +102,7 @@ struct SettingsView: View {
                         case .security: SecuritySettings()
                         case .developer: DeveloperSettings()
                         case .server: ServerSettings()
+                        case .license: LicenseSettings()
                         case .about: AboutSettings()
                         }
                     }

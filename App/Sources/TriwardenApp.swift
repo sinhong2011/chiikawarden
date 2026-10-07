@@ -61,6 +61,16 @@ struct TriwardenApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        Window("Triwarden", id: LicenseReminderView.windowID) {
+            LicenseReminderView()
+                .environment(model)
+                .preferredColorScheme(appearance.scheme)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(model)
@@ -92,6 +102,9 @@ struct TriwardenApp: App {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { model.updates.checkForUpdates() }
                     .disabled(!model.updates.canCheck)
+                if model.license.isConfigured && !model.license.isRegistered {
+                    Button("Buy License…") { model.showSettings(.license) }
+                }
             }
             CommandGroup(replacing: .importExport) {
                 Button("Import…") { model.beginImport() }
@@ -145,6 +158,7 @@ struct TriwardenApp: App {
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The login and lock screens leave like a vault's inner gate: split along the middle, halves retracting up and down.
@@ -193,7 +207,13 @@ struct RootView: View {
             if model.gate != nil { GatePlates() }
         }
         .animation(phaseAnimation, value: model.phase.id)
-        .onAppear { model.openSettingsAction = { openSettings() } }
+        .onAppear {
+            model.openSettingsAction = { openSettings() }
+            // Fork-style: an unregistered official build asks now and then at launch, in a window of its own.
+            if model.license.takeReminder() {
+                Task { try? await Task.sleep(for: .seconds(1)); openWindow(id: LicenseReminderView.windowID) }
+            }
+        }
         // Every destructive action asks here first.
         .confirmationDialog(model.confirming?.title ?? "", isPresented: Binding(
             get: { model.confirming != nil }, set: { if !$0 { model.confirming = nil } }), presenting: model.confirming) { request in

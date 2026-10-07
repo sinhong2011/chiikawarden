@@ -359,13 +359,16 @@ enum Snapshot {
                    size: CGSize(width: 300, height: 420), appearance: appearance,
                    to: dir.appending(path: "account-switcher-\(name).png"))
             let saved = UserDefaults.standard.string(forKey: "settingsPane")
-            for pane in ["general", "shortcuts", "server", "account:a", "account:b", "security", "developer", "about"] {
+            for pane in ["general", "shortcuts", "server", "account:a", "account:b", "security", "developer", "license", "about"] {
                 UserDefaults.standard.set(pane, forKey: "settingsPane")
                 render(SettingsView().environment(people).tint(.controlTint),
                        size: CGSize(width: 820, height: 640), appearance: appearance,
                        to: dir.appending(path: "settings-\(pane.replacingOccurrences(of: ":", with: "-"))-\(name).png"))
             }
             UserDefaults.standard.set(saved, forKey: "settingsPane")
+            render(desktop(LicenseReminderView().environment(model).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 380, height: 300), appearance: appearance,
+                   to: dir.appending(path: "license-reminder-\(name).png"))
         }
         print(dir.path)
         exit(0)

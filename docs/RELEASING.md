@@ -60,6 +60,33 @@ gh secret set SPARKLE_PRIVATE_KEY --env release < sparkle-private-key.txt
 The API key lets CI create the Developer ID provisioning profiles (App Group, AutoFill, Safari extension) and
 notarize, without an Apple ID or password.
 
+### 3. Licenses (Fork-style: paid, never locked)
+
+Every feature works unregistered and there's no time limit. An unregistered official build asks at launch, no
+more than once a week and never in the first week, whether the user wants to buy a license. Debug builds,
+and any build without both values below, never ask.
+
+1. Create the product in Lemon Squeezy as a one-time purchase, and turn on Alipay and WeChat Pay under
+   Settings › Payments. Put its checkout link in `project.yml` as `TW_STORE_URL`.
+2. Create the license-signing key:
+
+   ```bash
+   make license-keys
+   ```
+
+   This keeps an Ed25519 private key in your login keychain (`triwarden-license-signing`) and writes the public
+   key to `project.yml` (`TW_LICENSE_PUBLIC_KEY`). Commit that change and back up the private key. Every key you
+   have issued is checked against it, so if it's lost you can't sign new keys for the same build.
+
+3. For each order, sign a key and send it to the buyer:
+
+   ```bash
+   make license NAME="Usagi" EMAIL=usagi@example.com ORDER=1001
+   ```
+
+The app checks keys offline against the public key and never contacts Lemon Squeezy or any other server. One key
+works on all of the buyer's Macs.
+
 ## Releasing by hand (fallback)
 
 On your Mac, with an Xcode account for team `FX3VR69P5K` and notary credentials in your keychain:
