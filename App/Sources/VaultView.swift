@@ -1794,20 +1794,13 @@ private struct ClipboardCountdown: View {
                         let remaining = max(0, clears.timeIntervalSince(context.date))
                         let left = Int(remaining.rounded(.up))
                         HStack(spacing: 7) {
-                            ZStack {
-                                Circle().stroke(Color.primary.opacity(0.12), lineWidth: 2)
-                                Circle().trim(from: 1 - remaining / total, to: 1)
-                                    .stroke(Color.secondary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                                    .rotationEffect(.degrees(-90))
-                            }
-                            .frame(width: 13, height: 13)
+                            // The same ring as a one-time code's: draining, the seconds inside.
+                            CountdownRing(fraction: remaining / total, seconds: left, size: 22)
                             Group {
                                 if hovering {
                                     Text("Clear Clipboard Now")
                                 } else {
-                                    Text("Clipboard clears in \(left) s")
-                                        .monospacedDigit()
-                                        .contentTransition(.numericText(countsDown: true))
+                                    Text("Clipboard clears")
                                 }
                             }
                             .transition(.opacity)
