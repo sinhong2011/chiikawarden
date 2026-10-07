@@ -664,16 +664,15 @@ struct AccountSwitcher: View {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                         HStack(spacing: 4) {
-                            if open {
-                                Text(verbatim: account.serverSummary)
-                                Text(verbatim: "·")
-                                Text("^[\(model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count) item](inflect: true)")
-                            } else {
-                                Image(systemName: "lock.fill").font(.system(size: 9))
-                                Text("Locked · \(account.serverSummary)")
-                            }
+                            if !open { Image(systemName: "lock.fill").font(.system(size: 9)) }
+                            Text(verbatim: open ? account.serverSummary : String(localized: "Locked · \(account.serverSummary)"))
                         }
                         .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        if open {
+                            let count = model.items.filter { $0.accountId == account.id && !$0.isDeleted }.count
+                            Text(count == 1 ? String(localized: "1 item") : String(localized: "\(count) items"))
+                                .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        }
                     }
                 }
                 .contextMenu {
