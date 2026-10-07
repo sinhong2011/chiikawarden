@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/sinhong2011/triwarden/compare/v0.1.0...v0.1.1) (2026-10-07)
+
+
+### Fixes
+
+* the release build compiles the AutoFill passkey matching ([b093879](https://github.com/sinhong2011/triwarden/commit/b09387951463b327a234d8802ef92e5bf27816aa))
+
 ## 0.1.0 (2026-10-07)
 
 
