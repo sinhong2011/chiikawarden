@@ -19,7 +19,7 @@ struct TriwardenApp: App {
             let demo = AppModel()
             demo.items = Snapshot.demoItems
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
-            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@chiikawarden.test", serverKind: "selfHosted",
+            demo.setPreviewAccounts([SavedAccount(id: "demo", email: "usagi@triwarden.test", serverKind: "selfHosted",
                                                   serverURL: "https://vault.home.arpa", kdf: .pbkdf2(iterations: 600_000),
                                                   protectedUserKey: "")])
             demo.previewUnlocked = true
@@ -170,7 +170,7 @@ struct RootView: View {
                     .zIndex(1) // the gate opens over the vault
             case .locked, .vault:
                 // Signed in: the vault is always the window; while locked, the lock lies over it as one layer.
-                VaultView()
+                VaultView(initialSelection: DemoLaunch.item, initialSection: DemoLaunch.section)
                     .frame(minWidth: 380, idealWidth: 1120, minHeight: 520, idealHeight: 720)
                     // No blur or scaling of its own behind the lock (the lock's frosted layer blurs it): a blur would lay
                     // it out under the title bar, and it would jump into place on unlock.
@@ -271,5 +271,37 @@ enum AppearanceSetting: String {
     case system, light, dark
     var scheme: ColorScheme? {
         switch self { case .system: nil; case .light: .light; case .dark: .dark }
+    }
+}
+
+/// `--demo` extras for screenshots: `--demo-section codes|generator|watchtower|sends` opens that page,
+/// `--demo-item <id>` selects a demo item. Nil in release builds and normal runs.
+enum DemoLaunch {
+    static var section: SidebarSelection? {
+        #if DEBUG
+        switch value(after: "--demo-section") {
+        case "codes": return .codes
+        case "generator": return .generator
+        case "watchtower": return .watchtower
+        case "sends": return .sends
+        default: return nil
+        }
+        #else
+        return nil
+        #endif
+    }
+
+    static var item: VaultItem.ID? {
+        #if DEBUG
+        return value(after: "--demo-item")
+        #else
+        return nil
+        #endif
+    }
+
+    private static func value(after flag: String) -> String? {
+        let args = CommandLine.arguments
+        guard let at = args.firstIndex(of: flag), at + 1 < args.count else { return nil }
+        return args[at + 1]
     }
 }

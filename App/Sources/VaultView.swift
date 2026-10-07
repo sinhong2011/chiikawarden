@@ -177,7 +177,7 @@ struct VaultView: View {
         @Bindable var model = model
         return NavigationSplitView(columnVisibility: $columns) {
             Sidebar(section: $section)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+                .modifier(SidebarWidth())
                 // Narrow windows navigate with the strip's own back button; one sidebar control is enough. None under
                 // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
                 .toolbar(removing: compact || !vaultOpen ? .sidebarToggle : nil)
@@ -593,6 +593,17 @@ private struct SyncFooterButton: View {
     }
 }
 
+/// The sidebar column: 200–280 pt, 220 to start. Snapshots pin it at 220 (an offscreen window has no width to start from).
+private struct SidebarWidth: ViewModifier {
+    func body(content: Content) -> some View {
+        if Motion.plays {
+            content.navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+        } else {
+            content.navigationSplitViewColumnWidth(220)
+        }
+    }
+}
+
 /// An account's monogram with its colour dot.
 private struct AccountAvatar: View {
     let email: String
@@ -768,6 +779,8 @@ private struct SyncStatusText: View {
     var body: some View {
         if model.isSyncing {
             Text("Syncing…")
+        } else if model.previewUnlocked {
+            Text("Synced just now") // the demo vault (screenshots, UI tests): there's no server to be offline from
         } else if let date = model.lastSynced {
             TimelineView(.periodic(from: .now, by: 30)) { context in
                 if context.date.timeIntervalSince(date) < 60 {
