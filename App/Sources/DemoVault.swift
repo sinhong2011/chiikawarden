@@ -149,6 +149,15 @@ enum DemoVault {
         ("Locker combo", "f-personal", "24 · 08 · 16"),
     ]
 
+    /// A few of the usual sins, so Watchtower has something to show.
+    private static let weakPasswords: [String: String] = [
+        "Router": "admin123", "Pi-hole": "admin123", "Wi-Fi Printer": "password1",
+        "Meetup": "Summer2019!", "Goodreads": "Summer2019!", "Pinterest": "Summer2019!", "Hertz": "qwerty12",
+    ]
+    private static let stale: Set<String> = ["Comcast Xfinity", "PG&E", "Experian", "Lyft", "Evernote", "Kindle"]
+    /// Seen in breaches (for the demo's Watchtower).
+    static let breached: [String: Int] = ["Pinterest": 3_412, "Evernote": 58, "Goodreads": 211]
+
     private static var generated: [VaultItem] {
         var rng = SeededRandom(seed: 0x7472_6977)
         var items: [VaultItem] = []
@@ -159,14 +168,20 @@ enum DemoVault {
         for (index, entry) in logins.enumerated() {
             let (name, host, folder, user) = entry
             var item = VaultItem(id: "g\(index)", name: name, username: user ?? (folder == "f-work" ? work : mail), host: host,
-                                 password: rng.password(), totp: rng.next(upTo: 100) < 30 ? TOTP("JBSWY3DPEHPK3PXP") : nil,
+                                 password: rng.password(), totp: rng.next(upTo: 100) < 30 ? TOTP(rng.base32(32)) : nil,
                                  notes: nil, favorite: rng.next(upTo: 100) < 7,
                                  hasPasskey: rng.next(upTo: 100) < 12)
             item.folderId = folder
             item.folderName = folderName[folder]
             item.created = date(&rng)
             item.revised = item.created.map { max($0, date(&rng)) }
-            if rng.next(upTo: 100) < 5 { item.reuseCount = 1 + rng.next(upTo: 2) }
+            if let weak = weakPasswords[name] {
+                item = VaultItem(id: item.id, name: name, username: item.username, host: host, password: weak, totp: item.totp,
+                                 notes: nil, favorite: false, folderId: folder, folderName: folderName[folder],
+                                 created: item.created)
+                item.reuseCount = weakPasswords.values.filter { $0 == weak }.count - 1
+            }
+            if stale.contains(name) { item.passwordRevised = Date(timeIntervalSince1970: 1_561_000_000) }
             items.append(item)
         }
         for (index, entry) in notes.enumerated() {
@@ -238,6 +253,11 @@ private struct SeededRandom {
         return String((0..<length).map { _ in chars[next(upTo: chars.count)] })
     }
 
+    mutating func base32(_ length: Int) -> String {
+        let chars = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+        return String((0..<length).map { _ in chars[next(upTo: chars.count)] })
+    }
+
     mutating func password() -> String {
         let chars = Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!#$%&*@^")
         return String((0..<(14 + next(upTo: 8))).map { _ in chars[next(upTo: chars.count)] })
@@ -247,6 +267,7 @@ private struct SeededRandom {
 
 #if DEBUG
 import AppKit
+import SwiftUI
 
 /// Debug-only: `Triwarden --demo-full --shoot [-appearance dark]` steps through the screens worth showing, captures
 /// its own windows (shadow included, as the window server draws them) into the app's temporary folder (it's
@@ -262,7 +283,8 @@ enum DemoShots {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
             guard let window = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain }) else { exit(1) }
-            window.setContentSize(NSSize(width: 1240, height: 800))
+            // Tall enough for the whole sidebar (Tools included), so it never scrolls under the traffic lights.
+            window.setContentSize(NSSize(width: 1240, height: 930))
             window.center()
             // Front and key, so the traffic lights and selection show in colour.
             NSApp.activate(ignoringOtherApps: true)
@@ -272,7 +294,58 @@ enum DemoShots {
             model.requestedSection = .section(.all)
             model.selectedID = "2"
             try? await Task.sleep(for: .seconds(2.5))
-            capture([window], dir.appending(path: "vault-\(scheme).png"))
+            await capture([window], dir.appending(path: "vault-\(scheme).png"))
+
+            // The menu bar panel: its content in a panel like the one MenuBarExtra shows (SwiftUI's own panel only
+            // opens on a real click).
+            // As if opened over github.com in Safari (not whatever app is really in front).
+            model.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: 0, host: "github.com")
+            model.foregroundPinned = true
+            let appearance = NSAppearance(named: scheme == "dark" ? .darkAqua : .aqua)!
+            let host = NSHostingView(rootView: MenuBarContent().environment(model).tint(.brand))
+            host.appearance = appearance
+            host.layoutSubtreeIfNeeded()
+            host.frame.size = host.fittingSize
+            // Opaque: captured on its own, a translucent material would have nothing behind it and turn grey.
+            let glass = NSView(frame: NSRect(origin: .zero, size: host.frame.size))
+            glass.appearance = appearance
+            glass.wantsLayer = true
+            appearance.performAsCurrentDrawingAppearance { glass.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor }
+            glass.layer?.cornerRadius = 14
+            glass.layer?.masksToBounds = true
+            glass.addSubview(host)
+            let panel = NSPanel(contentRect: glass.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.hasShadow = true
+            panel.level = .popUpMenu
+            panel.contentView = glass
+            panel.appearance = appearance
+            if let screen = window.screen?.visibleFrame {
+                panel.setFrameTopLeftPoint(NSPoint(x: screen.maxX - glass.frame.width - 120, y: screen.maxY - 8))
+            }
+            panel.orderFrontRegardless()
+            try? await Task.sleep(for: .seconds(3.5))
+            await capture([panel], dir.appending(path: "menubar-\(scheme).png"))
+            panel.orderOut(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+
+            // One-time codes, then Watchtower with its findings.
+            model.requestedSection = .codes
+            // Just after the codes change, so their rings are full.
+            let into = Date.now.timeIntervalSince1970.truncatingRemainder(dividingBy: 30)
+            try? await Task.sleep(for: .seconds(30 - into + 1.5))
+            await capture([window], dir.appending(path: "codes-\(scheme).png"))
+            model.breachCounts = Dictionary(uniqueKeysWithValues: model.items.compactMap { item in
+                DemoVault.breached[item.name].map { (item.id, $0) }
+            })
+            model.requestedSection = .watchtower
+            try? await Task.sleep(for: .seconds(2))
+            await capture([window], dir.appending(path: "watchtower-\(scheme).png"))
+            model.requestedSection = .section(.all)
+            model.selectedID = "2"
+            try? await Task.sleep(for: .seconds(1.5))
 
             // The command palette over it, with a search typed in.
             model.openPalette()
@@ -280,14 +353,14 @@ enum DemoShots {
             if let panel = NSApp.windows.first(where: { $0 !== window && $0.isVisible && $0.level != .normal }) {
                 (panel.firstResponder as? NSTextView)?.insertText("git", replacementRange: NSRange(location: NSNotFound, length: 0))
                 try? await Task.sleep(for: .seconds(1.5))
-                capture([panel, window], dir.appending(path: "palette-\(scheme).png"))
+                await capture([panel, window], dir.appending(path: "palette-\(scheme).png"))
                 panel.orderOut(nil)
             }
 
             // The password generator.
             model.showingGenerator = true
             try? await Task.sleep(for: .seconds(1.5))
-            capture(NSApp.windows.filter { $0.isVisible && ($0 === window || $0.sheetParent === window) }.reversed(),
+            await capture(NSApp.windows.filter { $0.isVisible && ($0 === window || $0.sheetParent === window) }.reversed(),
                     dir.appending(path: "generator-\(scheme).png"))
             model.showingGenerator = false
             try? await Task.sleep(for: .seconds(1))
@@ -300,14 +373,33 @@ enum DemoShots {
             model.phase = .locked
             try? await Task.sleep(for: .seconds(3))
             guard model.accounts.map(\.id) == demoAccounts.map(\.id) else { exit(1) }
-            capture([window], dir.appending(path: "locked-\(scheme).png"))
+            await capture([window], dir.appending(path: "locked-\(scheme).png"))
+
+            // Signing in to a self-hosted server.
+            model.setPreviewAccounts([])
+            model.serverKind = .selfHosted
+            model.serverURL = "https://vault.home.arpa"
+            model.email = "alex@example.com"
+            model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
+            model.phase = .login
+            // Let the server check give up on the made-up server, then show it as checked.
+            try? await Task.sleep(for: .seconds(6))
+            model.serverStatus = .reachable(product: "Vaultwarden", version: "2026.6.0")
+            try? await Task.sleep(for: .seconds(0.4))
+            guard model.accounts.isEmpty else { exit(1) }
+            await capture([window], dir.appending(path: "signin-\(scheme).png"))
             print(dir.path)
             exit(0)
         }
     }
 
-    /// Composites the given windows (front first) as the window server shows them.
-    private static func capture(_ windows: [NSWindow], _ url: URL) {
+    /// Composites the given windows (front first) as the window server shows them, with the app active so the traffic
+    /// lights and selections show in colour.
+    private static func capture(_ windows: [NSWindow], _ url: URL) async {
+        NSApp.activate(ignoringOtherApps: true)
+        // A lone window becomes key; with several (the palette over the vault) focus stays put, or the palette closes.
+        if windows.count == 1, windows[0].canBecomeMain { windows[0].makeKeyAndOrderFront(nil) }
+        try? await Task.sleep(for: .seconds(0.6))
         typealias CreateImage = @convention(c) (CGRect, CFArray, UInt32) -> Unmanaged<CGImage>?
         // CGWindowListCreateImageFromArray is hidden from Swift since macOS 15; it still works for an app's own windows.
         guard let symbol = dlsym(dlopen(nil, RTLD_NOW), "CGWindowListCreateImageFromArray") else { return }
@@ -324,3 +416,4 @@ enum DemoShots {
     }
 }
 #endif
+
