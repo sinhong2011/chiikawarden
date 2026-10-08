@@ -143,6 +143,7 @@ struct KeyboardShortcutsView: View {
                 }
             }
             .scrollBounceBehavior(.basedOnSize)
+            .thinScroller()
 
             Divider().opacity(0.5)
             Text("Shortcuts that work anywhere change in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts.")

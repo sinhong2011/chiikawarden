@@ -261,7 +261,7 @@ private struct SendDetail: View {
             .padding(.horizontal, 18).padding(.vertical, 14)
             .frame(maxWidth: 680).frame(maxWidth: .infinity)
         }
-        .scrollIndicators(.never)
+        .thinScroller()
         .confirmationDialog("Delete “\(send.name)”?", isPresented: $confirmDelete) {
             Button("Delete Send", role: .destructive) { Task { await model.deleteSend(send) } }
         } message: {

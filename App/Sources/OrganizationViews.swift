@@ -142,6 +142,7 @@ struct MoveToOrganizationSheet: View {
                 }
                 .padding(20)
             }
+            .thinScroller()
             FormFooter(action: "Move", busy: saving, disabled: orgId == nil || chosen.isEmpty, cancel: { dismiss() }) {
                 guard let orgId else { return }
                 saving = true

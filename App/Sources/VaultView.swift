@@ -2575,6 +2575,7 @@ struct PasswordHistorySheet: View {
                 }
                 .padding(.horizontal, 20)
             }
+            .thinScroller()
             .frame(maxHeight: 360)
             .fixedSize(horizontal: false, vertical: true)
 

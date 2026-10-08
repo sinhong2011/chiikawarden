@@ -213,6 +213,7 @@ struct WatchtowerView: View {
             .frame(maxWidth: .infinity)
             .animation(.spring(duration: 0.45, bounce: 0.2), value: report.problemCount)
         }
+        .thinScroller() // the app's slim scroller, not the system's wide track
         .task { directory = await TwoFactorDirectory.load() }
         .onAppear {
             // The ring sweeps up to the score and the number counts with it.

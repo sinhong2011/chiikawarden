@@ -46,7 +46,7 @@ struct CodesPane: View {
             .padding(.vertical, 24)
         }
         .modifier(SideOverflowClip())
-        .scrollIndicators(.never)
+        .thinScroller()
     }
 }
 

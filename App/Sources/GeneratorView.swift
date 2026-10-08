@@ -446,7 +446,7 @@ private struct HistorySection: View {
                     }
                     .padding(.horizontal, 8).padding(.bottom, 8)
                 }
-                .scrollIndicators(.automatic)
+                .thinScroller()
                 .frame(minHeight: 120)
             }
         }
