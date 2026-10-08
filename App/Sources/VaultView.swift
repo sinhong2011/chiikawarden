@@ -68,13 +68,18 @@ struct VaultView: View {
     /// The header's leading slot starts this far into the detail column.
     static let headerSlotInset: CGFloat = 8
     private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(320, max(280, width * 0.24)) }
-    /// The window's footer (Sync, Lock) on its own strip under `content`, so it never sits over a panel; its right edge
-    /// under the header's right end (an item's actions, or a page's edge).
+    /// The window's controls (Sync, Lock) floating over `content`'s bottom-right corner, under the header's right end
+    /// (an item's actions, or a page's edge). No row of their own: the panels run to the window's bottom, and scrolling
+    /// content keeps room at its end so its last line can scroll clear of them.
     private func withFooter(_ content: some View) -> some View {
-        VStack(spacing: 8) {
-            content.frame(maxHeight: .infinity)
+        ZStack(alignment: .bottomTrailing) {
+            content
+                .frame(maxHeight: .infinity)
+                .contentMargins(.bottom, vaultOpen ? 44 : 0, for: .scrollContent)
             if vaultOpen {
                 AppFooter()
+                    .padding(10)
+                    .transition(.opacity)
             }
         }
     }
@@ -604,8 +609,6 @@ private struct AppFooter: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        HStack {
-            Spacer(minLength: 0)
             HStack(spacing: 0) {
                 if model.clipboardClearsAt != nil {
                     ClipboardCountdown()
@@ -628,9 +631,29 @@ private struct AppFooter: View {
             }
             .padding(.horizontal, 3)
             .frame(height: 30)
-            .modifier(HeaderChrome(shape: .capsule))
+            .modifier(FloatingChrome())
             .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
-        }
+    }
+}
+
+/// Glass for controls floating over content (the window's Sync / Lock): a frosted material under a light fill, a
+/// hairline edge and a soft shadow, in both appearances, so it reads over a list, a card or the backdrop alike.
+struct FloatingChrome: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let dark = scheme == .dark
+        content
+            .background {
+                Capsule().fill(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.7))
+                    .background(.regularMaterial, in: .capsule)
+                    .shadow(color: .black.opacity(dark ? 0.35 : 0.12), radius: 10, y: 3)
+            }
+            .overlay {
+                Capsule().strokeBorder(dark ? Color.white.opacity(0.12)
+                                            : Color.black.opacity(0.08), lineWidth: 0.5)
+            }
+            .compositingGroup()
     }
 }
 
