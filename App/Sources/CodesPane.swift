@@ -118,30 +118,24 @@ struct CodesPane: View {
         return HStack(spacing: 8) {
             // One countdown for the page: every code with this period renews when it runs out.
             if let shared = sharedPeriod {
-                HStack(spacing: 7) {
-                    LiveCountdownRing(totp: shared.clock, size: 24, digits: 0.4)
-                    Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                }
-                .padding(.leading, 5).padding(.trailing, 12).frame(height: 32)
-                .modifier(HeaderChrome(shape: .capsule))
-                .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
-                .accessibilityElement(children: .combine)
+                SharedCountdown(clock: shared.clock)
             }
-            ScrollView(.horizontal) {
-                HStack(spacing: 6) {
-                    tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count)
-                    if !model.visibleOrganizations.isEmpty {
-                        tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
-                            list.filter { $0.organizationId == nil }.count)
-                        ForEach(model.visibleOrganizations) { org in
-                            tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
-                        }
+            // The tags in a plain row (a scroll view up here picks up the toolbar's inset and shifts its contents);
+            // with more vaults than fit, the row fades out at its end.
+            HStack(spacing: 6) {
+                tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count)
+                if !model.visibleOrganizations.isEmpty {
+                    tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
+                        list.filter { $0.organizationId == nil }.count)
+                    ForEach(model.visibleOrganizations) { org in
+                        tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
                     }
                 }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 2) // the glass tags' soft shadow isn't cut at the row's ends
             }
-            .scrollIndicators(.never)
+            .fixedSize()
+            .padding(.vertical, 4).padding(.horizontal, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .clipped()
             .mask {
                 HStack(spacing: 0) {
                     Rectangle()
@@ -305,5 +299,33 @@ private struct TagChrome: ViewModifier {
     let picked: Bool
     func body(content: Content) -> some View {
         if picked { content } else { content.modifier(HeaderChrome(shape: .capsule)) }
+    }
+}
+
+/// The codes page's one countdown: just the ring; on hover it opens out to say what it counts down to, like the
+/// clipboard countdown beside Sync and Lock.
+private struct SharedCountdown: View {
+    let clock: TOTP
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 0) {
+            LiveCountdownRing(totp: clock, size: 24, digits: 0.4)
+            if hovering {
+                Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                    .fixedSize()
+                    .padding(.leading, 7).padding(.trailing, 7)
+                    .transition(.opacity.combined(with: .move(edge: .leading)))
+            }
+        }
+        .padding(4)
+        .frame(height: 32)
+        .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+        .clipShape(.capsule)
+        .contentShape(.capsule)
+        .onHover { h in withAnimation(.snappy(duration: 0.22)) { hovering = h } }
+        .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("New codes"))
     }
 }
