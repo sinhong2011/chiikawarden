@@ -1,0 +1,32 @@
+---
+import { m } from "../paraglide/messages.js";
+import { latestRelease } from "../release";
+// Figures that hold on any Mac: the download's size (live from the latest release), memory at rest (make bench,
+// docs/benchmarks.md; it varies a little by Mac, so it's footnoted) and the browser engines we don't ship.
+// Launch and unlock times depend too much on the machine to quote.
+const rel = await latestRelease();
+const stats = [
+  { value: rel ? rel.size / 1_000_000 : 11.6, digits: 1, unit: "MB", label: m.speed_download(), size: true },
+  { value: 138, digits: 0, unit: "MB", label: m.speed_mem(), size: false },
+  { value: 0, digits: 0, unit: "", label: m.speed_engines(), size: false },
+];
+---
+<section id="speed" class="bg-night px-[max(var(--gutter),calc((100vw-var(--max))/2))] py-[clamp(64px,8vw,112px)] text-[#E6EEF4]">
+  <div data-reveal-group class="[&_.kicker]:text-[#7F95A7] [&_h2_em]:text-[#7F95A7]">
+    <p class="kicker">{m.speed_kicker()}</p>
+    <h2>{m.speed_title_1()}<br /><em>{m.speed_title_2()}</em></h2>
+  </div>
+  <dl class="mt-[clamp(32px,4vw,56px)] grid gap-10 md:grid-cols-3">
+    {stats.map((s) => (
+      <div class="border-t border-white/15 pt-7">
+        <dt class="sr-only">{s.label}</dt>
+        <dd class="m-0">
+          <span class="font-serif text-[clamp(72px,8vw,128px)] leading-none tracking-[-.03em] text-[#F3F6F9] tabular-nums" data-count={s.value} data-digits={s.digits} data-dmg-mb={s.size ? "" : undefined}>{s.value.toFixed(s.digits)}</span>
+          {s.unit && <span class="ml-2 font-mono text-[clamp(18px,1.8vw,26px)] font-medium text-[#7F95A7]">{s.unit}</span>}
+          <span class="mt-4 block text-lg text-[#A9BBC9]" aria-hidden="true">{s.label}</span>
+        </dd>
+      </div>
+    ))}
+  </dl>
+  <p class="mt-12 mb-0 max-w-[640px] font-mono text-[12.5px] leading-relaxed tracking-[.06em] text-[#55697A]">{m.speed_note()}</p>
+</section>

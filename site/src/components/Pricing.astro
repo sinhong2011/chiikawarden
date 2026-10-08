@@ -1,0 +1,71 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+import { formatSize } from "../release";
+import { latestRelease } from "../release";
+const rel = await latestRelease();
+const dmg = rel?.dmg ?? SITE.download;
+const refresh = !rel?.stable; // a fixed link never needs refreshing
+
+const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const p = { price: SITE.price };
+const perks = [m.perk_life(), m.perk_updates(), m.perk_macs(), m.perk_pay()];
+const steps = [1, 2, 3, 4].map((n) => [t[`how${n}_t`](), t[`how${n}_b`](p)]);
+const honest = [1, 2, 3].map((n) => [t[`honest${n}_t`](), t[`honest${n}_b`]()]);
+---
+<section id="pricing" class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.price_kicker()}>
+    <h2>{m.price_title_1()}<br /><em>{m.price_title_2()}</em></h2>
+    <p>{m.price_lede()}</p>
+  </SectionHead>
+
+  <div class="mt-[clamp(28px,4vw,52px)] grid gap-5 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)]">
+    <div data-rise class="relative flex flex-col rounded-[28px] bg-card p-[clamp(26px,3.2vw,40px)] shadow-[0_0_0_1px_var(--color-line),0_40px_80px_-46px_rgba(11,42,64,.45)]">
+      <p class="kicker">{m.price_card_kicker()}</p>
+      <p class="m-0 flex items-baseline gap-3">
+        <span class="font-serif text-[clamp(72px,8vw,112px)] leading-[.9] tracking-[-.03em] tabular-nums">{SITE.price}</span>
+        <span class="text-[15px] text-ink-2">{m.price_once()}</span>
+      </p>
+      <ul class="my-8 grid list-none gap-3.5 p-0">
+        {perks.map((p) => (
+          <li class="flex items-start gap-3 text-[16px]">
+            <svg class="mt-[3px] size-[18px] shrink-0 text-ink" viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            {p}
+          </li>
+        ))}
+      </ul>
+      <div class="mt-auto flex flex-wrap gap-3">
+        <a class="btn btn--fill" href={SITE.checkout} rel="noopener">{m.price_buy(p)}</a>
+        <a class="btn btn--ghost" href={dmg} data-dmg={refresh ? "" : undefined}>{rel ? <>{m.price_download()} · <span data-dmg-size>{formatSize(rel.size)}</span></> : m.price_download()}</a>
+      </div>
+      <p class="mt-5 mb-0 text-[13.5px] leading-relaxed text-ink-3">
+        {m.price_reminder()}
+      </p>
+    </div>
+
+    <div data-rise class="rounded-[28px] bg-night p-[clamp(26px,3.2vw,40px)] text-[#E6EEF4] shadow-[0_0_0_1px_var(--color-line)]">
+      <p class="kicker text-[#7F95A7]!">{m.how_kicker()}</p>
+      <ol class="m-0 grid list-none gap-0 p-0">
+        {steps.map(([t, b], i) => (
+          <li class="grid grid-cols-[44px_1fr] gap-4 border-b border-white/8 py-5 last:border-0">
+            <span class="font-serif text-[30px] leading-none text-[#7F95A7]">{i + 1}</span>
+            <span>
+              <b class="block text-[17px] font-semibold">{t}</b>
+              <span class="mt-1 block text-[15px] leading-normal text-[#A9BBC9]">{b}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+
+  <div class="mt-5 grid gap-5 md:grid-cols-3">
+    {honest.map(([t, b]) => (
+      <div data-rise class="rounded-[22px] px-7 py-6 shadow-[inset_0_0_0_1px_var(--color-line-2)]">
+        <h3 class="text-[17px]! font-semibold">{t}</h3>
+        <p class="mt-2 mb-0 text-[15px] leading-normal text-ink-2">{b}</p>
+      </div>
+    ))}
+  </div>
+</section>

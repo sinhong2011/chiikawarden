@@ -1,0 +1,15 @@
+---
+import { m } from "../paraglide/messages.js";
+const langs: [string, string | undefined][] = [["English", undefined], ["繁體中文（台灣）", "zh-Hant-TW"], ["繁體中文（香港）", "zh-Hant-HK"], ["简体中文", "zh-Hans"], ["日本語", "ja"]];
+const run = [...langs, ...langs];
+---
+<div class="overflow-hidden border-y border-line bg-card py-[22px]" aria-label={m.languages_label()}>
+  <div class="flex w-max animate-marquee items-center gap-10 font-serif text-[clamp(26px,3vw,40px)] leading-none whitespace-nowrap motion-reduce:animate-none" aria-hidden="true">
+    {run.map(([name, lang]) => (
+      <>
+        <span lang={lang} class:list={[lang && "font-cjk text-[.86em] font-medium tracking-[.02em]"]}>{name}</span>
+        <i class="text-[.5em] text-ink-3 not-italic">✦</i>
+      </>
+    ))}
+  </div>
+</div>

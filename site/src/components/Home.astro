@@ -1,0 +1,79 @@
+---
+
+import Base from "../layouts/Base.astro";
+import { m } from "../paraglide/messages.js";
+import { SITE } from "../config";
+import Nav from "./Nav.astro";
+import Hero from "./Hero.astro";
+import Marquee from "./Marquee.astro";
+import Screens from "./Screens.astro";
+import Guards from "./Guards.astro";
+import Palette from "./Palette.astro";
+import SearchFeature from "./SearchFeature.astro";
+import Speed from "./Speed.astro";
+import MacRows from "./MacRows.astro";
+import Generator from "./Generator.astro";
+import Watchtower from "./Watchtower.astro";
+import More from "./More.astro";
+import Pricing from "./Pricing.astro";
+import Film from "./Film.astro";
+import Faq from "./Faq.astro";
+import Closing from "./Closing.astro";
+import Footer from "./Footer.astro";
+import { currentLocale, localeHref } from "../i18n";
+import { latestRelease } from "../release";
+
+// What search engines read about the app and the FAQ (schema.org, as JSON-LD in <head>).
+const locale = currentLocale();
+const url = `${Astro.site?.origin ?? ""}${localeHref(locale)}`;
+const rel = await latestRelease();
+const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Triwarden",
+    url,
+    description: m.meta_description({ price: SITE.price }),
+    applicationCategory: "SecurityApplication",
+    operatingSystem: "macOS 26 or later",
+    softwareVersion: rel?.version ?? SITE.version,
+    downloadUrl: rel?.dmg ?? SITE.download,
+    image: `${Astro.site?.origin ?? ""}${import.meta.env.BASE_URL}assets/og.jpg`,
+    inLanguage: locale.lang,
+    offers: { "@type": "Offer", price: SITE.price.replace(/[^\d.]/g, ""), priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [1, 2, 3, 4, 5, 6].map((n) => ({
+      "@type": "Question",
+      name: t[`faq${n}_q`](),
+      acceptedAnswer: { "@type": "Answer", text: t[`faq${n}_a`]({ price: SITE.price }) },
+    })),
+  },
+];
+---
+<Base title={m.meta_title()} ogTitle={m.meta_og_title()} description={m.meta_description({ price: SITE.price })} jsonLd={jsonLd}>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <Marquee />
+    <Screens />
+    <SearchFeature />
+    <Palette />
+    <MacRows />
+    <Guards />
+    <Speed />
+    <Generator />
+    <Watchtower />
+    <More />
+    <Pricing />
+    <Film />
+    <Faq />
+    <Closing />
+  </main>
+  <Footer />
+</Base>
+
+<script>import "../scripts/page";</script>

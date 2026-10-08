@@ -1,0 +1,21 @@
+---
+/** A real app screenshot in both appearances; CSS shows the one matching the page's light/dark mode.
+    Files: public/assets/shots/<name>-light.webp and <name>-dark.webp, captured by `Triwarden --demo-full --shoot`. */
+import { versioned } from "../versioned";
+import { SHOTS, type ShotName } from "../shots";
+
+interface Props { name: ShotName; alt: string; class?: string; eager?: boolean }
+const { name, alt, class: cls = "", eager = false } = Astro.props;
+const { w, h } = SHOTS[name];
+---
+{(["light", "dark"] as const).map((mode) => (
+  <img
+    class:list={[`shot shot--${mode}`, cls]}
+    src={versioned(`assets/shots/${name}-${mode}.webp`)}
+    alt={alt}
+    width={w}
+    height={h}
+    loading={eager ? "eager" : "lazy"}
+    decoding="async"
+  />
+))}

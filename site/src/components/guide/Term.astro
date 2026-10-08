@@ -1,0 +1,20 @@
+---
+/** A terminal window: commands ($), their output, and comments. Copy takes the commands only (or `copy` if given). */
+import { m } from "../../paraglide/messages.js";
+type Line = string | { out: string } | { note: string };
+interface Props { title?: string; lines: Line[]; copy?: string; noCopy?: boolean }
+const { title = "Terminal", lines, copy, noCopy = false } = Astro.props;
+const commands = copy ?? lines.filter((l): l is string => typeof l === "string").join("\n");
+---
+<figure class="term-win" data-rise>
+  <figcaption class="term-win__bar">
+    <span class="term-win__lights" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="term-win__title">{title}</span>
+    {!noCopy && <button type="button" class="term-win__copy" data-copy-text={commands} data-copy-done={m.copied()} data-copy-fail={m.copy_failed()}><span data-copy-label>{m.copy()}</span></button>}
+  </figcaption>
+  <pre class="term-win__body">{lines.map((l) =>
+    typeof l === "string" ? <span class="t-cmd"><span class="t-prompt" aria-hidden="true">$ </span>{l}{"\n"}</span>
+    : "out" in l ? <span class="t-out">{l.out}{"\n"}</span>
+    : <span class="t-note">{l.note}{"\n"}</span>
+  )}</pre>
+</figure>

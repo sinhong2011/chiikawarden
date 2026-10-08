@@ -1,0 +1,30 @@
+---
+import { LOCALES, currentLocale, localeHref } from "../i18n";
+import { m } from "../paraglide/messages.js";
+interface Props { page?: string }
+const { page = "" } = Astro.props;
+const here = currentLocale();
+---
+<details class="lang relative" data-lang>
+  <summary class="lang__trigger" aria-label={`${m.nav_language()}: ${here.label} (${here.sub})`}>
+    <svg class="lang__globe" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M2.5 10h15M10 2.5c2.2 2.4 2.2 12.6 0 15M10 2.5c-2.2 2.4-2.2 12.6 0 15" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+    <span class="lang__code">{here.code}</span>
+    <svg class="lang__chevron" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </summary>
+  <div class="lang__menu">
+    <p class="lang__title">{m.nav_language()}</p>
+    <ul>
+      {LOCALES.map((l) => (
+        <li>
+          <a href={localeHref(l, page)} hreflang={l.lang} aria-current={l.id === here.id ? "page" : undefined}>
+            <span class="lang__names">
+              <span lang={l.lang} class="lang__label">{l.label}</span>
+              <span class="lang__sub">{l.sub}</span>
+            </span>
+            <span class="lang__badge" aria-hidden="true">{l.code}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</details>

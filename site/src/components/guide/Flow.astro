@@ -1,0 +1,33 @@
+---
+/** How a signature happens: ssh asks the agent, Triwarden asks you, the signature goes back. Animated in guide.ts. */
+import { m } from "../../paraglide/messages.js";
+const nodes = [
+  { x: 110, label: m.g_flow_client(), mono: true },
+  { x: 390, label: m.g_flow_socket(), mono: true },
+  { x: 670, label: m.g_flow_app(), mono: false },
+  { x: 950, label: m.g_flow_you(), mono: false },
+];
+---
+<figure class="flow" data-flow>
+  <svg viewBox="0 0 1060 260" role="img" aria-label={m.g_flow_caption()}>
+    <defs>
+      <marker id="flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" class="flow__arrowhead" />
+      </marker>
+    </defs>
+    <!-- request, left to right -->
+    <path id="flow-req" d="M180 92 H880" class="flow__wire" marker-end="url(#flow-arrow)" />
+    <!-- signature, right to left -->
+    <path id="flow-sig" d="M880 168 H180" class="flow__wire flow__wire--back" marker-end="url(#flow-arrow)" />
+    {nodes.map((n, i) => (
+      <g transform={`translate(${n.x} 130)`}>
+        <rect x="-96" y="-58" width="192" height="116" rx="22" class:list={["flow__node", i === 2 && "flow__node--app", i === 3 && "flow__node--you"]} />
+        <text y="6" text-anchor="middle" class:list={["flow__label", n.mono && "flow__label--mono"]}>{n.label}</text>
+      </g>
+    ))}
+    <text x="530" y="212" text-anchor="middle" class="flow__sig">{m.g_flow_sig()}</text>
+    <circle r="7" class="flow__dot" data-flow-req />
+    <circle r="7" class="flow__dot flow__dot--sig" data-flow-sig />
+  </svg>
+  <figcaption class="flow__caption">{m.g_flow_caption()}</figcaption>
+</figure>

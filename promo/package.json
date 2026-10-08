@@ -1,0 +1,23 @@
+{
+  "name": "triwarden-promo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Triwarden promotional film, made with Remotion",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Film out/triwarden-film.mp4 --codec h264 --crf 18 && remotion render Short out/triwarden-short.mp4 --codec h264 --crf 18",
+    "still": "remotion still Film out/poster.png --frame 1710"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.533",
+    "@remotion/google-fonts": "4.0.533",
+    "@remotion/transitions": "4.0.533",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

@@ -1,0 +1,9 @@
+---
+/** Kicker + serif headline + optional lede. Put an <h2> and <p> in the slot. */
+interface Props { kicker: string; center?: boolean; class?: string }
+const { kicker, center = false, class: cls = "" } = Astro.props;
+---
+<header data-reveal-group class:list={["max-w-[760px] [&>p]:mt-[26px] [&>p]:max-w-[560px] [&>p]:text-lg [&>p]:text-ink-2", center && "mx-auto text-center [&>p]:mx-auto", cls]}>
+  <p class="kicker">{kicker}</p>
+  <slot />
+</header>

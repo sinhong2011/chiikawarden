@@ -1,0 +1,21 @@
+{
+  "fps": 30,
+  "beat": 15,
+  "short": {
+    "bars": 19,
+    "music": { "drop": 3, "outro": 17 },
+    "scenes": [
+      ["hook", 0, 2], ["dial", 2, 1], ["vault", 3, 2], ["search", 5, 2], ["palette", 7, 2], ["autotype", 9, 1],
+      ["montage", 10, 3], ["speed", 13, 2], ["lightdark", 15, 1], ["offer", 16, 1], ["end", 17, 2]
+    ]
+  },
+  "film": {
+    "bars": 30,
+    "music": { "drop": 3, "outro": 27, "breakdown": [21, 23] },
+    "scenes": [
+      ["hook", 0, 2], ["dial", 2, 1], ["vault", 3, 2], ["shared", 5, 2], ["search", 7, 2], ["palette", 9, 2],
+      ["autotype", 11, 1], ["security", 12, 3], ["generator", 15, 2], ["montage", 17, 4], ["speed", 21, 2],
+      ["lightdark", 23, 1], ["offer", 24, 3], ["end", 27, 3]
+    ]
+  }
+}

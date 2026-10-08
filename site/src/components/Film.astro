@@ -1,0 +1,13 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { asset } from "../config";
+import { m } from "../paraglide/messages.js";
+---
+<section id="film" class="px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.film_kicker()} center>
+    <h2>{m.film_title_1()}<br /><em>{m.film_title_2()}</em></h2>
+  </SectionHead>
+  <figure data-film class="mx-auto mt-[clamp(32px,4vw,56px)] aspect-video max-w-[1180px] overflow-hidden rounded-3xl bg-ink shadow-[0_0_0_1px_var(--color-line),0_50px_100px_-40px_rgba(11,42,64,.5)]">
+    <video class="size-full object-cover" src={asset("media/triwarden-promo.mp4")} poster={asset("media/poster.webp")} playsinline preload="metadata" controls></video>
+  </figure>
+</section>
