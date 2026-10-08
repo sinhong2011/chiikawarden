@@ -198,7 +198,8 @@ enum Snapshot {
             Grouping(id: "col-eng-fe", name: "Engineering/Frontend"), Grouping(id: "col-ops", name: "Operations")])]
         vault.items = vault.items.map { item in
             var item = item
-            if item.id == "1" { item.organizationId = "org-nw"; item.collectionIds = ["col-ops"] }
+            if item.id == "1" { item.organizationId = "org-nw"; item.collectionIds = ["col-eng-fe"] }
+            if item.id == "5" { item.organizationId = "org-nw"; item.collectionIds = ["col-eng-be", "col-ops"] }
             if item.id == "2" { item.folderId = "f-work"; item.folderName = "Work" }
             if item.id == "3" { item.folderId = "f-personal"; item.folderName = "Personal" }
             return item
@@ -206,6 +207,10 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
                          appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            vault.selectedID = "5" // in two shared folders: each a pill
+            renderWindow(VaultView(initialSelection: "5").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-two-\(name).png"))
+            vault.selectedID = "1"
             // The vault picker: every vault shown, then My vault and Northwind checked.
             render(VaultSwitcherPicker().environment(vault).tint(.brand).background(Color.windowBase), size: CGSize(width: 300, height: 220),
                    appearance: appearance, to: dir.appending(path: "vault-shared-picker-all-\(name).png"))

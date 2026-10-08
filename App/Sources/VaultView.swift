@@ -1573,11 +1573,24 @@ struct ItemDetail: View {
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
                         DetailRow(symbol: "building.2", title: "Vault") {
-                            let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
+                            let paths = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
+                                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
                             Button { model.organizationSheet = .collections(item.id) } label: {
-                                HStack(spacing: 5) {
-                                    Text(verbatim: ([org.name] + names).joined(separator: " › ")).lineLimit(1).truncationMode(.middle)
-                                    Image(systemName: "pencil").font(.system(size: 10, weight: .semibold))
+                                HStack(spacing: 8) {
+                                    if paths.count == 1 {
+                                        // One shared folder: the whole path, from the vault down.
+                                        PathCrumbs(parts: [org.name] + PathCrumbs.split(paths[0]), lead: true)
+                                    } else {
+                                        // Several: the vault, then each folder as a pill (its full path on hover).
+                                        Text(verbatim: org.name).fontWeight(.medium)
+                                        ForEach(paths, id: \.self) { path in
+                                            PathCrumbs(parts: PathCrumbs.split(path))
+                                                .padding(.horizontal, 8).frame(height: 22)
+                                                .background(Color.primary.opacity(0.06), in: .capsule)
+                                                .help(Text(verbatim: PathCrumbs.split(path).joined(separator: " › ")))
+                                        }
+                                    }
+                                    Image(systemName: "pencil").font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
                                 }
                                 .foregroundStyle(.secondary).contentShape(.rect)
                             }
@@ -1586,7 +1599,7 @@ struct ItemDetail: View {
                         }
                     } else if let folderId = item.folderId, let folder = model.folders.first(where: { $0.id == folderId }) {
                         DetailRow(symbol: "folder", title: "Folder") {
-                            Text(verbatim: folder.name).foregroundStyle(.secondary)
+                            PathCrumbs(parts: PathCrumbs.split(folder.name)).foregroundStyle(.secondary)
                         }
                     }
                     if item.kind == .sshKey, let publicKey = item.properties["publicKey"], !publicKey.isEmpty {
@@ -1980,6 +1993,37 @@ private struct FieldLine: View {
                 .copyTick(armed: $armed, copied: $copied)
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
+    }
+}
+
+/// A folder path as breadcrumbs ("Northwind › Engineering › Frontend"): small chevrons between the parts, the last
+/// part (where the item is) a little stronger; `lead` sets the first one (the vault) in medium weight too. Long paths
+/// give way in the middle.
+struct PathCrumbs: View {
+    let parts: [String]
+    var lead = false
+
+    /// "Engineering/Frontend" → ["Engineering", "Frontend"] (folders nest by name).
+    static func split(_ path: String) -> [String] {
+        path.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
+                if index > 0 {
+                    Image(systemName: "chevron.right").font(.system(size: 8, weight: .bold)).foregroundStyle(.tertiary)
+                }
+                Text(verbatim: part)
+                    .fontWeight(index == parts.count - 1 || (lead && index == 0) ? .medium : .regular)
+                    .foregroundStyle(index == parts.count - 1 ? AnyShapeStyle(.primary.opacity(0.75)) : AnyShapeStyle(.secondary))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .layoutPriority(index == parts.count - 1 || index == 0 ? 1 : 0)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: parts.joined(separator: ", ")))
     }
 }
 
