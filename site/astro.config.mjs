@@ -8,6 +8,10 @@ import { paraglideVitePlugin } from "@inlang/paraglide-js";
 const locales = ["en", "zh-hant", "zh-hk", "zh-hans", "ja"];
 // Their BCP 47 tags, as `lang` in src/i18n.ts (used for the sitemap's hreflang).
 const LANGS = { en: "en", "zh-hant": "zh-Hant-TW", "zh-hk": "zh-Hant-HK", "zh-hans": "zh-Hans", ja: "ja" };
+const isCloudflarePages = process.env.CF_PAGES === "1";
+const cloudflarePagesHost = process.env.CF_PAGES_URL || "triwarden.pages.dev";
+const siteUrl = isCloudflarePages ? `https://${cloudflarePagesHost}` : "https://sinhong2011.github.io";
+const basePath = isCloudflarePages ? "/" : "/triwarden";
 
 // The `shaders` library registers all ~200 of its effects up front (2.5 MB). The site uses a handful, so its
 // registry module is swapped for one that lists only these; the rest are never bundled. Add a name here when
@@ -39,8 +43,8 @@ export { shaderRegistry as a, getShadersByCategory as i, getShaderByName as n, g
 }
 
 export default defineConfig({
-  site: "https://sinhong2011.github.io",
-  base: "/triwarden",
+  site: siteUrl,
+  base: basePath,
   output: "static",
   devToolbar: { enabled: false },
   i18n: { defaultLocale: "en", locales, routing: { prefixDefaultLocale: false } },
