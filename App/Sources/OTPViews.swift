@@ -194,6 +194,8 @@ struct LiveOTPCode: View {
 struct LiveCountdownRing: View {
     let totp: TOTP
     var size: CGFloat = 38
+    /// The seconds' size against the ring's.
+    var digits: CGFloat = 0.32
     var lively = true
     private let clock = OTPClock.shared
 
@@ -202,8 +204,8 @@ struct LiveCountdownRing: View {
         let now = Date.now
         let period = Double(totp.period)
         let into = now.timeIntervalSince1970.truncatingRemainder(dividingBy: period)
-        return CountdownRing(fraction: 1 - into / period, seconds: totp.secondsRemaining(at: now), size: size, lively: lively,
-                             drainsIn: period - into)
+        return CountdownRing(fraction: 1 - into / period, seconds: totp.secondsRemaining(at: now), size: size, digits: digits,
+                             lively: lively, drainsIn: period - into)
             .frame(width: size, height: size) // a fixed size: a tick never re-lays out anything around it
             .onAppear { clock.retain() }
             .onDisappear { clock.release() }

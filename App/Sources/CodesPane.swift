@@ -31,6 +31,15 @@ struct CodesPane: View {
 
     private static func vaultKey(_ item: VaultItem) -> String { item.organizationId ?? AppModel.VaultFilter.personalKey }
 
+    /// The period most codes here share (codes renew together, all timed from the same clock), and a code to time the
+    /// header's one countdown by. Codes with another period keep a ring of their own.
+    private var sharedPeriod: (period: Int, clock: TOTP)? {
+        let codes = model.vaultItems.compactMap { $0.isDeleted || $0.isArchived ? nil : $0.totp }
+        let counts = Dictionary(grouping: codes, by: \.period)
+        guard let best = counts.max(by: { $0.value.count < $1.value.count }), let clock = best.value.first else { return nil }
+        return (best.key, clock)
+    }
+
     /// The codes the tag shows, in order: by name, or most recently used first.
     private var items: [VaultItem] {
         let shown = base.filter { vault == nil || Self.vaultKey($0) == vault }
@@ -97,6 +106,17 @@ struct CodesPane: View {
     private var header: some View {
         let list = base
         return HStack(spacing: 8) {
+            // One countdown for the page: every code with this period renews when it runs out.
+            if let shared = sharedPeriod {
+                HStack(spacing: 7) {
+                    LiveCountdownRing(totp: shared.clock, size: 24, digits: 0.4)
+                    Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                }
+                .padding(.leading, 5).padding(.trailing, 12).frame(height: 32)
+                .modifier(HeaderChrome(shape: .capsule))
+                .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
+                .accessibilityElement(children: .combine)
+            }
             ScrollView(.horizontal) {
                 HStack(spacing: 6) {
                     tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count)
@@ -189,7 +209,7 @@ struct CodesPane: View {
     private func card(_ item: VaultItem) -> some View {
         Group {
             if let totp = item.totp {
-                CodeCard(item: item, totp: totp, copied: copiedID == item.id) {
+                CodeCard(item: item, totp: totp, ownRing: totp.period != sharedPeriod?.period, copied: copiedID == item.id) {
                     model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
                     PaletteRecents.note(item.id) // "Recently Used" follows what you copy here too
                     withAnimation(.snappy) { copiedID = item.id }
@@ -210,6 +230,8 @@ struct CodesPane: View {
 private struct CodeCard: View {
     let item: VaultItem
     let totp: TOTP
+    /// A period unlike the page's: its own ring (the header's countdown doesn't apply to it).
+    var ownRing = false
     let copied: Bool
     let copy: () -> Void
     let pin: () -> Void
@@ -246,11 +268,13 @@ private struct CodeCard: View {
                     .help(item.favorite ? Text("Unpin (remove from Favorites)") : Text("Pin to the top (add to Favorites)"))
                     .accessibilityLabel(item.favorite ? Text("Remove from Favorites") : Text("Add to Favorites"))
                 }
-                HStack(alignment: .center) {
-                    LiveOTPCode(totp: totp, size: 28, breathing: false)
-                    Spacer(minLength: 8)
-                    LiveCountdownRing(totp: totp, size: 40, lively: false)
-                }
+                // The code, centred; its middle dot turns orange in the last seconds. A ring only for an odd period,
+                // at the edge, so the code stays centred.
+                LiveOTPCode(totp: totp, size: 28, breathing: false)
+                    .frame(maxWidth: .infinity, minHeight: 40)
+                    .overlay(alignment: .trailing) {
+                        if ownRing { LiveCountdownRing(totp: totp, size: 40, lively: false) }
+                    }
             }
             .padding(16)
             .background(Color.panelStrong.opacity(hovering ? 1 : 0.85), in: .rect(cornerRadius: 18, style: .continuous))

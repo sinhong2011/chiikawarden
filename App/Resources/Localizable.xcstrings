@@ -11435,6 +11435,34 @@
         }
       }
     },
+    "Every code below renews when the ring runs out (codes with another period keep their own ring)." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リングが空になると、下のすべてのコードが更新されます（周期の異なるコードには個別のリングがあります）。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "圆环走完时，下面所有验证码都会更新（周期不同的验证码有自己的圆环）。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "圓環走完時，下方所有驗證碼都會更新（週期不同的驗證碼有自己的圓環）。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "個圈走完嗰陣，下面所有驗證碼都會更新（週期唔同嘅驗證碼有自己個圈）。"
+          }
+        }
+      }
+    },
     "Every device signs out within the hour; this Mac signs back in." : {
       "localizations" : {
         "ja" : {
@@ -17957,6 +17985,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增信用卡"
+          }
+        }
+      }
+    },
+    "New codes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいコードまで"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新驗證碼"
           }
         }
       }
