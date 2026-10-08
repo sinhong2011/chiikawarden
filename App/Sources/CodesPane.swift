@@ -304,36 +304,30 @@ private struct TagChrome: ViewModifier {
     }
 }
 
-/// The codes page's one countdown: just the ring; on hover the pill widens smoothly to reveal "New codes", over the
-/// tags beside it (nothing in the row moves), and closes back to the ring — like the clipboard countdown.
+/// The codes page's one countdown: just the ring; on hover the pill widens smoothly to reveal "New codes" and the tags
+/// beside it slide along to make room (glass over glass looked muddled), then it closes back to the ring.
 private struct SharedCountdown: View {
     let clock: TOTP
     @State private var hovering = false
     @State private var labelWidth: CGFloat = 0
 
     var body: some View {
-        Color.clear
-            .frame(width: 32, height: 32) // its place in the row never changes
-            .overlay(alignment: .leading) {
-                HStack(spacing: 0) {
-                    LiveCountdownRing(totp: clock, size: 24, digits: 0.4)
-                        .padding(4)
-                    Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                        .fixedSize()
-                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelWidth = $0 }
-                        .padding(.trailing, 12)
-                        .opacity(hovering ? 1 : 0)
-                }
-                .frame(width: hovering ? 32 + labelWidth + 12 : 32, alignment: .leading)
-                .frame(height: 32)
-                .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
-                .clipShape(.capsule)
-                .contentShape(.capsule)
-                .onHover { h in withAnimation(.snappy(duration: 0.28, extraBounce: 0)) { hovering = h } }
-            }
-            .zIndex(1) // opens over the tags
-            .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("New codes"))
+        HStack(spacing: 0) {
+            LiveCountdownRing(totp: clock, size: 24, digits: 0.4)
+                .padding(4)
+            Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                .fixedSize()
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelWidth = $0 }
+                .padding(.trailing, 12)
+                .opacity(hovering ? 1 : 0)
+        }
+        .frame(width: hovering ? 32 + labelWidth + 12 : 32, height: 32, alignment: .leading)
+        .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+        .clipShape(.capsule)
+        .contentShape(.capsule)
+        .onHover { h in withAnimation(.snappy(duration: 0.28, extraBounce: 0)) { hovering = h } }
+        .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("New codes"))
     }
 }
