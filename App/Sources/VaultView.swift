@@ -370,6 +370,8 @@ struct VaultView: View {
 enum SidebarSelection: Hashable {
     case section(VaultSection)
     case folder(String)
+    /// Your own items (not in any shared vault).
+    case myVault
     case organization(String)
     case collection(String)
     case account(String)
@@ -378,12 +380,22 @@ enum SidebarSelection: Hashable {
     case generator
     case codes
 
+    /// The vault a row stands for ("personal" or an organization id), for the vault filter.
+    var vaultKey: String? {
+        switch self {
+        case .myVault: AppModel.VaultFilter.personalKey
+        case .organization(let id): id
+        default: nil
+        }
+    }
+
     func includes(_ item: VaultItem) -> Bool {
         switch self {
         case .watchtower, .sends, .generator, .codes: false
         case .account(let id): !item.isDeleted && !item.isArchived && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let path): !item.isDeleted && !item.isArchived && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
+        case .myVault: !item.isDeleted && !item.isArchived && item.organizationId == nil
         case .organization(let id): !item.isDeleted && !item.isArchived && item.organizationId == id
         case .collection(let id): !item.isDeleted && !item.isArchived && item.collectionIds.contains(id)
         }
@@ -437,55 +449,64 @@ private struct Sidebar: View {
     @Environment(AppModel.self) private var model
     @Binding var section: SidebarSelection
 
-    @AppStorage("sidebarTypesExpanded") private var typesExpanded = true
+    @AppStorage("sidebarTypesExpanded") private var typesExpanded = false
     @AppStorage("sidebarFoldersExpanded") private var foldersExpanded = true
 
     private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
+
+    @ViewBuilder private var newFolderMenu: some View {
+        Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
+            .labelStyle(.titleAndIcon)
+            .tint(Color(nsColor: .labelColor))
+    }
 
     private func row(_ s: VaultSection) -> some View {
         SidebarLabel(s.title, symbol: s.symbol, tag: .section(s), count: count(.section(s)))
             .tag(SidebarSelection.section(s))
     }
 
+    /// A row picked. A vault with ⌘ held joins (or leaves) the vaults shown everywhere instead of opening; opening a
+    /// vault the filter hides shows it again.
+    private func pick(_ new: SidebarSelection) {
+        if let key = new.vaultKey {
+            if NSEvent.modifierFlags.contains(.command) {
+                withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) }
+                return
+            }
+            if !model.vaultShown(key) { withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) } }
+        }
+        section = new
+    }
+
     var body: some View {
-        List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
+        List(selection: Binding(get: { section }, set: { if let s = $0 { pick(s) } })) {
             Section {
-                // All Items, with its narrower views folded under it: favorites, each type, then the folders.
+                // All Items, with its narrower views folded under it (closed at first: the sidebar stays short).
                 DisclosureGroup(isExpanded: $typesExpanded) {
                     ForEach(VaultSection.underAll, id: \.self) { row($0) }
-                    if !model.folders.isEmpty {
-                        DisclosureGroup(isExpanded: $foldersExpanded) {
-                            ForEach(FolderNode.tree(model.folders)) { node in
-                                FolderRow(node: node, count: count)
-                            }
-                        } label: {
-                            SidebarLabel("My Folders", symbol: "folder")
-                                .contextMenu {
-                                    Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
-                                        .labelStyle(.titleAndIcon)
-                                        .tint(Color(nsColor: .labelColor))
-                                }
-                        }
-                    }
                 } label: {
                     row(.all)
                 }
             } header: {
                 HStack(spacing: 6) {
-                    Text("Vault").font(.system(size: 13, weight: .semibold))
+                    Text("Items").font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 6)
-                    NewItemButton(inline: true) // new items of every kind, at the end of the Vault row
+                    NewItemButton(inline: true) // new items of every kind, at the end of the header
                         .padding(.trailing, 13) // its edge under the counts' edge
                 }
                 .frame(height: 26)
                 .padding(.bottom, 6)
             }
-            // Every shared vault together, right under your own: each one a row (its name) that opens onto its shared
-            // folders, nested like My Folders.
+            // Where items live: your own vault, then each shared vault (opening onto its shared folders). A click opens
+            // one; ⌘-click shows it alongside the others everywhere. Vaults the filter hides are dimmed.
             if !model.visibleOrganizations.isEmpty {
-                Section("Shared Vaults") {
+                Section("Vaults") {
+                    SidebarLabel("My vault", symbol: "person", tag: .myVault, count: count(.myVault))
+                        .tag(SidebarSelection.myVault)
+                        .opacity(model.vaultShown(AppModel.VaultFilter.personalKey) ? 1 : 0.45)
                     ForEach(model.visibleOrganizations) { org in
                         SharedVaultRow(org: org, count: count)
+                            .opacity(model.vaultShown(org.id) ? 1 : 0.45)
                     }
                 }
             }
@@ -501,8 +522,21 @@ private struct Sidebar: View {
                 SidebarLabel("Watchtower", symbol: "checkmark.shield", tag: .watchtower, count: model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
             }
-            // Items set aside: kept (Archive) or on their way out (Trash).
+            // Your own ways of sorting items, and items set aside: kept (Archive) or on their way out (Trash).
             Section("Manage") {
+                if model.folders.isEmpty {
+                    SidebarLabel("My Folders", symbol: "folder")
+                        .contextMenu { newFolderMenu }
+                } else {
+                    DisclosureGroup(isExpanded: $foldersExpanded) {
+                        ForEach(FolderNode.tree(model.folders)) { node in
+                            FolderRow(node: node, count: count)
+                        }
+                    } label: {
+                        SidebarLabel("My Folders", symbol: "folder")
+                            .contextMenu { newFolderMenu }
+                    }
+                }
                 row(.archive)
                 row(.trash)
             }
@@ -518,12 +552,6 @@ private struct Sidebar: View {
         .tint(Color.sidebarSelection)
         .background(SidebarCalmSelection()) // always the soft selection, never the focused (solid) one
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
-        // The vault switcher above the list, as wide as the rows' selection.
-        .safeAreaInset(edge: .top, spacing: 4) {
-            if !model.visibleOrganizations.isEmpty {
-                VaultSwitcher().padding(.horizontal, 10).padding(.top, 4)
-            }
-        }
     }
 }
 
@@ -1535,14 +1563,16 @@ struct ItemDetail: View {
                             }
                         }
                     }
+                    // Which vault it's in: the same names as the sidebar's Vaults (My vault, or a shared vault › its folders).
                     if item.organizationId == nil {
-                        DetailRow(symbol: "person", title: "Owner") {
-                            Text(verbatim: model.accounts.first { $0.id == item.accountId }?.email ?? String(localized: "Me"))
+                        DetailRow(symbol: "person", title: "Vault") {
+                            let email = model.accounts.count > 1 ? model.accounts.first { $0.id == item.accountId }?.email : nil
+                            Text(verbatim: [String(localized: "My vault"), email].compactMap { $0 }.joined(separator: " · "))
                                 .foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                         }
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
-                        DetailRow(symbol: "building.2", title: "Shared vault") {
+                        DetailRow(symbol: "building.2", title: "Vault") {
                             let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
                             Button { model.organizationSheet = .collections(item.id) } label: {
                                 HStack(spacing: 5) {
@@ -2458,51 +2488,7 @@ struct NewFolderSheet: View {
     }
 }
 
-/// All vaults, or any mix of My vault and the shared vaults: narrows every list, count and code to them. A click opens
-/// a popover that stays open while vaults are checked on and off.
-private struct VaultSwitcher: View {
-    @Environment(AppModel.self) private var model
-    @State private var open = false
-    @State private var hovering = false
-
-    private var symbol: String {
-        switch model.vaultFilter {
-        case .all: "square.stack.3d.up"
-        case .personal: "person"
-        case .organization: "building.2"
-        case .several: "square.on.square"
-        }
-    }
-
-    var body: some View {
-        Button { open.toggle() } label: {
-            HStack(spacing: 8) {
-                Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-                    .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 22, height: 22)
-                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 6, style: .continuous))
-                Text(verbatim: model.vaultFilterTitle).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                    .contentTransition(.opacity)
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34)
-            .background(Color.primary.opacity(open || hovering ? 0.08 : 0.05), in: .rect(cornerRadius: 10, style: .continuous))
-            .contentShape(.rect)
-            .animation(.snappy(duration: 0.25), value: model.vaultFilter)
-            .animation(.easeOut(duration: 0.12), value: hovering)
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .frame(maxWidth: .infinity)
-        .popover(isPresented: $open, arrowEdge: .bottom) { VaultSwitcherPicker() }
-        .help(Text("Show one vault or several"))
-        .accessibilityLabel(Text("Vault"))
-        .accessibilityValue(Text(verbatim: model.vaultFilterTitle))
-    }
-}
-
-/// The vault switcher's popover: All vaults, then each vault with its icon, item count and a checkbox; "Only" on hover
+/// The vault picker (from the vault chip): All vaults, then each vault with its icon, item count and a checkbox; "Only" on hover
 /// shows just that one. Checks animate in and out; the popover stays open so several can be picked.
 struct VaultSwitcherPicker: View {
     @Environment(AppModel.self) private var model

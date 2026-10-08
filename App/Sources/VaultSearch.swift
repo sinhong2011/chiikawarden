@@ -439,10 +439,18 @@ struct SearchFilterBar: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 6) {
                     ForEach(model.searchChips) { chip in
-                        FilterChip(label: chip.label(model), symbol: chip.symbol) {
-                            withAnimation(.snappy(duration: 0.25)) { model.removeSearchChip(chip) }
+                        if case .vault = chip {
+                            // The vaults shown: a click opens the picker to change them.
+                            VaultChip(label: chip.label(model), symbol: chip.symbol) {
+                                withAnimation(.snappy(duration: 0.25)) { model.removeSearchChip(chip) }
+                            }
+                            .transition(chipTransition)
+                        } else {
+                            FilterChip(label: chip.label(model), symbol: chip.symbol) {
+                                withAnimation(.snappy(duration: 0.25)) { model.removeSearchChip(chip) }
+                            }
+                            .transition(chipTransition)
                         }
-                        .transition(chipTransition)
                     }
                 }
                 .padding(.vertical, 2)
@@ -501,5 +509,21 @@ private struct FilterChip: View {
         .background(Color.primary.opacity(0.08), in: .capsule)
         .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// The vault chip: like the others, and a click on it opens the vault picker (check vaults on and off, or "Only").
+private struct VaultChip: View {
+    let label: String
+    let symbol: String
+    let remove: () -> Void
+    @State private var open = false
+
+    var body: some View {
+        FilterChip(label: label, symbol: symbol, remove: remove)
+            .contentShape(.capsule)
+            .onTapGesture { open = true }
+            .popover(isPresented: $open, arrowEdge: .bottom) { VaultSwitcherPicker() }
+            .help(Text("Change the vaults shown"))
     }
 }

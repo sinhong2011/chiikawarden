@@ -5429,6 +5429,34 @@
         }
       }
     },
+    "Change the vaults shown" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示する保管庫を変更"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改显示的保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "變更顯示的保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改顯示嘅保險庫"
+          }
+        }
+      }
+    },
     "Changed the shared folders of %@" : {
       "localizations" : {
         "ja" : {
@@ -20831,34 +20859,6 @@
         }
       }
     },
-    "Owner" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有者"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有者"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "擁有者"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "擁有者"
-          }
-        }
-      }
-    },
     "Owner: an organization" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -25558,34 +25558,6 @@
         }
       }
     },
-    "Shared Vaults" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共有保管庫"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共享保险库"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共享保險庫"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共享保險庫"
-          }
-        }
-      }
-    },
     "Share…" : {
       "localizations" : {
         "ja" : {
@@ -25974,34 +25946,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只顯示一個保險庫"
-          }
-        }
-      }
-    },
-    "Show one vault or several" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1つまたは複数の保管庫を表示"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示一个或多个保险库"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示一個或多個保險庫"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示一個或者幾個保險庫"
           }
         }
       }
@@ -31721,7 +31665,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "密码库"
+            "value" : "保险库"
           }
         },
         "zh-Hant" : {
@@ -31846,6 +31790,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保險庫視窗"
+          }
+        }
+      }
+    },
+    "Vaults" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保險庫"
           }
         }
       }
