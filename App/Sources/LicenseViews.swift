@@ -16,7 +16,7 @@ struct LicenseReminderView: View {
                     .background(Color.primary.opacity(0.06), in: .capsule)
                     .padding(.bottom, 14)
             }
-            Image(nsImage: NSApplication.shared.applicationIconImage)
+            Image(nsImage: BrandIcon.image)
                 .resizable().frame(width: 76, height: 76)
                 .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
             Text("Enjoying Triwarden?")
@@ -137,7 +137,7 @@ struct LicenseSettings: View {
     @ViewBuilder private func unregistered(_ license: License) -> some View {
         Section {
             VStack(spacing: 0) {
-                Image(nsImage: NSApplication.shared.applicationIconImage)
+                Image(nsImage: BrandIcon.image)
                     .resizable().frame(width: 64, height: 64)
                     .shadow(color: .black.opacity(0.12), radius: 5, y: 2)
                 Text("Support Triwarden")

@@ -116,3 +116,45 @@ Expected: exactly one `pnpm --dir site dev --port 4321` command.
 Run: `git diff --check HEAD~2..HEAD`
 
 Expected: no whitespace errors.
+
+### Task 4: Use the generated SVG as the site and in-window icon source
+
+**Files:**
+- Modify: `Design/AppIcon/generate.py`
+- Modify: `project.yml`
+- Modify: `Shared/Brand.swift`
+- Modify: `App/Sources/LicenseViews.swift`
+- Modify: `App/Sources/SettingsView.swift`
+- Modify: `App/Sources/VaultDoorStage.swift`
+- Verify: `site/public/assets/icon.svg`
+
+**Step 1: Add the expected app-image helper check**
+
+Run: `rg -n "BrandIcon\.image" App/Sources Shared`
+
+Expected before implementation: no matches.
+
+**Step 2: Bundle the generated SVG**
+
+Add `Design/AppIcon/AppIcon.svg` to the Triwarden target resources in `project.yml`. Add a single `BrandIcon.image` helper that loads `AppIcon.svg` from `Bundle.main` and fails loudly if the resource is missing.
+
+**Step 3: Replace cached application icon uses**
+
+Change the About, licensing, and login door views to use `BrandIcon.image`, not `NSApplication.applicationIconImage`. The Dock continues to use Xcode's compiled `AppIcon.icns`.
+
+**Step 4: Synchronize the site SVG**
+
+Have `Design/AppIcon/generate.py` copy its generated light `AppIcon.svg` to `site/public/assets/icon.svg`. This preserves the site favicon and navigation icon as direct uses of the canonical artwork.
+
+**Step 5: Verify**
+
+Run:
+
+```bash
+python3 Design/AppIcon/generate.py
+shasum Design/AppIcon/AppIcon.svg site/public/assets/icon.svg
+make build
+pnpm --dir site build
+```
+
+Expected: the two SVG hashes match and both builds succeed.

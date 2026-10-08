@@ -814,7 +814,7 @@ struct LoginDoorStage: View {
                 .overlay(alignment: .trailing) { Rectangle().fill(Color.primary.opacity(dark ? 0.08 : 0.06)).frame(width: 1) }
             // The welcome: the app's icon, its name and promise, and what it keeps — centred, quiet.
             VStack(alignment: .leading, spacing: 0) {
-                Image(nsImage: NSApp.applicationIconImage)
+                Image(nsImage: BrandIcon.image)
                     .resizable().interpolation(.high)
                     .frame(width: 96, height: 96)
                     .shadow(color: .black.opacity(dark ? 0.45 : 0.18), radius: 18, y: 10)

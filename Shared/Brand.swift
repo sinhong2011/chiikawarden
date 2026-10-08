@@ -1,6 +1,19 @@
 import AppKit
 import SwiftUI
 
+/// The generated light application-icon artwork for views inside the app. Loading this resource directly avoids the
+/// Launch Services cache behind `NSApplication.applicationIconImage` when another installed build shares our bundle ID.
+enum BrandIcon {
+    static let image: NSImage = {
+        guard let url = Bundle.main.url(forResource: "AppIcon", withExtension: "svg"),
+              let image = NSImage(contentsOf: url) else {
+            preconditionFailure("Missing bundled AppIcon.svg")
+        }
+        image.isTemplate = false
+        return image
+    }()
+}
+
 extension NSColor {
     /// Brand blue for text, links and icons. The mascot's tail is #80C5EF (see `Color.brandFill`); in light mode
     /// text needs a deeper vivid sky, #0F74B3 (4.5:1 on the window, 5.0:1 on white); in dark mode the tail colour
