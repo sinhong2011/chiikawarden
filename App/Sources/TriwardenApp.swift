@@ -31,6 +31,7 @@ struct TriwardenApp: App {
             demo.items = full ? DemoVault.items : Snapshot.demoItems
             if full {
                 demo.folders = DemoVault.folders
+                demo.organizations = DemoVault.organizations
                 IconStore.shared.fallbackEnvironment = .bitwardenUS // real site icons, from Bitwarden's public service
             }
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.

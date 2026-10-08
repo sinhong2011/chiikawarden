@@ -133,16 +133,17 @@ final class AppModel {
         }
         return names.count <= 2 ? names.joined(separator: " + ") : String(localized: "\(names.count) vaults")
     }
-    var vaultFilter = VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) {
+    var vaultFilter = AppModel.keepsSearchFilters ? VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) : .all {
         didSet { if Self.keepsSearchFilters { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") } }
     }
 
     /// The vault list's search filters (type, folder, favorites, codes, passkeys, Watchtower issues), kept between
-    /// launches. Snapshot runs start clear and leave the saved ones alone.
+    /// launches. Renders and demo runs start clear and leave the saved ones alone.
     var searchFilters = AppModel.keepsSearchFilters ? SearchFilters.load() : SearchFilters() {
         didSet { if Self.keepsSearchFilters { searchFilters.save() } }
     }
-    private static let keepsSearchFilters = !CommandLine.arguments.contains("--snapshot")
+    /// Renders and demo runs start clear and leave the saved vault and filters alone.
+    private static let keepsSearchFilters = !CommandLine.arguments.contains { $0 == "--snapshot" || $0.hasPrefix("--demo") }
     /// Set by ⌘F: the vault list's search field takes focus (and clears it).
     var wantsSearchFocus = false
 

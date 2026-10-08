@@ -72,6 +72,11 @@
 - Import from Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords, Chrome and Firefox;
   export in Bitwarden's formats, including password-protected JSON.
 
+<p align="center">
+  <img src="docs/images/search.jpg" width="820" alt="One search over My vault and the Northwind shared vault at once, with filter chips, and Northwind's shared folders nested in the sidebar">
+  <br><sub>One search over several vaults at once, filters as chips, shared folders nested like your own</sub>
+</p>
+
 <table>
   <tr>
     <td><img src="docs/images/palette.jpg" alt="Command palette"></td>
