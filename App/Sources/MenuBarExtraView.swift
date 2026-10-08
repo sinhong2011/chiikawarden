@@ -32,6 +32,8 @@ struct MenuBarContent: View {
         }
         .padding(10)
         .frame(width: 380)
+        // Light: a soft grey wash over the system's near-white glass, so the white cards have something to stand on.
+        .background(Color.menuWash)
         .onAppear { model.captureForeground() } // the page or app the panel was opened over
         .animation(.snappy(duration: 0.22), value: query.isEmpty)
     }
@@ -68,8 +70,8 @@ struct MenuBarContent: View {
                 }
             }
             .padding(.horizontal, 12).frame(height: 36)
-            .background(Color.panelStrong, in: .capsule)
-            .overlay(Capsule().strokeBorder(searching ? Color.primary.opacity(0.3) : Color.panelEdge, lineWidth: searching ? 1.5 : 1))
+            .background(Color.menuCard, in: .capsule)
+            .overlay(Capsule().strokeBorder(searching ? Color.primary.opacity(0.3) : Color.menuEdge, lineWidth: searching ? 1.5 : 1))
             .animation(.easeOut(duration: 0.15), value: searching)
 
             if model.accounts.count > 1 { AccountMenu() }
@@ -165,8 +167,9 @@ private struct PanelCard<Content: View>: View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.panelStrong, in: .rect(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.panelEdge))
+            .background(Color.menuCard, in: .rect(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.menuEdge))
+            .shadow(color: .menuShadow, radius: 5, y: 1)
     }
 }
 
@@ -179,8 +182,8 @@ private struct CircleButton: View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 13, weight: .medium))
                 .frame(width: 36, height: 36)
-                .background(Color.panelStrong, in: .circle)
-                .overlay(Circle().strokeBorder(Color.panelEdge))
+                .background(Color.menuCard, in: .circle)
+                .overlay(Circle().strokeBorder(Color.menuEdge))
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
@@ -460,14 +463,16 @@ private struct QuickActions: View {
                             Text(verbatim: "\(badge)").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
                                 .padding(.horizontal, 4).frame(minWidth: 15, minHeight: 15)
                                 .background(Color.orange, in: .capsule)
+                                .fixedSize() // its own width: laid out in the icon's, "56" came out as "5…"
                                 .offset(x: 12, y: -7)
                         }
                     }
                 Text(title).font(.system(size: 11, weight: .medium)).lineLimit(1).minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity).frame(height: 58)
-            .background(Color.panelStrong, in: .rect(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.panelEdge))
+            .background(Color.menuCard, in: .rect(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.menuEdge))
+            .shadow(color: .menuShadow, radius: 5, y: 1)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -620,8 +625,8 @@ private struct AccountMenu: View {
             }
             .frame(minWidth: 36, minHeight: 36)
             .padding(.horizontal, focused == nil ? 6 : 0)
-            .background(Color.panelStrong, in: .capsule)
-            .overlay(Capsule().strokeBorder(Color.panelEdge))
+            .background(Color.menuCard, in: .capsule)
+            .overlay(Capsule().strokeBorder(Color.menuEdge))
             .contentShape(.capsule)
         }
         .menuStyle(.button)
@@ -670,4 +675,13 @@ enum MenuBarGlyph {
         image.accessibilityDescription = "Triwarden"
         return image
     }()
+}
+
+extension Color {
+    /// The menu bar panel's cards. Its glass is near-white in light mode (the window's cards sit on a coloured
+    /// backdrop instead), so here they're nearly opaque white with a hairline and a soft shadow to stand out.
+    static let menuCard = adaptive(light: .white.opacity(0.92), dark: .white.opacity(0.09))
+    static let menuEdge = adaptive(light: .black.opacity(0.07), dark: .white.opacity(0.08))
+    static let menuShadow = adaptive(light: .black.opacity(0.05), dark: .clear)
+    static let menuWash = adaptive(light: Color(red: 0.925, green: 0.928, blue: 0.95).opacity(0.7), dark: .clear)
 }
