@@ -85,7 +85,7 @@ struct CountdownRing: View {
     /// The seconds' size against the ring's: larger for a small ring that stands on its own.
     var digits: CGFloat = 0.32
     /// The ring pops when a new code starts and through the last seconds. Off in a grid of codes, where dozens popping
-    /// at once keep the window redrawing. (With `drainsIn`, the seconds roll in Core Animation either way.)
+    /// at once keep the window redrawing. (With `drainsIn`, the seconds cross-fade in Core Animation either way.)
     var lively = true
     /// Seconds until the ring is empty: given, the arc drains on its own (Core Animation, smooth, no per-frame work);
     /// otherwise it's drawn at `fraction` and moves only when redrawn.
@@ -217,7 +217,7 @@ struct SweepArc: NSViewRepresentable {
     let drainsIn: TimeInterval
     let color: Color
     let lineWidth: CGFloat
-    /// The seconds in the middle, rolling down to each new value (Core Animation too: no per-frame work here).
+    /// The seconds in the middle, cross-fading to each new value (Core Animation too: no per-frame work here).
     var seconds: Int?
     var fontSize: CGFloat = 12
 
@@ -294,7 +294,7 @@ struct SweepArc: NSViewRepresentable {
             number.contentsScale = window?.backingScaleFactor ?? 2
         }
 
-        /// The seconds: a new value rolls down into place (like the drawn ring's countdown), in 0.25 s.
+        /// The seconds: a new value cross-fades in (0.2 s).
         func show(seconds: Int, urgent: Bool, fontSize: CGFloat) {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
@@ -307,12 +307,11 @@ struct SweepArc: NSViewRepresentable {
             numberUrgent = urgent
             recolor()
             if let shown = shownSeconds, shown != seconds {
-                let roll = CATransition()
-                roll.type = .push
-                roll.subtype = .fromTop // counting down: the next number comes in from above
-                roll.duration = 0.25
-                roll.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                number.add(roll, forKey: "roll")
+                let fade = CATransition()
+                fade.type = .fade // a quiet cross-fade: calmer than a roll, next to a smoothly draining ring
+                fade.duration = 0.2
+                fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                number.add(fade, forKey: "fade")
             }
             number.string = "\(seconds)"
             shownSeconds = seconds
