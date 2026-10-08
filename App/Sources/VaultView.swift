@@ -71,11 +71,14 @@ struct VaultView: View {
     /// The window's controls (Sync, Lock) floating over `content`'s bottom-right corner, under the header's right end
     /// (an item's actions, or a page's edge). No row of their own: the panels run to the window's bottom, and scrolling
     /// content keeps room at its end so its last line can scroll clear of them.
-    private func withFooter(_ content: some View) -> some View {
+    /// `toBottomEdge`: a full-page tool (Codes, Watchtower…) scrolls right to the window's bottom edge, through the
+    /// column's 8 pt margin; the list and detail panels keep it.
+    private func withFooter(_ content: some View, toBottomEdge: Bool = false) -> some View {
         ZStack(alignment: .bottomTrailing) {
             content
                 .frame(maxHeight: .infinity)
                 .contentMargins(.bottom, vaultOpen ? 44 : 0, for: .scrollContent)
+                .padding(.bottom, toBottomEdge ? -8 : 0)
             if vaultOpen {
                 AppFooter()
                     // Its bottom edge level with the sidebar's account card (11 pt above the window's bottom, with the
@@ -218,7 +221,7 @@ struct VaultView: View {
                     .transition(pageTransition)
                 } else {
                     // A tool (Send, Generator, Codes, Watchtower): each one its own page.
-                    withFooter(sectionPane.id(section))
+                    withFooter(sectionPane.id(section), toBottomEdge: true)
                         .transition(pageTransition)
                 }
             }
