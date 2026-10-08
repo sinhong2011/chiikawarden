@@ -99,7 +99,7 @@ struct CountdownRing: View {
         ZStack {
             Circle().stroke(Color.brand.opacity(0.14), lineWidth: size * 0.09)
             if let drainsIn, Motion.plays {
-                SweepArc(fraction: fraction, drainsIn: drainsIn, color: urgent ? .orange : .brand, lineWidth: size * 0.09,
+                SweepArc(fraction: fraction, drainsIn: drainsIn, urgent: urgent, lineWidth: size * 0.09,
                          seconds: seconds, fontSize: size * digits)
             } else {
                 Circle()
@@ -215,7 +215,8 @@ struct LiveCountdownRing: View {
 struct SweepArc: NSViewRepresentable {
     let fraction: Double
     let drainsIn: TimeInterval
-    let color: Color
+    /// The last seconds: orange, like the drawn ring; otherwise the brand blue.
+    let urgent: Bool
     let lineWidth: CGFloat
     /// The seconds in the middle, cross-fading to each new value (Core Animation too: no per-frame work here).
     var seconds: Int?
@@ -224,7 +225,10 @@ struct SweepArc: NSViewRepresentable {
     func makeNSView(context: Context) -> ArcView { ArcView() }
 
     func updateNSView(_ view: ArcView, context: Context) {
-        view.update(fraction: fraction, drainsIn: drainsIn, color: NSColor(color), lineWidth: lineWidth)
+        // The asset's own NSColor, resolved per view and appearance when drawn: converting the SwiftUI colour fixed one
+        // variant (the light-mode blue could show in dark mode, or the other way round).
+        view.update(fraction: fraction, drainsIn: drainsIn,
+                    color: urgent ? .systemOrange : NSColor(named: "AccentColor") ?? .controlAccentColor, lineWidth: lineWidth)
         if let seconds { view.show(seconds: seconds, urgent: seconds <= 5, fontSize: fontSize) }
     }
 
@@ -285,7 +289,11 @@ struct SweepArc: NSViewRepresentable {
         private func recolor() {
             effectiveAppearance.performAsCurrentDrawingAppearance {
                 arc.strokeColor = color.cgColor
-                number.foregroundColor = (numberUrgent ? NSColor.systemOrange : NSColor.secondaryLabelColor).cgColor
+                // Explicit greys, not secondaryLabelColor: on a vibrant panel (the menu bar's glass) that relies on
+                // vibrancy a plain layer doesn't get, and came out nearly invisible in dark mode.
+                let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                let grey = dark ? NSColor(white: 1, alpha: 0.72) : NSColor(white: 0, alpha: 0.55)
+                number.foregroundColor = (numberUrgent ? NSColor.systemOrange : grey).cgColor
             }
         }
 
