@@ -511,6 +511,14 @@ final class AppModel {
     }
     /// Sidebar destination asked for from outside the vault view (palette commands).
     var requestedSection: SidebarSelection?
+    /// An item to point out on the Watchtower page (from its detail): the page scrolls to it and highlights it.
+    var watchtowerFocus: String?
+
+    /// Opens Watchtower at an item's issue.
+    func showInWatchtower(_ item: VaultItem) {
+        watchtowerFocus = item.id
+        requestedSection = .watchtower
+    }
     /// Asks the vault window to show its list filtered by this text (the palette's "Show all results").
     var requestedFilter: String?
     var showingGenerator = false

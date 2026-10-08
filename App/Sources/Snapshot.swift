@@ -246,6 +246,12 @@ enum Snapshot {
         }
         vault.folders = []
 
+        // An item with a Watchtower issue: its row leads to Watchtower (chevron).
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView(initialSelection: "4").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-watchtower-row-\(name).png"))
+        }
+
         // The list's search with filters on: chips under the field, the filter menu filled; and filters that leave nothing.
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             vault.searchFilters = SearchFilters(type: .login, hasCode: true)

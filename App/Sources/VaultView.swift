@@ -1511,18 +1511,25 @@ struct ItemDetail: View {
                         }
                     }
                     if item.password != nil {
+                        let issue = item.passwordIssue(breaches: model.breachCounts)
                         DetailRow(symbol: "checkmark.shield", title: "Watchtower") {
                             HStack(spacing: 10) {
                                 HStack(spacing: 7) {
                                     Circle().fill(health.tint).frame(width: 7, height: 7)
                                     Text(health.text)
                                 }
-                                if let issue = item.passwordIssue(breaches: model.breachCounts), issue != .insecure,
-                                   let host = item.host, !host.isEmpty, !item.isDeleted {
+                                if let issue, issue != .insecure, let host = item.host, !host.isEmpty, !item.isDeleted {
                                     ChangeOnSiteButton(host: host)
+                                }
+                                if issue != nil, !item.isDeleted {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.tertiary)
                                 }
                             }
                         }
+                        // With an issue, the row opens Watchtower at it (the item's other reuses, what to do).
+                        .modifier(TappableRow(enabled: issue != nil && !item.isDeleted) { model.showInWatchtower(item) })
+                        .help(issue != nil ? Text("Show in Watchtower") : Text(verbatim: ""))
                     }
                     if let notes = item.notes, !notes.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
@@ -1857,6 +1864,27 @@ private struct FieldLine: View {
                 .copyTick(armed: $armed, copied: $copied)
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
+    }
+}
+
+/// A detail row that does something on click: a soft highlight on hover, and the action for VoiceOver too.
+struct TappableRow: ViewModifier {
+    var enabled: Bool
+    let action: () -> Void
+    @State private var hovering = false
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .background(Color.primary.opacity(hovering ? 0.04 : 0))
+                .contentShape(.rect)
+                .onTapGesture(perform: action)
+                .onHover { hovering = $0 }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { action() }
+        } else {
+            content
+        }
     }
 }
 

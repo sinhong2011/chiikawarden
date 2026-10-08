@@ -25698,6 +25698,34 @@
         }
       }
     },
+    "Show in Watchtower" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォッチタワーで表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在安全监测中显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在安全監測中顯示"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺安全監測顯示"
+          }
+        }
+      }
+    },
     "Show item" : {
       "localizations" : {
         "ja" : {
