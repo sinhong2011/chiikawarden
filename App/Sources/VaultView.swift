@@ -1129,7 +1129,7 @@ private struct GeneratorPane: View {
             ScrollView {
                 GeneratorView()
                     .padding(.leading, VaultView.pageInset)
-                    .padding(.vertical, 24)
+                    .padding(.bottom, 24) // the header row at the top, like the vault page's search row
                     .frame(maxWidth: 1180)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .topLeading)
             }

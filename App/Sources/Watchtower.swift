@@ -208,7 +208,7 @@ struct WatchtowerView: View {
                         .onAppear { allClear += 1 }
                 }
             }
-            .padding(24)
+            .padding(.horizontal, 24).padding(.bottom, 24) // from the top, like the vault page's search row
             .frame(maxWidth: 760)
             .frame(maxWidth: .infinity)
             .animation(.spring(duration: 0.45, bounce: 0.2), value: report.problemCount)

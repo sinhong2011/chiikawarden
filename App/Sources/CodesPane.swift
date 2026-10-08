@@ -60,9 +60,11 @@ struct CodesPane: View {
         // The header stays put above the scrolling codes: its countdown ring redraws 15 times a second, and out here
         // that never touches the grid.
         VStack(alignment: .leading, spacing: 0) {
+            // Where the vault page's search row is: at the top, 32 pt high, 10 pt above what follows.
             header
+                .frame(height: 32)
                 .padding(.leading, VaultView.pageInset)
-                .padding(.top, 24).padding(.bottom, 10)
+                .padding(.bottom, 10)
             codes(list: list, pinned: pinned, rest: rest)
         }
     }
