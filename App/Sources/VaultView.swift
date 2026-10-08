@@ -520,6 +520,7 @@ private struct Sidebar: View {
         .listItemTint(.monochrome) // icons in the text's own colour, not the brand blue
         // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
         .tint(Color.sidebarSelection)
+        .background(SidebarCalmSelection()) // always the soft selection, never the focused (solid) one
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
         // The vault switcher above the list, as wide as the rows' selection.
         .safeAreaInset(edge: .top, spacing: 4) {
@@ -2797,5 +2798,34 @@ private struct PurgeChip: View {
         .padding(.horizontal, 6).frame(height: 17)
         .background((soon ? Color.orange : Color.primary).opacity(soon ? 0.14 : 0.07), in: .capsule)
         .help(Text(date.formatted(date: .complete, time: .shortened)))
+    }
+}
+
+/// Keeps the sidebar's selection in its soft style. A sidebar that has keyboard focus draws its selection
+/// "emphasized" (a solid accent fill, graphite here), and it took focus with every click — so the style flipped
+/// back and forth as focus moved between the sidebar and the list. The sidebar's outline view now never takes
+/// focus: clicks and drops still select, and the keyboard stays with the list and the search.
+struct SidebarCalmSelection: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { Finder() }
+    func updateNSView(_ view: NSView, context: Context) { (view as? Finder)?.apply() }
+
+    final class Finder: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            apply()
+            DispatchQueue.main.async { [weak self] in self?.apply() } // the outline view may arrive a moment later
+        }
+
+        func apply() {
+            guard let root = window?.contentView else { return }
+            for outline in Self.outlines(in: root) where !outline.refusesFirstResponder {
+                outline.refusesFirstResponder = true
+                if window?.firstResponder === outline { window?.makeFirstResponder(nil) }
+            }
+        }
+
+        private static func outlines(in view: NSView) -> [NSOutlineView] {
+            (view as? NSOutlineView).map { [$0] } ?? view.subviews.flatMap(outlines)
+        }
     }
 }
