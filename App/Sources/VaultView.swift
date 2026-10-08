@@ -1571,9 +1571,15 @@ struct ItemDetail: View {
                     // Which vault it's in: the same names as the sidebar's Vaults (My vault, or a shared vault › its folders).
                     if item.organizationId == nil {
                         DetailRow(symbol: "person", title: "Vault") {
+                            // Drawn like the Folder row's path (the place in the medium, stronger tone), so the two
+                            // rows read alike; the account, when several are open, after it in grey.
                             let email = model.accounts.count > 1 ? model.accounts.first { $0.id == item.accountId }?.email : nil
-                            Text(verbatim: [String(localized: "My vault"), email].compactMap { $0 }.joined(separator: " · "))
-                                .foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                            HStack(spacing: 6) {
+                                PathCrumbs(parts: [String(localized: "My vault")])
+                                if let email {
+                                    Text(verbatim: "· " + email).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                                }
+                            }
                         }
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
