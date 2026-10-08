@@ -84,12 +84,8 @@ struct CountdownRing: View {
     var size: CGFloat = 38
     /// The seconds' size against the ring's: larger for a small ring that stands on its own.
     var digits: CGFloat = 0.32
-    /// The ring pops when a new code starts and through the last seconds. Off in a grid of codes, where dozens popping
-    /// at once keep the window redrawing. (With `drainsIn`, the seconds cross-fade in Core Animation either way.)
+    /// The seconds roll and the ring pops when a new code starts and through the last seconds.
     var lively = true
-    /// Seconds until the ring is empty: given, the arc drains on its own (Core Animation, smooth, no per-frame work);
-    /// otherwise it's drawn at `fraction` and moves only when redrawn.
-    var drainsIn: TimeInterval?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var beat = 0
     @State private var beatScale = 1.0
@@ -98,23 +94,16 @@ struct CountdownRing: View {
         let urgent = seconds <= 5
         ZStack {
             Circle().stroke(Color.brand.opacity(0.14), lineWidth: size * 0.09)
-            if let drainsIn, Motion.plays {
-                SweepArc(fraction: fraction, drainsIn: drainsIn, urgent: urgent, lineWidth: size * 0.09,
-                         seconds: seconds, fontSize: size * digits)
-            } else {
-                Circle()
-                    .trim(from: 1 - fraction, to: 1)
-                    .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-            }
-            if drainsIn == nil || !Motion.plays {
-                Text(verbatim: "\(seconds)")
-                    .font(.system(size: size * digits, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(urgent ? Color.orange : .secondary)
-                    .contentTransition(Motion.plays && lively ? .numericText(countsDown: true) : .identity)
-                    .animation(Motion.plays && lively ? .snappy : nil, value: seconds)
-            }
+            Circle()
+                .trim(from: 1 - fraction, to: 1)
+                .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(verbatim: "\(seconds)")
+                .font(.system(size: size * digits, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(urgent ? Color.orange : .secondary)
+                .contentTransition(Motion.plays && lively ? .numericText(countsDown: true) : .identity)
+                .animation(Motion.plays && lively ? .snappy : nil, value: seconds)
         }
         .frame(width: size, height: size)
         .keyframeAnimator(initialValue: 1.0, trigger: beat) { ring, scale in
@@ -136,9 +125,8 @@ struct CountdownRing: View {
 }
 
 /// One clock for every one-time code in the app (the codes page, an item's code tile, the menu bar, the palette),
-/// instead of a timer per view. It ticks once a second, on the second, while anything shows a code; codes and their
-/// seconds read it, and rings use it to restart a smooth Core Animation sweep (`SweepArc`). A tick so refreshes just
-/// those small views — never a list or grid around them — however many codes there are.
+/// instead of a timer per view. It ticks once a second, on the second, while anything shows a code, and the codes read
+/// it. A tick so refreshes just those small views — never a list or grid around them — however many codes there are.
 @MainActor @Observable
 final class OTPClock {
     static let shared = OTPClock()
@@ -189,160 +177,23 @@ struct LiveOTPCode: View {
     }
 }
 
-/// A code's countdown ring on the shared clock: once a second it sets the seconds and restarts the arc's sweep,
-/// which then drains smoothly by itself until the next tick.
+/// A code's countdown ring, drawn like the clipboard's countdown: SwiftUI redraws it 15 times a second (the arc
+/// drains smoothly, the seconds roll, the ring pops on a new code). Only a few show at once — one in the codes page's
+/// header, one per code elsewhere — so that's cheap; the codes themselves stay on the shared once-a-second clock.
 struct LiveCountdownRing: View {
     let totp: TOTP
     var size: CGFloat = 38
     /// The seconds' size against the ring's.
     var digits: CGFloat = 0.32
     var lively = true
-    private let clock = OTPClock.shared
 
     var body: some View {
-        _ = clock.second // refresh on each tick
-        let now = Date.now
-        let period = Double(totp.period)
-        let into = now.timeIntervalSince1970.truncatingRemainder(dividingBy: period)
-        return CountdownRing(fraction: 1 - into / period, seconds: totp.secondsRemaining(at: now), size: size, digits: digits,
-                             lively: lively, drainsIn: period - into)
-            .frame(width: size, height: size) // a fixed size: a tick never re-lays out anything around it
-            .onAppear { clock.retain() }
-            .onDisappear { clock.release() }
-    }
-}
-
-/// A ring's arc that drains clockwise to empty over `drainsIn` seconds, animated by Core Animation (the render server
-/// draws every frame; the app does nothing between updates). Starts at 12 o'clock, like the drawn ring.
-struct SweepArc: NSViewRepresentable {
-    let fraction: Double
-    let drainsIn: TimeInterval
-    /// The last seconds: orange, like the drawn ring; otherwise the brand blue.
-    let urgent: Bool
-    let lineWidth: CGFloat
-    /// The seconds in the middle, cross-fading to each new value (Core Animation too: no per-frame work here).
-    var seconds: Int?
-    var fontSize: CGFloat = 12
-
-    func makeNSView(context: Context) -> ArcView { ArcView() }
-
-    func updateNSView(_ view: ArcView, context: Context) {
-        // The asset's own NSColor, resolved per view and appearance when drawn: converting the SwiftUI colour fixed one
-        // variant (the light-mode blue could show in dark mode, or the other way round).
-        view.update(fraction: fraction, drainsIn: drainsIn,
-                    color: urgent ? .systemOrange : NSColor(named: "AccentColor") ?? .controlAccentColor, lineWidth: lineWidth)
-        if let seconds { view.show(seconds: seconds, urgent: seconds <= 5, fontSize: fontSize) }
-    }
-
-    final class ArcView: NSView {
-        private let arc = CAShapeLayer()
-        private var color = NSColor.controlAccentColor
-        private let number = CATextLayer()
-        /// Clips the rolling number to its line (a layer can't clip its own transition).
-        private let numberClip = CALayer()
-        private var shownSeconds: Int?
-        private var numberUrgent = false
-
-        override init(frame: NSRect) {
-            super.init(frame: frame)
-            wantsLayer = true
-            arc.fillColor = nil
-            arc.lineCap = .round
-            arc.strokeEnd = 1
-            layer?.addSublayer(arc)
-            number.alignmentMode = .center
-            number.isWrapped = false
-            numberClip.masksToBounds = true
-            numberClip.addSublayer(number)
-            layer?.addSublayer(numberClip)
+        TimelineView(.animation(minimumInterval: 1 / 15, paused: !Motion.plays)) { context in
+            let period = Double(totp.period)
+            let into = context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period)
+            CountdownRing(fraction: 1 - into / period, seconds: totp.secondsRemaining(at: context.date), size: size,
+                          digits: digits, lively: lively)
         }
-        required init?(coder: NSCoder) { fatalError() }
-
-        override func hitTest(_ point: NSPoint) -> NSView? { nil } // clicks go to the card or tile underneath
-
-        override func layout() {
-            super.layout()
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            arc.bounds = bounds
-            arc.position = CGPoint(x: bounds.midX, y: bounds.midY)
-            let inset = arc.lineWidth / 2
-            let rect = bounds.insetBy(dx: inset, dy: inset)
-            let path = CGMutablePath()
-            // A full circle from 12 o'clock. Which way Core Graphics runs a whole-circle arc doesn't follow its
-            // `clockwise` flag, so the direction is set by mirroring the layer instead: the gap then opens just after
-            // 12 and widens clockwise, the arc left showing ending at 12 — like the drawn ring (checked in a capture).
-            path.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: rect.width / 2,
-                        startAngle: .pi / 2, endAngle: .pi / 2 + 2 * .pi, clockwise: false)
-            arc.path = path
-            arc.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
-            let lineHeight = ceil((number.font as? NSFont).map { $0.ascender - $0.descender } ?? number.fontSize * 1.2)
-            numberClip.frame = CGRect(x: 0, y: (bounds.height - lineHeight) / 2, width: bounds.width, height: lineHeight)
-            number.frame = numberClip.bounds
-            number.contentsScale = window?.backingScaleFactor ?? 2
-            CATransaction.commit()
-        }
-
-        override func viewDidChangeEffectiveAppearance() {
-            super.viewDidChangeEffectiveAppearance()
-            recolor()
-        }
-
-        private func recolor() {
-            effectiveAppearance.performAsCurrentDrawingAppearance {
-                arc.strokeColor = color.cgColor
-                // Explicit greys, not secondaryLabelColor: on a vibrant panel (the menu bar's glass) that relies on
-                // vibrancy a plain layer doesn't get, and came out nearly invisible in dark mode.
-                let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                let grey = dark ? NSColor(white: 1, alpha: 0.72) : NSColor(white: 0, alpha: 0.55)
-                number.foregroundColor = (numberUrgent ? NSColor.systemOrange : grey).cgColor
-            }
-        }
-
-        override func viewDidChangeBackingProperties() {
-            super.viewDidChangeBackingProperties()
-            number.contentsScale = window?.backingScaleFactor ?? 2
-        }
-
-        /// The seconds: a new value cross-fades in (0.2 s).
-        func show(seconds: Int, urgent: Bool, fontSize: CGFloat) {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            if number.fontSize != fontSize {
-                let base = NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .semibold)
-                number.font = base.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: fontSize) } ?? base
-                number.fontSize = fontSize
-                needsLayout = true
-            }
-            numberUrgent = urgent
-            recolor()
-            if let shown = shownSeconds, shown != seconds {
-                let fade = CATransition()
-                fade.type = .fade // a quiet cross-fade: calmer than a roll, next to a smoothly draining ring
-                fade.duration = 0.2
-                fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                number.add(fade, forKey: "fade")
-            }
-            number.string = "\(seconds)"
-            shownSeconds = seconds
-            CATransaction.commit()
-        }
-
-        func update(fraction: Double, drainsIn: TimeInterval, color: NSColor, lineWidth: CGFloat) {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            self.color = color
-            recolor()
-            if arc.lineWidth != lineWidth { arc.lineWidth = lineWidth; needsLayout = true }
-            // The visible arc is the part after strokeStart: from where it is now, sweep to empty.
-            arc.strokeStart = 1
-            let sweep = CABasicAnimation(keyPath: "strokeStart")
-            sweep.fromValue = 1 - fraction
-            sweep.toValue = 1
-            sweep.duration = max(drainsIn, 0.01)
-            sweep.timingFunction = CAMediaTimingFunction(name: .linear)
-            arc.add(sweep, forKey: "sweep") // replaces last second's, from the same point: no jump
-            CATransaction.commit()
-        }
+        .frame(width: size, height: size)
     }
 }

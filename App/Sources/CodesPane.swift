@@ -57,9 +57,19 @@ struct CodesPane: View {
         let list = items
         let pinned = list.filter(\.favorite)
         let rest = list.filter { !$0.favorite }
+        // The header stays put above the scrolling codes: its countdown ring redraws 15 times a second, and out here
+        // that never touches the grid.
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                .padding(.leading, VaultView.pageInset)
+                .padding(.top, 24).padding(.bottom, 10)
+            codes(list: list, pinned: pinned, rest: rest)
+        }
+    }
+
+    private func codes(list: [VaultItem], pinned: [VaultItem], rest: [VaultItem]) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
-                header
                 if list.isEmpty {
                     ContentUnavailableView {
                         Label(query.isEmpty ? "No one-time codes" : "No Results",
@@ -78,7 +88,7 @@ struct CodesPane: View {
                 }
             }
             .padding(.leading, VaultView.pageInset)
-            .padding(.vertical, 24)
+            .padding(.top, 4).padding(.bottom, 24)
             .animation(.snappy(duration: 0.25), value: list.map(\.id))
         }
         .modifier(SideOverflowClip())
