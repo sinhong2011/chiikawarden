@@ -11,7 +11,7 @@ struct VaultItem: Identifiable, Hashable {
     /// Which saved account this item belongs to (several can be unlocked at once).
     var accountId = ""
     var kind: Kind = .login
-    let name: String
+    var name: String
     var username: String?
     let host: String?
     let password: String?

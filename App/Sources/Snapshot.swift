@@ -158,6 +158,16 @@ enum Snapshot {
                 renderWindow(VaultView(initialSection: page).environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                              appearance: appearance, to: dir.appending(path: "window-page-\(slug)-\(name).png"))
             }
+            // Renaming items (the selected one and another) updates their rows in place, under their new letters.
+            let beforeRename = vault.items
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760), appearance: appearance,
+                         to: dir.appending(path: "window-rename-before-\(name).png"), thenChange: {
+                for i in vault.items.indices where ["GitHub", "Proton Mail"].contains(vault.items[i].name) {
+                    vault.items[i].name = "Zed " + vault.items[i].name
+                    vault.items[i].revised = .now
+                }
+            }, to: dir.appending(path: "window-rename-after-\(name).png"))
+            vault.items = beforeRename
             vault.clipboardClearsAt = nil
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 430, height: 760),
                          resizeFrom: CGSize(width: 1180, height: 760),
@@ -605,7 +615,8 @@ enum Snapshot {
 
     /// A real window with SwiftUI's toolbar bridged in, so toolbar items render as in the app.
     /// `resizeFrom`: open at that size first, then shrink to `size` — like dragging the window edge.
-    private static func renderWindow(_ view: some View, size: CGSize, resizeFrom: CGSize? = nil, appearance: NSAppearance.Name, to url: URL) {
+    private static func renderWindow(_ view: some View, size: CGSize, resizeFrom: CGSize? = nil, appearance: NSAppearance.Name, to url: URL,
+                                     thenChange change: (() -> Void)? = nil, to changedURL: URL? = nil) {
         guard wanted(url) else { return }
         let controller = NSHostingController(rootView: view.frame(minWidth: 380, maxWidth: .infinity, minHeight: 520, maxHeight: .infinity))
         controller.sceneBridgingOptions = [.toolbars, .title]
@@ -636,6 +647,14 @@ enum Snapshot {
                   let rep = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) {
             frame.cacheDisplay(in: frame.bounds, to: rep)
             try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        }
+        // The same live window after a change to the model: what a sync or an edit does to views already on screen.
+        if let change, let changedURL {
+            change()
+            RunLoop.main.run(until: .now + 1)
+            if let image = Self.capture(window) {
+                try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?.write(to: changedURL)
+            }
         }
         window.orderOut(nil)
     }
