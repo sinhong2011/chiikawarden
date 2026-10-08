@@ -2123,9 +2123,12 @@ private struct ClipboardCountdown: View {
                         .clipped()
                         .opacity(hovering ? 1 : 0)
                     // The same ring as a one-time code's: draining, the seconds inside. Only it redraws with the clock.
-                    TimelineView(.animation(minimumInterval: 1 / 15)) { context in
+                    // Like a code's ring: once a second the seconds change and the arc restarts a smooth Core Animation
+                    // sweep to empty, drawn by the system in between (it was a 15 fps redraw).
+                    TimelineView(.periodic(from: clears.addingTimeInterval(-total), by: 1)) { context in // ticks on the countdown's whole seconds
                         let remaining = max(0, clears.timeIntervalSince(context.date))
-                        CountdownRing(fraction: remaining / total, seconds: Int(remaining.rounded(.up)), size: 20, digits: 0.46)
+                        CountdownRing(fraction: remaining / total, seconds: Int(remaining.rounded(.up)), size: 20, digits: 0.46,
+                                      lively: false, drainsIn: remaining)
                     }
                     .padding(3)
                 }
