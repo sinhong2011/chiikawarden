@@ -269,6 +269,13 @@ public actor VaultClient {
         return folder.id
     }
 
+    /// Renames a folder (the name already encrypted).
+    public func renameFolder(id: String, encryptedName: String) async throws(APIError) {
+        var r = try post(environment.apiURL, "folders/\(id)", jsonBody: json(["name": encryptedName]))
+        r.httpMethod = "PUT"
+        _ = try await sendRaw(authorized(r))
+    }
+
     public func deleteFolder(id: String) async throws(APIError) {
         var r = try request(environment.apiURL, "folders/\(id)")
         r.httpMethod = "DELETE"

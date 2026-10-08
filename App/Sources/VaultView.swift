@@ -325,6 +325,15 @@ struct VaultView: View {
         .onChange(of: model.previewURL) { old, _ in
             if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
         }
+        .sheet(isPresented: Binding(get: { model.renamingFolder != nil }, set: { if !$0 { model.renamingFolder = nil } })) {
+            if let path = model.renamingFolder { RenameFolderSheet(path: path) }
+        }
+        // A renamed folder that's open in the sidebar stays open under its new name.
+        .onChange(of: model.renamedFolder?.new) {
+            guard let rename = model.renamedFolder, case .folder(let open) = section,
+                  open == rename.old || open.hasPrefix(rename.old + "/") else { return }
+            section = .folder(rename.new + open.dropFirst(rename.old.count))
+        }
         .sheet(isPresented: $model.promptingNewFolder, onDismiss: { model.newFolderParent = nil }) {
             NewFolderSheet(parent: model.newFolderParent)
         }
@@ -449,6 +458,7 @@ private struct Sidebar: View {
                                 .contextMenu {
                                     Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
                                         .labelStyle(.titleAndIcon)
+                                        .tint(.primary)
                                 }
                         }
                     }
@@ -484,12 +494,14 @@ private struct Sidebar: View {
                     SidebarLabel("All Items", symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
                         .tag(SidebarSelection.organization(org.id))
                         .contextMenu {
-                            Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
-                                .labelStyle(.titleAndIcon)
-                            Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
-                                model.leaveOrganization(org.id)
+                            Group {
+                                Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
+                                Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                                    model.leaveOrganization(org.id)
+                                }
                             }
                             .labelStyle(.titleAndIcon)
+                            .tint(.primary)
                         }
                     ForEach(org.children) { collection in
                         SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack", tag: .collection(collection.id),
@@ -883,15 +895,18 @@ private struct FolderRow: View {
                 return true
             } isTargeted: { targeted = $0 }
             .contextMenu {
-                Button("New Subfolder…", systemImage: "folder.badge.plus") { model.promptNewFolder(in: node.path) }
-                    .labelStyle(.titleAndIcon)
-                if !node.folderIds.isEmpty {
-                    Divider()
-                    Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
-                        model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
+                Group {
+                    Button("New Subfolder…", systemImage: "folder.badge.plus") { model.promptNewFolder(in: node.path) }
+                    Button("Rename…", systemImage: "pencil") { model.renamingFolder = node.path }
+                    if !node.folderIds.isEmpty {
+                        Divider()
+                        Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
+                            model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
+                        }
                     }
-                    .labelStyle(.titleAndIcon)
                 }
+                .labelStyle(.titleAndIcon)
+                .tint(.primary) // the sidebar's selection tint would colour the menu's icons
             }
         if node.children.isEmpty {
             label
@@ -2221,6 +2236,51 @@ struct HeaderIconStyle: ButtonStyle {
 }
 
 /// New Folder, in the same form language as the item and Send forms.
+/// Renames a folder: its last part ("Servers" in Work/Servers); its subfolders move with it.
+struct RenameFolderSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let path: String
+    @State private var name = ""
+    @State private var saving = false
+    @FocusState private var focused: Bool
+
+    private var current: String { path.split(separator: "/").last.map(String.init) ?? path }
+    private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+    private var hasSubfolders: Bool { model.folders.contains { $0.name.hasPrefix(path + "/") } }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                FormHeader(symbol: "folder", title: "Rename Folder", subtitle: "“\(path)”")
+                FormCard {
+                    FormField(label: "Name", note: hasSubfolders ? "Its subfolders move with it." : nil) {
+                        TextField("Name", text: $name, prompt: Text(verbatim: current))
+                            .textFieldStyle(SoftFieldStyle())
+                            .focused($focused)
+                            .onSubmit(save)
+                    }
+                }
+            }
+            .padding(20)
+            FormFooter(action: "Rename", busy: saving, disabled: trimmed.isEmpty || trimmed == current || trimmed.contains("/"),
+                       cancel: { dismiss() }, submit: save)
+        }
+        .frame(width: 440)
+        .background(Color.windowBase)
+        .onAppear { name = current; focused = true }
+    }
+
+    private func save() {
+        guard !trimmed.isEmpty, trimmed != current, !trimmed.contains("/"), !saving else { return }
+        saving = true
+        Task {
+            if await model.renameFolder(path, to: trimmed) { dismiss() }
+            saving = false
+        }
+    }
+}
+
 struct NewFolderSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss

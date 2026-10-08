@@ -342,6 +342,15 @@ final class AccountSession {
         return id
     }
 
+    /// Renames folders (id → new full name), then syncs once.
+    func renameFolders(_ names: [String: String]) async throws {
+        guard let client else { throw WriteError.offline }
+        for (id, name) in names {
+            try await client.renameFolder(id: id, encryptedName: EncString.encrypt(Data(name.utf8), with: userKey).description)
+        }
+        try await refresh()
+    }
+
     func deleteFolder(_ id: String) async throws {
         guard let client else { throw WriteError.offline }
         try await client.deleteFolder(id: id)

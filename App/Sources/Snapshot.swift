@@ -213,6 +213,8 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(NewFolderSheet(parent: "Work").environment(vault).tint(.brand), size: CGSize(width: 440, height: 300),
                    appearance: appearance, to: dir.appending(path: "vault-subfolder-\(name).png"))
+            render(RenameFolderSheet(path: "Work").environment(vault).tint(.brand), size: CGSize(width: 440, height: 300),
+                   appearance: appearance, to: dir.appending(path: "vault-rename-folder-\(name).png"))
         }
         vault.items = plainItems
         vault.folders = []

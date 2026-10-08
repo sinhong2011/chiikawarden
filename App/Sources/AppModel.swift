@@ -199,6 +199,10 @@ final class AppModel {
     var promptingNewFolder = false
     /// Set to open the Keyboard Shortcuts window (from the palette); the root view opens it and clears this.
     var showingShortcuts = false
+    /// The folder (path) whose Rename sheet is open.
+    var renamingFolder: String?
+    /// The last rename (old path, new path), so the sidebar's selection can follow it.
+    var renamedFolder: (old: String, new: String)?
     /// The folder a new one goes inside (its path), when it was asked for from that folder's menu.
     var newFolderParent: String?
 
@@ -1341,6 +1345,32 @@ final class AppModel {
             flash(String(localized: "Folder created"))
             return id
         } catch { _ = failed(error); return nil }
+    }
+
+    /// Renames the folder at `path` (the last part of it) in every open account, and its subfolders with it: they
+    /// nest by name ("Work/Servers"), so each one under it gets the new name too. Filters on it follow.
+    @discardableResult
+    func renameFolder(_ path: String, to newName: String) async -> Bool {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return false }
+        let parent = path.split(separator: "/").dropLast().joined(separator: "/")
+        let newPath = parent.isEmpty ? name : parent + "/" + name
+        guard newPath != path else { return true }
+        do {
+            for session in sessions {
+                var names: [String: String] = [:]
+                for folder in session.folders where folder.name == path || folder.name.hasPrefix(path + "/") {
+                    names[folder.id] = newPath + folder.name.dropFirst(path.count)
+                }
+                if !names.isEmpty { try await session.renameFolders(names) }
+            }
+        } catch { _ = failed(error); return false }
+        if let f = searchFilters.folder, f == path || f.hasPrefix(path + "/") {
+            searchFilters.folder = newPath + f.dropFirst(path.count)
+        }
+        renamedFolder = (path, newPath)
+        flash(String(localized: "Folder renamed"))
+        return true
     }
 
     func deleteFolder(_ id: String) async {
