@@ -70,7 +70,7 @@ struct KeyboardShortcutsView: View {
         Entry(keys: "vault:personal", title: "One vault", kind: .typed),
         Entry(keys: "Tab  ↵", title: "Take a suggestion"),
         Entry(keys: "⌫", title: "Take off the last filter"),
-        Entry(keys: "Esc", title: "Clear the search"),
+        Entry(keys: "Esc", title: "Clear the text, then the filters"),
         Entry(keys: "↓", title: "Into the list"),
     ])
 

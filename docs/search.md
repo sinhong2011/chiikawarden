@@ -34,7 +34,7 @@ stays part of the search text, so searching for `#hashtag` still works.
 | --- | --- |
 | ⌘F | Go to the search (from any page) |
 | ⌫ | With the field empty: take off the last filter |
-| Esc | Close the suggestions, then clear the text |
+| Esc | Close the suggestions, then clear the text, then take the filters off |
 | ↓ | Into the list (or down the suggestions) |
 | ⌘K | The command palette, for searching and running commands from anywhere in the window |
 

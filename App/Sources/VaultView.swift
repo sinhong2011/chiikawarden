@@ -465,8 +465,6 @@ private struct Sidebar: View {
                 } label: {
                     row(.all)
                 }
-                row(.archive)
-                row(.trash)
             } header: {
                 HStack(spacing: 6) {
                     Text("Vault").font(.system(size: 13, weight: .semibold))
@@ -489,6 +487,11 @@ private struct Sidebar: View {
                 SidebarLabel("Watchtower", symbol: "checkmark.shield", tag: .watchtower, count: model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
             }
+            // Items set aside: kept (Archive) or on their way out (Trash).
+            Section("Manage") {
+                row(.archive)
+                row(.trash)
+            }
             ForEach(model.visibleOrganizations) { org in
                 Section(org.name) {
                     SidebarLabel("All Items", symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
@@ -503,10 +506,9 @@ private struct Sidebar: View {
                             .labelStyle(.titleAndIcon)
                             .tint(Color(nsColor: .labelColor))
                         }
-                    ForEach(org.children) { collection in
-                        SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack", tag: .collection(collection.id),
-                                     count: count(.collection(collection.id)))
-                            .tag(SidebarSelection.collection(collection.id))
+                    // Shared folders nest by name ("Engineering/Backend"), like My Folders.
+                    ForEach(FolderNode.tree(org.children)) { node in
+                        SharedFolderRow(node: node, count: count)
                     }
                 }
             }
@@ -878,6 +880,33 @@ struct FolderNode: Identifiable, Hashable {
 }
 
 /// Recursive folder row; items dropped on a real folder move into it.
+/// A shared folder (collection) in the sidebar, with the ones nested under it. A level that's only part of others'
+/// names ("Engineering" for "Engineering/Backend") is a heading, not something to select.
+private struct SharedFolderRow: View {
+    let node: FolderNode
+    let count: (SidebarSelection) -> Int
+    @State private var expanded = true
+
+    @ViewBuilder private var label: some View {
+        if let id = node.folderIds.first {
+            SidebarLabel(verbatim: node.name, symbol: "rectangle.stack", tag: .collection(id), count: count(.collection(id)))
+                .tag(SidebarSelection.collection(id))
+        } else {
+            SidebarLabel(verbatim: node.name, symbol: "rectangle.stack")
+        }
+    }
+
+    var body: some View {
+        if node.children.isEmpty {
+            label
+        } else {
+            DisclosureGroup(isExpanded: $expanded) {
+                ForEach(node.children) { SharedFolderRow(node: $0, count: count) }
+            } label: { label }
+        }
+    }
+}
+
 private struct FolderRow: View {
     @Environment(AppModel.self) private var model
     let node: FolderNode
@@ -980,6 +1009,10 @@ private struct NewItemButton: View {
                 }
                 Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
                     .keyboardShortcut("n", modifiers: [.command, .option])
+                Divider()
+                Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                    .disabled(model.sessions.isEmpty)
             }
             .labelStyle(.titleAndIcon)
         } label: {
@@ -1189,9 +1222,11 @@ private struct ItemColumn: View {
             .zIndex(1) // the search's suggestions hang over the list
 
             // Once, the first time the search is used: filters can be typed and they stay on.
-            TipView(SearchFiltersTip())
-                .tipImageStyle(.secondary)
-                .padding(.leading, 6)
+            if Motion.plays { // never in renders, which must look the same every run
+                TipView(SearchFiltersTip())
+                    .tipImageStyle(.secondary)
+                    .padding(.leading, 6)
+            }
 
             // The filters that are on, under the field, until they're cleared.
             if model.hasSearchFilters {
@@ -1259,6 +1294,10 @@ private struct ItemColumn: View {
                     } actions: {
                         if model.hasSearchFilters {
                             Button("Clear Filters") { withAnimation(.snappy(duration: 0.25)) { model.clearSearchFilters() } }
+                        } else if !searching, !isTrash, !model.accounts.isEmpty {
+                            // Nothing here yet: bring items over from another app (or drop its export on the window).
+                            Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
+                                .buttonStyle(.appSecondary)
                         }
                     }
                     .modifier(WindowCentered())
@@ -2372,39 +2411,31 @@ struct NewFolderSheet: View {
     }
 }
 
-/// All vaults / My vault / each organization: narrows every list, count and code to one vault.
+/// All vaults, or any mix of My vault and the shared vaults: narrows every list, count and code to them. From All
+/// vaults a click shows just that vault; after that each click adds or takes away one.
 private struct VaultSwitcher: View {
     @Environment(AppModel.self) private var model
 
-    private var title: String {
-        switch model.vaultFilter {
-        case .all: String(localized: "All vaults")
-        case .personal: String(localized: "My vault")
-        case .organization(let id): model.organizations.first { $0.id == id }?.name ?? String(localized: "All vaults")
-        }
-    }
+    private var title: String { model.vaultFilterTitle }
 
     private var symbol: String {
         switch model.vaultFilter {
         case .all: "square.stack.3d.up"
         case .personal: "person"
         case .organization: "building.2"
+        case .several: "square.on.square"
         }
     }
 
     var body: some View {
         Menu {
-            choice(.all, "All vaults", "square.stack.3d.up")
-            choice(.personal, "My vault", "person")
-            Divider()
-            ForEach(model.visibleOrganizations) { org in
-                Button {
-                    withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .organization(org.id) }
-                } label: {
-                    Label { Text(verbatim: org.name) } icon: {
-                        Image(systemName: model.vaultFilter == .organization(org.id) ? "checkmark" : "building.2")
-                    }
-                }
+            Button {
+                withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .all }
+            } label: {
+                Label("All vaults", systemImage: model.vaultFilter == .all ? "checkmark" : "square.stack.3d.up")
+            }
+            Section(model.vaultFilter == .all ? "Show one, then add more" : "Shown together") {
+                VaultToggles()
             }
         } label: {
             HStack(spacing: 8) {
@@ -2423,16 +2454,26 @@ private struct VaultSwitcher: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .frame(maxWidth: .infinity)
-        .help(Text("Show one vault"))
+        .help(Text("Show one vault or several"))
         .accessibilityLabel(Text("Vault"))
         .accessibilityValue(Text(verbatim: title))
     }
+}
 
-    private func choice(_ filter: AppModel.VaultFilter, _ title: LocalizedStringKey, _ symbol: String) -> some View {
+/// My vault and each shared vault as menu items with a checkmark while shown; a click adds or takes one away.
+struct VaultToggles: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        item(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person")
+        ForEach(model.visibleOrganizations) { org in item(org.id, org.name, "building.2") }
+    }
+
+    private func item(_ key: String, _ title: String, _ symbol: String) -> some View {
         Button {
-            withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = filter }
+            withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) }
         } label: {
-            Label(title, systemImage: model.vaultFilter == filter ? "checkmark" : symbol)
+            Label { Text(verbatim: title) } icon: { Image(systemName: model.vaultChosen(key) ? "checkmark" : symbol) }
         }
     }
 }

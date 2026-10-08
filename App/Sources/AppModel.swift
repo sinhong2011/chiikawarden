@@ -55,24 +55,86 @@ final class AppModel {
     /// Sidebar filter: show one account only.
     var accountFilter: String?
 
-    /// Which vault the lists show, like Bitwarden's vault filter: everything, your own items, or one organization.
+    /// Which vaults the lists show, like Bitwarden's vault switcher: everything, your own items, one shared vault, or
+    /// several together (your own and one shared vault, say). Vaults are named by key: "personal", or an organization id.
     enum VaultFilter: Hashable {
         case all, personal, organization(String)
+        /// Two or more vaults (keys as above).
+        case several(Set<String>)
 
-        /// "personal", "org:<id>", or nil for all: how it's saved, and how the Focus filter names it.
+        static let personalKey = "personal"
+
+        /// "personal", "org:<id>", "set:<key>,<key>", or nil for all: how it's saved, and how the Focus filter names it.
         init(raw: String?) {
             switch raw {
             case "personal": self = .personal
             case let id? where id.hasPrefix("org:"): self = .organization(String(id.dropFirst(4)))
+            case let list? where list.hasPrefix("set:"):
+                self = VaultFilter(keys: Set(list.dropFirst(4).split(separator: ",").map(String.init)))
             default: self = .all
             }
         }
         var raw: String? {
-            switch self { case .all: nil; case .personal: "personal"; case .organization(let id): "org:" + id }
+            switch self {
+            case .all: nil
+            case .personal: "personal"
+            case .organization(let id): "org:" + id
+            case .several(let keys): "set:" + keys.sorted().joined(separator: ",")
+            }
+        }
+
+        /// The simplest filter for a set of vaults: none (or every one in `all`) is every vault.
+        init(keys: Set<String>, all: Set<String>? = nil) {
+            if keys.isEmpty || all.map(keys.isSuperset) == true { self = .all }
+            else if keys.count == 1, let key = keys.first {
+                self = key == Self.personalKey ? .personal : .organization(key)
+            } else { self = .several(keys) }
+        }
+
+        /// The vaults it lets through; nil for every vault.
+        var keys: Set<String>? {
+            switch self {
+            case .all: nil
+            case .personal: [Self.personalKey]
+            case .organization(let id): [id]
+            case .several(let keys): keys
+            }
         }
     }
+
+    /// Every vault there is to show: your own, and each shared vault of the account in focus.
+    var allVaultKeys: Set<String> { Set([VaultFilter.personalKey] + visibleOrganizations.map(\.id)) }
+
+    /// Whether a vault is chosen in the switcher (not when it shows every vault: then none is singled out).
+    func vaultChosen(_ key: String) -> Bool { vaultFilter.keys?.contains(key) ?? false }
+
+    /// The switcher's click on a vault: from every vault, just that one; otherwise it joins or leaves the ones shown
+    /// (the last one leaving shows every vault again).
+    func toggleVault(_ key: String) {
+        guard var keys = vaultFilter.keys else { vaultFilter = VaultFilter(keys: [key], all: allVaultKeys); return }
+        if keys.contains(key) { keys.remove(key) } else { keys.insert(key) }
+        vaultFilter = VaultFilter(keys: keys, all: allVaultKeys)
+    }
+
+    /// Drops shared vaults that are gone (left, or their account locked) from the filter.
+    private func pruneVaultFilter() {
+        guard let keys = vaultFilter.keys, !organizations.isEmpty else { return }
+        let known = Set([VaultFilter.personalKey] + organizations.map(\.id))
+        let kept = keys.intersection(known)
+        if kept != keys { vaultFilter = VaultFilter(keys: kept) }
+    }
+
+    /// The vault filter in words: "All vaults", "My vault", "Northwind", "My vault + Northwind", "3 vaults".
+    var vaultFilterTitle: String {
+        guard let keys = vaultFilter.keys else { return String(localized: "All vaults") }
+        let names = keys.sorted { a, b in a == VaultFilter.personalKey || (b != VaultFilter.personalKey && a < b) }.map { key in
+            key == VaultFilter.personalKey ? String(localized: "My vault")
+                : organizations.first { $0.id == key }?.name ?? String(localized: "Shared vault")
+        }
+        return names.count <= 2 ? names.joined(separator: " + ") : String(localized: "\(names.count) vaults")
+    }
     var vaultFilter = VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) {
-        didSet { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") }
+        didSet { if Self.keepsSearchFilters { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") } }
     }
 
     /// The vault list's search filters (type, folder, favorites, codes, passkeys, Watchtower issues), kept between
@@ -167,6 +229,7 @@ final class AppModel {
         case .all: true
         case .personal: item.organizationId == nil
         case .organization(let id): item.organizationId == id
+        case .several(let keys): keys.contains(item.organizationId ?? VaultFilter.personalKey)
         }
     }
 
@@ -446,9 +509,7 @@ final class AppModel {
         if let id = selectedSendID, !sends.contains(where: { $0.id == id }) { selectedSendID = nil }
         skippedOrgItems = sessions.reduce(0) { $0 + $1.hiddenCount }
         if !multi { accountFilter = nil }
-        if case .organization(let id) = vaultFilter, !organizations.isEmpty, !organizations.contains(where: { $0.id == id }) {
-            vaultFilter = .all
-        }
+        pruneVaultFilter()
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items, equivalents: equivalentDomains)
         if sessions.isEmpty { signInWatch?.cancel(); signInWatch = nil } else { watchSignIns() }
@@ -1528,7 +1589,9 @@ final class AppModel {
                 action: String(localized: "Leave Shared Vault")) { [weak self] in
             do {
                 try await session.leaveOrganization(id)
-                if case .organization(id) = self?.vaultFilter { self?.vaultFilter = .all }
+                if let self, let keys = self.vaultFilter.keys, keys.contains(id) {
+                    self.vaultFilter = VaultFilter(keys: keys.subtracting([id]))
+                }
                 self?.flash(String(localized: "Left “\(org.name)”"))
             } catch { _ = self?.failed(error) }
         }

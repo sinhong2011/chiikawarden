@@ -194,7 +194,8 @@ enum Snapshot {
         let plainItems = vault.items
         vault.folders = [Grouping(id: "f-personal", name: "Personal"), Grouping(id: "f-work", name: "Work")]
         vault.organizations = [Grouping(id: "org-nw", name: "Northwind", children: [
-            Grouping(id: "col-eng", name: "Engineering"), Grouping(id: "col-ops", name: "Operations")])]
+            Grouping(id: "col-eng", name: "Engineering"), Grouping(id: "col-eng-be", name: "Engineering/Backend"),
+            Grouping(id: "col-eng-fe", name: "Engineering/Frontend"), Grouping(id: "col-ops", name: "Operations")])]
         vault.items = vault.items.map { item in
             var item = item
             if item.id == "1" { item.organizationId = "org-nw"; item.collectionIds = ["col-ops"] }
@@ -205,6 +206,11 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
                          appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            // My vault and Northwind together: the switcher and the chip name both.
+            vault.vaultFilter = .several([AppModel.VaultFilter.personalKey, "org-nw"])
+            renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-several-\(name).png"))
+            vault.vaultFilter = .all
             render(MoveToOrganizationSheet(itemIDs: ["2"]).environment(vault).tint(.brand), size: CGSize(width: 520, height: 600),
                    appearance: appearance, to: dir.appending(path: "vault-shared-move-\(name).png"))
             render(CollectionsSheet(itemID: "1").environment(vault).tint(.brand), size: CGSize(width: 480, height: 420),
@@ -245,6 +251,15 @@ enum Snapshot {
             }
         }
         vault.folders = []
+
+        // An empty vault: Import… right in the list.
+        let full = vault.items
+        vault.items = []
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-empty-\(name).png"))
+        }
+        vault.items = full
 
         // An item with a Watchtower issue: its row leads to Watchtower (chevron).
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {

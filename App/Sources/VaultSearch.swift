@@ -40,9 +40,7 @@ enum SearchChip: Identifiable, Equatable {
         case .filter(.hasCode): String(localized: "One-time code")
         case .filter(.hasPasskey): String(localized: "Passkey")
         case .filter(.hasIssue): String(localized: "Watchtower issue")
-        case .vault(.all): String(localized: "All vaults")
-        case .vault(.personal): String(localized: "My vault")
-        case .vault(.organization(let id)): model.organizations.first { $0.id == id }?.name ?? String(localized: "Shared vault")
+        case .vault: model.vaultFilterTitle
         }
     }
 
@@ -51,6 +49,7 @@ enum SearchChip: Identifiable, Equatable {
         case .filter(.type(let t)): VaultItem.Kind(t).paletteSymbol
         case .filter(.folder): "folder"
         case .filter(.vault), .vault(.organization): "building.2"
+        case .vault(.several): "square.on.square"
         case .filter(.favorites): "star"
         case .filter(.hasCode): "clock.badge.checkmark"
         case .filter(.hasPasskey): "person.badge.key"
@@ -210,10 +209,12 @@ struct VaultSearchField: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .focused(focused)
+                // Esc: closes the suggestions, then clears the text, then takes the filters off.
                 .onKeyPress(.escape) {
                     if !suggestions.isEmpty { dismissedFor = query; return .handled }
-                    guard !query.isEmpty else { return .ignored }
-                    query = ""
+                    if !query.isEmpty { query = ""; return .handled }
+                    guard model.hasSearchFilters else { return .ignored }
+                    withAnimation(.snappy(duration: 0.25)) { model.clearSearchFilters() }
                     return .handled
                 }
                 .onKeyPress(.downArrow) {
@@ -384,11 +385,8 @@ struct SearchFilterMenu: View {
             if !model.visibleOrganizations.isEmpty {
                 Menu {
                     vaultChoice(.all, String(localized: "All vaults"), "square.stack.3d.up")
-                    vaultChoice(.personal, String(localized: "My vault"), "person")
                     Divider()
-                    ForEach(model.visibleOrganizations) { org in
-                        vaultChoice(.organization(org.id), org.name, "building.2")
-                    }
+                    VaultToggles()
                 } label: {
                     Label("Vault", systemImage: "square.stack.3d.up")
                 }
@@ -485,7 +483,7 @@ private struct FilterChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: symbol).font(.system(size: 10, weight: .semibold))
-            Text(verbatim: label).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+            Text(verbatim: label).font(.system(size: 12, weight: .semibold)).lineLimit(1).truncationMode(.tail)
             Button(action: remove) {
                 Image(systemName: "xmark").font(.system(size: 8, weight: .bold))
                     .frame(width: 14, height: 14)
@@ -499,7 +497,7 @@ private struct FilterChip: View {
         }
         .foregroundStyle(.primary.opacity(0.75))
         .padding(.leading, 8).padding(.trailing, 5).frame(height: 24)
-        .frame(maxWidth: 170)
+        .frame(maxWidth: 220)
         .background(Color.primary.opacity(0.08), in: .capsule)
         .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .combine)

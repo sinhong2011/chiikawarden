@@ -31,7 +31,7 @@
   and Trash; password history, clone, and "ask for master password" on sensitive items.
 - Several accounts at once, across servers: self-hosted Vaultwarden or Bitwarden, and Bitwarden cloud (US and EU).
 - Shared vaults (Bitwarden organizations) and their shared folders (collections): a vault switcher (All vaults,
-  My vault, each shared vault), move items into a shared vault, change shared folders, event logs for admins; live
+  My vault, any shared vault, or several together), shared folders nested like your own, move items into a shared vault, change shared folders, event logs for admins; live
   sync over WebSocket.
 - Pick many items (⌘-click, ⇧-click, ⌘A) to move, archive, trash or restore them at once.
 - Item history: when it was created and last edited, when its password changed, and its earlier passwords.
