@@ -1205,6 +1205,24 @@ enum ItemSort: String, CaseIterable, Identifiable {
     }
 }
 
+/// A line of the item list: a section's header, or an item. Identified by the item's id alone, so an item keeps its
+/// row wherever its section goes.
+private enum ListLine: Identifiable {
+    case header(String)
+    case item(VaultItem)
+
+    var id: String {
+        switch self {
+        case .header(let title): "header:" + title
+        case .item(let item): item.id
+        }
+    }
+
+    static func lines(_ sections: [(title: String, items: [VaultItem])]) -> [ListLine] {
+        sections.flatMap { [.header($0.title)] + $0.items.map(ListLine.item) }
+    }
+}
+
 /// A pinned list header ("A", "October 2026"): plain text on the list's surface, like Contacts and 1Password.
 private struct SectionHeader: View {
     let title: String
@@ -1320,24 +1338,25 @@ private struct ItemColumn: View {
             ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 6) {
-                    // A–Z (then #) by title, or by month by date.
-                    ForEach(ItemSort.sections(items, by: order), id: \.title) { group in
-                        Section {
-                            ForEach(group.items) { item in
-                                ItemRow(item: item, isSelected: picked(item), highlight: query)
-                                    .modifier(ArrivalPop(arrived: model.arrivedID == item.id))
-                                    .onTapGesture { click(item, ordered: ItemSort.sections(items, by: order).flatMap(\.items)) }
-                                    .accessibilityElement(children: .combine)
-                                    .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
-                                    .accessibilityAction { selection = item.id }
-                                    .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
-                                    .contextMenu { ItemContextMenu(item: item) }
-                                    // Trashed, archived or deleted: the row slips out; restored ones fade back in.
-                                    .transition(.asymmetric(insertion: .opacity,
-                                                            removal: .opacity.combined(with: .scale(scale: 0.96)).combined(with: .move(edge: .leading))))
-                            }
-                        } header: {
-                            SectionHeader(title: group.title)
+                    // A–Z (then #) by title, or by month by date. One flat run, headers in line with the rows: with a
+                    // ForEach per section, a row whose item moved to another section (renamed "Arm…" → "Oracle…")
+                    // kept drawing its old self.
+                    ForEach(ListLine.lines(ItemSort.sections(items, by: order))) { line in
+                        switch line {
+                        case .header(let title):
+                            SectionHeader(title: title)
+                        case .item(let item):
+                            ItemRow(item: item, isSelected: picked(item), highlight: query)
+                                .modifier(ArrivalPop(arrived: model.arrivedID == item.id))
+                                .onTapGesture { click(item, ordered: ItemSort.sections(items, by: order).flatMap(\.items)) }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityAddTraits(item.id == selection ? [.isButton, .isSelected] : .isButton)
+                                .accessibilityAction { selection = item.id }
+                                .draggable(item.id) { ItemRow(item: item, isSelected: true).frame(width: 260) }
+                                .contextMenu { ItemContextMenu(item: item) }
+                                // Trashed, archived or deleted: the row slips out; restored ones fade back in.
+                                .transition(.asymmetric(insertion: .opacity,
+                                                        removal: .opacity.combined(with: .scale(scale: 0.96)).combined(with: .move(edge: .leading))))
                         }
                     }
                 }
