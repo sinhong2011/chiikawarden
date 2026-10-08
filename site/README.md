@@ -14,6 +14,16 @@ Optional deploy config:
 - `SITE_URL`: canonical site origin for sitemap/canonical URLs (for example `https://example.com`)
 - `SITE_BASE_PATH`: base path prefix (defaults to `/`)
 
+GitHub Actions CI/CD (`.github/workflows/site.yml`) uses:
+
+- Repository variables:
+  - `SITE_URL` (optional)
+  - `SITE_BASE_PATH` (optional)
+  - `CLOUDFLARE_PAGES_PROJECT` (required for deploy)
+- Repository secrets:
+  - `CLOUDFLARE_API_TOKEN`
+  - `CLOUDFLARE_ACCOUNT_ID`
+
 - `src/config.ts`: price, download and Homebrew links, version, and `CHECKOUT_URL` — the Lemon Squeezy link, which is
   in test mode and changes when the store goes live (change it there only). `asset()` prefixes the deploy base.
 - `src/styles/global.css`: brand tokens in `@theme` (so `text-ink`, `bg-sky`, `font-serif` … exist as utilities),
