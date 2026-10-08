@@ -9,9 +9,12 @@ const locales = ["en", "zh-hant", "zh-hk", "zh-hans", "ja"];
 // Their BCP 47 tags, as `lang` in src/i18n.ts (used for the sitemap's hreflang).
 const LANGS = { en: "en", "zh-hant": "zh-Hant-TW", "zh-hk": "zh-Hant-HK", "zh-hans": "zh-Hans", ja: "ja" };
 const isCloudflarePages = process.env.CF_PAGES === "1";
-const cloudflarePagesHost = process.env.CF_PAGES_URL || "triwarden.pages.dev";
-const siteUrl = isCloudflarePages ? `https://${cloudflarePagesHost}` : "https://sinhong2011.github.io";
-const basePath = isCloudflarePages ? "/" : "/triwarden";
+const [githubOwner = "", githubRepo = ""] = (process.env.GITHUB_REPOSITORY || "").split("/");
+const cloudflareSite = process.env.CF_PAGES_URL ? `https://${process.env.CF_PAGES_URL}` : "";
+const githubSite = githubOwner ? `https://${githubOwner}.github.io` : "";
+const inferredBasePath = githubRepo ? `/${githubRepo}` : "/";
+const siteUrl = process.env.SITE_URL || cloudflareSite || githubSite;
+const basePath = process.env.SITE_BASE_PATH || (isCloudflarePages ? "/" : inferredBasePath);
 
 // The `shaders` library registers all ~200 of its effects up front (2.5 MB). The site uses a handful, so its
 // registry module is swapped for one that lists only these; the rest are never bundled. Add a name here when
