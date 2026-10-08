@@ -55,24 +55,127 @@ final class AppModel {
     /// Sidebar filter: show one account only.
     var accountFilter: String?
 
-    /// Which vault the lists show, like Bitwarden's vault filter: everything, your own items, or one organization.
+    /// Which vaults the lists show, like Bitwarden's vault switcher: everything, your own items, one shared vault, or
+    /// several together (your own and one shared vault, say). Vaults are named by key: "personal", or an organization id.
     enum VaultFilter: Hashable {
         case all, personal, organization(String)
+        /// Two or more vaults (keys as above).
+        case several(Set<String>)
 
-        /// "personal", "org:<id>", or nil for all: how it's saved, and how the Focus filter names it.
+        static let personalKey = "personal"
+
+        /// "personal", "org:<id>", "set:<key>,<key>", or nil for all: how it's saved, and how the Focus filter names it.
         init(raw: String?) {
             switch raw {
             case "personal": self = .personal
             case let id? where id.hasPrefix("org:"): self = .organization(String(id.dropFirst(4)))
+            case let list? where list.hasPrefix("set:"):
+                self = VaultFilter(keys: Set(list.dropFirst(4).split(separator: ",").map(String.init)))
             default: self = .all
             }
         }
         var raw: String? {
-            switch self { case .all: nil; case .personal: "personal"; case .organization(let id): "org:" + id }
+            switch self {
+            case .all: nil
+            case .personal: "personal"
+            case .organization(let id): "org:" + id
+            case .several(let keys): "set:" + keys.sorted().joined(separator: ",")
+            }
+        }
+
+        /// The simplest filter for a set of vaults: none (or every one in `all`) is every vault.
+        init(keys: Set<String>, all: Set<String>? = nil) {
+            if keys.isEmpty || all.map(keys.isSuperset) == true { self = .all }
+            else if keys.count == 1, let key = keys.first {
+                self = key == Self.personalKey ? .personal : .organization(key)
+            } else { self = .several(keys) }
+        }
+
+        /// The vaults it lets through; nil for every vault.
+        var keys: Set<String>? {
+            switch self {
+            case .all: nil
+            case .personal: [Self.personalKey]
+            case .organization(let id): [id]
+            case .several(let keys): keys
+            }
         }
     }
-    var vaultFilter = VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) {
-        didSet { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") }
+
+    /// Every vault there is to show: your own, and each shared vault of the account in focus.
+    var allVaultKeys: Set<String> { Set([VaultFilter.personalKey] + visibleOrganizations.map(\.id)) }
+
+    /// Whether a vault is shown (every one is, while the filter shows all vaults).
+    func vaultShown(_ key: String) -> Bool { vaultFilter.keys?.contains(key) ?? true }
+
+    /// A vault's checkbox: shows it alongside the others, or hides it. The last one shown stays (an empty list would
+    /// just look broken); checking them all is All vaults again.
+    func toggleVault(_ key: String) {
+        var keys = vaultFilter.keys ?? allVaultKeys
+        if keys.contains(key) {
+            guard keys.count > 1 else { return }
+            keys.remove(key)
+        } else {
+            keys.insert(key)
+        }
+        vaultFilter = VaultFilter(keys: keys, all: allVaultKeys)
+    }
+
+    /// Just this vault.
+    func showOnlyVault(_ key: String) { vaultFilter = VaultFilter(keys: [key], all: allVaultKeys) }
+
+    /// How many items a vault holds (of the account in focus), for the switcher.
+    func vaultCount(_ key: String?) -> Int {
+        focusedItems.filter { !$0.isDeleted && !$0.isArchived && (key == nil || ($0.organizationId ?? VaultFilter.personalKey) == key) }.count
+    }
+
+    /// Drops shared vaults that are gone (left, or their account locked) from the filter.
+    private func pruneVaultFilter() {
+        guard let keys = vaultFilter.keys, !organizations.isEmpty else { return }
+        let known = Set([VaultFilter.personalKey] + organizations.map(\.id))
+        let kept = keys.intersection(known)
+        if kept != keys { vaultFilter = VaultFilter(keys: kept) }
+    }
+
+    /// The vault filter in words: "All vaults", "My vault", "Northwind", "My vault + Northwind", "3 vaults".
+    var vaultFilterTitle: String {
+        guard let keys = vaultFilter.keys else { return String(localized: "All vaults") }
+        let names = keys.sorted { a, b in a == VaultFilter.personalKey || (b != VaultFilter.personalKey && a < b) }.map { key in
+            key == VaultFilter.personalKey ? String(localized: "My vault")
+                : organizations.first { $0.id == key }?.name ?? String(localized: "Shared vault")
+        }
+        return names.count <= 2 ? names.joined(separator: " + ") : String(localized: "\(names.count) vaults")
+    }
+    var vaultFilter = AppModel.keepsSearchFilters ? VaultFilter(raw: UserDefaults.standard.string(forKey: "vaultFilter")) : .all {
+        didSet { if Self.keepsSearchFilters { UserDefaults.standard.set(vaultFilter.raw, forKey: "vaultFilter") } }
+    }
+
+    /// The vault list's search filters (type, folder, favorites, codes, passkeys, Watchtower issues), kept between
+    /// launches. Renders and demo runs start clear and leave the saved ones alone.
+    var searchFilters = AppModel.keepsSearchFilters ? SearchFilters.load() : SearchFilters() {
+        didSet { if Self.keepsSearchFilters { searchFilters.save() } }
+    }
+    /// Renders and demo runs start clear and leave the saved vault and filters alone.
+    private static let keepsSearchFilters = !CommandLine.arguments.contains { $0 == "--snapshot" || $0.hasPrefix("--demo") }
+    /// Set by ⌘F: the vault list's search field takes focus (and clears it).
+    var wantsSearchFocus = false
+
+    /// Whether an item passes the search filters (the vault itself is `vaultFilter`'s).
+    func passesSearchFilters(_ item: VaultItem) -> Bool {
+        let f = searchFilters
+        if let type = f.type, item.kind != VaultItem.Kind(type) { return false }
+        if let folder = f.folder, !(item.folderName == folder || item.folderName?.hasPrefix(folder + "/") == true) { return false }
+        if f.favorites, !item.favorite { return false }
+        if f.hasCode, !item.hasTOTP { return false }
+        if f.hasPasskey, !item.hasPasskey { return false }
+        if f.hasIssue, item.passwordIssue(breaches: breachCounts) == nil { return false }
+        return true
+    }
+
+    /// Clears every search filter and shows every vault again.
+    func clearSearchFilters() {
+        searchFilters = SearchFilters()
+        if vaultFilter != .all { vaultFilter = .all }
     }
 
     /// The vault a Focus asked for (Focus filter), and the one chosen before it, to go back to when the Focus ends.
@@ -140,6 +243,7 @@ final class AppModel {
         case .all: true
         case .personal: item.organizationId == nil
         case .organization(let id): item.organizationId == id
+        case .several(let keys): keys.contains(item.organizationId ?? VaultFilter.personalKey)
         }
     }
 
@@ -170,6 +274,20 @@ final class AppModel {
     var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
     /// True while the New Folder prompt is showing.
     var promptingNewFolder = false
+    /// Set to open the Keyboard Shortcuts window (from the palette); the root view opens it and clears this.
+    var showingShortcuts = false
+    /// The folder (path) whose Rename sheet is open.
+    var renamingFolder: String?
+    /// The last rename (old path, new path), so the sidebar's selection can follow it.
+    var renamedFolder: (old: String, new: String)?
+    /// The folder a new one goes inside (its path), when it was asked for from that folder's menu.
+    var newFolderParent: String?
+
+    /// The New Folder prompt, for a folder inside `parent` (a path like "Work/Servers"), or at the top.
+    func promptNewFolder(in parent: String? = nil) {
+        newFolderParent = parent
+        promptingNewFolder = true
+    }
     /// Non-nil while the create/edit sheet is open.
     var editing: EditRequest?
     /// The import or export sheet; an import may start with a file (dropped on the window).
@@ -405,9 +523,7 @@ final class AppModel {
         if let id = selectedSendID, !sends.contains(where: { $0.id == id }) { selectedSendID = nil }
         skippedOrgItems = sessions.reduce(0) { $0 + $1.hiddenCount }
         if !multi { accountFilter = nil }
-        if case .organization(let id) = vaultFilter, !organizations.isEmpty, !organizations.contains(where: { $0.id == id }) {
-            vaultFilter = .all
-        }
+        pruneVaultFilter()
         if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
         AutoFillIdentities.publish(items, equivalents: equivalentDomains)
         if sessions.isEmpty { signInWatch?.cancel(); signInWatch = nil } else { watchSignIns() }
@@ -470,6 +586,14 @@ final class AppModel {
     }
     /// Sidebar destination asked for from outside the vault view (palette commands).
     var requestedSection: SidebarSelection?
+    /// An item to point out on the Watchtower page (from its detail): the page scrolls to it and highlights it.
+    var watchtowerFocus: String?
+
+    /// Opens Watchtower at an item's issue.
+    func showInWatchtower(_ item: VaultItem) {
+        watchtowerFocus = item.id
+        requestedSection = .watchtower
+    }
     /// Asks the vault window to show its list filtered by this text (the palette's "Show all results").
     var requestedFilter: String?
     var showingGenerator = false
@@ -1078,7 +1202,10 @@ final class AppModel {
         errorMessage = nil
         defer { isBusy = false }
         let id = target.id
+        Bench.begin("unlock-password-key")
+        Bench.begin("unlock-password-open")
         let derived = await Task.detached(priority: .userInitiated) { AccountStore.unlock(id, password: password) }.value
+        Bench.end("unlock-password-key")
         guard let derived else {
             errorMessage = String(localized: "Wrong master password.")
             return
@@ -1091,8 +1218,10 @@ final class AppModel {
     func unlockWithTouchID(context: LAContext = LAContext()) async {
         errorMessage = nil
         let locked = accounts.map(\.id).filter { !isUnlocked($0) }
+        Bench.begin("unlock-touchid-prompt") // includes the person's finger: not the app's own time
         let keys = await AccountStore.unlockAllWithTouchID(locked, reason: String(localized: "unlock your vault"), context: context)
-        if !keys.isEmpty { finishUnlock(keys) }
+        Bench.end("unlock-touchid-prompt")
+        if !keys.isEmpty { Bench.begin("unlock-touchid-open"); finishUnlock(keys) }
     }
 
     private func finishUnlock(_ keys: [String: SymmetricKeyPair]) {
@@ -1116,6 +1245,7 @@ final class AppModel {
             phase = .vault
             accountDoor = nil
             updateAccountDoor()
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
             return
         }
         unlockOpenedAt = .now
@@ -1146,6 +1276,7 @@ final class AppModel {
             unlockOpening = false
             unlockOpenedAt = nil
             updateAccountDoor() // still focused on a locked account (another was unlocked): its door
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
         }
     }
 
@@ -1299,6 +1430,32 @@ final class AppModel {
         } catch { _ = failed(error); return nil }
     }
 
+    /// Renames the folder at `path` (the last part of it) in every open account, and its subfolders with it: they
+    /// nest by name ("Work/Servers"), so each one under it gets the new name too. Filters on it follow.
+    @discardableResult
+    func renameFolder(_ path: String, to newName: String) async -> Bool {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return false }
+        let parent = path.split(separator: "/").dropLast().joined(separator: "/")
+        let newPath = parent.isEmpty ? name : parent + "/" + name
+        guard newPath != path else { return true }
+        do {
+            for session in sessions {
+                var names: [String: String] = [:]
+                for folder in session.folders where folder.name == path || folder.name.hasPrefix(path + "/") {
+                    names[folder.id] = newPath + folder.name.dropFirst(path.count)
+                }
+                if !names.isEmpty { try await session.renameFolders(names) }
+            }
+        } catch { _ = failed(error); return false }
+        if let f = searchFilters.folder, f == path || f.hasPrefix(path + "/") {
+            searchFilters.folder = newPath + f.dropFirst(path.count)
+        }
+        renamedFolder = (path, newPath)
+        flash(String(localized: "Folder renamed"))
+        return true
+    }
+
     func deleteFolder(_ id: String) async {
         guard let session = sessions.first(where: { $0.folders.contains { $0.id == id } }) else { return }
         do { try await session.deleteFolder(id) } catch { _ = failed(error) }
@@ -1349,7 +1506,7 @@ final class AppModel {
         guard let session = session(for: item) else { return offline() }
         do {
             try await session.setCollections(item.id, collectionIds: collectionIds)
-            flash(String(localized: "Collections updated"))
+            flash(String(localized: "Shared folders updated"))
             return true
         } catch { return failed(error) }
     }
@@ -1443,10 +1600,12 @@ final class AppModel {
               let session = sessions.first(where: { $0.organizations.contains { $0.id == id } }) else { return }
         confirm(String(localized: "Leave “\(org.name)”?"),
                 message: String(localized: "Its items leave this Mac. An admin has to invite you again to get them back."),
-                action: String(localized: "Leave Organization")) { [weak self] in
+                action: String(localized: "Leave Shared Vault")) { [weak self] in
             do {
                 try await session.leaveOrganization(id)
-                if case .organization(id) = self?.vaultFilter { self?.vaultFilter = .all }
+                if let self, let keys = self.vaultFilter.keys, keys.contains(id) {
+                    self.vaultFilter = VaultFilter(keys: keys.subtracting([id]))
+                }
                 self?.flash(String(localized: "Left “\(org.name)”"))
             } catch { _ = self?.failed(error) }
         }

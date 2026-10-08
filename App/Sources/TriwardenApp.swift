@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 import VaultwardenAPI
 
 @main
@@ -10,9 +11,15 @@ struct TriwardenApp: App {
 
     init() {
         Pref.register()
+        // Tips (the vault search's, once): not in renders, self-tests or benchmarks, which must look the same every run.
+        if !CommandLine.arguments.contains(where: { $0 == "--snapshot" || $0.hasPrefix("--selftest") || $0.hasPrefix("--bench") }),
+           !Bench.on {
+            try? Tips.configure()
+        }
         // One window with its own toolbar: no system tab bar (and no View › Show Tab Bar to turn it on).
         NSWindow.allowsAutomaticWindowTabbing = false
         #if DEBUG
+        Bench.runUnlockIfRequested()
         Snapshot.runIfRequested()
         SelfTest.runIfRequested()
         CloudSelfTest.runIfRequested()
@@ -24,6 +31,7 @@ struct TriwardenApp: App {
             demo.items = full ? DemoVault.items : Snapshot.demoItems
             if full {
                 demo.folders = DemoVault.folders
+                demo.organizations = DemoVault.organizations
                 IconStore.shared.fallbackEnvironment = .bitwardenUS // real site icons, from Bitwarden's public service
             }
             // An in-memory account only: demo/UI-test runs never show or touch the real saved accounts.
@@ -48,7 +56,7 @@ struct TriwardenApp: App {
             RootView()
                 .environment(model)
                 .preferredColorScheme(appearance.scheme)
-                .onAppear { appDelegate.model = model }
+                .onAppear { appDelegate.model = model; Bench.markAfterCommit("first-frame") }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                     model.appDidBecomeActive()
                 }
@@ -72,6 +80,15 @@ struct TriwardenApp: App {
                 .opacity(model.isUnlocked ? 1 : 0.55)
         }
         .menuBarExtraStyle(.window)
+
+        Window("Keyboard Shortcuts", id: KeyboardShortcutsView.windowID) {
+            KeyboardShortcutsView()
+                .environment(model)
+                .preferredColorScheme(appearance.scheme)
+        }
+        .windowResizability(.contentMinSize)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
 
         Window("Triwarden", id: LicenseReminderView.windowID) {
             LicenseReminderView()
@@ -104,7 +121,7 @@ struct TriwardenApp: App {
                     Button("SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
                 }
                 .disabled(!model.isUnlocked)
-                Button("New Folder…") { model.promptingNewFolder = true }
+                Button("New Folder…") { model.promptNewFolder() }
                     .keyboardShortcut("n", modifiers: [.command, .option])
                     .disabled(!model.isUnlocked)
                 Divider()
@@ -157,6 +174,9 @@ struct TriwardenApp: App {
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }
+            CommandGroup(after: .help) {
+                ShortcutsMenuButton()
+            }
             CommandGroup(after: .appSettings) {
                 Button("Command Palette") { model.openPalette() } // its shortcut is the global one from Settings
                 Button("Lock Vault") { model.lock(animated: true) }
@@ -164,6 +184,16 @@ struct TriwardenApp: App {
                     .disabled(!model.isUnlocked)
             }
         }
+    }
+}
+
+/// Help › Keyboard Shortcuts (⌘/).
+private struct ShortcutsMenuButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Keyboard Shortcuts") { openWindow(id: KeyboardShortcutsView.windowID) }
+            .keyboardShortcut("/", modifiers: .command)
     }
 }
 
@@ -219,6 +249,11 @@ struct RootView: View {
         // The gate: plates over everything, only while they move (locking and unlocking).
         .overlay {
             if model.gate != nil { GatePlates() }
+        }
+        .onChange(of: model.showingShortcuts) { _, show in
+            guard show else { return }
+            model.showingShortcuts = false
+            openWindow(id: KeyboardShortcutsView.windowID)
         }
         .animation(phaseAnimation, value: model.phase.id)
         .onAppear {

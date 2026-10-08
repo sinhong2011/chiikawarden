@@ -30,13 +30,18 @@
 - Logins, secure notes, cards, identities and SSH keys, with folders, favorites, custom fields, attachments, Archive
   and Trash; password history, clone, and "ask for master password" on sensitive items.
 - Several accounts at once, across servers: self-hosted Vaultwarden or Bitwarden, and Bitwarden cloud (US and EU).
-- Organizations and collections: a vault switcher (All vaults, My vault, each organization), move items into an
-  organization, change collections, event logs for admins; live sync over WebSocket.
+- Shared vaults (Bitwarden organizations) and their shared folders (collections): a Vaults section (My vault and
+  each shared vault; ⌘-click to see several together), shared folders nested like your own, move items into a shared vault, change shared folders, event logs for admins; live
+  sync over WebSocket.
 - Pick many items (⌘-click, ⇧-click, ⌘A) to move, archive, trash or restore them at once.
 - Item history: when it was created and last edited, when its password changed, and its earlier passwords.
 - Works offline from the encrypted cache; edits go straight to the server.
 
 **Fast to reach**
+- One search over every vault (⌘F), with filters that stay on between launches: type, folder, vault, favorites,
+  one-time code, passkey and Watchtower issue. Pick them from the filter menu or type them — `type:card`, `has:otp`,
+  `#Work` — with suggestions as you type; ⌫ takes the last one off. See [Search](docs/search.md).
+- Every shortcut on one page: Help › Keyboard Shortcuts (⌘/).
 - A command palette from anywhere (⇧⌘Space, or a shortcut you choose; ⌘K in the window) to find any item or run any
   command. Called over a browser or an app, it puts that page's (or app's) logins first, and ↵ types the username
   and password in, like KeePass auto-type (⌃↵ username, ⌥↵ password, ⇧ also submits). The menu bar panel shows the
@@ -66,6 +71,11 @@
 - Send: share text or files with an encrypted link; edit it later and keep the same link.
 - Import from Bitwarden, 1Password, LastPass, KeePass, Proton Pass, Dashlane, Apple Passwords, Chrome and Firefox;
   export in Bitwarden's formats, including password-protected JSON.
+
+<p align="center">
+  <img src="docs/images/search.jpg" width="820" alt="One search over My vault and the Northwind shared vault at once, with filter chips, and Northwind's shared folders nested in the sidebar">
+  <br><sub>One search over several vaults at once, filters as chips, shared folders nested like your own</sub>
+</p>
 
 <table>
   <tr>

@@ -324,7 +324,7 @@ struct ImportSheet: View {
                     }
                     if !preview.folders.isEmpty {
                         let used = Set(included.compactMap(\.folder)).count
-                        Label(vaultId == nil ? "\(used) folders" : "\(used) collections", systemImage: vaultId == nil ? "folder" : "rectangle.stack").font(.system(size: 12, weight: .medium))
+                        Label(vaultId == nil ? "\(used) folders" : "\(used) shared folders", systemImage: vaultId == nil ? "folder" : "rectangle.stack").font(.system(size: 12, weight: .medium))
                             .padding(.horizontal, 10).frame(height: 26).background(Color.primary.opacity(0.06), in: .capsule)
                     }
                 }

@@ -14,8 +14,39 @@ enum DemoVault {
         Grouping(id: "f-home", name: "Home Lab"),
     ]
 
-    /// The curated demo items, then the generated rest.
-    static var items: [VaultItem] { Snapshot.demoItems + generated }
+    /// Northwind, the shared vault at work, with shared folders that nest (Engineering › Backend).
+    static let organizations: [Grouping] = [
+        Grouping(id: "org-northwind", name: "Northwind", children: [
+            Grouping(id: "col-eng", name: "Engineering"), Grouping(id: "col-eng-backend", name: "Engineering/Backend"),
+            Grouping(id: "col-eng-frontend", name: "Engineering/Frontend"), Grouping(id: "col-ops", name: "Operations"),
+            Grouping(id: "col-people", name: "People & Finance"),
+        ]),
+    ]
+
+    /// Work logins that live in Northwind's vault rather than Alex's own, and the shared folder each is in.
+    private static let shared: [String: String] = [
+        "Datadog": "col-eng-backend", "PagerDuty": "col-eng-backend", "Grafana": "col-eng-backend",
+        "northwind-deploy": "col-eng-backend",
+        "Figma": "col-eng-frontend", "Linear": "col-eng-frontend", "Lucidchart": "col-eng-frontend",
+        "Jira": "col-eng", "Confluence": "col-eng",
+        "Northwind Google Workspace": "col-ops", "Slack — Northwind": "col-ops", "Okta": "col-ops",
+        "VPN — Northwind": "col-ops", "Intranet": "col-ops", "Zoom": "col-ops",
+        "Workday": "col-people", "BambooHR": "col-people", "Expensify": "col-people", "DocuSign": "col-people",
+        "Northwind Corporate": "col-people",
+    ]
+
+    /// The curated demo items, then the generated rest; Northwind's out of Alex's folders and into its shared folders.
+    static var items: [VaultItem] {
+        (Snapshot.demoItems + generated).map { item in
+            guard let collection = shared[item.name] else { return item }
+            var item = item
+            item.organizationId = "org-northwind"
+            item.collectionIds = [collection]
+            item.folderId = nil
+            item.folderName = nil
+            return item
+        }
+    }
 
     private static let work = "alex.chen@northwind.example"
     private static let mail = "alex.chen@gmail.com"
@@ -268,6 +299,7 @@ private struct SeededRandom {
 #if DEBUG
 import AppKit
 import SwiftUI
+import VaultwardenAPI
 
 /// Debug-only: `Triwarden --demo-full --shoot [-appearance dark]` steps through the screens worth showing, captures
 /// its own windows (shadow included, as the window server draws them) into the app's temporary folder (it's
@@ -279,6 +311,9 @@ enum DemoShots {
         guard args.contains("--shoot") else { return }
         let dir = FileManager.default.temporaryDirectory.appending(path: "demo-shots", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        for old in (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? [] {
+            try? FileManager.default.removeItem(at: old)
+        }
         let scheme = UserDefaults.standard.string(forKey: Pref.appearance) == "dark" ? "dark" : "light"
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
@@ -296,11 +331,39 @@ enum DemoShots {
             try? await Task.sleep(for: .seconds(2.5))
             await capture([window], dir.appending(path: "vault-\(scheme).png"))
 
-            // The menu bar panel: its content in a panel like the one MenuBarExtra shows (SwiftUI's own panel only
-            // opens on a real click).
+            // Search across several vaults with filters on: My vault + Northwind, logins with a one-time code, the
+            // shared folders open in the sidebar (My Folders folded, so Northwind is in view).
+            let foldersOpen = UserDefaults.standard.object(forKey: "sidebarFoldersExpanded")
+            UserDefaults.standard.set(false, forKey: "sidebarFoldersExpanded")
+            model.vaultFilter = .several([AppModel.VaultFilter.personalKey, "org-northwind"])
+            model.searchFilters = SearchFilters(type: .login)
+            model.requestedFilter = "north" // one search over both: Alex's own work logins and Northwind's
+            try? await Task.sleep(for: .seconds(0.5))
+            model.selectedID = model.vaultItems.first { $0.organizationId != nil && $0.hasTOTP && $0.kind == .login }?.id
+            try? await Task.sleep(for: .seconds(2))
+            await capture([window], dir.appending(path: "search-\(scheme).png"))
+            model.vaultFilter = .all
+            model.searchFilters = SearchFilters()
+            model.requestedFilter = ""
+            UserDefaults.standard.set(foldersOpen, forKey: "sidebarFoldersExpanded")
+            model.selectedID = "2"
+
             // As if opened over github.com in Safari (not whatever app is really in front).
             model.foreground = ForegroundContext(app: "Safari", bundleID: "com.apple.Safari", pid: 0, host: "github.com")
             model.foregroundPinned = true
+
+            // The menu bar panel itself: a click on Triwarden's menu bar icon opens it, as a person would.
+            if let button = NSApp.windows.lazy.compactMap({ $0.contentView.flatMap(Self.statusButton) }).first {
+                let before = Set(NSApp.windows.filter(\.isVisible).map(\.windowNumber))
+                button.performClick(nil)
+                try? await Task.sleep(for: .seconds(2.5))
+                if let panel = NSApp.windows.first(where: { $0.isVisible && !before.contains($0.windowNumber) }) {
+                    await capture([panel], dir.appending(path: "menubar-\(scheme).png"), activate: false)
+                    panel.orderOut(nil)
+                }
+                NSApp.activate(ignoringOtherApps: true)
+                window.makeKeyAndOrderFront(nil)
+            }
             let appearance = NSAppearance(named: scheme == "dark" ? .darkAqua : .aqua)!
             let host = NSHostingView(rootView: MenuBarContent().environment(model).tint(.brand))
             host.appearance = appearance
@@ -326,7 +389,10 @@ enum DemoShots {
             }
             panel.orderFrontRegardless()
             try? await Task.sleep(for: .seconds(3.5))
-            await capture([panel], dir.appending(path: "menubar-\(scheme).png"))
+            // Kept as a fallback, for when the menu bar icon is turned off.
+            if !FileManager.default.fileExists(atPath: dir.appending(path: "menubar-\(scheme).png").path) {
+                await capture([panel], dir.appending(path: "menubar-\(scheme).png"))
+            }
             panel.orderOut(nil)
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
@@ -395,8 +461,14 @@ enum DemoShots {
 
     /// Composites the given windows (front first) as the window server shows them, with the app active so the traffic
     /// lights and selections show in colour.
-    private static func capture(_ windows: [NSWindow], _ url: URL) async {
-        NSApp.activate(ignoringOtherApps: true)
+    /// Triwarden's own menu bar button, if its icon is in the menu bar.
+    private static func statusButton(_ view: NSView) -> NSStatusBarButton? {
+        if let button = view as? NSStatusBarButton { return button }
+        return view.subviews.lazy.compactMap(statusButton).first
+    }
+
+    private static func capture(_ windows: [NSWindow], _ url: URL, activate: Bool = true) async {
+        if activate { NSApp.activate(ignoringOtherApps: true) }
         // A lone window becomes key; with several (the palette over the vault) focus stays put, or the palette closes.
         if windows.count == 1, windows[0].canBecomeMain { windows[0].makeKeyAndOrderFront(nil) }
         try? await Task.sleep(for: .seconds(0.6))

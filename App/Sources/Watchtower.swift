@@ -179,15 +179,18 @@ struct WatchtowerView: View {
     /// The score as drawn: it sweeps up from 0 when the page opens, then follows the real one.
     @State private var animatedScore: Double?
     @State private var allClear = 0
+    /// The row pointed out by an item's "Show in Watchtower".
+    @State private var highlighted: String?
 
     var body: some View {
         let report = WatchtowerReport(items: model.vaultItems, breaches: model.breachCounts, twoFactor: directory)
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header(report)
                 ForEach(WatchtowerReport.Issue.allCases, id: \.self) { issue in
                     if let items = report.issues[issue], !items.isEmpty {
-                        IssueCard(issue: issue, items: items, directory: directory, onOpen: onOpen)
+                        IssueCard(issue: issue, items: items, directory: directory, highlighted: highlighted, onOpen: onOpen)
                     }
                 }
                 if report.problemCount == 0 {
@@ -205,11 +208,12 @@ struct WatchtowerView: View {
                         .onAppear { allClear += 1 }
                 }
             }
-            .padding(24)
+            .padding(.horizontal, 24).padding(.bottom, 24) // from the top, like the vault page's search row
             .frame(maxWidth: 760)
             .frame(maxWidth: .infinity)
             .animation(.spring(duration: 0.45, bounce: 0.2), value: report.problemCount)
         }
+        .thinScroller() // the app's slim scroller, not the system's wide track
         .task { directory = await TwoFactorDirectory.load() }
         .onAppear {
             // The ring sweeps up to the score and the number counts with it.
@@ -217,6 +221,22 @@ struct WatchtowerView: View {
             withAnimation(.spring(duration: 1.1, bounce: 0.1).delay(0.15)) { animatedScore = report.score }
         }
         .onChange(of: report.score) { _, new in withAnimation(.spring(duration: 0.7, bounce: 0.15)) { animatedScore = new } }
+        // Opened from an item's Watchtower row: to its issue, highlighted for a moment.
+        .onChange(of: model.watchtowerFocus, initial: true) { _, id in
+            guard let id, let item = model.items.first(where: { $0.id == id }) else { return }
+            model.watchtowerFocus = nil
+            let issue = item.passwordIssue(breaches: model.breachCounts)
+                ?? WatchtowerReport.Issue.allCases.first { report.issues[$0]?.contains(where: { $0.id == id }) == true }
+            guard let issue else { return }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(250)) // after the page has laid out
+                withAnimation(.smooth(duration: 0.45)) { proxy.scrollTo(IssueCard.rowID(issue, id), anchor: .center) }
+                withAnimation(.easeOut(duration: 0.2)) { highlighted = IssueCard.rowID(issue, id) }
+                try? await Task.sleep(for: .seconds(1.8))
+                withAnimation(.easeOut(duration: 0.6)) { highlighted = nil }
+            }
+        }
+        }
     }
 
     private func header(_ report: WatchtowerReport) -> some View {
@@ -276,7 +296,10 @@ private struct IssueCard: View {
     let issue: WatchtowerReport.Issue
     let items: [VaultItem]
     var directory: [String: URL] = [:]
+    var highlighted: String?
     var onOpen: (VaultItem) -> Void
+
+    static func rowID(_ issue: WatchtowerReport.Issue, _ itemID: String) -> String { "\(issue)-\(itemID)" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -328,9 +351,12 @@ private struct IssueCard: View {
                         .help(Text("Show item"))
                 }
                 .padding(.horizontal, 16).frame(minHeight: 48)
+                .background(Color.primary.opacity(highlighted == Self.rowID(issue, item.id) ? 0.07 : 0))
+                .id(Self.rowID(issue, item.id))
             }
         }
         .background(Color.panelStrong, in: .rect(cornerRadius: 16, style: .continuous))
+        .clipShape(.rect(cornerRadius: 16, style: .continuous)) // a highlighted last row keeps the corners
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.panelEdge))
     }
 

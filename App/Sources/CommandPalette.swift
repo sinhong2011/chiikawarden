@@ -193,7 +193,7 @@ struct CommandPalette: View {
         .background((dark ? Color.black.opacity(0.15) : Color.white.opacity(0.55)), in: .rect(cornerRadius: 22, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.14 : 0.08), lineWidth: 0.5))
         .shadow(color: .black.opacity(dark ? 0.35 : 0.14), radius: 18, y: 8)
-        .scaleEffect(x: appeared ? 1 : 0.6, y: appeared ? 1 : 0.8, anchor: .top)
+        .scaleEffect(x: appeared ? 1 : 0.92, y: appeared ? 1 : 0.94, anchor: .top) // a short way to grow: it feels instant
         .opacity(appeared ? 1 : 0)
     }
 
@@ -215,11 +215,11 @@ struct CommandPalette: View {
                 }
             }
             appeared = false
-            withAnimation(.spring(duration: 0.5, bounce: 0.3)) { appeared = true }
+            withAnimation(.spring(duration: 0.24, bounce: 0.18)) { appeared = true }
         }
         .onChange(of: model.quickSearchDismissNonce) {
             focused = false
-            withAnimation(.easeIn(duration: 0.16)) { appeared = false }
+            withAnimation(.easeIn(duration: 0.1)) { appeared = false }
         }
         .onChange(of: query) {
             index = 0
@@ -313,8 +313,8 @@ struct CommandPalette: View {
                     }
                 }
                 .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 8)
-                .animation(appeared ? .spring(duration: 0.4, bounce: 0.2).delay(0.04 * Double(min(i, 6))) : .easeIn(duration: 0.12),
+                .offset(y: appeared ? 0 : 4)
+                .animation(appeared ? .spring(duration: 0.22, bounce: 0.12).delay(0.015 * Double(min(i, 6))) : .easeIn(duration: 0.08),
                            value: appeared) // staggered in, all together out
                 .contentShape(.rect)
                 .onTapGesture { index = i; run([]) }
@@ -627,7 +627,7 @@ struct CommandPalette: View {
                                keywords: ["add", "address"]) { create(.identity) },
                 PaletteCommand(id: "new-ssh", title: String(localized: "New SSH Key"), symbol: "terminal", keywords: ["add", "ed25519"]) { create(.sshKey) },
                 PaletteCommand(id: "new-folder", title: String(localized: "New Folder…"), symbol: "folder.badge.plus", shortcut: "⌥⌘N") {
-                    model.bringToFront(); model.promptingNewFolder = true
+                    model.bringToFront(); model.promptNewFolder()
                 },
                 PaletteCommand(id: "new-send", title: String(localized: "New Send"), symbol: "paperplane", keywords: ["share", "link"]) {
                     model.bringToFront(); model.requestedSection = .sends; model.composingSend = true
@@ -691,6 +691,10 @@ struct CommandPalette: View {
             list.append(PaletteCommand(id: "add-account", title: String(localized: "Add Account…"), symbol: "person.badge.plus",
                                        keywords: ["login", "sign in", "account"]) { model.bringToFront(); model.beginAddAccount() })
         }
+        list.append(PaletteCommand(id: "shortcuts", title: String(localized: "Keyboard Shortcuts"), symbol: "keyboard", shortcut: "⌘/",
+                                   keywords: ["keys", "help", "cheat sheet", "hotkeys"]) {
+            model.showingShortcuts = true
+        })
         list.append(PaletteCommand(id: "settings", title: String(localized: "Settings…"), symbol: "gearshape", shortcut: "⌘,",
                                    keywords: ["preferences"]) {
             model.showSettings()
@@ -886,14 +890,9 @@ private struct ItemLine: View {
             }
             Spacer(minLength: 8)
             if selected, let totp = item.totp {
-                TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                    let period = Double(totp.period)
-                    let left = totp.secondsRemaining(at: ctx.date)
-                    HStack(spacing: 12) {
-                        OTPCode(code: totp.code(at: ctx.date), size: 17, urgent: left <= 5)
-                        CountdownRing(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
-                                      seconds: left, size: 30)
-                    }
+                HStack(spacing: 12) { // on the app's shared clock
+                    LiveOTPCode(totp: totp, size: 17)
+                    LiveCountdownRing(totp: totp, size: 30)
                 }
             }
         }

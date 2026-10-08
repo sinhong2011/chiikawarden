@@ -70,6 +70,8 @@ struct GeneratorView: View {
                 Spacer(minLength: 16)
                 modePicker.frame(maxWidth: 380)
             }
+            .frame(height: 32)
+            .padding(.bottom, -8) // 10 pt to the result, like the vault page's search row to its list
             hero
             (wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 16)) : AnyLayout(VStackLayout(spacing: 16))) {
                 VStack(alignment: .leading, spacing: 16) {
@@ -446,7 +448,7 @@ private struct HistorySection: View {
                     }
                     .padding(.horizontal, 8).padding(.bottom, 8)
                 }
-                .scrollIndicators(.automatic)
+                .thinScroller()
                 .frame(minHeight: 120)
             }
         }

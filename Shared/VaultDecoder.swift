@@ -160,7 +160,7 @@ enum VaultDecoder {
                 (try? EncString(c.name).decryptString(with: orgKey)).map { Grouping(id: c.id, name: $0) }
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            return Grouping(id: org.id, name: org.name ?? String(localized: "Organization"), children: collections)
+            return Grouping(id: org.id, name: org.name ?? String(localized: "Shared vault"), children: collections)
         }
         let folderNames = Dictionary(folders.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         for i in items.indices { items[i].folderName = items[i].folderId.flatMap { folderNames[$0] } }

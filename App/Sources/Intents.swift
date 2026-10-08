@@ -178,7 +178,7 @@ struct VaultChoiceQuery: EntityQuery {
     @MainActor func entities(for identifiers: [String]) async throws -> [VaultChoiceEntity] {
         let known = VaultChoiceEntity.choices
         return identifiers.map { id in
-            known.first { $0.id == id } ?? VaultChoiceEntity(id: id, name: String(localized: "Organization"))
+            known.first { $0.id == id } ?? VaultChoiceEntity(id: id, name: String(localized: "Shared vault"))
         }
     }
     @MainActor func suggestedEntities() async throws -> [VaultChoiceEntity] { VaultChoiceEntity.choices }
@@ -188,7 +188,7 @@ struct VaultChoiceQuery: EntityQuery {
 /// organization during Work, your own items at home). When it ends, the vault you had before comes back.
 struct VaultFocusFilter: SetFocusFilterIntent {
     static let title: LocalizedStringResource = "Show One Vault"
-    static let description = IntentDescription("Show just one vault while this Focus is on, like your work organization.")
+    static let description = IntentDescription("Show just one vault while this Focus is on, like your team's shared vault.")
 
     @Parameter(title: "Vault") var vault: VaultChoiceEntity?
 

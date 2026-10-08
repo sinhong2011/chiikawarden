@@ -2,6 +2,7 @@ import AppKit
 import TriCrypto
 import QuickLook
 import SwiftUI
+import TipKit
 import UniformTypeIdentifiers
 
 // Implements the "Vault window (static spec)" artboard: floating glass sidebar, rounded item list,
@@ -40,6 +41,8 @@ struct VaultView: View {
     var initialSection: SidebarSelection?
     /// Narrow windows: the strip's starting pane (snapshots and previews).
     var initialDepth = 1
+    /// Search text to start with (snapshots).
+    var initialQuery = ""
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var query = ""
@@ -65,13 +68,23 @@ struct VaultView: View {
     /// The header's leading slot starts this far into the detail column.
     static let headerSlotInset: CGFloat = 8
     private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(320, max(280, width * 0.24)) }
-    /// The window's footer (Sync, Lock) on its own strip under `content`, so it never sits over a panel; its right edge
-    /// under the header's right end (an item's actions, or a page's edge).
-    private func withFooter(_ content: some View) -> some View {
-        VStack(spacing: 8) {
-            content.frame(maxHeight: .infinity)
+    /// The window's controls (Sync, Lock) floating over `content`'s bottom-right corner, under the header's right end
+    /// (an item's actions, or a page's edge). No row of their own: the panels run to the window's bottom, and scrolling
+    /// content keeps room at its end so its last line can scroll clear of them.
+    /// `toBottomEdge`: a full-page tool (Codes, Watchtower…) scrolls right to the window's bottom edge, through the
+    /// column's 8 pt margin; the list and detail panels keep it.
+    private func withFooter(_ content: some View, toBottomEdge: Bool = false) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            content
+                .frame(maxHeight: .infinity)
+                .contentMargins(.bottom, vaultOpen ? 44 : 0, for: .scrollContent)
+                .padding(.bottom, toBottomEdge ? -8 : 0)
             if vaultOpen {
                 AppFooter()
+                    // Its bottom edge level with the sidebar's account card (11 pt above the window's bottom, with the
+                    // column's own 8 pt inset).
+                    .padding(.trailing, 10).padding(.bottom, 1.5)
+                    .transition(.opacity)
             }
         }
     }
@@ -86,11 +99,8 @@ struct VaultView: View {
     private var filtered: [VaultItem] {
         let matching = model.vaultItems
             .filter(section.includes)
-            .filter { item in
-                query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-                    || (item.username?.localizedCaseInsensitiveContains(query) ?? false)
-                    || (item.host?.localizedCaseInsensitiveContains(query) ?? false)
-            }
+            .filter(model.passesSearchFilters)
+            .filter { AppModel.searchMatches($0, query) }
         return ItemSort.sorted(matching, by: sort, ascending: ascending)
     }
 
@@ -211,7 +221,7 @@ struct VaultView: View {
                     .transition(pageTransition)
                 } else {
                     // A tool (Send, Generator, Codes, Watchtower): each one its own page.
-                    withFooter(sectionPane.id(section))
+                    withFooter(sectionPane.id(section), toBottomEdge: true)
                         .transition(pageTransition)
                 }
             }
@@ -258,10 +268,10 @@ struct VaultView: View {
                 .sharedBackgroundVisibility(.hidden)
             }
             .background {
-                // Keyboard: ⌘K / ⌘F open the command palette, ⌘G the generator.
+                // Keyboard: ⌘K opens the command palette, ⌘F the list's search, ⌘G the generator.
                 Group {
                     Button("") { model.openPalette() }.keyboardShortcut("k", modifiers: .command)
-                    Button("") { model.openPalette() }.keyboardShortcut("f", modifiers: .command)
+                    Button("") { focusSearch() }.keyboardShortcut("f", modifiers: .command)
                     Button("") { section = .generator }.keyboardShortcut("g", modifiers: .command)
                 }
                 .hidden()
@@ -325,14 +335,33 @@ struct VaultView: View {
         .onChange(of: model.previewURL) { old, _ in
             if let old { AttachmentFiles.remove(old) } // decrypted copy only lives while previewed
         }
-        .sheet(isPresented: $model.promptingNewFolder) { NewFolderSheet() }
+        .sheet(isPresented: Binding(get: { model.renamingFolder != nil }, set: { if !$0 { model.renamingFolder = nil } })) {
+            if let path = model.renamingFolder { RenameFolderSheet(path: path) }
+        }
+        // A renamed folder that's open in the sidebar stays open under its new name.
+        .onChange(of: model.renamedFolder?.new) {
+            guard let rename = model.renamedFolder, case .folder(let open) = section,
+                  open == rename.old || open.hasPrefix(rename.old + "/") else { return }
+            section = .folder(rename.new + open.dropFirst(rename.old.count))
+        }
+        .sheet(isPresented: $model.promptingNewFolder, onDismiss: { model.newFolderParent = nil }) {
+            NewFolderSheet(parent: model.newFolderParent)
+        }
         .overlay(alignment: .bottom) { ToastView() }
         .onAppear {
             if let initialSection { section = initialSection }
+            if !initialQuery.isEmpty { query = initialQuery }
             selectFirst()
         }
         // Under the lock layer the vault starts empty; pick an item once unlocking fills it.
         .onChange(of: model.items.isEmpty) { _, empty in if !empty { selectFirst() } }
+    }
+
+    /// ⌘F: to the list's search field (from a tool page, back to All Items first).
+    private func focusSearch() {
+        if !isItemSection { section = .section(.all) }
+        if compact { depth = 1 }
+        model.wantsSearchFocus = true
     }
 
     private func selectFirst() {
@@ -346,6 +375,8 @@ struct VaultView: View {
 enum SidebarSelection: Hashable {
     case section(VaultSection)
     case folder(String)
+    /// Your own items (not in any shared vault).
+    case myVault
     case organization(String)
     case collection(String)
     case account(String)
@@ -354,12 +385,22 @@ enum SidebarSelection: Hashable {
     case generator
     case codes
 
+    /// The vault a row stands for ("personal" or an organization id), for the vault filter.
+    var vaultKey: String? {
+        switch self {
+        case .myVault: AppModel.VaultFilter.personalKey
+        case .organization(let id): id
+        default: nil
+        }
+    }
+
     func includes(_ item: VaultItem) -> Bool {
         switch self {
         case .watchtower, .sends, .generator, .codes: false
         case .account(let id): !item.isDeleted && !item.isArchived && item.accountId == id
         case .section(let s): s.includes(item)
         case .folder(let path): !item.isDeleted && !item.isArchived && (item.folderName == path || item.folderName?.hasPrefix(path + "/") == true)
+        case .myVault: !item.isDeleted && !item.isArchived && item.organizationId == nil
         case .organization(let id): !item.isDeleted && !item.isArchived && item.organizationId == id
         case .collection(let id): !item.isDeleted && !item.isArchived && item.collectionIds.contains(id)
         }
@@ -413,45 +454,66 @@ private struct Sidebar: View {
     @Environment(AppModel.self) private var model
     @Binding var section: SidebarSelection
 
-    @AppStorage("sidebarTypesExpanded") private var typesExpanded = true
+    @AppStorage("sidebarTypesExpanded") private var typesExpanded = false
     @AppStorage("sidebarFoldersExpanded") private var foldersExpanded = true
 
     private func count(_ selection: SidebarSelection) -> Int { model.vaultItems.filter(selection.includes).count }
+
+    @ViewBuilder private var newFolderMenu: some View {
+        Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
+            .labelStyle(.titleAndIcon)
+            .tint(Color(nsColor: .labelColor))
+    }
 
     private func row(_ s: VaultSection) -> some View {
         SidebarLabel(s.title, symbol: s.symbol, tag: .section(s), count: count(.section(s)))
             .tag(SidebarSelection.section(s))
     }
 
+    /// A row picked. A vault with ⌘ held joins (or leaves) the vaults shown everywhere instead of opening; opening a
+    /// vault the filter hides shows it again.
+    private func pick(_ new: SidebarSelection) {
+        if let key = new.vaultKey {
+            if NSEvent.modifierFlags.contains(.command) {
+                withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) }
+                return
+            }
+            if !model.vaultShown(key) { withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) } }
+        }
+        section = new
+    }
+
     var body: some View {
-        List(selection: Binding(get: { section }, set: { if let s = $0 { section = s } })) {
+        List(selection: Binding(get: { section }, set: { if let s = $0 { pick(s) } })) {
             Section {
-                // All Items, with its narrower views folded under it: favorites, each type, then the folders.
+                // All Items, with its narrower views folded under it (closed at first: the sidebar stays short).
                 DisclosureGroup(isExpanded: $typesExpanded) {
                     ForEach(VaultSection.underAll, id: \.self) { row($0) }
-                    if !model.folders.isEmpty {
-                        DisclosureGroup(isExpanded: $foldersExpanded) {
-                            ForEach(FolderNode.tree(model.folders)) { node in
-                                FolderRow(node: node, count: count)
-                            }
-                        } label: {
-                            SidebarLabel("Folders", symbol: "folder")
-                        }
-                    }
                 } label: {
                     row(.all)
                 }
-                row(.archive)
-                row(.trash)
             } header: {
                 HStack(spacing: 6) {
-                    Text("Vault").font(.system(size: 13, weight: .semibold))
+                    Text("Items").font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 6)
-                    NewItemButton(inline: true) // new items of every kind, at the end of the Vault row
+                    NewItemButton(inline: true) // new items of every kind, at the end of the header
                         .padding(.trailing, 13) // its edge under the counts' edge
                 }
                 .frame(height: 26)
                 .padding(.bottom, 6)
+            }
+            // Where items live: your own vault, then each shared vault (opening onto its shared folders). A click opens
+            // one; ⌘-click shows it alongside the others everywhere. Vaults the filter hides are dimmed.
+            if !model.visibleOrganizations.isEmpty {
+                Section("Vaults") {
+                    SidebarLabel("My vault", symbol: "person", tag: .myVault, count: count(.myVault))
+                        .tag(SidebarSelection.myVault)
+                        .opacity(model.vaultShown(AppModel.VaultFilter.personalKey) ? 1 : 0.45)
+                    ForEach(model.visibleOrganizations) { org in
+                        SharedVaultRow(org: org, count: count)
+                            .opacity(model.vaultShown(org.id) ? 1 : 0.45)
+                    }
+                }
             }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
@@ -465,24 +527,23 @@ private struct Sidebar: View {
                 SidebarLabel("Watchtower", symbol: "checkmark.shield", tag: .watchtower, count: model.watchtowerIssueCount)
                     .tag(SidebarSelection.watchtower)
             }
-            ForEach(model.visibleOrganizations) { org in
-                Section(org.name) {
-                    SidebarLabel("All Items", symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
-                        .tag(SidebarSelection.organization(org.id))
-                        .contextMenu {
-                            Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
-                                .labelStyle(.titleAndIcon)
-                            Button("Leave Organization…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
-                                model.leaveOrganization(org.id)
-                            }
-                            .labelStyle(.titleAndIcon)
+            // Your own ways of sorting items, and items set aside: kept (Archive) or on their way out (Trash).
+            Section("Manage") {
+                if model.folders.isEmpty {
+                    SidebarLabel("My Folders", symbol: "folder")
+                        .contextMenu { newFolderMenu }
+                } else {
+                    DisclosureGroup(isExpanded: $foldersExpanded) {
+                        ForEach(FolderNode.tree(model.folders)) { node in
+                            FolderRow(node: node, count: count)
                         }
-                    ForEach(org.children) { collection in
-                        SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack", tag: .collection(collection.id),
-                                     count: count(.collection(collection.id)))
-                            .tag(SidebarSelection.collection(collection.id))
+                    } label: {
+                        SidebarLabel("My Folders", symbol: "folder")
+                            .contextMenu { newFolderMenu }
                     }
                 }
+                row(.archive)
+                row(.trash)
             }
         }
         .listStyle(.sidebar)
@@ -494,13 +555,8 @@ private struct Sidebar: View {
         .listItemTint(.monochrome) // icons in the text's own colour, not the brand blue
         // Selection: a calm sky (deep in dark mode) that white text reads well on, not the bright accent.
         .tint(Color.sidebarSelection)
+        .background(SidebarCalmSelection()) // always the soft selection, never the focused (solid) one
         .safeAreaInset(edge: .bottom) { SidebarAccountCard().padding(10) }
-        // The vault switcher above the list, as wide as the rows' selection.
-        .safeAreaInset(edge: .top, spacing: 4) {
-            if !model.visibleOrganizations.isEmpty {
-                VaultSwitcher().padding(.horizontal, 10).padding(.top, 4)
-            }
-        }
     }
 }
 
@@ -575,8 +631,6 @@ private struct AppFooter: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        HStack {
-            Spacer(minLength: 0)
             HStack(spacing: 0) {
                 if model.clipboardClearsAt != nil {
                     ClipboardCountdown()
@@ -599,9 +653,29 @@ private struct AppFooter: View {
             }
             .padding(.horizontal, 3)
             .frame(height: 30)
-            .modifier(HeaderChrome(shape: .capsule))
+            .modifier(FloatingChrome())
             .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
-        }
+    }
+}
+
+/// Glass for controls floating over content (the window's Sync / Lock): a frosted material under a light fill, a
+/// hairline edge and a soft shadow, in both appearances, so it reads over a list, a card or the backdrop alike.
+struct FloatingChrome: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let dark = scheme == .dark
+        content
+            .background {
+                Capsule().fill(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.7))
+                    .background(.regularMaterial, in: .capsule)
+                    .shadow(color: .black.opacity(dark ? 0.35 : 0.12), radius: 10, y: 3)
+            }
+            .overlay {
+                Capsule().strokeBorder(dark ? Color.white.opacity(0.12)
+                                            : Color.black.opacity(0.08), lineWidth: 0.5)
+            }
+            .compositingGroup()
     }
 }
 
@@ -851,6 +925,68 @@ struct FolderNode: Identifiable, Hashable {
 }
 
 /// Recursive folder row; items dropped on a real folder move into it.
+/// A shared vault in the sidebar: its name (all of its items), with its shared folders under it, and what you can do
+/// with it on a right-click.
+private struct SharedVaultRow: View {
+    @Environment(AppModel.self) private var model
+    let org: Grouping
+    let count: (SidebarSelection) -> Int
+    @State private var expanded = true
+
+    private var label: some View {
+        SidebarLabel(verbatim: org.name, symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
+            .tag(SidebarSelection.organization(org.id))
+            .contextMenu {
+                Group {
+                    Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
+                    Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                        model.leaveOrganization(org.id)
+                    }
+                }
+                .labelStyle(.titleAndIcon)
+                .tint(Color(nsColor: .labelColor))
+            }
+    }
+
+    var body: some View {
+        let tree = FolderNode.tree(org.children)
+        if tree.isEmpty {
+            label
+        } else {
+            DisclosureGroup(isExpanded: $expanded) {
+                ForEach(tree) { SharedFolderRow(node: $0, count: count) }
+            } label: { label }
+        }
+    }
+}
+
+/// A shared folder (collection) in the sidebar, with the ones nested under it. A level that's only part of others'
+/// names ("Engineering" for "Engineering/Backend") is a heading, not something to select.
+private struct SharedFolderRow: View {
+    let node: FolderNode
+    let count: (SidebarSelection) -> Int
+    @State private var expanded = true
+
+    @ViewBuilder private var label: some View {
+        if let id = node.folderIds.first {
+            SidebarLabel(verbatim: node.name, symbol: "rectangle.stack", tag: .collection(id), count: count(.collection(id)))
+                .tag(SidebarSelection.collection(id))
+        } else {
+            SidebarLabel(verbatim: node.name, symbol: "rectangle.stack")
+        }
+    }
+
+    var body: some View {
+        if node.children.isEmpty {
+            label
+        } else {
+            DisclosureGroup(isExpanded: $expanded) {
+                ForEach(node.children) { SharedFolderRow(node: $0, count: count) }
+            } label: { label }
+        }
+    }
+}
+
 private struct FolderRow: View {
     @Environment(AppModel.self) private var model
     let node: FolderNode
@@ -869,12 +1005,18 @@ private struct FolderRow: View {
                 return true
             } isTargeted: { targeted = $0 }
             .contextMenu {
-                if !node.folderIds.isEmpty {
-                    Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
-                        model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
+                Group {
+                    Button("New Subfolder…", systemImage: "folder.badge.plus") { model.promptNewFolder(in: node.path) }
+                    Button("Rename…", systemImage: "pencil") { model.renamingFolder = node.path }
+                    if !node.folderIds.isEmpty {
+                        Divider()
+                        Button("Delete Folder…", systemImage: "folder.badge.minus", role: .destructive) {
+                            model.confirmDeleteFolder(name: node.name, ids: node.folderIds)
+                        }
                     }
-                    .labelStyle(.titleAndIcon)
                 }
+                .labelStyle(.titleAndIcon)
+                .tint(Color(nsColor: .labelColor)) // the sidebar's selection tint would colour the menu's icons blue
             }
         if node.children.isEmpty {
             label
@@ -945,8 +1087,12 @@ private struct NewItemButton: View {
                     model.requestedSection = .sends
                     model.composingSend = true
                 }
-                Button("New Folder…", systemImage: "folder.badge.plus") { model.promptingNewFolder = true }
+                Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
                     .keyboardShortcut("n", modifiers: [.command, .option])
+                Divider()
+                Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                    .disabled(model.sessions.isEmpty)
             }
             .labelStyle(.titleAndIcon)
         } label: {
@@ -969,6 +1115,7 @@ private struct NewItemButton: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
+        .tint(Color(nsColor: .labelColor)) // in the sidebar, whose selection tint would colour the menu's icons blue
         .onHover { hovering = $0 }
         .help(Text("New Item (⌘N)"))
         .accessibilityLabel(Text("New Item"))
@@ -982,7 +1129,7 @@ private struct GeneratorPane: View {
             ScrollView {
                 GeneratorView()
                     .padding(.leading, VaultView.pageInset)
-                    .padding(.vertical, 24)
+                    .padding(.bottom, 24) // the header row at the top, like the vault page's search row
                     .frame(maxWidth: 1180)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .topLeading)
             }
@@ -1073,48 +1220,6 @@ private struct SectionHeader: View {
     }
 }
 
-/// Filters the list in place: by name, username or website. Esc clears it, ↓ moves into the list.
-private struct ListFilterField: View {
-    @Binding var query: String
-    var focused: FocusState<Bool>.Binding
-    var moveToList: () -> Void = {}
-    @State private var hovering = false
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: "line.3.horizontal.decrease")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            TextField("Filter", text: $query, prompt: Text("Filter"))
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .focused(focused)
-                .onKeyPress(.escape) {
-                    guard !query.isEmpty else { return .ignored }
-                    query = ""
-                    return .handled
-                }
-                .onKeyPress(.downArrow) { moveToList(); return .handled }
-            if !query.isEmpty {
-                Button { query = ""; focused.wrappedValue = true } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
-                }
-                .buttonStyle(.plain)
-                .help(Text("Clear Filter"))
-                .accessibilityLabel(Text("Clear Filter"))
-                .transition(.opacity.combined(with: .scale(scale: 0.6)))
-            }
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 32)
-        .modifier(HeaderChrome(shape: .capsule, hovering: hovering || focused.wrappedValue))
-        .contentShape(.capsule)
-        .onTapGesture { focused.wrappedValue = true }
-        .onHover { hovering = $0 }
-        .animation(.easeOut(duration: 0.15), value: query.isEmpty)
-    }
-}
-
 private struct ItemColumn: View {
     let items: [VaultItem]
     /// The Trash: a note on when its items go for good.
@@ -1164,10 +1269,11 @@ private struct ItemColumn: View {
         VStack(spacing: 10) {
             // Narrow the list by typing, and choose its order.
             HStack(spacing: 6) {
-                ListFilterField(query: $query, focused: $filterFocused) {
+                VaultSearchField(query: $query, focused: $filterFocused) {
                     listFocused = true
                     if selection == nil || !items.contains(where: { $0.id == selection }) { selection = items.first?.id }
                 }
+                SearchFilterMenu()
                 Menu {
                     Picker("Sort By", selection: $sort) {
                         ForEach(ItemSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
@@ -1192,7 +1298,22 @@ private struct ItemColumn: View {
                 .help(Text("Sort"))
                 .accessibilityLabel(Text("Sort"))
             }
-            .padding(.leading, 6) // the filter and sort line up with the list's edge
+            .padding(.leading, 6) // the search and sort line up with the list's edge
+            .zIndex(1) // the search's suggestions hang over the list
+
+            // Once, the first time the search is used: filters can be typed and they stay on.
+            if Motion.plays { // never in renders, which must look the same every run
+                TipView(SearchFiltersTip())
+                    .tipImageStyle(.secondary)
+                    .padding(.leading, 6)
+            }
+
+            // The filters that are on, under the field, until they're cleared.
+            if model.hasSearchFilters {
+                SearchFilterBar(resultCount: items.count)
+                    .padding(.leading, 6)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
 
             if isTrash, !items.isEmpty { TrashNotice(items: items) }
 
@@ -1245,8 +1366,19 @@ private struct ItemColumn: View {
             .background(Color.panel, in: .rect(cornerRadius: 18, style: .continuous))
             .overlay {
                 if items.isEmpty {
+                    let searching = !query.isEmpty || model.hasSearchFilters
                     ContentUnavailableView {
-                        Label(query.isEmpty ? "No Items" : "No Results", systemImage: query.isEmpty ? "tray" : "magnifyingglass")
+                        Label(searching ? "No Results" : "No Items", systemImage: searching ? "magnifyingglass" : "tray")
+                    } description: {
+                        if model.hasSearchFilters { Text("Filters are on.") }
+                    } actions: {
+                        if model.hasSearchFilters {
+                            Button("Clear Filters") { withAnimation(.snappy(duration: 0.25)) { model.clearSearchFilters() } }
+                        } else if !searching, !isTrash, !model.accounts.isEmpty {
+                            // Nothing here yet: bring items over from another app (or drop its export on the window).
+                            Button("Import…", systemImage: "square.and.arrow.down") { model.beginImport() }
+                                .buttonStyle(.appSecondary)
+                        }
                     }
                     .modifier(WindowCentered())
                 }
@@ -1262,6 +1394,15 @@ private struct ItemColumn: View {
             .animation(.snappy(duration: 0.25), value: model.multiSelection.count > 1)
         }
         .padding(.horizontal, 6)
+        .animation(.snappy(duration: 0.25), value: model.hasSearchFilters)
+        .onChange(of: model.hasSearchFilters) { _, on in if on { SearchFiltersTip().invalidate(reason: .actionPerformed) } }
+        .onChange(of: items.isEmpty, initial: true) { _, empty in if !empty { Bench.markAfterCommit("vault-ready") } }
+        // ⌘F, also when the list has only just appeared for it.
+        .onChange(of: model.wantsSearchFocus, initial: true) { _, wants in
+            guard wants else { return }
+            model.wantsSearchFocus = false
+            Task { @MainActor in filterFocused = true } // after the field is in the window
+        }
     }
 }
 
@@ -1427,28 +1568,49 @@ struct ItemDetail: View {
                             }
                         }
                     }
+                    // Which vault it's in: the same names as the sidebar's Vaults (My vault, or a shared vault › its folders).
                     if item.organizationId == nil {
-                        DetailRow(symbol: "person", title: "Owner") {
-                            Text(verbatim: model.accounts.first { $0.id == item.accountId }?.email ?? String(localized: "Me"))
-                                .foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                        DetailRow(symbol: "person", title: "Vault") {
+                            // Drawn like the Folder row's path (the place in the medium, stronger tone), so the two
+                            // rows read alike; the account, when several are open, after it in grey.
+                            let email = model.accounts.count > 1 ? model.accounts.first { $0.id == item.accountId }?.email : nil
+                            HStack(spacing: 6) {
+                                PathCrumbs(parts: [String(localized: "My vault")])
+                                if let email {
+                                    Text(verbatim: "· " + email).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                                }
+                            }
                         }
                     }
                     if let orgId = item.organizationId, let org = model.organizations.first(where: { $0.id == orgId }) {
-                        DetailRow(symbol: "building.2", title: "Organization") {
-                            let names = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
+                        DetailRow(symbol: "building.2", title: "Vault") {
+                            let paths = org.children.filter { item.collectionIds.contains($0.id) }.map(\.name)
+                                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
                             Button { model.organizationSheet = .collections(item.id) } label: {
-                                HStack(spacing: 5) {
-                                    Text(verbatim: ([org.name] + names).joined(separator: " › ")).lineLimit(1).truncationMode(.middle)
-                                    Image(systemName: "pencil").font(.system(size: 10, weight: .semibold))
+                                HStack(spacing: 8) {
+                                    if paths.count == 1 {
+                                        // One shared folder: the whole path, from the vault down.
+                                        PathCrumbs(parts: [org.name] + PathCrumbs.split(paths[0]), lead: true)
+                                    } else {
+                                        // Several: the vault, then each folder as a pill (its full path on hover).
+                                        Text(verbatim: org.name).fontWeight(.medium)
+                                        ForEach(paths, id: \.self) { path in
+                                            PathCrumbs(parts: PathCrumbs.split(path))
+                                                .padding(.horizontal, 8).frame(height: 22)
+                                                .background(Color.primary.opacity(0.06), in: .capsule)
+                                                .help(Text(verbatim: PathCrumbs.split(path).joined(separator: " › ")))
+                                        }
+                                    }
+                                    Image(systemName: "pencil").font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
                                 }
                                 .foregroundStyle(.secondary).contentShape(.rect)
                             }
                             .buttonStyle(.plain)
-                            .help(Text("Change collections"))
+                            .help(Text("Change shared folders"))
                         }
                     } else if let folderId = item.folderId, let folder = model.folders.first(where: { $0.id == folderId }) {
                         DetailRow(symbol: "folder", title: "Folder") {
-                            Text(verbatim: folder.name).foregroundStyle(.secondary)
+                            PathCrumbs(parts: PathCrumbs.split(folder.name)).foregroundStyle(.secondary)
                         }
                     }
                     if item.kind == .sshKey, let publicKey = item.properties["publicKey"], !publicKey.isEmpty {
@@ -1489,18 +1651,25 @@ struct ItemDetail: View {
                         }
                     }
                     if item.password != nil {
+                        let issue = item.passwordIssue(breaches: model.breachCounts)
                         DetailRow(symbol: "checkmark.shield", title: "Watchtower") {
                             HStack(spacing: 10) {
                                 HStack(spacing: 7) {
                                     Circle().fill(health.tint).frame(width: 7, height: 7)
                                     Text(health.text)
                                 }
-                                if let issue = item.passwordIssue(breaches: model.breachCounts), issue != .insecure,
-                                   let host = item.host, !host.isEmpty, !item.isDeleted {
+                                if let issue, issue != .insecure, let host = item.host, !host.isEmpty, !item.isDeleted {
                                     ChangeOnSiteButton(host: host)
+                                }
+                                if issue != nil, !item.isDeleted {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.tertiary)
                                 }
                             }
                         }
+                        // With an issue, the row opens Watchtower at it (the item's other reuses, what to do).
+                        .modifier(TappableRow(enabled: issue != nil && !item.isDeleted) { model.showInWatchtower(item) })
+                        .help(issue != nil ? Text("Show in Watchtower") : Text(verbatim: ""))
                     }
                     if let notes = item.notes, !notes.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
@@ -1662,24 +1831,18 @@ extension HeroCard {
                     }
                 }
                 if let totp = item.totp {
-                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-                        let code = totp.code(at: context.date)
-                        let left = totp.secondsRemaining(at: context.date)
-                        let period = Double(totp.period)
-                        let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                        Tile(style: style) {
-                            codeArmed = model.copyCount
-                            model.guarded(item) { model.copy(code, label: String(localized: "Code")) }
-                        } content: {
-                            CopyCaption(copied: codeCopied) { Text("One-time code") }
-                                .font(.system(size: 12)).foregroundStyle(style.muted)
-                            HStack(alignment: .center) {
-                                OTPCode(code: code, size: 22, urgent: left <= 5)
-                                Spacer(minLength: 8)
-                                CountdownRing(fraction: remaining, seconds: left, size: 34)
-                            }
+                    // The code and ring read the app's shared clock; the tile itself never ticks.
+                    Tile(style: style) {
+                        codeArmed = model.copyCount
+                        model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
+                    } content: {
+                        CopyCaption(copied: codeCopied) { Text("One-time code") }
+                            .font(.system(size: 12)).foregroundStyle(style.muted)
+                        HStack(alignment: .center) {
+                            LiveOTPCode(totp: totp, size: 22)
+                            Spacer(minLength: 8)
+                            LiveCountdownRing(totp: totp, size: 34)
                         }
-                        .animation(.snappy, value: code)
                     }
                     .copyTick(armed: $codeArmed, copied: $codeCopied)
                 }
@@ -1835,6 +1998,58 @@ private struct FieldLine: View {
                 .copyTick(armed: $armed, copied: $copied)
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
+    }
+}
+
+/// A folder path as breadcrumbs ("Northwind › Engineering › Frontend"): small chevrons between the parts, the last
+/// part (where the item is) a little stronger; `lead` sets the first one (the vault) in medium weight too. Long paths
+/// give way in the middle.
+struct PathCrumbs: View {
+    let parts: [String]
+    var lead = false
+
+    /// "Engineering/Frontend" → ["Engineering", "Frontend"] (folders nest by name).
+    static func split(_ path: String) -> [String] {
+        path.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
+                if index > 0 {
+                    Image(systemName: "chevron.right").font(.system(size: 8, weight: .bold)).foregroundStyle(.tertiary)
+                }
+                Text(verbatim: part)
+                    .fontWeight(index == parts.count - 1 || (lead && index == 0) ? .medium : .regular)
+                    .foregroundStyle(index == parts.count - 1 ? AnyShapeStyle(.primary.opacity(0.75)) : AnyShapeStyle(.secondary))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .layoutPriority(index == parts.count - 1 || index == 0 ? 1 : 0)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: parts.joined(separator: ", ")))
+    }
+}
+
+/// A detail row that does something on click: a soft highlight on hover, and the action for VoiceOver too.
+struct TappableRow: ViewModifier {
+    var enabled: Bool
+    let action: () -> Void
+    @State private var hovering = false
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .background(Color.primary.opacity(hovering ? 0.04 : 0))
+                .contentShape(.rect)
+                .onTapGesture(perform: action)
+                .onHover { hovering = $0 }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { action() }
+        } else {
+            content
+        }
     }
 }
 
@@ -2064,15 +2279,16 @@ struct AccountUnlockPane: View {
 enum Highlight {
     static func marked(_ text: String, _ query: String) -> AttributedString {
         var out = AttributedString(text)
-        let q = query.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return out }
-        var start = text.startIndex
-        while let range = text.range(of: q, options: [.caseInsensitive, .diacriticInsensitive], range: start..<text.endIndex) {
-            if let r = Range(range, in: out) {
-                out[r].backgroundColor = Color.brand.opacity(0.22)
-                out[r].foregroundColor = .primary
+        // Each word on its own: the list matches them anywhere, in any order.
+        for q in query.split(separator: " ").map(String.init) {
+            var start = text.startIndex
+            while let range = text.range(of: q, options: [.caseInsensitive, .diacriticInsensitive], range: start..<text.endIndex) {
+                if let r = Range(range, in: out) {
+                    out[r].backgroundColor = Color.brand.opacity(0.22)
+                    out[r].foregroundColor = .primary
+                }
+                start = range.upperBound
             }
-            start = range.upperBound
         }
         return out
     }
@@ -2215,29 +2431,82 @@ struct HeaderIconStyle: ButtonStyle {
 }
 
 /// New Folder, in the same form language as the item and Send forms.
-private struct NewFolderSheet: View {
+/// Renames a folder: its last part ("Servers" in Work/Servers); its subfolders move with it.
+struct RenameFolderSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    let path: String
+    @State private var name = ""
+    @State private var saving = false
+    @FocusState private var focused: Bool
+
+    private var current: String { path.split(separator: "/").last.map(String.init) ?? path }
+    private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+    private var hasSubfolders: Bool { model.folders.contains { $0.name.hasPrefix(path + "/") } }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                FormHeader(symbol: "folder", title: "Rename Folder", subtitle: "“\(path)”")
+                FormCard {
+                    FormField(label: "Name", note: hasSubfolders ? "Its subfolders move with it." : nil) {
+                        TextField("Name", text: $name, prompt: Text(verbatim: current))
+                            .textFieldStyle(SoftFieldStyle())
+                            .focused($focused)
+                            .onSubmit(save)
+                    }
+                }
+            }
+            .padding(20)
+            FormFooter(action: "Rename", busy: saving, disabled: trimmed.isEmpty || trimmed == current || trimmed.contains("/"),
+                       cancel: { dismiss() }, submit: save)
+        }
+        .frame(width: 440)
+        .background(Color.windowBase)
+        .onAppear { name = current; focused = true }
+    }
+
+    private func save() {
+        guard !trimmed.isEmpty, trimmed != current, !trimmed.contains("/"), !saving else { return }
+        saving = true
+        Task {
+            if await model.renameFolder(path, to: trimmed) { dismiss() }
+            saving = false
+        }
+    }
+}
+
+struct NewFolderSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    /// The folder it goes inside (a path), or nil for the top level.
+    var parent: String?
     @State private var name = ""
     @State private var accountId: String?
     @State private var saving = false
     @FocusState private var focused: Bool
 
     private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+    /// The whole path to create: the parent's, then what was typed.
+    private var fullName: String { parent.map { $0 + "/" + trimmed } ?? trimmed }
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
-                FormHeader(symbol: "folder.badge.plus", title: "New Folder", subtitle: "Group items; folders can nest.")
+                if let parent {
+                    FormHeader(symbol: "folder.badge.plus", title: "New Subfolder", subtitle: "Inside “\(parent)”.")
+                } else {
+                    FormHeader(symbol: "folder.badge.plus", title: "New Folder", subtitle: "Group items; folders can nest.")
+                }
                 FormCard {
-                    if model.sessions.count > 1 {
+                    if model.sessions.count > 1 && parent == nil {
                         FormField(label: "Account") {
                             SoftMenu(options: model.sessions.map { (String?.some($0.id), $0.account.email) }, selection: $accountId,
                                      accessibilityLabel: "Account")
                         }
                     }
-                    FormField(label: "Name", note: "Use / to nest, e.g. Work/Servers.") {
-                        TextField("Name", text: $name, prompt: Text("e.g. Work/Servers"))
+                    FormField(label: "Name", note: parent == nil ? "Use / to nest, e.g. Work/Servers." : nil) {
+                        TextField("Name", text: $name, prompt: parent == nil ? Text("e.g. Work/Servers") : Text("e.g. Servers"))
                             .textFieldStyle(SoftFieldStyle())
                             .focused($focused)
                             .onSubmit(create)
@@ -2250,7 +2519,10 @@ private struct NewFolderSheet: View {
         .frame(width: 440)
         .background(Color.windowBase)
         .onAppear {
-            accountId = model.defaultAccountId
+            // Inside a folder: the account that folder belongs to.
+            accountId = parent.flatMap { path in
+                model.sessions.first { $0.folders.contains { $0.name == path || $0.name.hasPrefix(path + "/") } }?.id
+            } ?? model.defaultAccountId
             focused = true
         }
     }
@@ -2259,73 +2531,103 @@ private struct NewFolderSheet: View {
         guard !trimmed.isEmpty, !saving else { return }
         saving = true
         Task {
-            if await model.createFolder(name: trimmed, accountId: accountId) != nil { dismiss() }
+            if await model.createFolder(name: fullName, accountId: accountId) != nil { dismiss() }
             saving = false
         }
     }
 }
 
-/// All vaults / My vault / each organization: narrows every list, count and code to one vault.
-private struct VaultSwitcher: View {
+/// The vault picker (from the vault chip): All vaults, then each vault with its icon, item count and a checkbox; "Only" on hover
+/// shows just that one. Checks animate in and out; the popover stays open so several can be picked.
+struct VaultSwitcherPicker: View {
     @Environment(AppModel.self) private var model
 
-    private var title: String {
-        switch model.vaultFilter {
-        case .all: String(localized: "All vaults")
-        case .personal: String(localized: "My vault")
-        case .organization(let id): model.organizations.first { $0.id == id }?.name ?? String(localized: "All vaults")
-        }
-    }
-
-    private var symbol: String {
-        switch model.vaultFilter {
-        case .all: "square.stack.3d.up"
-        case .personal: "person"
-        case .organization: "building.2"
-        }
-    }
-
     var body: some View {
-        Menu {
-            choice(.all, "All vaults", "square.stack.3d.up")
-            choice(.personal, "My vault", "person")
-            Divider()
+        VStack(alignment: .leading, spacing: 2) {
+            VaultPickerRow(title: String(localized: "All vaults"), symbol: "square.stack.3d.up", count: model.vaultCount(nil),
+                           checked: model.vaultFilter == .all, radio: true) {
+                withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .all }
+            }
+            Divider().padding(.vertical, 4).padding(.horizontal, 8)
+            VaultPickerRow(title: String(localized: "My vault"), symbol: "person", count: model.vaultCount(AppModel.VaultFilter.personalKey),
+                           checked: model.vaultShown(AppModel.VaultFilter.personalKey),
+                           only: { withAnimation(.snappy(duration: 0.25)) { model.showOnlyVault(AppModel.VaultFilter.personalKey) } }) {
+                withAnimation(.snappy(duration: 0.25)) { model.toggleVault(AppModel.VaultFilter.personalKey) }
+            }
             ForEach(model.visibleOrganizations) { org in
-                Button {
-                    withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .organization(org.id) }
-                } label: {
-                    Label { Text(verbatim: org.name) } icon: {
-                        Image(systemName: model.vaultFilter == .organization(org.id) ? "checkmark" : "building.2")
-                    }
+                VaultPickerRow(title: org.name, symbol: "building.2", count: model.vaultCount(org.id), checked: model.vaultShown(org.id),
+                               only: { withAnimation(.snappy(duration: 0.25)) { model.showOnlyVault(org.id) } }) {
+                    withAnimation(.snappy(duration: 0.25)) { model.toggleVault(org.id) }
                 }
             }
-        } label: {
-            HStack(spacing: 8) {
+            Text("Check several to see them together.")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .padding(.horizontal, 10).padding(.top, 6).padding(.bottom, 2)
+        }
+        .padding(6)
+        .frame(width: 280)
+    }
+}
+
+/// One vault in the picker. The whole row toggles; the check is a filled circle that pops in.
+private struct VaultPickerRow: View {
+    let title: String
+    let symbol: String
+    let count: Int
+    let checked: Bool
+    /// All vaults: a radio (filled when every vault shows), not a checkbox.
+    var radio = false
+    var only: (() -> Void)?
+    let action: () -> Void
+    @State private var hovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
                 Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-                    .frame(width: 22, height: 22)
-                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 6, style: .continuous))
-                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
+                    .frame(width: 24, height: 24)
+                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 7, style: .continuous))
+                Text(verbatim: title).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                Spacer(minLength: 6)
+                if let only, hovering, !radio {
+                    Button("Only", action: only)
+                        .buttonStyle(.plain)
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 7).frame(height: 20)
+                        .background(Color.primary.opacity(0.08), in: .capsule)
+                        .help(Text("Show only this vault"))
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
+                Text(count, format: .number).font(.system(size: 11, weight: .medium)).monospacedDigit().foregroundStyle(.tertiary)
+                Image(systemName: checked ? (radio ? "largecircle.fill.circle" : "checkmark.circle.fill") : "circle")
+                    .font(.system(size: 15))
+                    .foregroundStyle(checked ? Color.primary : Color.secondary.opacity(0.6))
+                    .contentTransition(reduceMotion ? .opacity : .symbolEffect(.replace))
             }
-            .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34)
-            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 10, style: .continuous))
+            .padding(.horizontal, 8).frame(height: 36)
+            .background(Color.primary.opacity(hovering ? 0.06 : 0), in: .rect(cornerRadius: 8, style: .continuous))
             .contentShape(.rect)
         }
-        .menuStyle(.button)
         .buttonStyle(.plain)
-        .menuIndicator(.hidden)
-        .frame(maxWidth: .infinity)
-        .help(Text("Show one vault"))
-        .accessibilityLabel(Text("Vault"))
-        .accessibilityValue(Text(verbatim: title))
+        .onHover { h in withAnimation(.easeOut(duration: 0.12)) { hovering = h } }
+        .accessibilityAddTraits(checked ? .isSelected : [])
+    }
+}
+
+/// My vault and each shared vault as checkable menu items (the filter menu); a click shows or hides one.
+struct VaultToggles: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        toggle(AppModel.VaultFilter.personalKey, String(localized: "My vault"))
+        ForEach(model.visibleOrganizations) { org in toggle(org.id, org.name) }
     }
 
-    private func choice(_ filter: AppModel.VaultFilter, _ title: LocalizedStringKey, _ symbol: String) -> some View {
-        Button {
-            withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = filter }
-        } label: {
-            Label(title, systemImage: model.vaultFilter == filter ? "checkmark" : symbol)
+    private func toggle(_ key: String, _ title: String) -> some View {
+        Toggle(isOn: Binding(get: { model.vaultShown(key) },
+                             set: { _ in withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) } })) {
+            Text(verbatim: title)
         }
     }
 }
@@ -2427,6 +2729,7 @@ struct PasswordHistorySheet: View {
                 }
                 .padding(.horizontal, 20)
             }
+            .thinScroller()
             .frame(maxHeight: 360)
             .fixedSize(horizontal: false, vertical: true)
 
@@ -2720,5 +3023,34 @@ private struct PurgeChip: View {
         .padding(.horizontal, 6).frame(height: 17)
         .background((soon ? Color.orange : Color.primary).opacity(soon ? 0.14 : 0.07), in: .capsule)
         .help(Text(date.formatted(date: .complete, time: .shortened)))
+    }
+}
+
+/// Keeps the sidebar's selection in its soft style. A sidebar that has keyboard focus draws its selection
+/// "emphasized" (a solid accent fill, graphite here), and it took focus with every click — so the style flipped
+/// back and forth as focus moved between the sidebar and the list. The sidebar's outline view now never takes
+/// focus: clicks and drops still select, and the keyboard stays with the list and the search.
+struct SidebarCalmSelection: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { Finder() }
+    func updateNSView(_ view: NSView, context: Context) { (view as? Finder)?.apply() }
+
+    final class Finder: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            apply()
+            DispatchQueue.main.async { [weak self] in self?.apply() } // the outline view may arrive a moment later
+        }
+
+        func apply() {
+            guard let root = window?.contentView else { return }
+            for outline in Self.outlines(in: root) where !outline.refusesFirstResponder {
+                outline.refusesFirstResponder = true
+                if window?.firstResponder === outline { window?.makeFirstResponder(nil) }
+            }
+        }
+
+        private static func outlines(in view: NSView) -> [NSOutlineView] {
+            (view as? NSOutlineView).map { [$0] } ?? view.subviews.flatMap(outlines)
+        }
     }
 }

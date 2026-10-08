@@ -1,68 +1,231 @@
 import TriCrypto
 import SwiftUI
 
-/// Sidebar › One-Time Codes: every code at once, live, click to copy.
+/// Sidebar › One-Time Codes: every code, live, click to copy. Tags along the top pick the vault (All, My vault, each
+/// shared vault); favorites are pinned above the rest (the star on a card pins or unpins it); a filter narrows by
+/// typing; the sort menu orders by name or recent use.
+///
+/// Fast with any number of codes: the grid is lazy (only cards on screen exist), and it never depends on the time —
+/// each card's code and ring read the app's one shared clock (`OTPClock`), so a tick refreshes just those small views.
 struct CodesPane: View {
     @Environment(AppModel.self) private var model
     @State private var copiedID: String?
+    @State private var query = ""
+    /// The vault tag picked: every vault, or one ("personal" or an organization id).
+    @State private var vault: String?
+    @AppStorage("codesSort") private var sortRaw = CodesSort.name.rawValue
 
+    enum CodesSort: String, CaseIterable, Identifiable {
+        case name, recent
+        var id: Self { self }
+        var title: LocalizedStringKey { self == .name ? "Name" : "Recently Used" }
+        var symbol: String { self == .name ? "textformat" : "clock.arrow.circlepath" }
+    }
+
+    private var sort: CodesSort { CodesSort(rawValue: sortRaw) ?? .name }
+
+    /// Every live code, narrowed by the typed filter (the tags count from this).
+    private var base: [VaultItem] {
+        model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil && AppModel.searchMatches($0, query) }
+    }
+
+    private static func vaultKey(_ item: VaultItem) -> String { item.organizationId ?? AppModel.VaultFilter.personalKey }
+
+    /// The period most codes here share (codes renew together, all timed from the same clock), and a code to time the
+    /// header's one countdown by. Codes with another period keep a ring of their own.
+    private var sharedPeriod: (period: Int, clock: TOTP)? {
+        let codes = model.vaultItems.compactMap { $0.isDeleted || $0.isArchived ? nil : $0.totp }
+        let counts = Dictionary(grouping: codes, by: \.period)
+        guard let best = counts.max(by: { $0.value.count < $1.value.count }), let clock = best.value.first else { return nil }
+        return (best.key, clock)
+    }
+
+    /// The codes the tag shows, in order: by name, or most recently used first.
     private var items: [VaultItem] {
-        model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil }
-            .sorted { ($0.favorite ? 0 : 1, $0.name) < ($1.favorite ? 0 : 1, $1.name) }
+        let shown = base.filter { vault == nil || Self.vaultKey($0) == vault }
+        let recent = Dictionary(PaletteRecents.ids.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
+        return shown.sorted { a, b in
+            if sort == .recent {
+                let ra = recent[a.id] ?? .max, rb = recent[b.id] ?? .max
+                if ra != rb { return ra < rb }
+            }
+            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+        }
     }
 
     var body: some View {
+        let list = items
+        let pinned = list.filter(\.favorite)
+        let rest = list.filter { !$0.favorite }
+        // The header stays put above the scrolling codes: its countdown ring redraws 15 times a second, and out here
+        // that never touches the grid.
+        VStack(alignment: .leading, spacing: 0) {
+            // Where the vault page's search row is: at the top, 32 pt high, 10 pt above what follows.
+            header
+                .frame(height: 32)
+                .padding(.leading, VaultView.pageInset)
+                .padding(.bottom, 10)
+            codes(list: list, pinned: pinned, rest: rest)
+        }
+    }
+
+    private func codes(list: [VaultItem], pinned: [VaultItem], rest: [VaultItem]) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("One-Time Codes").font(.system(size: 22, weight: .bold)).tracking(-0.3)
-                if items.isEmpty {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                if list.isEmpty {
                     ContentUnavailableView {
-                        Label("No one-time codes", systemImage: "clock.badge.checkmark")
+                        Label(query.isEmpty ? "No one-time codes" : "No Results",
+                              systemImage: query.isEmpty ? "clock.badge.checkmark" : "magnifyingglass")
                     } description: {
-                        Text("Add a code secret to a login to see it here.")
+                        if query.isEmpty { Text("Add a code secret to a login to see it here.") }
                     }
-                        .frame(maxWidth: .infinity, minHeight: 300)
+                    .frame(maxWidth: .infinity, minHeight: 300)
                 } else {
-                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
-                            ForEach(items) { item in
-                                if let totp = item.totp {
-                                    CodeCard(item: item, totp: totp, date: context.date, copied: copiedID == item.id) {
-                                        model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
-                                        withAnimation(.snappy) { copiedID = item.id }
-                                        Task {
-                                            try? await Task.sleep(for: .seconds(1.4))
-                                            if copiedID == item.id { withAnimation(.snappy) { copiedID = nil } }
-                                        }
-                                    }
-                                    .contextMenu { ItemContextMenu(item: item) }
-                                }
-                            }
-                        }
+                    if !pinned.isEmpty {
+                        sectionTitle("Favorites", symbol: "star.fill", count: pinned.count)
+                        grid(pinned)
+                        if !rest.isEmpty { sectionTitle("All Codes", symbol: nil, count: rest.count).padding(.top, 6) }
                     }
+                    grid(rest)
                 }
             }
             .padding(.leading, VaultView.pageInset)
-            .padding(.vertical, 24)
+            .padding(.top, 4).padding(.bottom, 24)
+            .animation(.snappy(duration: 0.25), value: list.map(\.id))
         }
         .modifier(SideOverflowClip())
-        .scrollIndicators(.never)
+        .thinScroller()
+    }
+
+    private func grid(_ items: [VaultItem]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
+            ForEach(items) { card($0) }
+        }
+    }
+
+    private func sectionTitle(_ title: LocalizedStringKey, symbol: String?, count: Int) -> some View {
+        HStack(spacing: 6) {
+            if let symbol { Image(systemName: symbol).font(.system(size: 11, weight: .semibold)).foregroundStyle(.yellow) }
+            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(count, format: .number).font(.system(size: 12, weight: .medium)).monospacedDigit().foregroundStyle(.tertiary)
+        }
+        .padding(.top, 2)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    /// The tags (All, My vault, each shared vault, with counts; shown when there are shared vaults), the filter as a
+    /// pill, and the sort menu. The page's name is the sidebar's; this row is for narrowing.
+    private var header: some View {
+        let list = base
+        return HStack(spacing: 8) {
+            // One countdown for the page: every code with this period renews when it runs out.
+            if let shared = sharedPeriod {
+                SharedCountdown(clock: shared.clock)
+            }
+            // The tags in a plain row (a scroll view up here picks up the toolbar's inset and shifts its contents);
+            // with more vaults than fit, the row fades out at its end.
+            HStack(spacing: 6) {
+                tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count, iconOnly: true)
+                if !model.visibleOrganizations.isEmpty {
+                    tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
+                        list.filter { $0.organizationId == nil }.count, iconOnly: true)
+                    ForEach(model.visibleOrganizations) { org in
+                        tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
+                    }
+                }
+            }
+            .fixedSize()
+            .padding(.vertical, 4).padding(.horizontal, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .clipped()
+            .mask {
+                HStack(spacing: 0) {
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: 16)
+                }
+            }
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                TextField("Filter", text: $query, prompt: Text("Filter codes"))
+                    .textFieldStyle(.plain).font(.system(size: 13))
+                    .onKeyPress(.escape) { guard !query.isEmpty else { return .ignored }; query = ""; return .handled }
+                if !query.isEmpty {
+                    Button { query = "" } label: {
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(.tertiary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Clear Search"))
+                }
+            }
+            .padding(.horizontal, 12).frame(width: 200, height: 32)
+            .modifier(HeaderChrome(shape: .capsule))
+            Menu {
+                Picker("Sort By", selection: $sortRaw) {
+                    ForEach(CodesSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 32, height: 32)
+                    .modifier(HeaderChrome(shape: .circle))
+                    .contentShape(.circle)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help(Text("Sort"))
+            .accessibilityLabel(Text("Sort"))
+        }
+        .padding(.trailing, 16)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("One-Time Codes"))
+        // A vault that's gone (left, or its account locked): back to every vault.
+        .onChange(of: model.visibleOrganizations.map(\.id)) { _, ids in
+            if let vault, vault != AppModel.VaultFilter.personalKey, !ids.contains(vault) { self.vault = nil }
+        }
+    }
+
+    /// One tag: picked, a solid blue pill with white text; otherwise soft glass. `iconOnly`: the name shows on hover.
+    private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int, iconOnly: Bool = false) -> some View {
+        VaultTag(title: title, symbol: symbol, count: count, picked: vault == value, iconOnly: iconOnly) {
+            withAnimation(.snappy(duration: 0.25)) { vault = value }
+        }
+    }
+
+    private func card(_ item: VaultItem) -> some View {
+        Group {
+            if let totp = item.totp {
+                CodeCard(item: item, totp: totp, ownRing: totp.period != sharedPeriod?.period, copied: copiedID == item.id) {
+                    model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
+                    PaletteRecents.note(item.id) // "Recently Used" follows what you copy here too
+                    withAnimation(.snappy) { copiedID = item.id }
+                    Task {
+                        try? await Task.sleep(for: .seconds(1.4))
+                        if copiedID == item.id { withAnimation(.snappy) { copiedID = nil } }
+                    }
+                } pin: {
+                    Task { await model.toggleFavorite(item) }
+                }
+                .contextMenu { ItemContextMenu(item: item) }
+            }
+        }
     }
 }
 
+/// One code. It holds no clock: the code and ring inside read the shared one.
 private struct CodeCard: View {
     let item: VaultItem
     let totp: TOTP
-    let date: Date
+    /// A period unlike the page's: its own ring (the header's countdown doesn't apply to it).
+    var ownRing = false
     let copied: Bool
     let copy: () -> Void
+    let pin: () -> Void
     @State private var hovering = false
 
     var body: some View {
-        let period = Double(totp.period)
-        let remaining = 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-        let left = totp.secondsRemaining(at: date)
-        let code = totp.code(at: date)
         Button(action: copy) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 10) {
@@ -79,12 +242,27 @@ private struct CodeCard: View {
                         .contentTransition(.symbolEffect(.replace))
                         .opacity(copied || hovering ? 1 : 0)
                         .accessibilityHidden(true)
+                    // Pin: a favorite sits above the rest. Always shown once pinned; on hover otherwise.
+                    Button(action: pin) {
+                        Image(systemName: item.favorite ? "star.fill" : "star")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(item.favorite ? AnyShapeStyle(.yellow) : AnyShapeStyle(.secondary))
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 22, height: 22)
+                            .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(item.favorite || hovering ? 1 : 0)
+                    .help(item.favorite ? Text("Unpin (remove from Favorites)") : Text("Pin to the top (add to Favorites)"))
+                    .accessibilityLabel(item.favorite ? Text("Remove from Favorites") : Text("Add to Favorites"))
                 }
-                HStack(alignment: .center) {
-                    OTPCode(code: code, size: 28, urgent: left <= 5)
-                    Spacer(minLength: 8)
-                    CountdownRing(fraction: remaining, seconds: left, size: 40)
-                }
+                // The code, centred; its middle dot turns orange in the last seconds. A ring only for an odd period,
+                // at the edge, so the code stays centred.
+                LiveOTPCode(totp: totp, size: 28)
+                    .frame(maxWidth: .infinity, minHeight: 40)
+                    .overlay(alignment: .trailing) {
+                        if ownRing { LiveCountdownRing(totp: totp, size: 40, lively: false) }
+                    }
             }
             .padding(16)
             .background(Color.panelStrong.opacity(hovering ? 1 : 0.85), in: .rect(cornerRadius: 18, style: .continuous))
@@ -95,7 +273,95 @@ private struct CodeCard: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .accessibilityLabel(Text(verbatim: "\(item.name), \(code)"))
+        .accessibilityLabel(Text(verbatim: item.name))
         .accessibilityHint(Text("Copies the code"))
+    }
+}
+
+/// An unpicked tag's soft glass (the header's chrome); a picked one has its own fill.
+private struct TagChrome: ViewModifier {
+    let picked: Bool
+    func body(content: Content) -> some View {
+        if picked { content } else { content.modifier(HeaderChrome(shape: .capsule)) }
+    }
+}
+
+/// The codes page's one countdown: just the ring; on hover the pill widens smoothly to reveal "New codes" and the tags
+/// beside it slide along to make room (glass over glass looked muddled), then it closes back to the ring.
+private struct SharedCountdown: View {
+    let clock: TOTP
+    @State private var hovering = false
+    @State private var labelWidth: CGFloat = 0
+
+    var body: some View {
+        HStack(spacing: 0) {
+            LiveCountdownRing(totp: clock, size: 24, digits: 0.4)
+                .padding(4)
+            Text("New codes").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                .fixedSize()
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelWidth = $0 }
+                .padding(.trailing, 12)
+                .opacity(hovering ? 1 : 0)
+        }
+        .frame(width: hovering ? 32 + labelWidth + 12 : 32, height: 32, alignment: .leading)
+        .modifier(HeaderChrome(shape: .capsule, hovering: hovering))
+        .clipShape(.capsule)
+        .contentShape(.capsule)
+        .onHover { h in withAnimation(.snappy(duration: 0.28, extraBounce: 0)) { hovering = h } }
+        .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("New codes"))
+    }
+}
+
+/// A tag in the codes page's header. With `iconOnly` (All, My vault: their icons say enough) it shows its icon and
+/// count, and widens smoothly on hover to reveal its name; shared vaults keep their names, their icons being alike.
+private struct VaultTag: View {
+    let title: String
+    let symbol: String
+    let count: Int
+    let picked: Bool
+    var iconOnly = false
+    let action: () -> Void
+    @State private var hovering = false
+    @State private var titleWidth: CGFloat = 0
+
+    private var showsTitle: Bool { !iconOnly || hovering }
+    private var ink: AnyShapeStyle { picked ? AnyShapeStyle(.white) : AnyShapeStyle(.primary.opacity(0.75)) }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
+                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    .fixedSize()
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { titleWidth = $0 }
+                    .padding(.leading, 6)
+                    // Hidden by fading as its room closes (a clip drew it in the wrong appearance's colour).
+                    .opacity(showsTitle ? 1 : 0)
+                    .frame(width: showsTitle ? titleWidth + 6 : 0, alignment: .leading)
+                Text(count, format: .number).font(.system(size: 11, weight: .semibold)).monospacedDigit()
+                    .opacity(picked ? 0.8 : 0.55)
+                    .contentTransition(.numericText(value: Double(count)))
+                    .padding(.leading, 6)
+            }
+            .foregroundStyle(ink)
+            .padding(.horizontal, 12).frame(height: 32)
+            .background {
+                // The sidebar selection's blue: made for white text in both appearances (the brand blue is a light sky
+                // in dark mode).
+                if picked { Capsule().fill(Color.sidebarSelection) }
+            }
+            .modifier(TagChrome(picked: picked))
+            .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .onHover { h in
+            guard iconOnly else { return }
+            withAnimation(.snappy(duration: 0.28, extraBounce: 0)) { hovering = h }
+        }
+        .help(iconOnly ? Text(verbatim: title) : Text(verbatim: ""))
+        .accessibilityLabel(Text(verbatim: "\(title), \(count)"))
+        .accessibilityAddTraits(picked ? .isSelected : [])
     }
 }

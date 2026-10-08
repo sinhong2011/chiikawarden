@@ -5,6 +5,7 @@ import AuthenticationServices
 import AppKit
 import TriCrypto
 import SwiftUI
+import TipKit
 import VaultwardenAPI
 
 /// Debug-only: `Triwarden --snapshot` renders key screens offscreen in light and dark
@@ -187,6 +188,108 @@ enum Snapshot {
             }, size: CGSize(width: 1100, height: 700), appearance: appearance, to: dir.appending(path: "gate-lockscreen-\(name).png"))
             renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
                          appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
+        }
+        // Shared vaults and folders, under their plain names: My Folders in the sidebar, a shared vault's section with
+        // its shared folders, an item's Shared vault row, and the move and shared-folder sheets.
+        let plainItems = vault.items
+        vault.folders = [Grouping(id: "f-personal", name: "Personal"), Grouping(id: "f-work", name: "Work")]
+        vault.organizations = [Grouping(id: "org-nw", name: "Northwind", children: [
+            Grouping(id: "col-eng", name: "Engineering"), Grouping(id: "col-eng-be", name: "Engineering/Backend"),
+            Grouping(id: "col-eng-fe", name: "Engineering/Frontend"), Grouping(id: "col-ops", name: "Operations")])]
+        vault.items = vault.items.map { item in
+            var item = item
+            if item.id == "1" { item.organizationId = "org-nw"; item.collectionIds = ["col-eng-fe"] }
+            if item.id == "5" { item.organizationId = "org-nw"; item.collectionIds = ["col-eng-be", "col-ops"] }
+            if item.id == "2" { item.folderId = "f-work"; item.folderName = "Work" }
+            if item.id == "3" { item.folderId = "f-personal"; item.folderName = "Personal" }
+            return item
+        }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            render(desktop(CodesPane().environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 620), appearance: appearance, to: dir.appending(path: "vault-shared-codes-\(name).png"))
+            vault.selectedID = "5" // in two shared folders: each a pill
+            renderWindow(VaultView(initialSelection: "5").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-two-\(name).png"))
+            vault.selectedID = "1"
+            // The vault picker: every vault shown, then My vault and Northwind checked.
+            render(VaultSwitcherPicker().environment(vault).tint(.brand).background(Color.windowBase), size: CGSize(width: 300, height: 220),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-picker-all-\(name).png"))
+            vault.vaultFilter = .organization("org-nw")
+            render(VaultSwitcherPicker().environment(vault).tint(.brand).background(Color.windowBase), size: CGSize(width: 300, height: 220),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-picker-one-\(name).png"))
+            vault.vaultFilter = .all
+            // My vault and Northwind together: the switcher and the chip name both.
+            vault.vaultFilter = .several([AppModel.VaultFilter.personalKey, "org-nw"])
+            renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
+                         appearance: appearance, to: dir.appending(path: "vault-shared-several-\(name).png"))
+            vault.vaultFilter = .all
+            render(MoveToOrganizationSheet(itemIDs: ["2"]).environment(vault).tint(.brand), size: CGSize(width: 520, height: 600),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-move-\(name).png"))
+            render(CollectionsSheet(itemID: "1").environment(vault).tint(.brand), size: CGSize(width: 480, height: 420),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-folders-\(name).png"))
+        }
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(NewFolderSheet(parent: "Work").environment(vault).tint(.brand), size: CGSize(width: 440, height: 300),
+                   appearance: appearance, to: dir.appending(path: "vault-subfolder-\(name).png"))
+            render(RenameFolderSheet(path: "Work").environment(vault).tint(.brand), size: CGSize(width: 440, height: 300),
+                   appearance: appearance, to: dir.appending(path: "vault-rename-folder-\(name).png"))
+        }
+        vault.items = plainItems
+        vault.folders = []
+        vault.organizations = []
+
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(KeyboardShortcutsView().environment(vault).tint(.brand), size: CGSize(width: 1040, height: 760),
+                   appearance: appearance, to: dir.appending(path: "shortcuts-\(name).png"))
+        }
+
+        // The one-time search tip, as the list shows it (TipKit forced on, in a throwaway store).
+        try? Tips.configure([.datastoreLocation(.url(dir.appending(path: "tips", directoryHint: .isDirectory)))])
+        Tips.showAllTipsForTesting()
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(desktop(TipView(SearchFiltersTip()).tipImageStyle(.secondary).frame(width: 318).padding(20), dark: name == "dark"),
+                   size: CGSize(width: 360, height: 200), appearance: appearance,
+                   to: dir.appending(path: "vault-search-tip-\(name).png"))
+        }
+
+        // Suggestions while a token is typed: types, then folders.
+        vault.folders = [Grouping(id: "f-personal", name: "Personal"), Grouping(id: "f-work", name: "Work")]
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            for (slug, typed) in [("type", "type:"), ("folder", "#w"), ("is", "has:")] {
+                render(desktop(SearchSuggestionList(suggestions: vault.searchSuggestions(for: typed), pick: 0, accept: { _ in })
+                    .padding(20), dark: name == "dark"),
+                       size: CGSize(width: 320, height: 300), appearance: appearance,
+                       to: dir.appending(path: "vault-search-suggest-\(slug)-\(name).png"))
+            }
+        }
+        vault.folders = []
+
+        // An empty vault: Import… right in the list.
+        let full = vault.items
+        vault.items = []
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-empty-\(name).png"))
+        }
+        vault.items = full
+
+        // An item with a Watchtower issue: its row leads to Watchtower (chevron).
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            renderWindow(VaultView(initialSelection: "4").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-watchtower-row-\(name).png"))
+        }
+
+        // The list's search with filters on: chips under the field, the filter menu filled; and filters that leave nothing.
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            vault.searchFilters = SearchFilters(type: .login, hasCode: true)
+            renderWindow(VaultView(initialQuery: "git").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-search-\(name).png"))
+            vault.searchFilters = SearchFilters(type: .card, favorites: true, hasPasskey: true)
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "vault-search-empty-\(name).png"))
+            vault.searchFilters = SearchFilters()
         }
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             render(desktop(CommandPalette(close: {}).environment(vault).tint(.brand), dark: name == "dark"),
