@@ -1,13 +1,18 @@
 # Triwarden website
 
-Astro + Tailwind CSS v4, with GSAP for motion. Static output, deployable to GitHub Pages under `/triwarden/`.
+Astro + Tailwind CSS v4, with GSAP for motion. Static output for any host.
 
 ```bash
 cd site
 pnpm install
-pnpm dev        # http://localhost:4321/triwarden/
+pnpm dev        # http://localhost:4321/
 pnpm build      # → dist/
 ```
+
+Optional deploy config:
+
+- `SITE_URL`: canonical site origin for sitemap/canonical URLs (for example `https://example.com`)
+- `SITE_BASE_PATH`: base path prefix (defaults to `/`)
 
 - `src/config.ts`: price, download and Homebrew links, version, and `CHECKOUT_URL` — the Lemon Squeezy link, which is
   in test mode and changes when the store goes live (change it there only). `asset()` prefixes the deploy base.
@@ -15,8 +20,8 @@ pnpm build      # → dist/
   plus the bespoke widget styles (dial, vault window, palette, terminal) under `@layer components`.
 - i18n with [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs): messages in `messages/<locale>.json`
   (en, zh-hant, zh-hk, zh-hans, ja — the app's five languages, using the app's own terms), compiled to
-  `src/paraglide/` on build. English is at `/triwarden/`, the rest at `/triwarden/<locale>/`; `src/middleware.ts`
-  sets the locale per page and `src/i18n.ts` lists the languages. Add a string to every locale file, then use `m.key()`.
+  `src/paraglide/` on build. English is at `<base>/`, the rest at `<base>/<locale>/`; `src/middleware.ts` sets the
+  locale per page and `src/i18n.ts` lists the languages. Add a string to every locale file, then use `m.key()`.
 - `src/components/*.astro`: one per section; each loads its own script from `src/scripts/`.
 - `src/scripts/dial.ts`: the three-ring dial, same geometry as `Design/AppIcon/generate.py`.
 - `src/scripts/shader.ts`: live WebGPU backdrops (hero, screenshot stage, closing panel) from the MIT
