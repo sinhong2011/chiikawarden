@@ -219,7 +219,7 @@ enum Snapshot {
         vault.organizations = []
 
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            render(KeyboardShortcutsView().environment(vault).tint(.brand), size: CGSize(width: 1000, height: 640),
+            render(KeyboardShortcutsView().environment(vault).tint(.brand), size: CGSize(width: 1040, height: 760),
                    appearance: appearance, to: dir.appending(path: "shortcuts-\(name).png"))
         }
 

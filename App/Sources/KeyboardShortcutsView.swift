@@ -1,27 +1,34 @@
 import SwiftUI
 
 /// Help › Keyboard Shortcuts (⌘/): every key the app answers to, by where you use it — the vault window, the selected
-/// item, the search and its filters, the command palette, and the system-wide shortcuts (as they're set now).
+/// item, search and its filters, the command palette, filling another app, and the system-wide shortcuts (as they're
+/// set now). Three balanced columns of grouped cards, keys drawn as keycaps, typed filters as code; a filter field on top.
 struct KeyboardShortcutsView: View {
     static let windowID = "keyboard-shortcuts"
 
     struct Entry: Identifiable {
+        enum Kind { case keys, typed }
+        /// Keys (`⇧⌘N`), or text to type (`type:card`); alternatives separated by two spaces.
         let keys: String
-        let title: LocalizedStringKey
-        var id: String { keys + "\(title)" }
+        let title: LocalizedStringResource
+        var kind = Kind.keys
+        var id: String { keys + title.key }
     }
 
     struct Group: Identifiable {
-        let title: LocalizedStringKey
+        let title: LocalizedStringResource
         let symbol: String
         let entries: [Entry]
         var id: String { symbol }
     }
 
-    /// The system-wide shortcuts, as set in Settings › Shortcuts.
+    @State private var query = ""
+    @FocusState private var filterFocused: Bool
+
+    /// The system-wide shortcuts, as set in Settings › Shortcuts (empty keys: not set).
     private var everywhere: Group {
         Group(title: "Anywhere on your Mac", symbol: "globe", entries: GlobalAction.allCases.map { action in
-            Entry(keys: Shortcut.current(for: action)?.display ?? "", title: action.title)
+            Entry(keys: Shortcut.current(for: action)?.display ?? "", title: action.resource)
         })
     }
 
@@ -48,18 +55,19 @@ struct KeyboardShortcutsView: View {
         Entry(keys: "⌘D", title: "Toggle Favorite"),
         Entry(keys: "⌥⌘A", title: "Archive"),
         Entry(keys: "⌘⌫", title: "Move to Trash…"),
-        Entry(keys: "↑ ↓", title: "Previous or next item"),
-        Entry(keys: "⌘-click  ⇧-click  ⌘A", title: "Pick several items"),
+        Entry(keys: "↑  ↓", title: "Previous or next item"),
+        Entry(keys: "⌘-click  ⇧-click", title: "Pick several items"),
+        Entry(keys: "⌘A", title: "Pick all"),
     ])
 
     static let search = Group(title: "Search and filters", symbol: "line.3.horizontal.decrease.circle", entries: [
-        Entry(keys: "type:card", title: "Logins, cards, identities, notes, SSH keys"),
-        Entry(keys: "#Work", title: "A folder and its subfolders"),
-        Entry(keys: "is:favorite", title: "Favorites"),
-        Entry(keys: "has:otp", title: "Has a one-time code"),
-        Entry(keys: "has:passkey", title: "Has a passkey"),
-        Entry(keys: "is:weak", title: "Watchtower issues"),
-        Entry(keys: "vault:personal", title: "One vault"),
+        Entry(keys: "type:card", title: "One type of item", kind: .typed),
+        Entry(keys: "#Work", title: "A folder and its subfolders", kind: .typed),
+        Entry(keys: "is:favorite", title: "Favorites", kind: .typed),
+        Entry(keys: "has:otp", title: "Has a one-time code", kind: .typed),
+        Entry(keys: "has:passkey", title: "Has a passkey", kind: .typed),
+        Entry(keys: "is:weak", title: "Watchtower issues", kind: .typed),
+        Entry(keys: "vault:personal", title: "One vault", kind: .typed),
         Entry(keys: "Tab  ↵", title: "Take a suggestion"),
         Entry(keys: "⌫", title: "Take off the last filter"),
         Entry(keys: "Esc", title: "Clear the search"),
@@ -72,85 +80,202 @@ struct KeyboardShortcutsView: View {
         Entry(keys: "⌥↵", title: "Copy code"),
         Entry(keys: "⇧↵", title: "Open Website"),
         Entry(keys: "→  Tab", title: "All of an item's actions"),
-        Entry(keys: ">", title: "Commands only"),
-        Entry(keys: "gen 24", title: "A new 24-character password"),
-        Entry(keys: "↵  ⌃↵  ⌥↵", title: "Over another app: type the login, the username, the password"),
+        Entry(keys: ">", title: "Commands only", kind: .typed),
+        Entry(keys: "gen 24", title: "A new 24-character password", kind: .typed),
+    ])
+
+    static let otherApp = Group(title: "Over another app", symbol: "rectangle.and.hand.point.up.left", entries: [
+        Entry(keys: "↵", title: "Type the username and password"),
+        Entry(keys: "⌃↵", title: "Type the username"),
+        Entry(keys: "⌥↵", title: "Type the password"),
         Entry(keys: "⇧", title: "…and press Return after it"),
     ])
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Text("Keyboard Shortcuts").font(.system(size: 22, weight: .bold))
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(spacing: 16) {
-                        GroupCard(group: Self.window)
-                        GroupCard(group: everywhere)
-                    }
-                    VStack(spacing: 16) {
-                        GroupCard(group: Self.item)
-                        GroupCard(group: Self.palette)
-                    }
-                    VStack(spacing: 16) {
-                        GroupCard(group: Self.search)
-                    }
-                }
-                Text("Change the shortcuts that work anywhere in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts.")
-                    .font(.system(size: 11)).foregroundStyle(.secondary)
-            }
-            .padding(24)
+    /// Three columns of about the same height.
+    private var columns: [[Group]] {
+        [[Self.window, everywhere], [Self.item, Self.palette], [Self.search, Self.otherApp]]
+    }
+
+    private func matching(_ group: Group) -> Group? {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return group }
+        let entries = group.entries.filter {
+            String(localized: $0.title).localizedStandardContains(q) || $0.keys.localizedStandardContains(q)
         }
-        .frame(minWidth: 960, minHeight: 560)
+        return entries.isEmpty ? nil : Group(title: group.title, symbol: group.symbol, entries: entries)
+    }
+
+    var body: some View {
+        let shown = columns.map { $0.compactMap(matching) }
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Text("Everything Triwarden answers to. Menu items show theirs too.")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                Spacer(minLength: 12)
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                    TextField("Filter", text: $query, prompt: Text("Find a shortcut"))
+                        .textFieldStyle(.plain).font(.system(size: 12.5))
+                        .focused($filterFocused)
+                        .onKeyPress(.escape) { guard !query.isEmpty else { return .ignored }; query = ""; return .handled }
+                }
+                .padding(.horizontal, 10).frame(width: 220, height: 28)
+                .background(Color.primary.opacity(0.06), in: .capsule)
+            }
+            .padding(.horizontal, 24).padding(.top, 16).padding(.bottom, 14)
+
+            Divider().opacity(0.5)
+
+            ScrollView {
+                if shown.allSatisfy(\.isEmpty) {
+                    ContentUnavailableView.search(text: query).padding(.top, 60)
+                } else {
+                    HStack(alignment: .top, spacing: 18) {
+                        ForEach(Array(shown.enumerated()), id: \.offset) { _, column in
+                            VStack(spacing: 18) {
+                                ForEach(column) { GroupSection(group: $0) }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .top)
+                        }
+                    }
+                    .padding(.horizontal, 24).padding(.vertical, 20)
+                    .animation(.snappy(duration: 0.2), value: query)
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+
+            Divider().opacity(0.5)
+            Text("Shortcuts that work anywhere change in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts.")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24).padding(.vertical, 12)
+        }
+        .frame(minWidth: 1000, idealWidth: 1040, minHeight: 640, idealHeight: 760)
         .background(Color.windowBase)
+        .background { Button("") { filterFocused = true }.keyboardShortcut("f", modifiers: .command).hidden() }
     }
 }
 
-/// One group: its symbol and title, then each key and what it does.
-private struct GroupCard: View {
+/// One group: a small header, then its rows in a card with hairlines between them.
+private struct GroupSection: View {
     let group: KeyboardShortcutsView.Group
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(group.title, systemImage: group.symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.primary)
-            VStack(alignment: .leading, spacing: 7) {
-                ForEach(group.entries) { entry in
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text(entry.title).font(.system(size: 12)).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Label { Text(group.title) } icon: { Image(systemName: group.symbol) }
+                .font(.system(size: 11, weight: .semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+                .frame(height: 14)
+                .padding(.leading, 4)
+            VStack(spacing: 0) {
+                ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
+                    if index > 0 { Divider().opacity(0.5).padding(.leading, 12) }
+                    HStack(alignment: .center, spacing: 12) {
+                        Text(entry.title)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                         if entry.keys.isEmpty {
-                            Text("Off").font(.system(size: 11.5)).foregroundStyle(.tertiary) // not set in Settings
+                            Text("Not set").font(.system(size: 11.5)).foregroundStyle(.tertiary)
+                        } else if entry.kind == .typed {
+                            Typed(text: entry.keys)
                         } else {
-                            KeyCaps(keys: entry.keys)
+                            KeyCombo(keys: entry.keys)
                         }
                     }
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 30)
                     .accessibilityElement(children: .combine)
                 }
             }
+            .padding(.vertical, 2)
+            .background(Color.panel, in: .rect(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.06)))
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.panel, in: .rect(cornerRadius: 14, style: .continuous))
+        .transition(.opacity)
     }
 }
 
-/// Keys as small caps-like tiles; double spaces separate alternatives.
-private struct KeyCaps: View {
+/// Keys as keycaps, one cap per key (⇧ ⌘ N); alternatives (two spaces apart) a little further apart, with a thin
+/// slash between. "⌘-click" is a cap and the word.
+private struct KeyCombo: View {
     let keys: String
 
+    private static let modifiers: Set<Character> = ["⌃", "⌥", "⇧", "⌘"]
+
+    /// One alternative split into caps, and any trailing word ("click").
+    private func caps(_ combo: String) -> (caps: [String], word: String?) {
+        var caps: [String] = []
+        var rest = Substring(combo)
+        while let c = rest.first, Self.modifiers.contains(c) { caps.append(String(c)); rest = rest.dropFirst() }
+        if rest.hasPrefix("-") { return (caps, String(rest.dropFirst())) }
+        if !rest.isEmpty { caps.append(String(rest)) }
+        return (caps, nil)
+    }
+
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(Array(keys.components(separatedBy: "  ").enumerated()), id: \.offset) { _, key in
-                Text(verbatim: key)
-                    .font(.system(size: 11.5, weight: .medium, design: key.contains(":") || key.hasPrefix("#") ? .monospaced : .default))
-                    .foregroundStyle(.primary.opacity(0.85))
-                    .padding(.horizontal, 6).frame(minWidth: 22, minHeight: 20)
-                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 5, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+        let alternatives = keys.components(separatedBy: "  ")
+        HStack(spacing: 6) {
+            ForEach(Array(alternatives.enumerated()), id: \.offset) { index, combo in
+                if index > 0 { Text(verbatim: "/").font(.system(size: 11)).foregroundStyle(.quaternary) }
+                let parts = caps(combo)
+                HStack(spacing: 3) {
+                    ForEach(Array(parts.caps.enumerated()), id: \.offset) { _, key in KeyCap(key: key) }
+                    if let word = parts.word {
+                        Text(verbatim: word).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .fixedSize()
+    }
+}
+
+/// One key: a small raised tile.
+private struct KeyCap: View {
+    let key: String
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        Text(verbatim: key)
+            .font(.system(size: 11.5, weight: .medium))
+            .foregroundStyle(.primary.opacity(0.85))
+            .padding(.horizontal, key.count > 1 ? 6 : 0)
+            .frame(minWidth: 21, minHeight: 21)
+            .background {
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(scheme == .dark ? Color.white.opacity(0.1) : Color.white)
+                    .shadow(color: .black.opacity(scheme == .dark ? 0.5 : 0.18), radius: 0, y: 1)
+            }
+            .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(Color.primary.opacity(0.1)))
+    }
+}
+
+/// Text you type (a filter, a palette command): code, not keys.
+private struct Typed: View {
+    let text: String
+
+    var body: some View {
+        Text(verbatim: text)
+            .font(.system(size: 11.5, design: .monospaced))
+            .foregroundStyle(.primary.opacity(0.8))
+            .padding(.horizontal, 6).frame(minHeight: 21)
+            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 5, style: .continuous))
+            .fixedSize()
+    }
+}
+
+extension GlobalAction {
+    /// The title as a resource (for matching the filter as well as showing).
+    var resource: LocalizedStringResource {
+        switch self {
+        case .palette: "Command palette"
+        case .fill: "Fill this page or app"
+        case .showWindow: "Show Triwarden"
+        case .generate: "Copy a new password"
+        case .lock: "Lock vault"
+        }
     }
 }

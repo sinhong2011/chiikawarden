@@ -5401,34 +5401,6 @@
         }
       }
     },
-    "Change the shortcuts that work anywhere in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mac のどこでも使えるショートカットは 設定 › ショートカット で、メニューのショートカットは システム設定 › キーボード › キーボードショートカット › アプリのショートカット で変更します。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可在“设置”›“快捷键”中更改全局快捷键；菜单快捷键在“系统设置”›“键盘”›“键盘快捷键”›“App 快捷键”中更改。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可在「設定」›「快速鍵」中變更全域快速鍵；選單快速鍵在「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」中變更。"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喺「設定」›「快速鍵」改全域快速鍵；選單快速鍵就喺「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」改。"
-          }
-        }
-      }
-    },
     "Changed the shared folders of %@" : {
       "localizations" : {
         "ja" : {
@@ -11464,6 +11436,34 @@
         }
       }
     },
+    "Everything Triwarden answers to. Menu items show theirs too." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden で使えるすべてのキー。メニュー項目にも表示されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支持的所有按键。菜单项中也会显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 支援的所有按鍵。選單項目中也會顯示。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triwarden 識得嘅所有按鍵。選單項目都會顯示。"
+          }
+        }
+      }
+    },
     "Everything you guard,\none keystroke away." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -12615,6 +12615,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "篩選，%lld 個項目"
+          }
+        }
+      }
+    },
+    "Find a shortcut" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ショートカットを検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查找快捷键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尋找快速鍵"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搵快速鍵"
           }
         }
       }
@@ -16362,34 +16390,6 @@
         }
       }
     },
-    "Logins, cards, identities, notes, SSH keys" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ログイン、カード、ID、メモ、SSH 鍵"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "登录信息、卡片、身份、备忘录、SSH 密钥"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "登入資料、卡片、身分、備忘錄、SSH 密鑰"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "登入資料、卡、身份、備忘錄、SSH 密鑰"
-          }
-        }
-      }
-    },
     "Looking good" : {
       "localizations" : {
         "ja" : {
@@ -18971,6 +18971,34 @@
         }
       }
     },
+    "Not set" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
+        }
+      }
+    },
     "Not signed in" : {
       "localizations" : {
         "ja" : {
@@ -19474,6 +19502,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "掂一下就可以開晒所有已啟用嘅帳戶。"
+          }
+        }
+      }
+    },
+    "One type of item" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1種類の項目"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一种项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一種項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一種項目"
           }
         }
       }
@@ -20579,30 +20635,30 @@
         }
       }
     },
-    "Over another app: type the login, the username, the password" : {
+    "Over another app" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ほかのアプリ上で：ログイン、ユーザー名、パスワードを入力"
+            "value" : "ほかのアプリ上で"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在其他应用上：输入登录信息、用户名、密码"
+            "value" : "在其他应用上"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在其他 App 上：輸入登入資料、使用者名稱、密碼"
+            "value" : "在其他 App 上"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "喺其他 App 上面：輸入登入資料、用戶名稱、密碼"
+            "value" : "喺其他 App 上面"
           }
         }
       }
@@ -21451,6 +21507,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "電話"
+          }
+        }
+      }
+    },
+    "Pick all" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべて選択"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全揀"
           }
         }
       }
@@ -25330,6 +25414,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快速鍵"
+          }
+        }
+      }
+    },
+    "Shortcuts that work anywhere change in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac のどこでも使えるショートカットは 設定 › ショートカット で、メニューのショートカットは システム設定 › キーボード › キーボードショートカット › アプリのショートカット で変更します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全局快捷键在“设置”›“快捷键”中更改；菜单快捷键在“系统设置”›“键盘”›“键盘快捷键”›“App 快捷键”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全域快速鍵在「設定」›「快速鍵」中變更；選單快速鍵在「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」中變更。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全域快速鍵喺「設定」›「快速鍵」改；選單快速鍵就喺「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」改。"
           }
         }
       }
@@ -29850,6 +29962,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入 type:card、is:favorite、has:otp 或者 #Work，或者喺篩選選單揀。篩選會一直開住，直到你清除；撳 ⌫ 移走最後一個。"
+          }
+        }
+      }
+    },
+    "Type the password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスワードを入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入密碼"
+          }
+        }
+      }
+    },
+    "Type the username" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ユーザー名を入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入用户名"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入使用者名稱"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入用戶名稱"
+          }
+        }
+      }
+    },
+    "Type the username and password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ユーザー名とパスワードを入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入用户名和密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入使用者名稱和密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入用戶名稱同密碼"
           }
         }
       }
