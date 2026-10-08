@@ -1820,24 +1820,18 @@ extension HeroCard {
                     }
                 }
                 if let totp = item.totp {
-                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-                        let code = totp.code(at: context.date)
-                        let left = totp.secondsRemaining(at: context.date)
-                        let period = Double(totp.period)
-                        let remaining = 1 - context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-                        Tile(style: style) {
-                            codeArmed = model.copyCount
-                            model.guarded(item) { model.copy(code, label: String(localized: "Code")) }
-                        } content: {
-                            CopyCaption(copied: codeCopied) { Text("One-time code") }
-                                .font(.system(size: 12)).foregroundStyle(style.muted)
-                            HStack(alignment: .center) {
-                                OTPCode(code: code, size: 22, urgent: left <= 5)
-                                Spacer(minLength: 8)
-                                CountdownRing(fraction: remaining, seconds: left, size: 34)
-                            }
+                    // The code and ring read the app's shared clock; the tile itself never ticks.
+                    Tile(style: style) {
+                        codeArmed = model.copyCount
+                        model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
+                    } content: {
+                        CopyCaption(copied: codeCopied) { Text("One-time code") }
+                            .font(.system(size: 12)).foregroundStyle(style.muted)
+                        HStack(alignment: .center) {
+                            LiveOTPCode(totp: totp, size: 22)
+                            Spacer(minLength: 8)
+                            LiveCountdownRing(totp: totp, size: 34)
                         }
-                        .animation(.snappy, value: code)
                     }
                     .copyTick(armed: $codeArmed, copied: $codeCopied)
                 }

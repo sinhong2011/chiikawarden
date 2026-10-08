@@ -1,4 +1,5 @@
 import SwiftUI
+import TriCrypto
 
 /// A one-time code as two halves with a softly breathing dot between them: "485 • 657".
 struct OTPCode: View {
@@ -83,6 +84,9 @@ struct CountdownRing: View {
     var size: CGFloat = 38
     /// The seconds' size against the ring's: larger for a small ring that stands on its own.
     var digits: CGFloat = 0.32
+    /// The number rolls and the ring pops each second. Off in a grid of codes: dozens of rings animating every second
+    /// keep the whole window redrawing.
+    var lively = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var beat = 0
     @State private var beatScale = 1.0
@@ -99,10 +103,10 @@ struct CountdownRing: View {
                 .font(.system(size: size * digits, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(urgent ? Color.orange : .secondary)
-                .contentTransition(Motion.plays ? .numericText(countsDown: true) : .identity)
+                .contentTransition(Motion.plays && lively ? .numericText(countsDown: true) : .identity)
         }
         .frame(width: size, height: size)
-        .animation(Motion.plays ? .snappy : nil, value: seconds)
+        .animation(Motion.plays && lively ? .snappy : nil, value: seconds)
         .keyframeAnimator(initialValue: 1.0, trigger: beat) { ring, scale in
             ring.scaleEffect(scale)
         } keyframes: { _ in
@@ -112,11 +116,84 @@ struct CountdownRing: View {
             }
         }
         .onChange(of: seconds) { old, new in
-            guard !reduceMotion else { return }
+            guard !reduceMotion, lively else { return }
             if new > old { beatScale = 1.16; beat += 1 }           // a new code
             else if new <= 5 { beatScale = 1.07; beat += 1 }       // the last seconds
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("\(seconds) seconds left"))
+    }
+}
+
+/// One clock for every one-time code in the app (the codes page, an item's code tile, the menu bar), instead of a
+/// timer per view. It ticks four times a second while anything shows a code. Views read only what they need:
+/// `second` changes once a second (the code, its seconds), `now` four times (a ring's sweep). A tick so refreshes just
+/// those small views — never a list or grid around them — however many codes there are.
+@MainActor @Observable
+final class OTPClock {
+    static let shared = OTPClock()
+
+    private(set) var now = Date.now
+    /// Whole seconds since 1970; changes once a second.
+    private(set) var second = Int(Date.now.timeIntervalSince1970)
+
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var users = 0
+
+    /// A view showing a code appeared: the clock runs while there's at least one.
+    func retain() {
+        users += 1
+        guard timer == nil, Motion.plays else { return }
+        tick()
+        // On the quarter-second, so every ring moves together.
+        let next = (Date.now.timeIntervalSince1970 * 4).rounded(.up) / 4
+        let timer = Timer(fire: Date(timeIntervalSince1970: next), interval: 0.25, repeats: true) { _ in
+            MainActor.assumeIsolated { OTPClock.shared.tick() }
+        }
+        RunLoop.main.add(timer, forMode: .common) // keeps ticking while a menu is open or a scroll is tracking
+        self.timer = timer
+    }
+
+    func release() {
+        users = max(0, users - 1)
+        if users == 0 { timer?.invalidate(); timer = nil }
+    }
+
+    private func tick() {
+        now = .now
+        let s = Int(now.timeIntervalSince1970)
+        if s != second { second = s } // only on a change, so code views refresh once a second
+    }
+}
+
+/// A one-time code on the shared clock: refreshed once a second.
+struct LiveOTPCode: View {
+    let totp: TOTP
+    var size: CGFloat = 26
+    var breathing = true
+    private let clock = OTPClock.shared
+
+    var body: some View {
+        let date = Date(timeIntervalSince1970: TimeInterval(clock.second))
+        OTPCode(code: totp.code(at: date), size: size, urgent: totp.secondsRemaining(at: date) <= 5, breathing: breathing)
+            .onAppear { clock.retain() }
+            .onDisappear { clock.release() }
+    }
+}
+
+/// A code's countdown ring on the shared clock: its sweep four times a second.
+struct LiveCountdownRing: View {
+    let totp: TOTP
+    var size: CGFloat = 38
+    var lively = true
+    private let clock = OTPClock.shared
+
+    var body: some View {
+        let period = Double(totp.period)
+        let fraction = 1 - clock.now.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
+        CountdownRing(fraction: fraction, seconds: totp.secondsRemaining(at: clock.now), size: size, lively: lively)
+            .frame(width: size, height: size) // a fixed size: a tick never re-lays out anything around it
+            .onAppear { clock.retain() }
+            .onDisappear { clock.release() }
     }
 }

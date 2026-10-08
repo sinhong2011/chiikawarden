@@ -890,14 +890,9 @@ private struct ItemLine: View {
             }
             Spacer(minLength: 8)
             if selected, let totp = item.totp {
-                TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                    let period = Double(totp.period)
-                    let left = totp.secondsRemaining(at: ctx.date)
-                    HStack(spacing: 12) {
-                        OTPCode(code: totp.code(at: ctx.date), size: 17, urgent: left <= 5)
-                        CountdownRing(fraction: 1 - ctx.date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period,
-                                      seconds: left, size: 30)
-                    }
+                HStack(spacing: 12) { // on the app's shared clock
+                    LiveOTPCode(totp: totp, size: 17)
+                    LiveCountdownRing(totp: totp, size: 30)
                 }
             }
         }

@@ -238,11 +238,6 @@ private struct CopyIcon: View {
     }
 }
 
-/// How much of a code's period is left, 1…0.
-private func codeFraction(_ totp: TOTP, _ date: Date) -> Double {
-    let period = Double(totp.period)
-    return 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-}
 
 /// The logins for the page (or app) the panel was opened over; a click types it in there.
 private struct SiteCard: View {
@@ -265,11 +260,9 @@ private struct SiteCard: View {
                             Text("Click to fill").font(.system(size: 10)).foregroundStyle(.tertiary)
                         }
                         .padding(.horizontal, 8).padding(.top, 2)
-                        TimelineView(.animation(minimumInterval: 1 / 30, paused: !items.contains { $0.totp != nil })) { time in
-                            VStack(spacing: 0) {
-                                ForEach(items) { item in
-                                    QuickRow(item: item, date: time.date, fillsOnClick: true)
-                                }
+                        VStack(spacing: 0) {
+                            ForEach(items) { item in
+                                QuickRow(item: item, fillsOnClick: true)
                             }
                         }
                     }
@@ -311,11 +304,9 @@ private struct ShelfCard: View {
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, minHeight: 64)
                 } else {
-                    TimelineView(.animation(minimumInterval: 1 / 30, paused: tab.wrappedValue != .codes && !items.contains { $0.totp != nil })) { context in
-                        VStack(spacing: 0) {
-                            ForEach(items) { item in
-                                QuickRow(item: item, date: context.date, preferCode: tab.wrappedValue == .codes)
-                            }
+                    VStack(spacing: 0) {
+                        ForEach(items) { item in
+                            QuickRow(item: item, preferCode: tab.wrappedValue == .codes)
                         }
                     }
                 }
@@ -329,7 +320,6 @@ private struct ShelfCard: View {
 private struct QuickRow: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
-    let date: Date
     var preferCode = false
     /// A click types the login into the app the panel was opened over (the site card), rather than copying.
     var fillsOnClick = false
@@ -363,11 +353,11 @@ private struct QuickRow: View {
                 .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
             if let totp = item.totp {
-                let left = totp.secondsRemaining(at: date)
                 Button { model.guarded(item) { model.copy(totp.code(), label: String(localized: "Code")) } } label: {
+                    // On the app's shared clock: only the code and ring refresh, never the list around them.
                     HStack(spacing: 8) {
-                        OTPCode(code: totp.code(at: date), size: 14, urgent: left <= 5)
-                        CountdownRing(fraction: codeFraction(totp, date), seconds: left, size: 22)
+                        LiveOTPCode(totp: totp, size: 14)
+                        LiveCountdownRing(totp: totp, size: 22)
                     }
                     .fixedSize() // the code keeps its width; the name truncates instead
                     .contentShape(.rect)
@@ -413,13 +403,11 @@ private struct SearchResults: View {
             if results.isEmpty {
                 Text("No results").font(.system(size: 12)).foregroundStyle(.secondary).frame(maxWidth: .infinity, minHeight: 64)
             } else {
-                TimelineView(.animation(minimumInterval: 1 / 30, paused: !results.contains { $0.totp != nil })) { context in
-                    VStack(spacing: 0) {
-                        ForEach(results) { QuickRow(item: $0, date: context.date) }
-                        Text(model.foreground != nil && results.first.map { QuickCopy.canFill($0, model) } == true
-                             ? "Return fills the first login · hover for more" : "Return copies the first password · hover for more")
-                            .font(.system(size: 10)).foregroundStyle(.tertiary).padding(.top, 6)
-                    }
+                VStack(spacing: 0) {
+                    ForEach(results) { QuickRow(item: $0) }
+                    Text(model.foreground != nil && results.first.map { QuickCopy.canFill($0, model) } == true
+                         ? "Return fills the first login · hover for more" : "Return copies the first password · hover for more")
+                        .font(.system(size: 10)).foregroundStyle(.tertiary).padding(.top, 6)
                 }
             }
         }

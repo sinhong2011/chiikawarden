@@ -1,20 +1,19 @@
 import TriCrypto
 import SwiftUI
 
-/// Sidebar › One-Time Codes: every code, live, click to copy. Grouped by vault when there are shared ones, sorted by
-/// name or by recent use (favorites first, if wanted), and narrowed by typing. One clock drives every card, four ticks a
-/// second; only the cards on screen are built; the dot between the halves stays still.
+/// Sidebar › One-Time Codes: every code, live, click to copy. Tags along the top pick the vault (All, My vault, each
+/// shared vault); favorites are pinned above the rest (the star on a card pins or unpins it); a filter narrows by
+/// typing; the sort menu orders by name or recent use.
+///
+/// Fast with any number of codes: the grid is lazy (only cards on screen exist), and it never depends on the time —
+/// each card's code and ring read the app's one shared clock (`OTPClock`), so a tick refreshes just those small views.
 struct CodesPane: View {
     @Environment(AppModel.self) private var model
     @State private var copiedID: String?
     @State private var query = ""
-    /// The tag picked in the header: every code, favorites, or one vault ("personal" or an organization id).
-    @State private var scope = Scope.all
-
-    enum Scope: Hashable { case all, favorites, vault(String) }
+    /// The vault tag picked: every vault, or one ("personal" or an organization id).
+    @State private var vault: String?
     @AppStorage("codesSort") private var sortRaw = CodesSort.name.rawValue
-    @AppStorage("codesFavoritesFirst") private var favoritesFirst = true
-    @AppStorage("codesGroupByVault") private var groupByVault = true
 
     enum CodesSort: String, CaseIterable, Identifiable {
         case name, recent
@@ -25,24 +24,18 @@ struct CodesPane: View {
 
     private var sort: CodesSort { CodesSort(rawValue: sortRaw) ?? .name }
 
-    /// Every live code, narrowed by the typed filter (not by the tag: the tags count from this).
+    /// Every live code, narrowed by the typed filter (the tags count from this).
     private var base: [VaultItem] {
         model.vaultItems.filter { !$0.isDeleted && !$0.isArchived && $0.totp != nil && AppModel.searchMatches($0, query) }
     }
 
-    private func inScope(_ item: VaultItem, _ scope: Scope) -> Bool {
-        switch scope {
-        case .all: true
-        case .favorites: item.favorite
-        case .vault(let key): (item.organizationId ?? AppModel.VaultFilter.personalKey) == key
-        }
-    }
+    private static func vaultKey(_ item: VaultItem) -> String { item.organizationId ?? AppModel.VaultFilter.personalKey }
 
+    /// The codes the tag shows, in order: by name, or most recently used first.
     private var items: [VaultItem] {
-        let all = base.filter { inScope($0, scope) }
+        let shown = base.filter { vault == nil || Self.vaultKey($0) == vault }
         let recent = Dictionary(PaletteRecents.ids.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
-        return all.sorted { a, b in
-            if favoritesFirst, a.favorite != b.favorite { return a.favorite }
+        return shown.sorted { a, b in
             if sort == .recent {
                 let ra = recent[a.id] ?? .max, rb = recent[b.id] ?? .max
                 if ra != rb { return ra < rb }
@@ -51,21 +44,14 @@ struct CodesPane: View {
         }
     }
 
-    /// The codes by vault (My vault, then each shared vault), or all together.
-    private var groups: [(title: String?, items: [VaultItem])] {
-        let list = items
-        guard groupByVault, scope == .all, !model.visibleOrganizations.isEmpty else { return [(nil, list)] }
-        var out: [(String?, [VaultItem])] = [(String(localized: "My vault"), list.filter { $0.organizationId == nil })]
-        out += model.visibleOrganizations.map { org in (org.name, list.filter { $0.organizationId == org.id }) }
-        return out.filter { !$0.1.isEmpty }
-    }
-
     var body: some View {
-        let groups = groups
+        let list = items
+        let pinned = list.filter(\.favorite)
+        let rest = list.filter { !$0.favorite }
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
+            LazyVStack(alignment: .leading, spacing: 14) {
                 header
-                if groups.allSatisfy({ $0.items.isEmpty }) {
+                if list.isEmpty {
                     ContentUnavailableView {
                         Label(query.isEmpty ? "No one-time codes" : "No Results",
                               systemImage: query.isEmpty ? "clock.badge.checkmark" : "magnifyingglass")
@@ -74,56 +60,51 @@ struct CodesPane: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 300)
                 } else {
-                    ForEach(groups, id: \.title) { group in
-                        Section {
-                            // One clock for every card, four ticks a second, aligned: a tick re-lays out the window once,
-                            // however many codes are showing (a clock per card multiplied that). Animating the rings
-                            // between ticks instead costs more: SwiftUI lays out every frame of an animation.
-                            TimelineView(.periodic(from: Date(timeIntervalSince1970: 0), by: 0.25)) { context in
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
-                                    ForEach(group.items) { item in card(item, date: context.date) }
-                                }
-                            }
-                        } header: {
-                            if let title = group.title {
-                                HStack(spacing: 6) {
-                                    Text(verbatim: title).font(.system(size: 13, weight: .semibold))
-                                    Text(group.items.count, format: .number).font(.system(size: 12, weight: .medium))
-                                        .monospacedDigit().foregroundStyle(.tertiary)
-                                }
-                                .padding(.vertical, 6)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
+                    if !pinned.isEmpty {
+                        sectionTitle("Favorites", symbol: "star.fill", count: pinned.count)
+                        grid(pinned)
+                        if !rest.isEmpty { sectionTitle("All Codes", symbol: nil, count: rest.count).padding(.top, 6) }
                     }
+                    grid(rest)
                 }
             }
             .padding(.leading, VaultView.pageInset)
             .padding(.vertical, 24)
-            .animation(.snappy(duration: 0.25), value: query)
-            .animation(.snappy(duration: 0.25), value: sortRaw)
-            .animation(.snappy(duration: 0.25), value: favoritesFirst)
-            .animation(.snappy(duration: 0.25), value: groupByVault)
+            .animation(.snappy(duration: 0.25), value: list.map(\.id))
         }
         .modifier(SideOverflowClip())
         .thinScroller()
     }
 
-    /// The tags: All, Favorites, then each vault (when there are shared ones), each with its count; then the filter
-    /// as a pill and the sort menu. The page's name is the sidebar's; the header is for narrowing.
+    private func grid(_ items: [VaultItem]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
+            ForEach(items) { card($0) }
+        }
+    }
+
+    private func sectionTitle(_ title: LocalizedStringKey, symbol: String?, count: Int) -> some View {
+        HStack(spacing: 6) {
+            if let symbol { Image(systemName: symbol).font(.system(size: 11, weight: .semibold)).foregroundStyle(.yellow) }
+            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(count, format: .number).font(.system(size: 12, weight: .medium)).monospacedDigit().foregroundStyle(.tertiary)
+        }
+        .padding(.top, 2)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    /// The tags (All, My vault, each shared vault, with counts; shown when there are shared vaults), the filter as a
+    /// pill, and the sort menu. The page's name is the sidebar's; this row is for narrowing.
     private var header: some View {
         let list = base
         return HStack(spacing: 8) {
             ScrollView(.horizontal) {
                 HStack(spacing: 6) {
-                    tag(.all, String(localized: "All"), "clock.badge.checkmark", list.count)
-                    let favorites = list.filter(\.favorite).count
-                    if favorites > 0 { tag(.favorites, String(localized: "Favorites"), "star", favorites) }
+                    tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count)
                     if !model.visibleOrganizations.isEmpty {
-                        tag(.vault(AppModel.VaultFilter.personalKey), String(localized: "My vault"), "person",
+                        tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
                             list.filter { $0.organizationId == nil }.count)
                         ForEach(model.visibleOrganizations) { org in
-                            tag(.vault(org.id), org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
+                            tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
                         }
                     }
                 }
@@ -156,10 +137,6 @@ struct CodesPane: View {
                     ForEach(CodesSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
                 }
                 .pickerStyle(.inline)
-                Toggle("Favorites First", isOn: $favoritesFirst)
-                if !model.visibleOrganizations.isEmpty {
-                    Toggle("Group by Vault", isOn: $groupByVault)
-                }
             } label: {
                 Image(systemName: "arrow.up.arrow.down")
                     .font(.system(size: 13, weight: .semibold))
@@ -171,19 +148,22 @@ struct CodesPane: View {
             .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .fixedSize()
-            .help(Text("Sort and group"))
+            .help(Text("Sort"))
             .accessibilityLabel(Text("Sort"))
         }
         .padding(.trailing, 16)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("One-Time Codes"))
-        .animation(.snappy(duration: 0.25), value: scope)
+        // A vault that's gone (left, or its account locked): back to every vault.
+        .onChange(of: model.visibleOrganizations.map(\.id)) { _, ids in
+            if let vault, vault != AppModel.VaultFilter.personalKey, !ids.contains(vault) { self.vault = nil }
+        }
     }
 
-    /// One tag: picked, it's a solid pill (the brand fill, white text); otherwise a soft one.
-    private func tag(_ value: Scope, _ title: String, _ symbol: String, _ count: Int) -> some View {
-        let picked = scope == value
-        return Button { withAnimation(.snappy(duration: 0.25)) { scope = value } } label: {
+    /// One tag: picked, a solid pill (the brand fill, white text); otherwise soft glass.
+    private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int) -> some View {
+        let picked = vault == value
+        return Button { withAnimation(.snappy(duration: 0.25)) { vault = value } } label: {
             HStack(spacing: 6) {
                 Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
                 Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
@@ -206,10 +186,10 @@ struct CodesPane: View {
         .accessibilityAddTraits(picked ? .isSelected : [])
     }
 
-    private func card(_ item: VaultItem, date: Date) -> some View {
+    private func card(_ item: VaultItem) -> some View {
         Group {
             if let totp = item.totp {
-                CodeCard(item: item, totp: totp, date: date, copied: copiedID == item.id) {
+                CodeCard(item: item, totp: totp, copied: copiedID == item.id) {
                     model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
                     PaletteRecents.note(item.id) // "Recently Used" follows what you copy here too
                     withAnimation(.snappy) { copiedID = item.id }
@@ -217,6 +197,8 @@ struct CodesPane: View {
                         try? await Task.sleep(for: .seconds(1.4))
                         if copiedID == item.id { withAnimation(.snappy) { copiedID = nil } }
                     }
+                } pin: {
+                    Task { await model.toggleFavorite(item) }
                 }
                 .contextMenu { ItemContextMenu(item: item) }
             }
@@ -224,23 +206,16 @@ struct CodesPane: View {
     }
 }
 
-/// One code at the page's clock: the code, its seconds and its ring.
+/// One code. It holds no clock: the code and ring inside read the shared one.
 private struct CodeCard: View {
     let item: VaultItem
     let totp: TOTP
-    /// The page's clock.
-    let date: Date
     let copied: Bool
     let copy: () -> Void
+    let pin: () -> Void
     @State private var hovering = false
 
     var body: some View {
-        let period = Double(totp.period)
-        content(code: totp.code(at: date), left: totp.secondsRemaining(at: date),
-                fraction: 1 - date.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period)
-    }
-
-    private func content(code: String, left: Int, fraction: Double) -> some View {
         Button(action: copy) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 10) {
@@ -257,11 +232,24 @@ private struct CodeCard: View {
                         .contentTransition(.symbolEffect(.replace))
                         .opacity(copied || hovering ? 1 : 0)
                         .accessibilityHidden(true)
+                    // Pin: a favorite sits above the rest. Always shown once pinned; on hover otherwise.
+                    Button(action: pin) {
+                        Image(systemName: item.favorite ? "star.fill" : "star")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(item.favorite ? AnyShapeStyle(.yellow) : AnyShapeStyle(.secondary))
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 22, height: 22)
+                            .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(item.favorite || hovering ? 1 : 0)
+                    .help(item.favorite ? Text("Unpin (remove from Favorites)") : Text("Pin to the top (add to Favorites)"))
+                    .accessibilityLabel(item.favorite ? Text("Remove from Favorites") : Text("Add to Favorites"))
                 }
                 HStack(alignment: .center) {
-                    OTPCode(code: code, size: 28, urgent: left <= 5, breathing: false)
+                    LiveOTPCode(totp: totp, size: 28, breathing: false)
                     Spacer(minLength: 8)
-                    CountdownRing(fraction: fraction, seconds: left, size: 40)
+                    LiveCountdownRing(totp: totp, size: 40, lively: false)
                 }
             }
             .padding(16)
@@ -273,11 +261,10 @@ private struct CodeCard: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .accessibilityLabel(Text(verbatim: "\(item.name), \(code)"))
+        .accessibilityLabel(Text(verbatim: item.name))
         .accessibilityHint(Text("Copies the code"))
     }
 }
-
 
 /// An unpicked tag's soft glass (the header's chrome); a picked one has its own fill.
 private struct TagChrome: ViewModifier {

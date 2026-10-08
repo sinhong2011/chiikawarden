@@ -2990,6 +2990,34 @@
         }
       }
     },
+    "All Codes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのコード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部驗證碼"
+          }
+        }
+      }
+    },
     "All Items" : {
       "localizations" : {
         "ja" : {
@@ -12193,34 +12221,6 @@
         }
       }
     },
-    "Favorites First" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "お気に入りを先頭に"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "收藏优先"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我的最愛優先"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喜愛項目放先"
-          }
-        }
-      }
-    },
     "File" : {
       "localizations" : {
         "ja" : {
@@ -13682,34 +13682,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "前往資料夾 %@"
-          }
-        }
-      }
-    },
-    "Group by Vault" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保管庫ごとにグループ化"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按保险库分组"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "依保險庫分組"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按保險庫分組"
           }
         }
       }
@@ -21847,6 +21819,34 @@
         }
       }
     },
+    "Pin to the top (add to Favorites)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先頭に固定（お気に入りに追加）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "置顶（加入收藏）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "釘選到最上方（加入我的最愛）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "置頂（加入喜愛項目）"
+          }
+        }
+      }
+    },
     "PIN unlock isn't set up any more. Use your master password." : {
       "localizations" : {
         "ja" : {
@@ -26850,34 +26850,6 @@
         }
       }
     },
-    "Sort and group" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "並べ替えとグループ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "排序与分组"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "排序與分組"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "排序同分組"
-          }
-        }
-      }
-    },
     "Sort By" : {
       "localizations" : {
         "ja" : {
@@ -31138,6 +31110,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在解鎖…"
+          }
+        }
+      }
+    },
+    "Unpin (remove from Favorites)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定を解除（お気に入りから削除）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消置顶（从收藏中移除）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消釘選（從我的最愛移除）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消置頂（由喜愛項目移除）"
           }
         }
       }
