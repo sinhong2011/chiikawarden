@@ -154,6 +154,12 @@ enum Snapshot {
             renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                          appearance: appearance, to: dir.appending(path: "window-page-item-\(name).png"))
             vault.clipboardClearsAt = nil // the pages as they usually look (they end up in the README)
+            let selected = vault.selectedID
+            vault.beginEditing(EditRequest(mode: .create(.sshKey)))
+            renderWindow(VaultView().environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
+                         appearance: appearance, to: dir.appending(path: "window-new-item-\(name).png"))
+            vault.closeNewItemForm()
+            vault.selectedID = selected
             for (page, slug) in [(SidebarSelection.codes, "codes"), (.generator, "generator"), (.watchtower, "watchtower")] {
                 renderWindow(VaultView(initialSection: page).environment(vault).tint(.brand), size: CGSize(width: 1180, height: 760),
                              appearance: appearance, to: dir.appending(path: "window-page-\(slug)-\(name).png"))
@@ -363,6 +369,12 @@ enum Snapshot {
             render(EditItemSheet(mode: .create(.sshKey)).environment(vault).tint(.brand),
                    size: CGSize(width: 580, height: 700), appearance: appearance,
                    to: dir.appending(path: "edit-ssh-\(name).png"))
+            render(VStack(spacing: 14) {
+                       FolderCascader(folders: vault.folders, selection: .constant(nil), create: { _ in nil }, newFolderIn: .constant(""))
+                       FolderCascader(folders: vault.folders, selection: .constant(nil), create: { _ in nil }, newFolderIn: .constant("Work/Dev"))
+                   }.padding(20).frame(width: 540).background(Color.windowBase).environment(vault).tint(.brand),
+                   size: CGSize(width: 540, height: 200), appearance: appearance,
+                   to: dir.appending(path: "edit-new-folder-\(name).png"))
             if vault.generatorHistory.isEmpty {
                 vault.rememberGenerated("correct-Horse-battery-staple4", kind: "passphrase")
                 vault.rememberGenerated("k#9vR!2mWq$7zLp", kind: "password")

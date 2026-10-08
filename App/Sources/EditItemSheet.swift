@@ -10,6 +10,9 @@ struct EditItemSheet: View {
         case edit(VaultItem)
         /// A new item filled in from an existing one (passkeys and attachments stay with the original).
         case clone(VaultItem)
+
+        /// Editing opens as a sheet; a new item (or clone) opens in the detail panel.
+        var isEdit: Bool { if case .edit = self { true } else { false } }
     }
 
     /// A new item's starting name, website and password.
@@ -23,6 +26,8 @@ struct EditItemSheet: View {
     @Environment(\.dismiss) private var dismiss
     let mode: Mode
     var prefill: Prefill?
+    /// In the detail panel (a new item) rather than a sheet: Cancel and Save sit at the top, by the title.
+    var inPanel = false
 
     @State private var name = ""
     @State private var username = ""
@@ -32,6 +37,8 @@ struct EditItemSheet: View {
     @State private var notes = ""
     @State private var folderId: String?
     @State private var accountId: String?
+    /// Naming a new folder from the Folder field: the path it goes inside, nil when not.
+    @State private var newFolderIn: String?
     /// Card / identity / SSH-key properties by API name.
     @State private var props: [String: String] = [:]
     @State private var customFields: [CustomField] = []
@@ -62,8 +69,22 @@ struct EditItemSheet: View {
     private var hasChanges: Bool { original.map { $0 != draft } ?? false }
 
     private func cancel() {
-        if hasChanges { confirmingDiscard = true } else { dismiss() }
+        // Escape while naming a new folder backs out of that, not the whole form.
+        if newFolderIn != nil { withAnimation(.easeOut(duration: 0.15)) { newFolderIn = nil }; return }
+        if hasChanges { confirmingDiscard = true } else { close() }
     }
+
+    /// Closes the sheet, or the panel's form (cancelled: back to the item selected before; saved: the new item).
+    private func close(saved: Bool = false) {
+        if inPanel {
+            withAnimation(.snappy(duration: 0.25)) { model.closeNewItemForm(restoringSelection: !saved) }
+        } else {
+            dismiss()
+        }
+    }
+
+    /// Not while naming a folder, so Return there makes the folder rather than saving the item.
+    private var saveDisabled: Bool { name.trimmingCharacters(in: .whitespaces).isEmpty || newFolderIn != nil }
 
     enum Field { case name }
 
@@ -75,9 +96,12 @@ struct EditItemSheet: View {
     }
 
     /// Folders belong to one account; only offer the item's (or the chosen) account's folders.
+    private var folderAccountId: String? {
+        switch mode { case .edit(let item), .clone(let item): item.accountId; case .create: accountId }
+    }
+
     private var accountFolders: [Grouping] {
-        let id: String? = switch mode { case .edit(let item), .clone(let item): item.accountId; case .create: accountId }
-        return id.flatMap { model.session(for: $0)?.folders } ?? model.folders
+        folderAccountId.flatMap { model.session(for: $0)?.folders } ?? model.folders
     }
 
     private var title: LocalizedStringKey {
@@ -113,61 +137,31 @@ struct EditItemSheet: View {
     private var hasHiddenValues: Bool { kind == .card || kind == .identity || kind == .sshKey }
 
     var body: some View {
+        Group {
+            if inPanel { panelBody } else { sheetBody }
+        }
+        .onAppear(perform: load)
+        .onChange(of: hasChanges) { _, dirty in if inPanel { model.newItemFormDirty = dirty } }
+        .confirmationDialog("Discard your changes?", isPresented: $confirmingDiscard) {
+            Button("Discard Changes", role: .destructive) { close() }
+            Button("Keep Editing", role: .cancel) {}
+        } message: {
+            Text("What you've typed here isn't saved yet.")
+        }
+    }
+
+    private var sheetBody: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     FormHeader(symbol: symbol, title: title, subtitle: subtitle)
-
-                    FormCard {
-                        if case .create = mode, model.sessions.count > 1 {
-                            FormField(label: "Account") {
-                                SoftMenu(options: model.sessions.map { (String?.some($0.id), "\($0.account.email) · \($0.account.serverSummary)") },
-                                         selection: $accountId, accessibilityLabel: "Account")
-                            }
-                            .onChange(of: accountId) { folderId = nil }
-                        }
-                        FormField(label: "Name") {
-                            TextField("Name", text: $name, prompt: Text("e.g. GitHub"))
-                                .textFieldStyle(SoftFieldStyle())
-                                .focused($focus, equals: .name)
-                        }
-                        if !accountFolders.isEmpty {
-                            FormField(label: "Folder") {
-                                FolderCascader(folders: accountFolders, selection: $folderId)
-                            }
-                        }
-                    }
-
-                    switch kind {
-                    case .login: loginSection
-                    case .card: cardSection
-                    case .identity: identitySection
-                    case .sshKey: sshSection
-                    case .note: EmptyView()
-                    }
-
-                    customFieldsSection
-
-                    FormCard(title: "Notes") {
-                        SoftEditor(text: $notes, minHeight: kind == .note ? 200 : 80)
-                    }
-
-                    FormCard {
-                        Toggle(isOn: $reprompt) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Ask for master password").font(.system(size: 13))
-                                Text("Before showing or copying this item's secrets.").font(.system(size: 11)).foregroundStyle(.secondary)
-                            }
-                        }
-                        .toggleStyle(.trailingSwitch)
-                    }
+                    fields
                 }
                 .padding(20)
             }
             .thinScroller()
 
-            FormFooter(action: "Save", busy: saving, disabled: name.trimmingCharacters(in: .whitespaces).isEmpty,
-                       cancel: cancel, submit: { Task { await save() } }) {
+            FormFooter(action: "Save", busy: saving, disabled: saveDisabled, cancel: cancel, submit: { Task { await save() } }) {
                 if hasHiddenValues {
                     Toggle("Show hidden values", isOn: $showSecrets).toggleStyle(.switch).tint(.brand).controlSize(.mini).font(.system(size: 12))
                 }
@@ -176,14 +170,95 @@ struct EditItemSheet: View {
         .frame(width: 580, height: kind == .note ? 560 : 700)
         .background(Color.windowBase)
         .navigationTitle(title)
-        .onAppear(perform: load)
         .interactiveDismissDisabled(hasChanges)
-        .confirmationDialog("Discard your changes?", isPresented: $confirmingDiscard) {
-            Button("Discard Changes", role: .destructive) { dismiss() }
-            Button("Keep Editing", role: .cancel) {}
-        } message: {
-            Text("What you've typed here isn't saved yet.")
+    }
+
+    /// The detail panel's form: the title with Cancel and Save beside it (the window's footer has the bottom corner),
+    /// then the fields, scrolling under it. Centred at a readable width, like the Send composer.
+    private var panelBody: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                FormHeader(symbol: symbol, title: title, subtitle: subtitle)
+                Spacer(minLength: 12)
+                if hasHiddenValues {
+                    Button { showSecrets.toggle() } label: {
+                        Image(systemName: showSecrets ? "eye.slash" : "eye")
+                            .contentTransition(.symbolEffect(.replace))
+                            .font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
+                            .frame(width: 32, height: 32).contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .help(showSecrets ? Text("Hide hidden values") : Text("Show hidden values"))
+                    .accessibilityLabel(showSecrets ? Text("Hide hidden values") : Text("Show hidden values"))
+                }
+                Button("Cancel", action: cancel).buttonStyle(.appSecondary).keyboardShortcut(.cancelAction)
+                Button { Task { await save() } } label: {
+                    HStack(spacing: 6) {
+                        if saving { ProgressView().controlSize(.small).tint(.white) }
+                        Text("Save")
+                    }
+                }
+                .buttonStyle(.appPrimary).keyboardShortcut(.defaultAction)
+                .disabled(saveDisabled || saving)
+            }
+            .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 14)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) { fields }
+                    .padding(.horizontal, 18).padding(.bottom, 18)
+                    .frame(maxWidth: 680)
+                    .frame(maxWidth: .infinity)
+            }
+            .thinScroller()
         }
+    }
+
+    @ViewBuilder private var fields: some View {
+            FormCard {
+                if case .create = mode, model.sessions.count > 1 {
+                    FormField(label: "Account") {
+                        SoftMenu(options: model.sessions.map { (String?.some($0.id), "\($0.account.email) · \($0.account.serverSummary)") },
+                                 selection: $accountId, accessibilityLabel: "Account")
+                    }
+                    .onChange(of: accountId) { folderId = nil; newFolderIn = nil }
+                }
+                FormField(label: "Name") {
+                    TextField("Name", text: $name, prompt: Text("e.g. GitHub"))
+                        .textFieldStyle(SoftFieldStyle())
+                        .focused($focus, equals: .name)
+                }
+                FormField(label: "Folder") {
+                    FolderCascader(folders: accountFolders, selection: $folderId, create: { path in
+                        await model.createFolder(name: path, accountId: folderAccountId)
+                    }, newFolderIn: $newFolderIn)
+                }
+            }
+
+            switch kind {
+            case .login: loginSection
+            case .card: cardSection
+            case .identity: identitySection
+            case .sshKey: sshSection
+            case .note: EmptyView()
+            }
+
+            customFieldsSection
+
+            FormCard(title: "Notes") {
+                SoftEditor(text: $notes, minHeight: kind == .note ? 200 : 80)
+            }
+
+            FormCard {
+                Toggle(isOn: $reprompt) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Ask for master password").font(.system(size: 13))
+                        Text("Before showing or copying this item's secrets.").font(.system(size: 11)).foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.trailingSwitch)
+            }
     }
 
     // MARK: Sections
@@ -303,7 +378,8 @@ struct EditItemSheet: View {
         FormCard(title: "Key") {
             FormField(label: "Private key") {
                 if showSecrets || (props["privateKey"] ?? "").isEmpty {
-                    SoftEditor(text: binding("privateKey"), minHeight: 100, monospaced: true)
+                    SoftEditor(text: binding("privateKey"), minHeight: 150, monospaced: true,
+                               prompt: "-----BEGIN OPENSSH PRIVATE KEY-----\nPaste a key, or generate one below.")
                 } else {
                     Text(verbatim: "•••••••• OpenSSH private key ••••••••")
                         .font(.system(size: 12, design: .monospaced)).foregroundStyle(.secondary)
@@ -473,7 +549,7 @@ struct EditItemSheet: View {
             if cleanFields != item.customFields.filter({ $0.kind != .linked }) { edit.customFields = cleanFields }
             ok = edit == CipherEdit() ? true : await model.updateItem(item.id, edit: edit)
         }
-        if ok { dismiss() }
+        if ok { close(saved: true) }
     }
 }
 

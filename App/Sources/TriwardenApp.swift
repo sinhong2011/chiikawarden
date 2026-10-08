@@ -109,16 +109,16 @@ struct TriwardenApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("New Login") { model.editing = EditRequest(mode: .create(.login)) }
+                Button("New Login") { model.beginEditing(EditRequest(mode: .create(.login))) }
                     .keyboardShortcut("n", modifiers: .command)
                     .disabled(!model.isUnlocked)
-                Button("New Secure Note") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                Button("New Secure Note") { model.beginEditing(EditRequest(mode: .create(.secureNote))) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
                 Menu("New Other Item") {
-                    Button("Card") { model.editing = EditRequest(mode: .create(.card)) }
-                    Button("Identity") { model.editing = EditRequest(mode: .create(.identity)) }
-                    Button("SSH Key") { model.editing = EditRequest(mode: .create(.sshKey)) }
+                    Button("Card") { model.beginEditing(EditRequest(mode: .create(.card))) }
+                    Button("Identity") { model.beginEditing(EditRequest(mode: .create(.identity))) }
+                    Button("SSH Key") { model.beginEditing(EditRequest(mode: .create(.sshKey))) }
                 }
                 .disabled(!model.isUnlocked)
                 Button("New Folder…") { model.promptNewFolder() }
@@ -145,7 +145,7 @@ struct TriwardenApp: App {
             }
             CommandMenu("Item") {
                 let item = model.selectedItem
-                Button("Edit") { if let item { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } } }
+                Button("Edit") { if let item { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } } }
                     .keyboardShortcut("e", modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
                 Divider()

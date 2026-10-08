@@ -67,6 +67,8 @@ struct VaultView: View {
     /// The command palette's trigger: centred over the window when it's wide, beside the back button when narrow.
     /// The header's leading slot starts this far into the detail column.
     static let headerSlotInset: CGFloat = 8
+    /// From the header's leading slot to the list's edge below it, so the + and the list line up.
+    static let plusInset: CGFloat = 6
     private var searchWidth: CGFloat { compact ? (width < 560 ? 150 : 228) : min(320, max(280, width * 0.24)) }
     /// The window's controls (Sync, Lock) floating over `content`'s bottom-right corner, under the header's right end
     /// (an item's actions, or a page's edge). No row of their own: the panels run to the window's bottom, and scrolling
@@ -92,7 +94,12 @@ struct VaultView: View {
     /// An item's detail is showing, with its actions in the header.
     private var detailHasActions: Bool { isItemSection && model.selectedItem != nil && (!compact || depth == 2) }
     private var isItemSection: Bool { ![.codes, .generator, .sends, .watchtower].contains(section) }
-    private var maxDepth: Int { isItemSection ? (model.selectedItem == nil ? 1 : 2) : 1 }
+    private var maxDepth: Int { isItemSection ? (model.selectedItem == nil && model.newItemForm == nil ? 1 : 2) : 1 }
+
+    /// The sidebar's choice; leaving a new item with input in it asks first.
+    private var sidebarSection: Binding<SidebarSelection> {
+        Binding(get: { section }, set: { new in model.leaveNewItemForm { section = new } })
+    }
 
     private var sort: ItemSort { ItemSort(rawValue: sortRaw) ?? .title }
 
@@ -107,11 +114,30 @@ struct VaultView: View {
     var body: some View {
         // Measure the space the window offers (not the content, which may refuse to shrink) and lay out for it.
         GeometryReader { geo in
-            content
+            newItemFormHandling(content)
                 .frame(width: geo.size.width, height: geo.size.height)
                 .onChange(of: geo.size.width, initial: true) { old, new in resized(from: initialMeasure ? 1120 : old, to: new) }
                 .environment(\.windowMidY, geo.frame(in: .global).midY)
         }
+    }
+
+    /// A new item's form opens in the detail panel: from a tool page, go to the items; on a narrow window, slide to
+    /// it. Leaving it with input in it asks first.
+    private func newItemFormHandling(_ content: some View) -> some View {
+        content
+            .animation(.snappy(duration: 0.25), value: model.newItemForm?.id)
+            .onChange(of: model.newItemForm?.id) { _, id in
+                guard id != nil else { return }
+                if !isItemSection { section = .section(.all) }
+                if compact { depth = 2 }
+            }
+            .confirmationDialog("Discard this new item?", isPresented: Binding(get: { model.pendingLeave != nil },
+                                                                               set: { if !$0 { model.pendingLeave = nil } })) {
+                Button("Discard", role: .destructive) { withAnimation(.snappy(duration: 0.25)) { model.discardNewItemAndLeave() } }
+                Button("Keep Editing", role: .cancel) {}
+            } message: {
+                Text("What you've typed for it isn't saved yet.")
+            }
     }
 
     @State private var initialMeasure = true
@@ -136,7 +162,7 @@ struct VaultView: View {
 
     /// The sidebar as a pane on the narrow-window strip: the same list, on the app's panel.
     private var sidebarPane: some View {
-        Sidebar(section: $section)
+        Sidebar(section: sidebarSection)
             .scrollContentBackground(.hidden)
             .background(Color.panel, in: .rect(cornerRadius: 22, style: .continuous))
             .clipShape(.rect(cornerRadius: 22, style: .continuous))
@@ -172,8 +198,11 @@ struct VaultView: View {
                     .transition(.opacity)
             } else {
                 ItemColumn(items: filtered, isTrash: section == .section(.trash), selection: Binding(get: { model.selectedID }, set: { id in
-                    model.selectedID = id
-                    if compact, id != nil { depth = 2 } // tapping an item slides to it
+                    // Picking an item leaves a new item's form (asking first when it has input).
+                    model.leaveNewItemForm {
+                        model.selectedID = id
+                        if compact, id != nil { depth = 2 } // tapping an item slides to it
+                    }
                 }), query: $query, sort: $sortRaw, ascending: $ascending, listID: section)
                     .transition(.opacity)
             }
@@ -186,7 +215,12 @@ struct VaultView: View {
     private var pageAnimation: Animation { .easeInOut(duration: reduceMotion ? 0.15 : 0.22) }
 
     @ViewBuilder private var detailPane: some View {
-        if let item = model.selectedItem {
+        if let request = model.newItemForm {
+            // A new item (or a clone) is made right here, where it will show once saved.
+            EditItemSheet(mode: request.mode, prefill: request.prefill, inPanel: true)
+                .id(request.id)
+                .transition(.opacity.combined(with: .offset(y: 8)))
+        } else if let item = model.selectedItem {
             ItemDetail(item: item)
                 .id(item.id)
                 .transition(.opacity.combined(with: .offset(y: 8)))
@@ -204,7 +238,7 @@ struct VaultView: View {
     private var content: some View {
         @Bindable var model = model
         return NavigationSplitView(columnVisibility: $columns) {
-            Sidebar(section: $section)
+            Sidebar(section: sidebarSection)
                 .modifier(SidebarWidth())
                 // Narrow windows navigate with the strip's own back button; one sidebar control is enough. None under
                 // the lock layer (the toolbar itself stays, so the window keeps its controls and the layout doesn't move).
@@ -250,11 +284,15 @@ struct VaultView: View {
                         }
                         // On a phone-width detail, the header belongs to the item's actions (search and + are the list's).
                         if !(compact && width < PaneStrip.pairWidth && depth == 2) {
+                            // New items of every kind, first in the header (beside the sidebar's toggle).
+                            NewItemButton()
+                                .padding(.leading, Self.plusInset) // its edge over the list's
                             // Wide windows: centred on the window (`.principal` isn't honoured in a split view's header, so
-                            // this leading slot is inset to the middle).
+                            // this leading slot is inset to the middle, less the + before it).
                             PaletteTrigger(compactLabel: searchWidth < 260)
                                 .frame(width: searchWidth)
-                                .padding(.leading, compact ? 0 : max(0, width / 2 - detailX - Self.headerSlotInset - searchWidth / 2))
+                                .padding(.leading, compact ? 0 : max(0, width / 2 - detailX - Self.headerSlotInset - searchWidth / 2
+                                                                         - Self.plusInset - NewItemButton.size - 8))
                             // A slot holding a single view lays it out at zero size; a zero-width sibling keeps it measured.
                             Text(verbatim: " ").frame(width: 0).accessibilityHidden(true)
                         }
@@ -280,9 +318,11 @@ struct VaultView: View {
         .animation(.snappy(duration: 0.25), value: model.selectedID)
         .onChange(of: section) {
             query = "" // a filter belongs to the list it was typed in
-            if compact { depth = 1 } // picked a section: slide to it
+            // A tool page has no detail panel for a new item's form.
+            if !isItemSection { model.closeNewItemForm(restoringSelection: false) }
+            if compact { depth = model.newItemForm == nil ? 1 : 2 } // picked a section: slide to it (or stay on the form)
         }
-        .onChange(of: model.selectedItem == nil) { _, none in if none, depth == 2 { depth = 1 } }
+        .onChange(of: model.selectedItem == nil) { _, none in if none, depth == 2, model.newItemForm == nil { depth = 1 } }
         // The system sidebar toggle on a narrow window: show the strip's sidebar pane instead.
         .onChange(of: columns) { _, new in
             if compact, new != .detailOnly { columns = .detailOnly; depth = 0 }
@@ -307,7 +347,7 @@ struct VaultView: View {
         .onChange(of: model.showingGenerator) { _, show in
             if show { section = .generator; model.showingGenerator = false }
         }
-        .sheet(item: $model.editing) { request in EditItemSheet(mode: request.mode, prefill: request.prefill) }
+        .sheet(item: $model.editSheet) { request in EditItemSheet(mode: request.mode, prefill: request.prefill) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
         .sheet(isPresented: Binding(get: { model.eventLogFor != nil }, set: { if !$0 { model.eventLogFor = nil } })) {
@@ -365,7 +405,7 @@ struct VaultView: View {
     }
 
     private func selectFirst() {
-        if model.selectedID == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id }
+        if model.selectedID == nil, model.newItemForm == nil { model.selectedID = initialSelection ?? model.items.first(where: \.favorite)?.id ?? model.items.first?.id }
     }
 }
 
@@ -493,14 +533,9 @@ private struct Sidebar: View {
                     row(.all)
                 }
             } header: {
-                HStack(spacing: 6) {
-                    Text("Items").font(.system(size: 13, weight: .semibold))
-                    Spacer(minLength: 6)
-                    NewItemButton(inline: true) // new items of every kind, at the end of the header
-                        .padding(.trailing, 13) // its edge under the counts' edge
-                }
-                .frame(height: 26)
-                .padding(.bottom, 6)
+                Text("Items").font(.system(size: 13, weight: .semibold))
+                    .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
+                    .padding(.bottom, 6)
             }
             // Where items live: your own vault, then each shared vault (opening onto its shared folders). A click opens
             // one; ⌘-click shows it alongside the others everywhere. Vaults the filter hides are dimmed.
@@ -1065,23 +1100,23 @@ private struct PaletteTrigger: View {
     }
 }
 
-/// The + for new items of every kind: a small glyph at the end of the sidebar's Vault row.
+/// The + for new items of every kind, in the window's header beside the sidebar's toggle: round, like the header's
+/// other controls.
 private struct NewItemButton: View {
     @Environment(AppModel.self) private var model
-    /// Sized for a sidebar section header rather than the window's header.
-    var inline = false
+    static let size: CGFloat = 36
     @State private var hovering = false
 
     var body: some View {
         Menu {
             Group {
-                Button("New Login", systemImage: "key") { model.editing = EditRequest(mode: .create(.login)) }
+                Button("New Login", systemImage: "key") { model.beginEditing(EditRequest(mode: .create(.login))) }
                     .keyboardShortcut("n", modifiers: .command)
-                Button("New Secure Note", systemImage: "note.text") { model.editing = EditRequest(mode: .create(.secureNote)) }
+                Button("New Secure Note", systemImage: "note.text") { model.beginEditing(EditRequest(mode: .create(.secureNote))) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                Button("New Card", systemImage: "creditcard") { model.editing = EditRequest(mode: .create(.card)) }
-                Button("New Identity", systemImage: "person.crop.rectangle") { model.editing = EditRequest(mode: .create(.identity)) }
-                Button("New SSH Key", systemImage: "terminal") { model.editing = EditRequest(mode: .create(.sshKey)) }
+                Button("New Card", systemImage: "creditcard") { model.beginEditing(EditRequest(mode: .create(.card))) }
+                Button("New Identity", systemImage: "person.crop.rectangle") { model.beginEditing(EditRequest(mode: .create(.identity))) }
+                Button("New SSH Key", systemImage: "terminal") { model.beginEditing(EditRequest(mode: .create(.sshKey))) }
                 Divider()
                 Button("New Send", systemImage: "paperplane") {
                     model.requestedSection = .sends
@@ -1096,20 +1131,11 @@ private struct NewItemButton: View {
             }
             .labelStyle(.titleAndIcon)
         } label: {
-            if inline {
-                // A small round control, always visible but quiet; it firms up on hover.
-                Image(systemName: "plus").font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(hovering ? .primary : .secondary)
-                    .frame(width: 22, height: 22)
-                    .background(Color.primary.opacity(hovering ? 0.14 : 0.07), in: .circle)
-                    .contentShape(.circle)
-                    .animation(.easeOut(duration: 0.12), value: hovering)
-            } else {
-                Image(systemName: "plus").font(.system(size: 14, weight: .semibold))
-                    .frame(width: 32, height: 32)
-                    .modifier(HeaderChrome(shape: .circle))
-                    .contentShape(.circle)
-            }
+            Image(systemName: "plus").font(.system(size: 14, weight: .medium))
+                .frame(width: Self.size, height: Self.size)
+                .modifier(HeaderChrome(shape: .circle, hovering: hovering))
+                .contentShape(.circle)
+                .animation(.easeOut(duration: 0.12), value: hovering)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
@@ -1298,20 +1324,18 @@ private struct ItemColumn: View {
                 .help(Text("Sort"))
                 .accessibilityLabel(Text("Sort"))
             }
-            .padding(.leading, 6) // the search and sort line up with the list's edge
+            // Flush with the list's panel (and the header's + above it).
             .zIndex(1) // the search's suggestions hang over the list
 
             // Once, the first time the search is used: filters can be typed and they stay on.
             if Motion.plays { // never in renders, which must look the same every run
                 TipView(SearchFiltersTip())
                     .tipImageStyle(.secondary)
-                    .padding(.leading, 6)
             }
 
             // The filters that are on, under the field, until they're cleared.
             if model.hasSearchFilters {
                 SearchFilterBar(resultCount: items.count)
-                    .padding(.leading, 6)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
 
@@ -1778,7 +1802,7 @@ struct ItemDetail: View {
                 }
                     .foregroundStyle(item.favorite ? .yellow : .primary)
                     .overlay { Burst(trigger: starBurst) }
-                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit", effect: .wiggle) { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                toolbarButton("pencil", help: "Edit (⌘E)", spoken: "Edit", effect: .wiggle) { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } }
                 toolbarButton("trash", help: "Move to Trash… (⌘⌫)", spoken: "Move to Trash", effect: .bounce) { model.confirmTrash(item) }
             }
         }
