@@ -84,8 +84,8 @@ struct CountdownRing: View {
     var size: CGFloat = 38
     /// The seconds' size against the ring's: larger for a small ring that stands on its own.
     var digits: CGFloat = 0.32
-    /// The number rolls and the ring pops each second. Off in a grid of codes: dozens of rings animating every second
-    /// keep the whole window redrawing.
+    /// The ring pops when a new code starts and through the last seconds. Off in a grid of codes, where dozens popping
+    /// at once keep the window redrawing. (With `drainsIn`, the seconds roll in Core Animation either way.)
     var lively = true
     /// Seconds until the ring is empty: given, the arc drains on its own (Core Animation, smooth, no per-frame work);
     /// otherwise it's drawn at `fraction` and moves only when redrawn.
@@ -99,21 +99,24 @@ struct CountdownRing: View {
         ZStack {
             Circle().stroke(Color.brand.opacity(0.14), lineWidth: size * 0.09)
             if let drainsIn, Motion.plays {
-                SweepArc(fraction: fraction, drainsIn: drainsIn, color: urgent ? .orange : .brand, lineWidth: size * 0.09)
+                SweepArc(fraction: fraction, drainsIn: drainsIn, color: urgent ? .orange : .brand, lineWidth: size * 0.09,
+                         seconds: seconds, fontSize: size * digits)
             } else {
                 Circle()
                     .trim(from: 1 - fraction, to: 1)
                     .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
                     .rotationEffect(.degrees(-90))
             }
-            Text(verbatim: "\(seconds)")
-                .font(.system(size: size * digits, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(urgent ? Color.orange : .secondary)
-                .contentTransition(Motion.plays && lively ? .numericText(countsDown: true) : .identity)
+            if drainsIn == nil || !Motion.plays {
+                Text(verbatim: "\(seconds)")
+                    .font(.system(size: size * digits, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(urgent ? Color.orange : .secondary)
+                    .contentTransition(Motion.plays && lively ? .numericText(countsDown: true) : .identity)
+                    .animation(Motion.plays && lively ? .snappy : nil, value: seconds)
+            }
         }
         .frame(width: size, height: size)
-        .animation(Motion.plays && lively ? .snappy : nil, value: seconds)
         .keyframeAnimator(initialValue: 1.0, trigger: beat) { ring, scale in
             ring.scaleEffect(scale)
         } keyframes: { _ in
@@ -214,16 +217,25 @@ struct SweepArc: NSViewRepresentable {
     let drainsIn: TimeInterval
     let color: Color
     let lineWidth: CGFloat
+    /// The seconds in the middle, rolling down to each new value (Core Animation too: no per-frame work here).
+    var seconds: Int?
+    var fontSize: CGFloat = 12
 
     func makeNSView(context: Context) -> ArcView { ArcView() }
 
     func updateNSView(_ view: ArcView, context: Context) {
         view.update(fraction: fraction, drainsIn: drainsIn, color: NSColor(color), lineWidth: lineWidth)
+        if let seconds { view.show(seconds: seconds, urgent: seconds <= 5, fontSize: fontSize) }
     }
 
     final class ArcView: NSView {
         private let arc = CAShapeLayer()
         private var color = NSColor.controlAccentColor
+        private let number = CATextLayer()
+        /// Clips the rolling number to its line (a layer can't clip its own transition).
+        private let numberClip = CALayer()
+        private var shownSeconds: Int?
+        private var numberUrgent = false
 
         override init(frame: NSRect) {
             super.init(frame: frame)
@@ -232,6 +244,11 @@ struct SweepArc: NSViewRepresentable {
             arc.lineCap = .round
             arc.strokeEnd = 1
             layer?.addSublayer(arc)
+            number.alignmentMode = .center
+            number.isWrapped = false
+            numberClip.masksToBounds = true
+            numberClip.addSublayer(number)
+            layer?.addSublayer(numberClip)
         }
         required init?(coder: NSCoder) { fatalError() }
 
@@ -253,6 +270,10 @@ struct SweepArc: NSViewRepresentable {
                         startAngle: .pi / 2, endAngle: .pi / 2 + 2 * .pi, clockwise: false)
             arc.path = path
             arc.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
+            let lineHeight = ceil((number.font as? NSFont).map { $0.ascender - $0.descender } ?? number.fontSize * 1.2)
+            numberClip.frame = CGRect(x: 0, y: (bounds.height - lineHeight) / 2, width: bounds.width, height: lineHeight)
+            number.frame = numberClip.bounds
+            number.contentsScale = window?.backingScaleFactor ?? 2
             CATransaction.commit()
         }
 
@@ -262,7 +283,40 @@ struct SweepArc: NSViewRepresentable {
         }
 
         private func recolor() {
-            effectiveAppearance.performAsCurrentDrawingAppearance { arc.strokeColor = color.cgColor }
+            effectiveAppearance.performAsCurrentDrawingAppearance {
+                arc.strokeColor = color.cgColor
+                number.foregroundColor = (numberUrgent ? NSColor.systemOrange : NSColor.secondaryLabelColor).cgColor
+            }
+        }
+
+        override func viewDidChangeBackingProperties() {
+            super.viewDidChangeBackingProperties()
+            number.contentsScale = window?.backingScaleFactor ?? 2
+        }
+
+        /// The seconds: a new value rolls down into place (like the drawn ring's countdown), in 0.25 s.
+        func show(seconds: Int, urgent: Bool, fontSize: CGFloat) {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            if number.fontSize != fontSize {
+                let base = NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .semibold)
+                number.font = base.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: fontSize) } ?? base
+                number.fontSize = fontSize
+                needsLayout = true
+            }
+            numberUrgent = urgent
+            recolor()
+            if let shown = shownSeconds, shown != seconds {
+                let roll = CATransition()
+                roll.type = .push
+                roll.subtype = .fromTop // counting down: the next number comes in from above
+                roll.duration = 0.25
+                roll.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                number.add(roll, forKey: "roll")
+            }
+            number.string = "\(seconds)"
+            shownSeconds = seconds
+            CATransaction.commit()
         }
 
         func update(fraction: Double, drainsIn: TimeInterval, color: NSColor, lineWidth: CGFloat) {
