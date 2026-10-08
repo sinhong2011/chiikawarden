@@ -13,7 +13,7 @@ XCB     := xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDat
 DEV_CA  := $(CURDIR)/DevServer/data/root.crt
 
 .DEFAULT_GOAL := help
-.PHONY: help project build run test bench license license-keys test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
+.PHONY: help project build run test bench screenshots license license-keys test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
 
 help: ## Show this list
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  \033[1m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -75,6 +75,9 @@ snapshots: build ## Render UI snapshots (light + dark) into build/snapshots; ONL
 		mkdir -p build/snapshots; n=$$(find "$$dir" -name '*.png' -newer "$(BIN)" | wc -l | tr -d ' '); \
 		find "$$dir" -name '*.png' -newer "$(BIN)" -exec cp -f {} build/snapshots/ \; ; \
 		echo "$$n images rendered into build/snapshots$(if $(ONLY), (only: $(ONLY)),)"
+
+screenshots: build ## README images (docs/images) and store images (Design/Store) from the demo vault, light and dark
+	@python3 scripts/screenshots.py
 
 bench: ## Launch time, idle memory and unlock time into docs/benchmarks.md (RUNS=5; INTERACTIVE=5 adds real unlocks)
 	@scripts/bench.sh --runs $(or $(RUNS),5) $(if $(INTERACTIVE),--interactive $(INTERACTIVE),)
