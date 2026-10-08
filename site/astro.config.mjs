@@ -8,6 +8,12 @@ import { paraglideVitePlugin } from "@inlang/paraglide-js";
 const locales = ["en", "zh-hant", "zh-hk", "zh-hans", "ja"];
 // Their BCP 47 tags, as `lang` in src/i18n.ts (used for the sitemap's hreflang).
 const LANGS = { en: "en", "zh-hant": "zh-Hant-TW", "zh-hk": "zh-Hant-HK", "zh-hans": "zh-Hans", ja: "ja" };
+const siteUrl = process.env.SITE_URL;
+const basePath = process.env.SITE_BASE_PATH || "/";
+const integrations = [];
+if (siteUrl) {
+  integrations.push(sitemap({ i18n: { defaultLocale: "en", locales: Object.fromEntries(locales.map((l) => [l, LANGS[l]])) } }));
+}
 
 // The `shaders` library registers all ~200 of its effects up front (2.5 MB). The site uses a handful, so its
 // registry module is swapped for one that lists only these; the rest are never bundled. Add a name here when
@@ -39,13 +45,12 @@ export { shaderRegistry as a, getShadersByCategory as i, getShaderByName as n, g
 }
 
 export default defineConfig({
-  site: "https://sinhong2011.github.io",
-  base: "/triwarden",
+  ...(siteUrl ? { site: siteUrl } : {}),
+  base: basePath,
   output: "static",
   devToolbar: { enabled: false },
   i18n: { defaultLocale: "en", locales, routing: { prefixDefaultLocale: false } },
-  // sitemap-index.xml with every page and its language alternates (hreflang), for search engines.
-  integrations: [sitemap({ i18n: { defaultLocale: "en", locales: Object.fromEntries(locales.map((l) => [l, LANGS[l]])) } })],
+  integrations,
   vite: {
     // Pre-bundle these at dev start; discovered later, Vite re-optimises mid-session and old tabs get 504s for GSAP.
     optimizeDeps: { include: ["gsap", "gsap/ScrollTrigger", "shaders/js"] },
