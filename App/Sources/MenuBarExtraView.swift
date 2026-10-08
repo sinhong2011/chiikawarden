@@ -627,20 +627,20 @@ private struct AccountMenu: View {
     }
 }
 
-/// Menu bar glyph: a combination dial — the door's rim, two rings with their notches turned apart (a lock
-/// mid-turn; notches lined up under one another read as a podcast mark at this size) and the keyhole.
-/// A template image.
+/// Menu bar glyph: a compact vault dial. A fine bezel and three rings share their opening at six o'clock, below the
+/// keyhole. It remains legible at menu-bar size without the visual noise of the full application icon. A template image.
 enum MenuBarGlyph {
     static let image: NSImage = {
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
             let c = NSPoint(x: rect.midX, y: rect.midY)
             NSColor.black.set()
-            let rim = NSBezierPath(ovalIn: NSRect(x: c.x - 8.1, y: c.y - 8.1, width: 16.2, height: 16.2))
-            rim.lineWidth = 1.5
+            let rim = NSBezierPath(ovalIn: NSRect(x: c.x - 7.75, y: c.y - 7.75, width: 15.5, height: 15.5))
+            rim.lineWidth = 1.1
             rim.stroke()
-            // Each ring's notch is centred on `notch` degrees (AppKit: 0° is right, counter-clockwise); round caps.
-            let width: CGFloat = 1.25, gap: CGFloat = 1.8
-            for (r, notch): (CGFloat, CGFloat) in [(5.6, 135), (3.35, 315)] {
+            // AppKit measures angles from the right, counter-clockwise: -90° is six o'clock. The rings and keyhole
+            // therefore all resolve on one vertical axis, like the application icon's dial just before it opens.
+            let width: CGFloat = 1.1, gap: CGFloat = 1.65, notch: CGFloat = -90
+            for r: CGFloat in [5.6, 4.0, 2.45] {
                 let half = asin((gap + width) / 2 / r) * 180 / .pi
                 let ring = NSBezierPath()
                 ring.appendArc(withCenter: c, radius: r, startAngle: notch + half, endAngle: notch + 360 - half)
