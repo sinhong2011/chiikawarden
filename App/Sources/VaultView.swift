@@ -78,7 +78,9 @@ struct VaultView: View {
                 .contentMargins(.bottom, vaultOpen ? 44 : 0, for: .scrollContent)
             if vaultOpen {
                 AppFooter()
-                    .padding(10)
+                    // Its bottom edge level with the sidebar's account card (11 pt above the window's bottom, with the
+                    // column's own 8 pt inset).
+                    .padding(.trailing, 10).padding(.bottom, 1.5)
                     .transition(.opacity)
             }
         }
