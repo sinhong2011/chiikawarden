@@ -87,6 +87,9 @@ struct CountdownRing: View {
     /// The number rolls and the ring pops each second. Off in a grid of codes: dozens of rings animating every second
     /// keep the whole window redrawing.
     var lively = true
+    /// Seconds until the ring is empty: given, the arc drains on its own (Core Animation, smooth, no per-frame work);
+    /// otherwise it's drawn at `fraction` and moves only when redrawn.
+    var drainsIn: TimeInterval?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var beat = 0
     @State private var beatScale = 1.0
@@ -95,10 +98,14 @@ struct CountdownRing: View {
         let urgent = seconds <= 5
         ZStack {
             Circle().stroke(Color.brand.opacity(0.14), lineWidth: size * 0.09)
-            Circle()
-                .trim(from: 1 - fraction, to: 1)
-                .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
-                .rotationEffect(.degrees(-90))
+            if let drainsIn, Motion.plays {
+                SweepArc(fraction: fraction, drainsIn: drainsIn, color: urgent ? .orange : .brand, lineWidth: size * 0.09)
+            } else {
+                Circle()
+                    .trim(from: 1 - fraction, to: 1)
+                    .stroke(urgent ? Color.orange : Color.brand, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
             Text(verbatim: "\(seconds)")
                 .font(.system(size: size * digits, weight: .semibold, design: .rounded))
                 .monospacedDigit()
@@ -125,15 +132,14 @@ struct CountdownRing: View {
     }
 }
 
-/// One clock for every one-time code in the app (the codes page, an item's code tile, the menu bar), instead of a
-/// timer per view. It ticks four times a second while anything shows a code. Views read only what they need:
-/// `second` changes once a second (the code, its seconds), `now` four times (a ring's sweep). A tick so refreshes just
+/// One clock for every one-time code in the app (the codes page, an item's code tile, the menu bar, the palette),
+/// instead of a timer per view. It ticks once a second, on the second, while anything shows a code; codes and their
+/// seconds read it, and rings use it to restart a smooth Core Animation sweep (`SweepArc`). A tick so refreshes just
 /// those small views — never a list or grid around them — however many codes there are.
 @MainActor @Observable
 final class OTPClock {
     static let shared = OTPClock()
 
-    private(set) var now = Date.now
     /// Whole seconds since 1970; changes once a second.
     private(set) var second = Int(Date.now.timeIntervalSince1970)
 
@@ -145,11 +151,11 @@ final class OTPClock {
         users += 1
         guard timer == nil, Motion.plays else { return }
         tick()
-        // On the quarter-second, so every ring moves together.
-        let next = (Date.now.timeIntervalSince1970 * 4).rounded(.up) / 4
-        let timer = Timer(fire: Date(timeIntervalSince1970: next), interval: 0.25, repeats: true) { _ in
+        let next = Date.now.timeIntervalSince1970.rounded(.up)
+        let timer = Timer(fire: Date(timeIntervalSince1970: next), interval: 1, repeats: true) { _ in
             MainActor.assumeIsolated { OTPClock.shared.tick() }
         }
+        timer.tolerance = 0.02
         RunLoop.main.add(timer, forMode: .common) // keeps ticking while a menu is open or a scroll is tracking
         self.timer = timer
     }
@@ -160,9 +166,8 @@ final class OTPClock {
     }
 
     private func tick() {
-        now = .now
-        let s = Int(now.timeIntervalSince1970)
-        if s != second { second = s } // only on a change, so code views refresh once a second
+        let s = Int(Date.now.timeIntervalSince1970.rounded())
+        if s != second { second = s }
     }
 }
 
@@ -181,7 +186,8 @@ struct LiveOTPCode: View {
     }
 }
 
-/// A code's countdown ring on the shared clock: its sweep four times a second.
+/// A code's countdown ring on the shared clock: once a second it sets the seconds and restarts the arc's sweep,
+/// which then drains smoothly by itself until the next tick.
 struct LiveCountdownRing: View {
     let totp: TOTP
     var size: CGFloat = 38
@@ -189,11 +195,88 @@ struct LiveCountdownRing: View {
     private let clock = OTPClock.shared
 
     var body: some View {
+        _ = clock.second // refresh on each tick
+        let now = Date.now
         let period = Double(totp.period)
-        let fraction = 1 - clock.now.timeIntervalSince1970.truncatingRemainder(dividingBy: period) / period
-        CountdownRing(fraction: fraction, seconds: totp.secondsRemaining(at: clock.now), size: size, lively: lively)
+        let into = now.timeIntervalSince1970.truncatingRemainder(dividingBy: period)
+        return CountdownRing(fraction: 1 - into / period, seconds: totp.secondsRemaining(at: now), size: size, lively: lively,
+                             drainsIn: period - into)
             .frame(width: size, height: size) // a fixed size: a tick never re-lays out anything around it
             .onAppear { clock.retain() }
             .onDisappear { clock.release() }
+    }
+}
+
+/// A ring's arc that drains clockwise to empty over `drainsIn` seconds, animated by Core Animation (the render server
+/// draws every frame; the app does nothing between updates). Starts at 12 o'clock, like the drawn ring.
+struct SweepArc: NSViewRepresentable {
+    let fraction: Double
+    let drainsIn: TimeInterval
+    let color: Color
+    let lineWidth: CGFloat
+
+    func makeNSView(context: Context) -> ArcView { ArcView() }
+
+    func updateNSView(_ view: ArcView, context: Context) {
+        view.update(fraction: fraction, drainsIn: drainsIn, color: NSColor(color), lineWidth: lineWidth)
+    }
+
+    final class ArcView: NSView {
+        private let arc = CAShapeLayer()
+        private var color = NSColor.controlAccentColor
+
+        override init(frame: NSRect) {
+            super.init(frame: frame)
+            wantsLayer = true
+            arc.fillColor = nil
+            arc.lineCap = .round
+            arc.strokeEnd = 1
+            layer?.addSublayer(arc)
+        }
+        required init?(coder: NSCoder) { fatalError() }
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil } // clicks go to the card or tile underneath
+
+        override func layout() {
+            super.layout()
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            arc.frame = bounds
+            let inset = arc.lineWidth / 2
+            let rect = bounds.insetBy(dx: inset, dy: inset)
+            let path = CGMutablePath()
+            // From 12 o'clock all the way round, travelling clockwise on screen (the arc left showing ends at 12, like
+            // the drawn ring). Checked against a capture: this layer's arcs run opposite to the flag's name.
+            path.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: rect.width / 2,
+                        startAngle: .pi / 2, endAngle: .pi / 2 + 2 * .pi, clockwise: false)
+            arc.path = path
+            CATransaction.commit()
+        }
+
+        override func viewDidChangeEffectiveAppearance() {
+            super.viewDidChangeEffectiveAppearance()
+            recolor()
+        }
+
+        private func recolor() {
+            effectiveAppearance.performAsCurrentDrawingAppearance { arc.strokeColor = color.cgColor }
+        }
+
+        func update(fraction: Double, drainsIn: TimeInterval, color: NSColor, lineWidth: CGFloat) {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            self.color = color
+            recolor()
+            if arc.lineWidth != lineWidth { arc.lineWidth = lineWidth; needsLayout = true }
+            // The visible arc is the part after strokeStart: from where it is now, sweep to empty.
+            arc.strokeStart = 1
+            let sweep = CABasicAnimation(keyPath: "strokeStart")
+            sweep.fromValue = 1 - fraction
+            sweep.toValue = 1
+            sweep.duration = max(drainsIn, 0.01)
+            sweep.timingFunction = CAMediaTimingFunction(name: .linear)
+            arc.add(sweep, forKey: "sweep") // replaces last second's, from the same point: no jump
+            CATransaction.commit()
+        }
     }
 }
