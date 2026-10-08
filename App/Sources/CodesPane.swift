@@ -109,6 +109,7 @@ struct CodesPane: View {
                     }
                 }
                 .padding(.vertical, 4)
+                .padding(.horizontal, 2) // the glass tags' soft shadow isn't cut at the row's ends
             }
             .scrollIndicators(.never)
             .mask {
@@ -160,7 +161,7 @@ struct CodesPane: View {
         }
     }
 
-    /// One tag: picked, a solid pill (the brand fill, white text); otherwise soft glass.
+    /// One tag: picked, a solid blue pill with white text; otherwise soft glass.
     private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int) -> some View {
         let picked = vault == value
         return Button { withAnimation(.snappy(duration: 0.25)) { vault = value } } label: {
@@ -174,10 +175,9 @@ struct CodesPane: View {
             .foregroundStyle(picked ? AnyShapeStyle(.white) : AnyShapeStyle(.primary.opacity(0.75)))
             .padding(.horizontal, 12).frame(height: 32)
             .background {
-                if picked {
-                    Capsule().fill(Color.brand) // a fill, never brand-coloured text or icons
-                        .shadow(color: Color.brand.opacity(0.3), radius: 6, y: 2)
-                }
+                // The sidebar selection's blue: made for white text in both appearances (the brand blue is a light sky
+                // in dark mode). No glow: the tags' scrolling row would clip it into a box.
+                if picked { Capsule().fill(Color.sidebarSelection) }
             }
             .modifier(TagChrome(picked: picked))
             .contentShape(.capsule)
