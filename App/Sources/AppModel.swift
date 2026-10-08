@@ -105,15 +105,28 @@ final class AppModel {
     /// Every vault there is to show: your own, and each shared vault of the account in focus.
     var allVaultKeys: Set<String> { Set([VaultFilter.personalKey] + visibleOrganizations.map(\.id)) }
 
-    /// Whether a vault is chosen in the switcher (not when it shows every vault: then none is singled out).
-    func vaultChosen(_ key: String) -> Bool { vaultFilter.keys?.contains(key) ?? false }
+    /// Whether a vault is shown (every one is, while the filter shows all vaults).
+    func vaultShown(_ key: String) -> Bool { vaultFilter.keys?.contains(key) ?? true }
 
-    /// The switcher's click on a vault: from every vault, just that one; otherwise it joins or leaves the ones shown
-    /// (the last one leaving shows every vault again).
+    /// A vault's checkbox: shows it alongside the others, or hides it. The last one shown stays (an empty list would
+    /// just look broken); checking them all is All vaults again.
     func toggleVault(_ key: String) {
-        guard var keys = vaultFilter.keys else { vaultFilter = VaultFilter(keys: [key], all: allVaultKeys); return }
-        if keys.contains(key) { keys.remove(key) } else { keys.insert(key) }
+        var keys = vaultFilter.keys ?? allVaultKeys
+        if keys.contains(key) {
+            guard keys.count > 1 else { return }
+            keys.remove(key)
+        } else {
+            keys.insert(key)
+        }
         vaultFilter = VaultFilter(keys: keys, all: allVaultKeys)
+    }
+
+    /// Just this vault.
+    func showOnlyVault(_ key: String) { vaultFilter = VaultFilter(keys: [key], all: allVaultKeys) }
+
+    /// How many items a vault holds (of the account in focus), for the switcher.
+    func vaultCount(_ key: String?) -> Int {
+        focusedItems.filter { !$0.isDeleted && !$0.isArchived && (key == nil || ($0.organizationId ?? VaultFilter.personalKey) == key) }.count
     }
 
     /// Drops shared vaults that are gone (left, or their account locked) from the filter.

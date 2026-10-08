@@ -206,6 +206,13 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
                          appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            // The vault picker: every vault shown, then My vault and Northwind checked.
+            render(VaultSwitcherPicker().environment(vault).tint(.brand).background(Color.windowBase), size: CGSize(width: 300, height: 220),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-picker-all-\(name).png"))
+            vault.vaultFilter = .organization("org-nw")
+            render(VaultSwitcherPicker().environment(vault).tint(.brand).background(Color.windowBase), size: CGSize(width: 300, height: 220),
+                   appearance: appearance, to: dir.appending(path: "vault-shared-picker-one-\(name).png"))
+            vault.vaultFilter = .all
             // My vault and Northwind together: the switcher and the chip name both.
             vault.vaultFilter = .several([AppModel.VaultFilter.personalKey, "org-nw"])
             renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),

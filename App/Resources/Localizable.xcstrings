@@ -5878,6 +5878,34 @@
         }
       }
     },
+    "Check several to see them together." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数チェックすると一緒に表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "勾选多个即可一起显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "勾選多個即可一起顯示。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剔幾個就可以一齊睇。"
+          }
+        }
+      }
+    },
     "Checked %@" : {
       "localizations" : {
         "ja" : {
@@ -19814,6 +19842,34 @@
         }
       }
     },
+    "Only" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "のみ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅此"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅此"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只睇呢個"
+          }
+        }
+      }
+    },
     "Only asks GitHub for the latest release number. Nothing is downloaded or installed for you." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -25950,34 +26006,6 @@
         }
       }
     },
-    "Show one, then add more" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1つ選んでから追加"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先选一个，再添加更多"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先選一個，再加入更多"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "揀一個，再加多啲"
-          }
-        }
-      }
-    },
     "Show only" : {
       "localizations" : {
         "ja" : {
@@ -26002,6 +26030,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只顯示"
+          }
+        }
+      }
+    },
+    "Show only this vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この保管庫のみ表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅显示此保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅顯示此保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只顯示呢個保險庫"
           }
         }
       }
@@ -26171,34 +26227,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示網站圖示"
-          }
-        }
-      }
-    },
-    "Shown together" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一緒に表示"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一起显示"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一起顯示"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一齊顯示"
           }
         }
       }

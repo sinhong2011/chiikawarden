@@ -2458,12 +2458,12 @@ struct NewFolderSheet: View {
     }
 }
 
-/// All vaults, or any mix of My vault and the shared vaults: narrows every list, count and code to them. From All
-/// vaults a click shows just that vault; after that each click adds or takes away one.
+/// All vaults, or any mix of My vault and the shared vaults: narrows every list, count and code to them. A click opens
+/// a popover that stays open while vaults are checked on and off.
 private struct VaultSwitcher: View {
     @Environment(AppModel.self) private var model
-
-    private var title: String { model.vaultFilterTitle }
+    @State private var open = false
+    @State private var hovering = false
 
     private var symbol: String {
         switch model.vaultFilter {
@@ -2475,52 +2475,124 @@ private struct VaultSwitcher: View {
     }
 
     var body: some View {
-        Menu {
-            Button {
-                withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .all }
-            } label: {
-                Label("All vaults", systemImage: model.vaultFilter == .all ? "checkmark" : "square.stack.3d.up")
-            }
-            Section(model.vaultFilter == .all ? "Show one, then add more" : "Shown together") {
-                VaultToggles()
-            }
-        } label: {
+        Button { open.toggle() } label: {
             HStack(spacing: 8) {
                 Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                    .contentTransition(.symbolEffect(.replace))
                     .frame(width: 22, height: 22)
                     .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 6, style: .continuous))
-                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(verbatim: model.vaultFilterTitle).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    .contentTransition(.opacity)
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34)
-            .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 10, style: .continuous))
+            .background(Color.primary.opacity(open || hovering ? 0.08 : 0.05), in: .rect(cornerRadius: 10, style: .continuous))
             .contentShape(.rect)
+            .animation(.snappy(duration: 0.25), value: model.vaultFilter)
+            .animation(.easeOut(duration: 0.12), value: hovering)
         }
-        .menuStyle(.button)
         .buttonStyle(.plain)
-        .menuIndicator(.hidden)
+        .onHover { hovering = $0 }
         .frame(maxWidth: .infinity)
+        .popover(isPresented: $open, arrowEdge: .bottom) { VaultSwitcherPicker() }
         .help(Text("Show one vault or several"))
         .accessibilityLabel(Text("Vault"))
-        .accessibilityValue(Text(verbatim: title))
+        .accessibilityValue(Text(verbatim: model.vaultFilterTitle))
     }
 }
 
-/// My vault and each shared vault as menu items with a checkmark while shown; a click adds or takes one away.
+/// The vault switcher's popover: All vaults, then each vault with its icon, item count and a checkbox; "Only" on hover
+/// shows just that one. Checks animate in and out; the popover stays open so several can be picked.
+struct VaultSwitcherPicker: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            VaultPickerRow(title: String(localized: "All vaults"), symbol: "square.stack.3d.up", count: model.vaultCount(nil),
+                           checked: model.vaultFilter == .all, radio: true) {
+                withAnimation(.snappy(duration: 0.25)) { model.vaultFilter = .all }
+            }
+            Divider().padding(.vertical, 4).padding(.horizontal, 8)
+            VaultPickerRow(title: String(localized: "My vault"), symbol: "person", count: model.vaultCount(AppModel.VaultFilter.personalKey),
+                           checked: model.vaultShown(AppModel.VaultFilter.personalKey),
+                           only: { withAnimation(.snappy(duration: 0.25)) { model.showOnlyVault(AppModel.VaultFilter.personalKey) } }) {
+                withAnimation(.snappy(duration: 0.25)) { model.toggleVault(AppModel.VaultFilter.personalKey) }
+            }
+            ForEach(model.visibleOrganizations) { org in
+                VaultPickerRow(title: org.name, symbol: "building.2", count: model.vaultCount(org.id), checked: model.vaultShown(org.id),
+                               only: { withAnimation(.snappy(duration: 0.25)) { model.showOnlyVault(org.id) } }) {
+                    withAnimation(.snappy(duration: 0.25)) { model.toggleVault(org.id) }
+                }
+            }
+            Text("Check several to see them together.")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .padding(.horizontal, 10).padding(.top, 6).padding(.bottom, 2)
+        }
+        .padding(6)
+        .frame(width: 280)
+    }
+}
+
+/// One vault in the picker. The whole row toggles; the check is a filled circle that pops in.
+private struct VaultPickerRow: View {
+    let title: String
+    let symbol: String
+    let count: Int
+    let checked: Bool
+    /// All vaults: a radio (filled when every vault shows), not a checkbox.
+    var radio = false
+    var only: (() -> Void)?
+    let action: () -> Void
+    @State private var hovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                    .frame(width: 24, height: 24)
+                    .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 7, style: .continuous))
+                Text(verbatim: title).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                Spacer(minLength: 6)
+                if let only, hovering, !radio {
+                    Button("Only", action: only)
+                        .buttonStyle(.plain)
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 7).frame(height: 20)
+                        .background(Color.primary.opacity(0.08), in: .capsule)
+                        .help(Text("Show only this vault"))
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
+                Text(count, format: .number).font(.system(size: 11, weight: .medium)).monospacedDigit().foregroundStyle(.tertiary)
+                Image(systemName: checked ? (radio ? "largecircle.fill.circle" : "checkmark.circle.fill") : "circle")
+                    .font(.system(size: 15))
+                    .foregroundStyle(checked ? Color.primary : Color.secondary.opacity(0.6))
+                    .contentTransition(reduceMotion ? .opacity : .symbolEffect(.replace))
+            }
+            .padding(.horizontal, 8).frame(height: 36)
+            .background(Color.primary.opacity(hovering ? 0.06 : 0), in: .rect(cornerRadius: 8, style: .continuous))
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { h in withAnimation(.easeOut(duration: 0.12)) { hovering = h } }
+        .accessibilityAddTraits(checked ? .isSelected : [])
+    }
+}
+
+/// My vault and each shared vault as checkable menu items (the filter menu); a click shows or hides one.
 struct VaultToggles: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        item(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person")
-        ForEach(model.visibleOrganizations) { org in item(org.id, org.name, "building.2") }
+        toggle(AppModel.VaultFilter.personalKey, String(localized: "My vault"))
+        ForEach(model.visibleOrganizations) { org in toggle(org.id, org.name) }
     }
 
-    private func item(_ key: String, _ title: String, _ symbol: String) -> some View {
-        Button {
-            withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) }
-        } label: {
-            Label { Text(verbatim: title) } icon: { Image(systemName: model.vaultChosen(key) ? "checkmark" : symbol) }
+    private func toggle(_ key: String, _ title: String) -> some View {
+        Toggle(isOn: Binding(get: { model.vaultShown(key) },
+                             set: { _ in withAnimation(.snappy(duration: 0.25)) { model.toggleVault(key) } })) {
+            Text(verbatim: title)
         }
     }
 }
