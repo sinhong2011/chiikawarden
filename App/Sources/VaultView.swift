@@ -458,7 +458,7 @@ private struct Sidebar: View {
                                 .contextMenu {
                                     Button("New Folder…", systemImage: "folder.badge.plus") { model.promptNewFolder() }
                                         .labelStyle(.titleAndIcon)
-                                        .tint(.primary)
+                                        .tint(Color(nsColor: .labelColor))
                                 }
                         }
                     }
@@ -501,7 +501,7 @@ private struct Sidebar: View {
                                 }
                             }
                             .labelStyle(.titleAndIcon)
-                            .tint(.primary)
+                            .tint(Color(nsColor: .labelColor))
                         }
                     ForEach(org.children) { collection in
                         SidebarLabel(verbatim: collection.name, symbol: "rectangle.stack", tag: .collection(collection.id),
@@ -907,7 +907,7 @@ private struct FolderRow: View {
                     }
                 }
                 .labelStyle(.titleAndIcon)
-                .tint(.primary) // the sidebar's selection tint would colour the menu's icons
+                .tint(Color(nsColor: .labelColor)) // the sidebar's selection tint would colour the menu's icons blue
             }
         if node.children.isEmpty {
             label
@@ -1002,6 +1002,7 @@ private struct NewItemButton: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
+        .tint(Color(nsColor: .labelColor)) // in the sidebar, whose selection tint would colour the menu's icons blue
         .onHover { hovering = $0 }
         .help(Text("New Item (⌘N)"))
         .accessibilityLabel(Text("New Item"))
