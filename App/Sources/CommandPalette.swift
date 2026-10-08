@@ -193,7 +193,7 @@ struct CommandPalette: View {
         .background((dark ? Color.black.opacity(0.15) : Color.white.opacity(0.55)), in: .rect(cornerRadius: 22, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.14 : 0.08), lineWidth: 0.5))
         .shadow(color: .black.opacity(dark ? 0.35 : 0.14), radius: 18, y: 8)
-        .scaleEffect(x: appeared ? 1 : 0.6, y: appeared ? 1 : 0.8, anchor: .top)
+        .scaleEffect(x: appeared ? 1 : 0.92, y: appeared ? 1 : 0.94, anchor: .top) // a short way to grow: it feels instant
         .opacity(appeared ? 1 : 0)
     }
 
@@ -215,11 +215,11 @@ struct CommandPalette: View {
                 }
             }
             appeared = false
-            withAnimation(.spring(duration: 0.5, bounce: 0.3)) { appeared = true }
+            withAnimation(.spring(duration: 0.24, bounce: 0.18)) { appeared = true }
         }
         .onChange(of: model.quickSearchDismissNonce) {
             focused = false
-            withAnimation(.easeIn(duration: 0.16)) { appeared = false }
+            withAnimation(.easeIn(duration: 0.1)) { appeared = false }
         }
         .onChange(of: query) {
             index = 0
@@ -313,8 +313,8 @@ struct CommandPalette: View {
                     }
                 }
                 .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 8)
-                .animation(appeared ? .spring(duration: 0.4, bounce: 0.2).delay(0.04 * Double(min(i, 6))) : .easeIn(duration: 0.12),
+                .offset(y: appeared ? 0 : 4)
+                .animation(appeared ? .spring(duration: 0.22, bounce: 0.12).delay(0.015 * Double(min(i, 6))) : .easeIn(duration: 0.08),
                            value: appeared) // staggered in, all together out
                 .contentShape(.rect)
                 .onTapGesture { index = i; run([]) }

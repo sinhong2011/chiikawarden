@@ -238,7 +238,7 @@ final class QuickSearchController {
         panel.ignoresMouseEvents = true
         model.quickSearchDismissNonce += 1
         closing = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(180))
+            try? await Task.sleep(for: .milliseconds(110)) // the palette's fade-out (0.1 s), then gone
             guard !Task.isCancelled, let self else { return }
             self.panel?.orderOut(nil)
             self.closing = nil
