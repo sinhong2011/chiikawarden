@@ -480,6 +480,15 @@ private struct Sidebar: View {
                 .frame(height: 26)
                 .padding(.bottom, 6)
             }
+            // Every shared vault together, right under your own: each one a row (its name) that opens onto its shared
+            // folders, nested like My Folders.
+            if !model.visibleOrganizations.isEmpty {
+                Section("Shared Vaults") {
+                    ForEach(model.visibleOrganizations) { org in
+                        SharedVaultRow(org: org, count: count)
+                    }
+                }
+            }
             // Things to do with the vault, rather than kinds of items in it.
             Section("Tools") {
                 SidebarLabel("Send", symbol: "paperplane", tag: .sends, count: model.sends.count)
@@ -496,26 +505,6 @@ private struct Sidebar: View {
             Section("Manage") {
                 row(.archive)
                 row(.trash)
-            }
-            ForEach(model.visibleOrganizations) { org in
-                Section(org.name) {
-                    SidebarLabel("All Items", symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
-                        .tag(SidebarSelection.organization(org.id))
-                        .contextMenu {
-                            Group {
-                                Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
-                                Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
-                                    model.leaveOrganization(org.id)
-                                }
-                            }
-                            .labelStyle(.titleAndIcon)
-                            .tint(Color(nsColor: .labelColor))
-                        }
-                    // Shared folders nest by name ("Engineering/Backend"), like My Folders.
-                    ForEach(FolderNode.tree(org.children)) { node in
-                        SharedFolderRow(node: node, count: count)
-                    }
-                }
             }
         }
         .listStyle(.sidebar)
@@ -903,6 +892,41 @@ struct FolderNode: Identifiable, Hashable {
 }
 
 /// Recursive folder row; items dropped on a real folder move into it.
+/// A shared vault in the sidebar: its name (all of its items), with its shared folders under it, and what you can do
+/// with it on a right-click.
+private struct SharedVaultRow: View {
+    @Environment(AppModel.self) private var model
+    let org: Grouping
+    let count: (SidebarSelection) -> Int
+    @State private var expanded = true
+
+    private var label: some View {
+        SidebarLabel(verbatim: org.name, symbol: "building.2", tag: .organization(org.id), count: count(.organization(org.id)))
+            .tag(SidebarSelection.organization(org.id))
+            .contextMenu {
+                Group {
+                    Button("Event Log…", systemImage: "list.bullet.rectangle") { model.eventLogFor = org.id }
+                    Button("Leave Shared Vault…", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                        model.leaveOrganization(org.id)
+                    }
+                }
+                .labelStyle(.titleAndIcon)
+                .tint(Color(nsColor: .labelColor))
+            }
+    }
+
+    var body: some View {
+        let tree = FolderNode.tree(org.children)
+        if tree.isEmpty {
+            label
+        } else {
+            DisclosureGroup(isExpanded: $expanded) {
+                ForEach(tree) { SharedFolderRow(node: $0, count: count) }
+            } label: { label }
+        }
+    }
+}
+
 /// A shared folder (collection) in the sidebar, with the ones nested under it. A level that's only part of others'
 /// names ("Engineering" for "Engineering/Backend") is a heading, not something to select.
 private struct SharedFolderRow: View {
