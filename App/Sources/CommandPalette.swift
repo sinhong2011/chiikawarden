@@ -164,7 +164,7 @@ struct CommandPalette: View {
                 commands.insert(PaletteCommand(id: "create-typed", title: String(localized: "New Login “\(prefill.name)”"),
                                                symbol: "plus.circle", shortcut: nil) {
                     model.bringToFront()
-                    model.editing = EditRequest(mode: .create(.login), prefill: prefill)
+                    model.beginEditing(EditRequest(mode: .create(.login), prefill: prefill))
                 }, at: 0)
             }
         }
@@ -466,7 +466,7 @@ struct CommandPalette: View {
                 // ⌘↵: save it in a new login.
                 close()
                 model.bringToFront()
-                model.editing = EditRequest(mode: .create(.login), prefill: EditItemSheet.Prefill(password: value))
+                model.beginEditing(EditRequest(mode: .create(.login), prefill: EditItemSheet.Prefill(password: value)))
             } else {
                 finish(nil, flash: String(localized: "Password copied")) { model.copy(value, label: String(localized: "Password")) }
             }
@@ -599,7 +599,7 @@ struct CommandPalette: View {
         list.append(PaletteCommand(id: "edit", title: String(localized: "Edit"), symbol: "pencil") {
             PaletteRecents.note(item.id); close()
             model.bringToFront()
-            model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) }
+            model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) }
         })
         list.append(PaletteCommand(id: "favorite", title: item.favorite ? String(localized: "Remove from Favorites") : String(localized: "Add to Favorites"),
                                    symbol: item.favorite ? "star.slash" : "star") {
@@ -613,7 +613,7 @@ struct CommandPalette: View {
 
     @MainActor
     static func commands(model: AppModel, close: @escaping () -> Void) -> [PaletteCommand] {
-        func create(_ kind: AppModel.NewItemKind) { model.bringToFront(); model.editing = EditRequest(mode: .create(kind)) }
+        func create(_ kind: AppModel.NewItemKind) { model.bringToFront(); model.beginEditing(EditRequest(mode: .create(kind))) }
         func go(_ section: SidebarSelection) { model.bringToFront(); model.requestedSection = section }
         var list: [PaletteCommand] = []
         if model.isUnlocked {

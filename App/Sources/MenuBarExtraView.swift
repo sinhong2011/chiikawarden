@@ -423,7 +423,7 @@ private struct QuickActions: View {
         HStack(spacing: 8) {
             tile("plus", "New Login") {
                 model.bringToFront()
-                model.editing = EditRequest(mode: .create(.login))
+                model.beginEditing(EditRequest(mode: .create(.login)))
             }
             tile("paperplane", "New Send") {
                 model.bringToFront()

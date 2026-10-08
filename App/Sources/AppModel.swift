@@ -288,8 +288,60 @@ final class AppModel {
         newFolderParent = parent
         promptingNewFolder = true
     }
-    /// Non-nil while the create/edit sheet is open.
+    /// Non-nil while an item form is open: editing in a sheet, a new item (or a clone) in the detail panel.
     var editing: EditRequest?
+    /// The new-item form in the detail panel, if one is open.
+    var newItemForm: EditRequest? {
+        guard let editing, !editing.mode.isEdit else { return nil }
+        return editing
+    }
+    /// The edit sheet's request, if one is open.
+    var editSheet: EditRequest? {
+        get { editing.flatMap { $0.mode.isEdit ? $0 : nil } }
+        set { if newValue == nil, editing?.mode.isEdit == true { editing = nil } }
+    }
+    /// The new-item form has input in it (it reports this), so leaving it asks first.
+    var newItemFormDirty = false
+    /// What to do once "Discard this new item?" is answered with Discard.
+    var pendingLeave: (() -> Void)?
+    /// The item selected before the new-item form opened, shown again if it's cancelled.
+    private var selectionBeforeForm: VaultItem.ID?
+
+    /// Opens an item form: editing in a sheet, a new item or clone in the detail panel (the list's selection steps
+    /// aside for it). Leaving a new item with input in it asks first.
+    func beginEditing(_ request: EditRequest) {
+        leaveNewItemForm { [self] in
+            if !request.mode.isEdit {
+                selectionBeforeForm = selectedID
+                selectedID = nil
+            }
+            editing = request
+        }
+    }
+
+    /// Runs `action` once the new-item form (if open) is out of the way: at once when it's empty, after
+    /// "Discard this new item?" when it has input.
+    func leaveNewItemForm(then action: @escaping () -> Void) {
+        guard newItemForm != nil else { action(); return }
+        if newItemFormDirty { pendingLeave = action } else { closeNewItemForm(restoringSelection: false); action() }
+    }
+
+    /// The answer to "Discard this new item?".
+    func discardNewItemAndLeave() {
+        let action = pendingLeave
+        pendingLeave = nil
+        closeNewItemForm(restoringSelection: false)
+        action?()
+    }
+
+    /// Closes the new-item form; cancelled, the item selected before it shows again.
+    func closeNewItemForm(restoringSelection: Bool = true) {
+        guard newItemForm != nil else { return }
+        editing = nil
+        newItemFormDirty = false
+        if restoringSelection, selectedID == nil { selectedID = selectionBeforeForm }
+        selectionBeforeForm = nil
+    }
     /// The import or export sheet; an import may start with a file (dropped on the window).
     var transfer: Transfer?
 

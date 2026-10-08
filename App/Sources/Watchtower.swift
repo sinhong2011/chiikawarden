@@ -326,10 +326,10 @@ private struct IssueCard: View {
                     if issue == .twoFactor, let host = item.host, let guide = WatchtowerReport.guide(for: host, in: directory) {
                         Button("How to Turn On") { NSWorkspace.shared.open(guide) }
                             .buttonStyle(.appSecondarySmall)
-                        Button("Add Code") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                        Button("Add Code") { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } }
                             .buttonStyle(.appSecondarySmall)
                     } else if issue == .cardExpiring {
-                        Button("Update Card") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                        Button("Update Card") { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } }
                             .buttonStyle(.appSecondarySmall)
                     } else if issue == .duplicate {
                         Button("Move to Trash…") { model.confirmTrash(item) }
@@ -337,13 +337,13 @@ private struct IssueCard: View {
                     } else if let host = item.host, !host.isEmpty, [.breached, .reused, .weak, .oldPassword].contains(issue) {
                         // Change it where it lives, then save the new one here.
                         ChangeOnSiteButton(host: host)
-                        Button { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } } label: {
+                        Button { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } } label: {
                             Image(systemName: "pencil").accessibilityLabel(Text("Edit"))
                         }
                         .buttonStyle(.borderless)
                         .help(Text("Edit the item to save the new password"))
                     } else {
-                        Button("Change Password") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
+                        Button("Change Password") { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } }
                             .buttonStyle(.appSecondarySmall)
                     }
                     Button { onOpen(item) } label: { Image(systemName: "arrow.right.circle").accessibilityLabel(Text("Open item")) }

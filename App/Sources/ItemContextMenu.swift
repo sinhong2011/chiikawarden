@@ -31,8 +31,8 @@ struct ItemContextMenu: View {
                 Button("Restore", systemImage: "arrow.uturn.backward") { Task { await model.restore(item) } }
                 Button("Delete Forever…", systemImage: "trash.slash", role: .destructive) { model.confirmDeleteForever(item) }
             } else {
-                Button("Edit", systemImage: "pencil") { model.guarded(item) { model.editing = EditRequest(mode: .edit(item)) } }
-                Button("Clone", systemImage: "plus.square.on.square") { model.guarded(item) { model.editing = EditRequest(mode: .clone(item)) } }
+                Button("Edit", systemImage: "pencil") { model.guarded(item) { model.beginEditing(EditRequest(mode: .edit(item))) } }
+                Button("Clone", systemImage: "plus.square.on.square") { model.guarded(item) { model.beginEditing(EditRequest(mode: .clone(item))) } }
                 Button(item.favorite ? "Remove from Favorites" : "Add to Favorites", systemImage: item.favorite ? "star.slash" : "star") {
                     Task { await model.toggleFavorite(item) }
                 }
