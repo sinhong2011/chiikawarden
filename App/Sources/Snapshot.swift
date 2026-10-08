@@ -186,6 +186,25 @@ enum Snapshot {
                 desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
                 UnlockView().environment(gateModel)
             }, size: CGSize(width: 1100, height: 700), appearance: appearance, to: dir.appending(path: "gate-lockscreen-\(name).png"))
+            // The default (calm) gate: the door holds still in the plates, opening and closing alike, and the lock
+            // screen they hand over to.
+            let calmModel = AppModel()
+            calmModel.setPreviewAccounts(multi.accounts.prefix(1).map { $0 })
+            for (motion, slug) in [(AppModel.GateMotion.opening, "open"), (.closing, "close")] {
+                calmModel.gate = motion
+                for p in [0.0, 0.5] {
+                    render(ZStack {
+                        desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
+                        GatePlates(progress: p).environment(calmModel)
+                    }, size: CGSize(width: 1100, height: 700), appearance: appearance,
+                       to: dir.appending(path: "gate-calm-\(slug)-\(Int(p * 100))-\(name).png"))
+                }
+            }
+            calmModel.gate = nil
+            render(ZStack {
+                desktop(VaultView().environment(vault).tint(.brand), dark: name == "dark")
+                UnlockView().environment(calmModel)
+            }, size: CGSize(width: 1100, height: 700), appearance: appearance, to: dir.appending(path: "gate-calm-lockscreen-\(name).png"))
             renderWindow(UnlockView().environment(vault).tint(.brand), size: CGSize(width: 400, height: 640),
                          appearance: appearance, to: dir.appending(path: "unlock-400-\(name).png"))
         }

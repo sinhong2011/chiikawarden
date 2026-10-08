@@ -60,7 +60,8 @@ struct UnlockView: View {
                 .padding(.bottom, 20)
                 .opacity(opening ? 0 : 1)
             }
-            .animation(.easeIn(duration: 0.28), value: opening)
+            // The calm unlock fades the controls quickly, then the gate's plates (which don't carry them) cover the door.
+            .animation(.easeIn(duration: model.unlockOpenedAt == nil ? AppModel.gateFade : 0.28), value: opening)
         }
         .ignoresSafeArea()
         // An account's door (other accounts open behind it): Esc goes back to all of them.
@@ -78,10 +79,13 @@ struct UnlockView: View {
             focused = true
             // Locked from the vault: the door closes over it.
             // (The gate closes first; the door's own timing comes from model.lockClosedAt, shared by every copy.)
-            if model.lockClosing, let start = model.lockClosedAt {
+            // Without the full door animation (no lockClosedAt), the gate's plates part onto a still door and the
+            // controls fade in.
+            if model.lockClosing {
                 assembling = true
+                let wait = model.lockClosedAt.map { max(0, $0.timeIntervalSinceNow) + 0.56 } ?? 0.06
                 Task {
-                    try? await Task.sleep(for: .seconds(max(0, start.timeIntervalSinceNow) + 0.56))
+                    try? await Task.sleep(for: .seconds(wait))
                     assembling = false
                 }
             }
@@ -101,6 +105,8 @@ struct UnlockView: View {
             withAnimation(paste ? .easeInOut(duration: 0.7) : .spring(duration: 0.5, bounce: 0.1)) { turns += delta }
         }
         .onChange(of: password) { _, typed in if !typed.isEmpty, model.errorMessage != nil { model.errorMessage = nil } }
+        .onChange(of: password.count) { _, count in model.doorDial.typed = count }
+        .onChange(of: turns) { _, turns in model.doorDial.turns = turns }
     }
 
     private var hasPIN: Bool { model.unlockTarget.map { model.isPINEnabled($0.id) } ?? false }

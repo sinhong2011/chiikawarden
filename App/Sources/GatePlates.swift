@@ -29,7 +29,9 @@ struct GatePlates: View {
             Rectangle().fill(.ultraThinMaterial)
             // Closing: the door is still apart (its assembly starts when the plates have met).
             // Opening: the door as it was the moment it unlatched.
-            VaultDoorStage(radius: radius, center: center, typed: 0, turns: 0, busy: false, errorAt: nil,
+            // Calm (no door sequence): the door exactly as typed, so nothing on it moves when the plates take over.
+            let dial = model.gate == .opening && model.unlockOpenedAt == nil ? model.doorDial : (typed: 0, turns: 0)
+            VaultDoorStage(radius: radius, center: center, typed: dial.typed, turns: dial.turns, busy: false, errorAt: nil,
                            openedAt: model.gate == .opening ? model.unlockOpenedAt : nil,
                            closedAt: model.gate == .closing ? model.lockClosedAt : nil)
                 .environment(\.gatePassing, true)

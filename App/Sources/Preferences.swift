@@ -7,7 +7,10 @@ enum Pref {
     static let appearance = "appearance"           // "system" | "light" | "dark"
     static let autoLockMinutes = "autoLockMinutes" // 0 = never
     static let lockOnSleep = "lockOnSleep"
-    static let lockAnimations = "lockAnimations"   // the vault door's moving lock screen and its open/close sequences
+    /// Opt-in: the vault door drifts on the lock screen and plays its open/close sequences (by default only the gate's
+    /// plates slide). A new key, so everyone starts with it off, including people who had the old default
+    /// `lockAnimations` (retired: it was on by default, so its stored value says nothing about what anyone chose).
+    static let fullDoorAnimation = "fullDoorAnimation"
     static let clipboardSeconds = "clipboardSeconds" // 0 = never clear
     static let showIcons = "showIcons"
     static let sshAgent = "sshAgent"                 // serve SSH key items over the agent socket
@@ -24,10 +27,11 @@ enum Pref {
 
     static func register() {
         UserDefaults.standard.register(defaults: [
-            appearance: "system", autoLockMinutes: 15, lockOnSleep: true, lockAnimations: true, clipboardSeconds: 30,
+            appearance: "system", autoLockMinutes: 15, lockOnSleep: true, fullDoorAnimation: false, clipboardSeconds: 30,
             codeAfterPassword: true, hideFromCapture: false, timeoutAction: "lock", // opt-in: some screen tools and recordings need the window
             showMenuBar: true, closeToMenuBar: false,
         ])
+        UserDefaults.standard.removeObject(forKey: "lockAnimations") // retired (see fullDoorAnimation)
     }
 
     static var colorScheme: ColorScheme? {

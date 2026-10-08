@@ -3282,30 +3282,58 @@
         }
       }
     },
-    "Animate the vault door" : {
+    "Full vault-door animation" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "金庫の扉をアニメーション"
+            "value" : "金庫の扉のフルアニメーション"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保险库门动画"
+            "value" : "完整保险库门动画"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保險庫門動畫"
+            "value" : "完整保險庫門動畫"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保險庫門動畫"
+            "value" : "完整保險庫門動畫"
+          }
+        }
+      }
+    },
+    "The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待機中は扉がゆっくり動き、ゲートが開く前にリングが揃って扉が分解し、ロックすると再び組み上がります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门在等待时缓缓转动，闸门打开前圆环转到对齐并自行拆开，锁定时再重新组合。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "門在等待時緩緩轉動，閘門打開前圓環轉到對齊並自行拆開，鎖定時再重新組合。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "門喺等緊嗰陣會慢慢轉，閘門打開之前圓環會轉到對齊再自己拆開，鎖定嗰陣再重新砌返。"
           }
         }
       }
@@ -16502,30 +16530,30 @@
         }
       }
     },
-    "Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With the door animation off, the lock screen stays still and the vault opens and locks at once." : {
+    "Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With Reduce Motion on, the lock screen fades in and out instead of sliding." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ログアウトすると、この Mac からアカウントと保存された保管庫が削除されます。再びログインするにはマスターパスワード（と 2 段階ログイン）が必要です。各アカウントはそれぞれのページで独自のタイムアウトを設定できます。扉のアニメーションをオフにすると、ロック画面は静止し、保管庫はすぐに開閉します。"
+            "value" : "ログアウトすると、この Mac からアカウントと保存された保管庫が削除されます。再びログインするにはマスターパスワード（と 2 段階ログイン）が必要です。各アカウントはそれぞれのページで独自のタイムアウトを設定できます。「視差効果を減らす」がオンのときは、ロック画面はスライドせずにフェードで切り替わります。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "注销会从这台 Mac 移除账户及其保存的密码库；再次登录需要主密码（及两步登录）。每个账户可在其页面设置自己的超时。关闭门的动画后，锁定界面保持静止，密码库会立即打开和锁定。"
+            "value" : "注销会从这台 Mac 移除账户及其保存的密码库；再次登录需要主密码（及两步登录）。每个账户可在其页面设置自己的超时。开启“减弱动态效果”后，锁定界面会淡入淡出，而不是滑动。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登出會從這部 Mac 移除帳號及其儲存的保險庫；再次登入需要主密碼（及兩步驟登入）。每個帳號可在其頁面設定自己的逾時。關閉門的動畫後，鎖定畫面會保持靜止，保險庫會立即開啟和鎖定。"
+            "value" : "登出會從這部 Mac 移除帳號及其儲存的保險庫；再次登入需要主密碼（及兩步驟登入）。每個帳號可在其頁面設定自己的逾時。開啟「減少動態效果」後，鎖定畫面會淡入淡出，而不是滑動。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登出會喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫；再登入要用主密碼（同兩步驟登入）。每個帳戶都可以喺佢嘅頁面設定自己嘅逾時。熄咗門嘅動畫之後，鎖定畫面會保持靜止，保險庫會即刻打開同鎖定。"
+            "value" : "登出會喺呢部 Mac 移除帳戶同佢儲存咗嘅保險庫；再登入要用主密碼（同兩步驟登入）。每個帳戶都可以喺佢嘅頁面設定自己嘅逾時。開咗「減少動態效果」之後，鎖定畫面會淡入淡出，唔會滑動。"
           }
         }
       }

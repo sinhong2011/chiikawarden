@@ -290,7 +290,7 @@ private struct SecuritySettings: View {
     @AppStorage(Pref.autoLockMinutes) private var autoLockMinutes = 15
     @AppStorage(Pref.timeoutAction) private var timeoutAction = "lock"
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
-    @AppStorage(Pref.lockAnimations) private var lockAnimations = true
+    @AppStorage(Pref.fullDoorAnimation) private var fullDoorAnimation = false
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
     @AppStorage(Pref.codeAfterPassword) private var codeAfterPassword = true
     @AppStorage(Pref.hideFromCapture) private var hideFromCapture = false
@@ -313,11 +313,15 @@ private struct SecuritySettings: View {
                 }
                 .disabled(autoLockMinutes == 0)
                 Toggle("Lock when the Mac sleeps or the screen locks", isOn: $lockOnSleep)
-                Toggle("Animate the vault door", isOn: $lockAnimations)
+                Toggle(isOn: $fullDoorAnimation) {
+                    Text("Full vault-door animation")
+                    Text("The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             } header: {
                 Text("Vault")
             } footer: {
-                Text("Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With the door animation off, the lock screen stays still and the vault opens and locks at once.")
+                Text("Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With Reduce Motion on, the lock screen fades in and out instead of sliding.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
