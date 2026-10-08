@@ -3,17 +3,17 @@
 How quickly Triwarden opens, how little memory it keeps, and how long an unlock takes, measured on one Mac by
 `make bench` (`scripts/bench.sh`). Re-run it on yours: numbers depend on the machine, and on what else it's doing.
 
-## Triwarden 0.1.1 (ebba3f1)
+## Triwarden 0.1.1 (8e70413)
 
 2026-10-08 · Apple M4 Pro (Mac16,11), 64 GB · macOS 27.0.1 · Debug build with Swift optimisation (-O) · demo vault of 200+ items
 
 | Measure | Median | Range | Notes |
 | --- | ---: | ---: | --- |
-| Launch to first frame | 1057 ms | 988–1340 ms | 5 fresh launches; from the kernel starting the process |
-| Launch to vault ready | 1057 ms | 988–1340 ms | the item list on screen with items in it |
-| Memory at idle | 135 MB | | phys_footprint (Activity Monitor's “Memory”) after 10 s idle, vault open |
-| Master-password unlock, PBKDF2 600,000 | 88 ms | | key derivation + user key decryption, median of 5 |
-| Master-password unlock, Argon2id 64 MiB · 3 · 4 | 135 ms | | Bitwarden's default Argon2id settings, median of 5 |
+| Launch to first frame | 866 ms | 849–1354 ms | 5 fresh launches; from the kernel starting the process |
+| Launch to vault ready | 867 ms | 849–1354 ms | the item list on screen with items in it |
+| Memory at idle | 138 MB | | phys_footprint (Activity Monitor's “Memory”) after 10 s idle, vault open |
+| Master-password unlock, PBKDF2 600,000 | 89 ms | | key derivation + user key decryption, median of 5 |
+| Master-password unlock, Argon2id 64 MiB · 3 · 4 | 140 ms | | Bitwarden's default Argon2id settings, median of 5 |
 
 Touch ID can't be timed without a finger: `scripts/bench.sh --interactive 5` opens the app on your own accounts and
 times five real unlocks (from the moment Touch ID approves, or Return is pressed, to the vault on screen).
