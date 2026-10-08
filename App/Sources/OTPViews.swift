@@ -5,7 +5,7 @@ import TriCrypto
 struct OTPCode: View {
     let code: String
     var size: CGFloat = 26
-    /// Last seconds of the period: the dot turns orange.
+    /// Last seconds of the period: the dot (grey otherwise) turns orange.
     var urgent = false
     /// The dot breathes (one code on its own); a grid of codes keeps it still, which is far lighter.
     var breathing = true
@@ -16,9 +16,9 @@ struct OTPCode: View {
             half(String(code.prefix(split)), from: 0)
             Group {
                 if breathing {
-                    BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .brand)
+                    BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .secondary) // grey; orange near the end
                 } else {
-                    Circle().fill(urgent ? Color.orange : Color.brand)
+                    Circle().fill(urgent ? Color.orange : Color.secondary)
                 }
             }
             .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
