@@ -12193,6 +12193,34 @@
         }
       }
     },
+    "Favorites First" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りを先頭に"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏优先"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的最愛優先"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜愛項目放先"
+          }
+        }
+      }
+    },
     "File" : {
       "localizations" : {
         "ja" : {
@@ -12587,6 +12615,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "篩選"
+          }
+        }
+      }
+    },
+    "Filter codes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードを絞り込む"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "筛选验证码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選驗證碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篩選驗證碼"
           }
         }
       }
@@ -13626,6 +13682,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "前往資料夾 %@"
+          }
+        }
+      }
+    },
+    "Group by Vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫ごとにグループ化"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按保险库分组"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依保險庫分組"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按保險庫分組"
           }
         }
       }
@@ -22419,6 +22503,34 @@
         }
       }
     },
+    "Recently Used" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近使用"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近使用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近使用"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近用過"
+          }
+        }
+      }
+    },
     "Record Shortcut" : {
       "localizations" : {
         "ja" : {
@@ -26734,6 +26846,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "排序"
+          }
+        }
+      }
+    },
+    "Sort and group" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "並べ替えとグループ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排序与分组"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排序與分組"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排序同分組"
           }
         }
       }

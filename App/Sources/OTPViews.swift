@@ -6,13 +6,21 @@ struct OTPCode: View {
     var size: CGFloat = 26
     /// Last seconds of the period: the dot turns orange.
     var urgent = false
+    /// The dot breathes (one code on its own); a grid of codes keeps it still, which is far lighter.
+    var breathing = true
 
     var body: some View {
         let split = code.count / 2
         HStack(spacing: size * 0.3) {
             half(String(code.prefix(split)), from: 0)
-            BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .brand)
-                .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
+            Group {
+                if breathing {
+                    BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .brand)
+                } else {
+                    Circle().fill(urgent ? Color.orange : Color.brand)
+                }
+            }
+            .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
             half(String(code.suffix(code.count - split)), from: split)
         }
         .font(.system(size: size, weight: .semibold, design: .monospaced))

@@ -207,6 +207,8 @@ enum Snapshot {
         for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             renderWindow(VaultView(initialSelection: "1").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
                          appearance: appearance, to: dir.appending(path: "vault-shared-\(name).png"))
+            render(desktop(CodesPane().environment(vault).tint(.brand), dark: name == "dark"),
+                   size: CGSize(width: 900, height: 620), appearance: appearance, to: dir.appending(path: "vault-shared-codes-\(name).png"))
             vault.selectedID = "5" // in two shared folders: each a pill
             renderWindow(VaultView(initialSelection: "5").environment(vault).tint(.brand), size: CGSize(width: 1180, height: 860),
                          appearance: appearance, to: dir.appending(path: "vault-shared-two-\(name).png"))
