@@ -125,10 +125,10 @@ struct CodesPane: View {
             // The tags in a plain row (a scroll view up here picks up the toolbar's inset and shifts its contents);
             // with more vaults than fit, the row fades out at its end.
             HStack(spacing: 6) {
-                tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count)
+                tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count, iconOnly: true)
                 if !model.visibleOrganizations.isEmpty {
                     tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
-                        list.filter { $0.organizationId == nil }.count)
+                        list.filter { $0.organizationId == nil }.count, iconOnly: true)
                     ForEach(model.visibleOrganizations) { org in
                         tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
                     }
@@ -187,29 +187,11 @@ struct CodesPane: View {
         }
     }
 
-    /// One tag: picked, a solid blue pill with white text; otherwise soft glass.
-    private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int) -> some View {
-        let picked = vault == value
-        return Button { withAnimation(.snappy(duration: 0.25)) { vault = value } } label: {
-            HStack(spacing: 6) {
-                Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
-                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Text(count, format: .number).font(.system(size: 11, weight: .semibold)).monospacedDigit()
-                    .opacity(picked ? 0.8 : 0.55)
-                    .contentTransition(.numericText(value: Double(count)))
-            }
-            .foregroundStyle(picked ? AnyShapeStyle(.white) : AnyShapeStyle(.primary.opacity(0.75)))
-            .padding(.horizontal, 12).frame(height: 32)
-            .background {
-                // The sidebar selection's blue: made for white text in both appearances (the brand blue is a light sky
-                // in dark mode). No glow: the tags' scrolling row would clip it into a box.
-                if picked { Capsule().fill(Color.sidebarSelection) }
-            }
-            .modifier(TagChrome(picked: picked))
-            .contentShape(.capsule)
+    /// One tag: picked, a solid blue pill with white text; otherwise soft glass. `iconOnly`: the name shows on hover.
+    private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int, iconOnly: Bool = false) -> some View {
+        VaultTag(title: title, symbol: symbol, count: count, picked: vault == value, iconOnly: iconOnly) {
+            withAnimation(.snappy(duration: 0.25)) { vault = value }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(picked ? .isSelected : [])
     }
 
     private func card(_ item: VaultItem) -> some View {
@@ -329,5 +311,57 @@ private struct SharedCountdown: View {
         .help(Text("Every code below renews when the ring runs out (codes with another period keep their own ring)."))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("New codes"))
+    }
+}
+
+/// A tag in the codes page's header. With `iconOnly` (All, My vault: their icons say enough) it shows its icon and
+/// count, and widens smoothly on hover to reveal its name; shared vaults keep their names, their icons being alike.
+private struct VaultTag: View {
+    let title: String
+    let symbol: String
+    let count: Int
+    let picked: Bool
+    var iconOnly = false
+    let action: () -> Void
+    @State private var hovering = false
+    @State private var titleWidth: CGFloat = 0
+
+    private var showsTitle: Bool { !iconOnly || hovering }
+    private var ink: AnyShapeStyle { picked ? AnyShapeStyle(.white) : AnyShapeStyle(.primary.opacity(0.75)) }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
+                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    .fixedSize()
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { titleWidth = $0 }
+                    .padding(.leading, 6)
+                    // Hidden by fading as its room closes (a clip drew it in the wrong appearance's colour).
+                    .opacity(showsTitle ? 1 : 0)
+                    .frame(width: showsTitle ? titleWidth + 6 : 0, alignment: .leading)
+                Text(count, format: .number).font(.system(size: 11, weight: .semibold)).monospacedDigit()
+                    .opacity(picked ? 0.8 : 0.55)
+                    .contentTransition(.numericText(value: Double(count)))
+                    .padding(.leading, 6)
+            }
+            .foregroundStyle(ink)
+            .padding(.horizontal, 12).frame(height: 32)
+            .background {
+                // The sidebar selection's blue: made for white text in both appearances (the brand blue is a light sky
+                // in dark mode).
+                if picked { Capsule().fill(Color.sidebarSelection) }
+            }
+            .modifier(TagChrome(picked: picked))
+            .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .onHover { h in
+            guard iconOnly else { return }
+            withAnimation(.snappy(duration: 0.28, extraBounce: 0)) { hovering = h }
+        }
+        .help(iconOnly ? Text(verbatim: title) : Text(verbatim: ""))
+        .accessibilityLabel(Text(verbatim: "\(title), \(count)"))
+        .accessibilityAddTraits(picked ? .isSelected : [])
     }
 }
