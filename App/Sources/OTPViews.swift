@@ -241,15 +241,18 @@ struct SweepArc: NSViewRepresentable {
             super.layout()
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            arc.frame = bounds
+            arc.bounds = bounds
+            arc.position = CGPoint(x: bounds.midX, y: bounds.midY)
             let inset = arc.lineWidth / 2
             let rect = bounds.insetBy(dx: inset, dy: inset)
             let path = CGMutablePath()
-            // From 12 o'clock all the way round, travelling clockwise on screen (the arc left showing ends at 12, like
-            // the drawn ring). Checked against a capture: this layer's arcs run opposite to the flag's name.
+            // A full circle from 12 o'clock. Which way Core Graphics runs a whole-circle arc doesn't follow its
+            // `clockwise` flag, so the direction is set by mirroring the layer instead: the gap then opens just after
+            // 12 and widens clockwise, the arc left showing ending at 12 — like the drawn ring (checked in a capture).
             path.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: rect.width / 2,
                         startAngle: .pi / 2, endAngle: .pi / 2 + 2 * .pi, clockwise: false)
             arc.path = path
+            arc.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
             CATransaction.commit()
         }
 
