@@ -45,7 +45,8 @@ struct VaultDoorStage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.vaultDoorFrozen) private var frozen
     @Environment(\.gatePassing) private var gatePassing
-    @AppStorage(Pref.lockAnimations) private var animates = true
+    /// Opt-in: the door drifts while it waits. Off (the default), it's still art; typing still turns the tumblers.
+    @AppStorage(Pref.fullDoorAnimation) private var animates = false
     /// Behind other windows or apps: the idle drift rests (the open and close sequences always play).
     @Environment(\.controlActiveState) private var activeState
     @State private var start = Date()

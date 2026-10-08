@@ -1234,20 +1234,21 @@ final class AppModel {
         enterVault()
     }
 
-    /// From the lock or login screen: the vault door opens first, then the vault comes in.
-    /// Instant for tooling, Reduce Motion, and when already in the vault.
+    /// From the lock or login screen: the gate's plates part over the vault (with the full door animation, the vault
+    /// door opens first). Instant for tooling and when already in the vault; a fade with Reduce Motion.
     private func enterVault() {
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
         // An account's own door, over the open vault: it opens the same way, then lifts instead of changing phase.
         let fromAccountDoor = phase.id == Phase.vault.id && accountDoor != nil
         let fromDoor = phase.id == Phase.locked.id || phase.id == Phase.login.id || fromAccountDoor
-        guard fromDoor, !tooling, Self.doorAnimates else {
+        guard fromDoor, !tooling, Self.gateAnimates else {
             phase = .vault
             accountDoor = nil
             updateAccountDoor()
             Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
             return
         }
+        guard Self.doorAnimates else { return openGate(fromAccountDoor: fromAccountDoor) }
         unlockOpenedAt = .now
         withAnimation(.spring(duration: DoorMotion.release, bounce: 0.3)) { unlockOpening = true }
         let fromLock = phase.id == Phase.locked.id || fromAccountDoor
@@ -1279,6 +1280,38 @@ final class AppModel {
             Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
         }
     }
+
+    /// The calm unlock (the default): the door stays put; the hub's field and Touch ID fade, then the gate's plates part
+    /// top and bottom over the vault. From login, its screen parts the same way (RootView's transition).
+    private func openGate(fromAccountDoor: Bool) {
+        let fromLock = phase.id == Phase.locked.id || fromAccountDoor
+        guard fromLock else {
+            phase = .vault
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
+            return
+        }
+        withAnimation(.easeOut(duration: Self.gateFade)) { unlockOpening = true }
+        Task {
+            // The plates carry the door but not the hub's controls: those leave first, so nothing pops off.
+            try? await Task.sleep(for: .seconds(Self.gateFade))
+            gateApart = false
+            gate = .opening
+            try? await Task.sleep(for: .milliseconds(30)) // the plates draw over the lock screen before it goes
+            if fromAccountDoor { accountDoor = nil } else { phase = .vault }
+            await Task.yield()
+            withAnimation(.timingCurve(0.45, 0, 0.15, 1, duration: Self.gateOpen)) { gateApart = true }
+            try? await Task.sleep(for: .seconds(Self.gateOpen))
+            gate = nil
+            unlockOpening = false
+            updateAccountDoor()
+            Bench.endAfterCommit(["unlock-password-open", "unlock-touchid-open"])
+        }
+    }
+    /// The lock screen's door as typed (pins lit, tumbler notches turned), so the calm gate's plates carry the same door.
+    var doorDial = (typed: 0, turns: 0)
+    /// The calm unlock's tempo: the hub's controls fade, then the plates part.
+    static let gateFade = 0.2
+    static let gateOpen = 0.6
 
     /// True for the moment between a successful unlock and the vault appearing (the lock-opening animation).
     var unlockOpening = false
@@ -1965,15 +1998,18 @@ final class AppModel {
         refreshAccounts()
         addingAccount = false
         let tooling = CommandLine.arguments.contains { $0.hasPrefix("--selftest") || $0 == "--snapshot" }
-        let closing = animated && phase.id == Phase.vault.id && !accounts.isEmpty && !tooling && Self.doorAnimates
+        let closing = animated && phase.id == Phase.vault.id && !accounts.isEmpty && !tooling && Self.gateAnimates
         guard closing else {
             phase = accounts.isEmpty ? .login : .locked
             clearVaultContents()
             return
         }
         // The gate's plates slide in over the vault (GatePlates, ~0.6 s). Once they meet, the lock screen is put in
-        // place underneath, the plates go, and the door assembles (~1.2 s, from lockClosedAt).
-        lockClosedAt = .now.addingTimeInterval(Self.gateClose)
+        // place underneath and the plates go; with the full door animation, the door then assembles (~1.2 s, from
+        // lockClosedAt), otherwise the hub's controls just fade in (UnlockView).
+        let assembles = Self.doorAnimates
+        doorDial = (0, 0) // the lock screen comes back with an empty field
+        lockClosedAt = assembles ? .now.addingTimeInterval(Self.gateClose) : nil
         lockClosing = true
         gateApart = true
         gate = .closing
@@ -1985,16 +2021,18 @@ final class AppModel {
             try? await Task.sleep(for: .milliseconds(60)) // the lock screen draws under the plates before they go
             gate = nil
             if sessions.isEmpty { clearVaultContents() } // covered now; unless Touch ID already opened it again
-            try? await Task.sleep(for: .seconds(1.3))
+            try? await Task.sleep(for: .seconds(assembles ? 1.3 : 0.3))
             lockClosing = false
             lockClosedAt = nil
         }
     }
 
-    /// The vault door's open/close sequences: off with Reduce Motion or Settings › Security › Animate the vault door.
-    static var doorAnimates: Bool {
-        !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion && UserDefaults.standard.bool(forKey: Pref.lockAnimations)
-    }
+    /// The gate's plates sliding apart and together on unlock and lock: off with Reduce Motion (the lock screen fades).
+    static var gateAnimates: Bool { !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
+
+    /// The vault door's open/close sequences before and after the gate: opt-in, Settings › Security › Full vault-door
+    /// animation (and never with Reduce Motion).
+    static var doorAnimates: Bool { gateAnimates && UserDefaults.standard.bool(forKey: Pref.fullDoorAnimation) }
 
     /// True while the lock layer closes over the vault (an animated lock).
     var lockClosing = false
