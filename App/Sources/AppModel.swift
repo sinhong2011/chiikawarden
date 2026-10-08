@@ -197,6 +197,8 @@ final class AppModel {
     var selectedItem: VaultItem? { items.first { $0.id == selectedID } }
     /// True while the New Folder prompt is showing.
     var promptingNewFolder = false
+    /// Set to open the Keyboard Shortcuts window (from the palette); the root view opens it and clears this.
+    var showingShortcuts = false
     /// The folder a new one goes inside (its path), when it was asked for from that folder's menu.
     var newFolderParent: String?
 

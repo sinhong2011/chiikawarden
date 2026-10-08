@@ -218,6 +218,11 @@ enum Snapshot {
         vault.folders = []
         vault.organizations = []
 
+        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            render(KeyboardShortcutsView().environment(vault).tint(.brand), size: CGSize(width: 1000, height: 640),
+                   appearance: appearance, to: dir.appending(path: "shortcuts-\(name).png"))
+        }
+
         // The one-time search tip, as the list shows it (TipKit forced on, in a throwaway store).
         try? Tips.configure([.datastoreLocation(.url(dir.appending(path: "tips", directoryHint: .isDirectory)))])
         Tips.showAllTipsForTesting()

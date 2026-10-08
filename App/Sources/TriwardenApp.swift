@@ -80,6 +80,15 @@ struct TriwardenApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        Window("Keyboard Shortcuts", id: KeyboardShortcutsView.windowID) {
+            KeyboardShortcutsView()
+                .environment(model)
+                .preferredColorScheme(appearance.scheme)
+        }
+        .windowResizability(.contentMinSize)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
+
         Window("Triwarden", id: LicenseReminderView.windowID) {
             LicenseReminderView()
                 .environment(model)
@@ -164,6 +173,9 @@ struct TriwardenApp: App {
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }
+            CommandGroup(after: .help) {
+                ShortcutsMenuButton()
+            }
             CommandGroup(after: .appSettings) {
                 Button("Command Palette") { model.openPalette() } // its shortcut is the global one from Settings
                 Button("Lock Vault") { model.lock(animated: true) }
@@ -171,6 +183,16 @@ struct TriwardenApp: App {
                     .disabled(!model.isUnlocked)
             }
         }
+    }
+}
+
+/// Help › Keyboard Shortcuts (⌘/).
+private struct ShortcutsMenuButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Keyboard Shortcuts") { openWindow(id: KeyboardShortcutsView.windowID) }
+            .keyboardShortcut("/", modifiers: .command)
     }
 }
 
@@ -226,6 +248,11 @@ struct RootView: View {
         // The gate: plates over everything, only while they move (locking and unlocking).
         .overlay {
             if model.gate != nil { GatePlates() }
+        }
+        .onChange(of: model.showingShortcuts) { _, show in
+            guard show else { return }
+            model.showingShortcuts = false
+            openWindow(id: KeyboardShortcutsView.windowID)
         }
         .animation(phaseAnimation, value: model.phase.id)
         .onAppear {

@@ -37,3 +37,5 @@ stays part of the search text, so searching for `#hashtag` still works.
 | Esc | Close the suggestions, then clear the text |
 | ↓ | Into the list (or down the suggestions) |
 | ⌘K | The command palette, for searching and running commands from anywhere in the window |
+
+Every other shortcut is in **Help › Keyboard Shortcuts** (⌘/).

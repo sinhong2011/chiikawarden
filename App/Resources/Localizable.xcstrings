@@ -1728,6 +1728,34 @@
         }
       }
     },
+    "A folder and its subfolders" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フォルダとそのサブフォルダ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件夹及其子文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料夾及其子資料夾"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料夾同佢嘅子資料夾"
+          }
+        }
+      }
+    },
     "A key the Triwarden SSH agent can sign with." : {
       "localizations" : {
         "ja" : {
@@ -1808,6 +1836,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "為 Vaultwarden 與 Bitwarden 打造的原生 Mac App。"
+          }
+        }
+      }
+    },
+    "A new 24-character password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "24 文字の新しいパスワード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新的 24 位密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新的 24 字元密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新嘅 24 位密碼"
           }
         }
       }
@@ -2934,6 +2990,34 @@
         }
       }
     },
+    "All of an item's actions" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目のすべての操作"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目的所有操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目的所有操作"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "項目嘅所有操作"
+          }
+        }
+      }
+    },
     "All vaults" : {
       "localizations" : {
         "ja" : {
@@ -3334,6 +3418,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "喺任何地方"
+          }
+        }
+      }
+    },
+    "Anywhere on your Mac" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac のどこでも"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Mac 上任何位置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Mac 上任何位置"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺 Mac 任何地方"
           }
         }
       }
@@ -4182,6 +4294,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "返回"
+          }
+        }
+      }
+    },
+    "Back (narrow windows)" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "戻る（狭いウインドウ）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回（窄窗口）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回（窄視窗）"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回（窄視窗）"
           }
         }
       }
@@ -5261,6 +5401,34 @@
         }
       }
     },
+    "Change the shortcuts that work anywhere in Settings › Shortcuts; menu shortcuts in System Settings › Keyboard › Keyboard Shortcuts › App Shortcuts." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac のどこでも使えるショートカットは 設定 › ショートカット で、メニューのショートカットは システム設定 › キーボード › キーボードショートカット › アプリのショートカット で変更します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在“设置”›“快捷键”中更改全局快捷键；菜单快捷键在“系统设置”›“键盘”›“键盘快捷键”›“App 快捷键”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在「設定」›「快速鍵」中變更全域快速鍵；選單快速鍵在「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」中變更。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺「設定」›「快速鍵」改全域快速鍵；選單快速鍵就喺「系統設定」›「鍵盤」›「鍵盤快速鍵」›「App 快速鍵」改。"
+          }
+        }
+      }
+    },
     "Changed the shared folders of %@" : {
       "localizations" : {
         "ja" : {
@@ -6301,6 +6469,34 @@
         }
       }
     },
+    "Clear the search" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索を消去"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜索"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜尋"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除搜尋"
+          }
+        }
+      }
+    },
     "Click to choose another" : {
       "localizations" : {
         "ja" : {
@@ -6746,6 +6942,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "指令"
+          }
+        }
+      }
+    },
+    "Commands only" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コマンドのみ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅命令"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "僅指令"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只係指令"
           }
         }
       }
@@ -14275,6 +14499,34 @@
         }
       }
     },
+    "Into the list" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リストへ移動"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移到列表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移到列表"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "去列表"
+          }
+        }
+      }
+    },
     "Invite" : {
       "localizations" : {
         "ja" : {
@@ -14921,6 +15173,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "金鑰"
+          }
+        }
+      }
+    },
+    "Keyboard Shortcuts" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボードショートカット"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "键盘快捷键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鍵盤快速鍵"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鍵盤快速鍵"
           }
         }
       }
@@ -16078,6 +16358,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只包括登入資料同安全備忘錄，適合試算表同其他密碼管理工具。"
+          }
+        }
+      }
+    },
+    "Logins, cards, identities, notes, SSH keys" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログイン、カード、ID、メモ、SSH 鍵"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录信息、卡片、身份、备忘录、SSH 密钥"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入資料、卡片、身分、備忘錄、SSH 密鑰"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入資料、卡、身份、備忘錄、SSH 密鑰"
           }
         }
       }
@@ -19170,6 +19478,34 @@
         }
       }
     },
+    "One vault" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1つの保管庫"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单个保险库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單一保險庫"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單一保險庫"
+          }
+        }
+      }
+    },
     "One-time code" : {
       "localizations" : {
         "ja" : {
@@ -20243,6 +20579,34 @@
         }
       }
     },
+    "Over another app: type the login, the username, the password" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほかのアプリ上で：ログイン、ユーザー名、パスワードを入力"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在其他应用上：输入登录信息、用户名、密码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在其他 App 上：輸入登入資料、使用者名稱、密碼"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喺其他 App 上面：輸入登入資料、用戶名稱、密碼"
+          }
+        }
+      }
+    },
     "Owner" : {
       "localizations" : {
         "ja" : {
@@ -21091,6 +21455,34 @@
         }
       }
     },
+    "Pick several items" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数の項目を選択"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择多个项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選取多個項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "揀多個項目"
+          }
+        }
+      }
+    },
     "PIN" : {
       "localizations" : {
         "ja" : {
@@ -21283,6 +21675,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按 Return 鍵解鎖"
+          }
+        }
+      }
+    },
+    "Previous or next item" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前後の項目"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一个或下一个项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一個或下一個項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一個或者下一個項目"
           }
         }
       }
@@ -23512,6 +23932,34 @@
         }
       }
     },
+    "Search and filters" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索と絞り込み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索与筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋與篩選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋同篩選"
+          }
+        }
+      }
+    },
     "Search by name, username or website. Filter with type:card, is:favorite, has:otp, has:passkey, is:weak, folder:Work or vault:personal." : {
       "localizations" : {
         "ja" : {
@@ -23620,6 +24068,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋或執行指令（⌘K）"
+          }
+        }
+      }
+    },
+    "Search the list" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リストを検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索列表"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋列表"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋列表"
           }
         }
       }
@@ -23816,6 +24292,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "喺 %lld 次資料外洩出現過"
+          }
+        }
+      }
+    },
+    "Selected item" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択中の項目"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選項目"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "揀咗嘅項目"
           }
         }
       }
@@ -26793,6 +27297,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統預設"
+          }
+        }
+      }
+    },
+    "Take a suggestion" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "候補を選ぶ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "采用建议"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "採用建議"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "揀建議"
+          }
+        }
+      }
+    },
+    "Take off the last filter" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最後の絞り込みを外す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除最后一个筛选"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除最後一個篩選"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移走最後一個篩選"
           }
         }
       }
@@ -30702,6 +31262,34 @@
         }
       }
     },
+    "Vault window" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保管庫ウインドウ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保险库窗口"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保險庫視窗"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保險庫視窗"
+          }
+        }
+      }
+    },
     "Vaults that trust you" : {
       "localizations" : {
         "ja" : {
@@ -33253,6 +33841,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已更新至 %@"
+          }
+        }
+      }
+    },
+    "…and press Return after it" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…入力後に Return を押す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…并在之后按回车"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…並在之後按 Return"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…之後再撳 Return"
           }
         }
       }

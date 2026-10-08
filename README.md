@@ -41,6 +41,7 @@
 - One search over every vault (⌘F), with filters that stay on between launches: type, folder, vault, favorites,
   one-time code, passkey and Watchtower issue. Pick them from the filter menu or type them — `type:card`, `has:otp`,
   `#Work` — with suggestions as you type; ⌫ takes the last one off. See [Search](docs/search.md).
+- Every shortcut on one page: Help › Keyboard Shortcuts (⌘/).
 - A command palette from anywhere (⇧⌘Space, or a shortcut you choose; ⌘K in the window) to find any item or run any
   command. Called over a browser or an app, it puts that page's (or app's) logins first, and ↵ types the username
   and password in, like KeePass auto-type (⌃↵ username, ⌥↵ password, ⇧ also submits). The menu bar panel shows the

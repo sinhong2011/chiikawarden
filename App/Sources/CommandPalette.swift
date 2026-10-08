@@ -691,6 +691,10 @@ struct CommandPalette: View {
             list.append(PaletteCommand(id: "add-account", title: String(localized: "Add Account…"), symbol: "person.badge.plus",
                                        keywords: ["login", "sign in", "account"]) { model.bringToFront(); model.beginAddAccount() })
         }
+        list.append(PaletteCommand(id: "shortcuts", title: String(localized: "Keyboard Shortcuts"), symbol: "keyboard", shortcut: "⌘/",
+                                   keywords: ["keys", "help", "cheat sheet", "hotkeys"]) {
+            model.showingShortcuts = true
+        })
         list.append(PaletteCommand(id: "settings", title: String(localized: "Settings…"), symbol: "gearshape", shortcut: "⌘,",
                                    keywords: ["preferences"]) {
             model.showSettings()
