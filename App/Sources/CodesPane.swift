@@ -258,7 +258,7 @@ private struct CodeCard: View {
                 }
                 // The code, centred; its middle dot turns orange in the last seconds. A ring only for an odd period,
                 // at the edge, so the code stays centred.
-                LiveOTPCode(totp: totp, size: 28, breathing: false)
+                LiveOTPCode(totp: totp, size: 28)
                     .frame(maxWidth: .infinity, minHeight: 40)
                     .overlay(alignment: .trailing) {
                         if ownRing { LiveCountdownRing(totp: totp, size: 40, lively: false) }

@@ -1,27 +1,19 @@
 import SwiftUI
 import TriCrypto
 
-/// A one-time code as two halves with a softly breathing dot between them: "485 • 657".
+/// A one-time code as two halves with a still dot between them: "485 • 657".
 struct OTPCode: View {
     let code: String
     var size: CGFloat = 26
     /// Last seconds of the period: the dot (grey otherwise) turns orange.
     var urgent = false
-    /// The dot breathes (one code on its own); a grid of codes keeps it still, which is far lighter.
-    var breathing = true
 
     var body: some View {
         let split = code.count / 2
         HStack(spacing: size * 0.3) {
             half(String(code.prefix(split)), from: 0)
-            Group {
-                if breathing {
-                    BreathingDot(diameter: size * 0.24, color: urgent ? .orange : .secondary) // grey; orange near the end
-                } else {
-                    Circle().fill(urgent ? Color.orange : Color.secondary)
-                }
-            }
-            .frame(width: size * 0.24, height: size * 0.24) // the halo grows without moving anything
+            Circle().fill(urgent ? Color.orange : Color.secondary) // grey; orange near the end
+                .frame(width: size * 0.24, height: size * 0.24)
             half(String(code.suffix(code.count - split)), from: split)
         }
         .font(.system(size: size, weight: .semibold, design: .monospaced))
@@ -43,36 +35,6 @@ extension OTPCode {
                     .fixedSize()
                     .animation(Motion.plays ? .spring(duration: 0.45, bounce: 0.2).delay(Double(start) * 0.06) : nil, value: digits)
             }
-    }
-}
-
-/// A small dot that breathes: it swells gently while a soft halo blooms out from it and fades.
-struct BreathingDot: View {
-    let diameter: CGFloat
-    var color: Color = .brand
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        if reduceMotion || !Motion.plays {
-            Circle().fill(color).frame(width: diameter, height: diameter)
-        } else {
-            PhaseAnimator([false, true]) { inhale in
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.35))
-                        .scaleEffect(inhale ? 2.6 : 1)
-                        .opacity(inhale ? 0 : 0.7)
-                    Circle()
-                        .fill(color)
-                        .scaleEffect(inhale ? 1 : 0.72)
-                        .opacity(inhale ? 1 : 0.6)
-                }
-                .frame(width: diameter, height: diameter)
-            } animation: { inhale in
-                inhale ? .easeOut(duration: 1.4) : .easeInOut(duration: 1.0)
-            }
-            .accessibilityHidden(true)
-        }
     }
 }
 
@@ -166,12 +128,11 @@ final class OTPClock {
 struct LiveOTPCode: View {
     let totp: TOTP
     var size: CGFloat = 26
-    var breathing = true
     private let clock = OTPClock.shared
 
     var body: some View {
         let date = Date(timeIntervalSince1970: TimeInterval(clock.second))
-        OTPCode(code: totp.code(at: date), size: size, urgent: totp.secondsRemaining(at: date) <= 5, breathing: breathing)
+        OTPCode(code: totp.code(at: date), size: size, urgent: totp.secondsRemaining(at: date) <= 5)
             .onAppear { clock.retain() }
             .onDisappear { clock.release() }
     }
