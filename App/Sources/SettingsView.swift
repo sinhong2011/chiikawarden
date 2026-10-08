@@ -191,6 +191,7 @@ struct AccountDetailsSheet: View {
 private struct GeneralSettings: View {
     @Environment(AppModel.self) private var model
     @AppStorage(Pref.appearance) private var appearance = "system"
+    @AppStorage(Pref.fullDoorAnimation) private var fullDoorAnimation = false
     @State private var autoFillOn: Bool?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
@@ -206,6 +207,11 @@ private struct GeneralSettings: View {
                     Text("Dark").tag("dark")
                 }
                 .pickerStyle(.segmented)
+                Toggle(isOn: $fullDoorAnimation) {
+                    Text("Full vault-door animation")
+                    Text("The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
 
                 Toggle("Open at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in
@@ -220,6 +226,9 @@ private struct GeneralSettings: View {
                 if let loginError {
                     Text(verbatim: loginError).font(.caption).foregroundStyle(.red)
                 }
+            } footer: {
+                Text("With Reduce Motion on, the lock screen fades in and out instead of sliding.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {
@@ -290,7 +299,6 @@ private struct SecuritySettings: View {
     @AppStorage(Pref.autoLockMinutes) private var autoLockMinutes = 15
     @AppStorage(Pref.timeoutAction) private var timeoutAction = "lock"
     @AppStorage(Pref.lockOnSleep) private var lockOnSleep = true
-    @AppStorage(Pref.fullDoorAnimation) private var fullDoorAnimation = false
     @AppStorage(Pref.clipboardSeconds) private var clipboardSeconds = 30
     @AppStorage(Pref.codeAfterPassword) private var codeAfterPassword = true
     @AppStorage(Pref.hideFromCapture) private var hideFromCapture = false
@@ -313,15 +321,10 @@ private struct SecuritySettings: View {
                 }
                 .disabled(autoLockMinutes == 0)
                 Toggle("Lock when the Mac sleeps or the screen locks", isOn: $lockOnSleep)
-                Toggle(isOn: $fullDoorAnimation) {
-                    Text("Full vault-door animation")
-                    Text("The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
             } header: {
                 Text("Vault")
             } footer: {
-                Text("Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page. With Reduce Motion on, the lock screen fades in and out instead of sliding.")
+                Text("Log out removes the account and its saved vault from this Mac; getting back in needs the master password (and two-step login). Each account can set its own timeout on its page.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
