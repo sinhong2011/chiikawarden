@@ -1,0 +1,74 @@
+---
+import { versioned } from "../versioned";
+import "../styles/global.css";
+import { asset } from "../config";
+import { LOCALES, currentLocale, localeHref } from "../i18n";
+import { m } from "../paraglide/messages.js";
+
+interface Props {
+  title: string;
+  description: string;
+  page?: string;
+  /** Title for link previews; defaults to the page title. */
+  ogTitle?: string;
+  /** schema.org data for search engines, emitted as JSON-LD. */
+  jsonLd?: Record<string, unknown>[];
+}
+const { title, description, page = "", ogTitle = title, jsonLd = [] } = Astro.props;
+const locale = currentLocale();
+// Latin faces for everyone. The serif CJK face only for the language that needs it, and loaded without blocking
+// first paint: its stylesheet is large (Google serves just the glyphs used, but lists every subset).
+const fonts = "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap";
+const cjkFonts = locale.serif ? `https://fonts.googleapis.com/css2?family=${locale.serif}:wght@400;500;600&display=swap` : null;
+const origin = Astro.site ? Astro.site.origin : "";
+const canonical = `${origin}${localeHref(locale, page)}`;
+const ogImage = `${origin}${asset("assets/og.jpg")}`;
+const ogLocale = (l: { lang: string }) => l.lang.replace(/-/g, "_");
+---
+<!doctype html>
+<html lang={locale.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Triwarden" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={m.meta_og_image_alt()} />
+    <meta property="og:locale" content={ogLocale(locale)} />
+    {LOCALES.filter((l) => l.id !== locale.id).map((l) => <meta property="og:locale:alternate" content={ogLocale(l)} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={m.meta_og_image_alt()} />
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l.lang} href={`${origin}${localeHref(l, page)}`} />)}
+    <link rel="alternate" hreflang="x-default" href={`${origin}${localeHref(LOCALES[0], page)}`} />
+    <meta name="theme-color" content="#F3F6F9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1620" media="(prefers-color-scheme: dark)" />
+    <script is:inline>
+      // Apply a saved light/dark choice before first paint; with none saved, CSS follows the system.
+      try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+    </script>
+    <link rel="icon" href={versioned("assets/icon.svg")} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={versioned("assets/apple-touch-icon.png")} />
+    <link rel="sitemap" href={asset("sitemap-index.xml")} />
+    {jsonLd.map((d) => <script type="application/ld+json" is:inline set:html={JSON.stringify(d).replace(/</g, "\\u003c")} />)}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={fonts} rel="stylesheet" />
+    {cjkFonts && <link rel="preload" as="style" href={cjkFonts} onload="this.onload=null;this.rel='stylesheet'" />}
+    {cjkFonts && <noscript><link rel="stylesheet" href={cjkFonts} /></noscript>}
+  </head>
+  <body class="bg-paper text-ink font-sans text-[17px] leading-[1.55] antialiased overflow-x-clip">
+    <a class="absolute -left-[999px] top-2 z-[100] rounded-lg bg-ink px-3 py-2 text-paper focus:left-2" href="#main">{m.skip()}</a>
+    <slot />
+  </body>
+</html>

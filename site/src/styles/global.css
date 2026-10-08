@@ -1,0 +1,511 @@
+@import "tailwindcss";
+
+/* Triwarden — brand tokens. Tail sky #80C5EF is a fill only; text and icons stay navy ink. No coloured glows. */
+@theme {
+  --color-paper: #F3F6F9;
+  --color-paper-2: #E9F0F6;
+  --color-card: #FBFCFD;
+  --color-ink: #0B2A40;
+  --color-ink-2: #3D5568;
+  --color-ink-3: #7B8D9C;
+  --color-line: rgba(11, 42, 64, .1);
+  --color-line-2: rgba(11, 42, 64, .16);
+  --color-sky: #80C5EF;
+  --color-on-sky: #0B2A40;
+  --color-raised: #FFFFFF;
+  --color-sky-2: #A9DAF7;
+  --color-night: #0A1622;
+  --color-night-2: #13222F;
+  --color-ok: #3FB96B;
+  --color-warn: #E8913A;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, -apple-system, "PingFang TC", "Hiragino Sans", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-cjk: "Noto Serif TC", "Songti TC", serif;
+  --ease-expo: cubic-bezier(.16, 1, .3, 1);
+  --animate-marquee: marquee 38s linear infinite;
+  @keyframes marquee { to { transform: translateX(-50%); } }
+}
+
+:root { --gutter: clamp(16px, 4vw, 56px); --max: 1280px; color-scheme: light; }
+
+/* ───────── Light and dark ─────────
+   Follows the system unless the toggle has set data-theme on <html>. The dial uses the app icon's own dark palette. */
+:root {
+  --hero-glow: #FFFFFF;
+  --dial-door-0: #FFFFFF;
+  --dial-door-1: #E4F2FB;
+  --dial-rim: #0B5E96;
+  --dial-bez-0: #FFFFFF;
+  --dial-bez-1: #E7EEF4;
+  --dial-bez-2: #D3DEE8;
+  --dial-tick: #0B2A40;
+  --dial-shadow: #0B2A40;
+  --dial-outer-0: #A9DAF7;
+  --dial-outer-1: #6DBBEB;
+  --dial-middle-0: #4AA8E4;
+  --dial-middle-1: #2283C9;
+  --dial-inner-0: #1670AE;
+  --dial-inner-1: #0A4E80;
+  --dial-hub-0: #1670AE;
+  --dial-hub-1: #0A4E80;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-paper: #0B1620;
+    --color-paper-2: #0F1C28;
+    --color-card: #13222F;
+    --color-raised: #1B2C3B;
+    --color-ink: #E6EEF4;
+    --color-ink-2: #A9BBC9;
+    --color-ink-3: #7F95A7;
+    --color-line: rgba(230, 238, 244, .1);
+    --color-line-2: rgba(230, 238, 244, .16);
+    --color-night: #060D14;
+    --color-night-2: #0F1A24;
+    --hero-glow: #13222F;
+    color-scheme: dark;
+    --dial-door-0: #2C4560;
+    --dial-door-1: #16263A;
+    --dial-rim: #000000;
+    --dial-bez-0: #2E4255;
+    --dial-bez-1: #1E2F3F;
+    --dial-bez-2: #142230;
+    --dial-tick: #E6EEF4;
+    --dial-shadow: #000000;
+    --dial-outer-0: #3E6A8C;
+    --dial-outer-1: #2C5374;
+    --dial-middle-0: #6DBBEB;
+    --dial-middle-1: #4AA8E4;
+    --dial-inner-0: #B7E1F9;
+    --dial-inner-1: #80C5EF;
+    --dial-hub-0: #B7E1F9;
+    --dial-hub-1: #80C5EF;
+  }
+}
+:root[data-theme="dark"] {
+  --color-paper: #0B1620;
+  --color-paper-2: #0F1C28;
+  --color-card: #13222F;
+  --color-raised: #1B2C3B;
+  --color-ink: #E6EEF4;
+  --color-ink-2: #A9BBC9;
+  --color-ink-3: #7F95A7;
+  --color-line: rgba(230, 238, 244, .1);
+  --color-line-2: rgba(230, 238, 244, .16);
+  --color-night: #060D14;
+  --color-night-2: #0F1A24;
+  --hero-glow: #13222F;
+  color-scheme: dark;
+  --dial-door-0: #2C4560;
+  --dial-door-1: #16263A;
+  --dial-rim: #000000;
+  --dial-bez-0: #2E4255;
+  --dial-bez-1: #1E2F3F;
+  --dial-bez-2: #142230;
+  --dial-tick: #E6EEF4;
+  --dial-shadow: #000000;
+  --dial-outer-0: #3E6A8C;
+  --dial-outer-1: #2C5374;
+  --dial-middle-0: #6DBBEB;
+  --dial-middle-1: #4AA8E4;
+  --dial-inner-0: #B7E1F9;
+  --dial-inner-1: #80C5EF;
+  --dial-hub-0: #B7E1F9;
+  --dial-hub-1: #80C5EF;
+}
+
+
+@layer base {
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+img, svg, video { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+code { font: 500 .88em var(--font-mono); background: var(--color-paper-2); padding: .1em .35em; border-radius: 5px; }
+kbd {
+  font: 500 12px/1 var(--font-mono); display: inline-grid; place-items: center; min-width: 22px; height: 22px;
+  padding: 0 6px; border-radius: 6px; background: var(--color-card); border: 1px solid var(--color-line-2);
+  box-shadow: 0 1px 0 var(--color-line-2); color: var(--color-ink-2);
+}
+em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+::selection { background: var(--color-sky); color: var(--color-on-sky); }
+
+:focus-visible { outline: 1.5px solid rgba(11, 42, 64, .45); outline-offset: 3px; border-radius: 6px; }
+}
+
+@layer components {
+/* ───────── Buttons ───────── */
+.btn {
+  --h: 48px;
+  display: inline-flex; align-items: center; gap: 9px; height: var(--h); padding: 0 22px;
+  border-radius: 999px; border: 0; text-decoration: none; font-weight: 600; font-size: 15.5px;
+  letter-spacing: -.005em; cursor: pointer; white-space: nowrap;
+  transition: transform .5s var(--ease-expo), background-color .3s, box-shadow .3s;
+}
+.btn:active { transform: scale(.97); }
+.btn--sm { --h: 38px; padding: 0 16px; font-size: 14px; }
+.btn--fill { background: var(--color-sky); color: var(--color-on-sky); box-shadow: inset 0 -1px 0 rgba(11,42,64,.12), 0 1px 2px rgba(11,42,64,.12); }
+.btn--fill:hover { background: #93CEF2; }
+.btn--ghost { background: transparent; color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-line-2); }
+.btn--ghost:hover { background: color-mix(in oklab, var(--color-ink) 4%, transparent); }
+.btn .muted { color: var(--color-ink-3); font-weight: 500; font-variant-numeric: tabular-nums; }
+.play { width: 0; height: 0; border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+
+/* ───────── Type ───────── */
+h1, h2, h3 { margin: 0; font-weight: 500; letter-spacing: -.025em; }
+h2 { font: 400 clamp(40px, 6vw, 84px)/.98 var(--font-serif); letter-spacing: -.02em; }
+h2 em { color: var(--color-ink-3); }
+h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
+.kicker { margin: 0 0 18px; font: 500 12.5px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--color-ink-3); }
+
+
+/* ───────── Hero ───────── */
+.hero::before { /* fine engraved grid, like a dial's guilloché, very faint */
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 72% 45%, var(--hero-glow) 0%, transparent 60%),
+    repeating-linear-gradient(90deg, rgba(11,42,64,.035) 0 1px, transparent 1px 96px);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+
+/* ───────── Shader backdrops (scripts/shader.ts) ───────── */
+/* The element's own background is the fallback; the WebGPU canvas fades in over it once it has drawn. */
+.shader-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.4s cubic-bezier(.2,.7,.2,1); }
+.shader-ready > .shader-canvas { opacity: 1; }
+.hero-backdrop {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; translate: -50% 0; z-index: -2; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(900px 620px at 78% 38%, var(--color-sky-2) 0%, transparent 62%),
+    radial-gradient(700px 520px at 18% 70%, color-mix(in oklab, var(--color-sky) 45%, transparent) 0%, transparent 65%),
+    var(--color-paper);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent);
+}
+:root[data-theme="dark"] .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #173A55 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #12324A 0%, transparent 65%), var(--color-paper); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #173A55 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #12324A 0%, transparent 65%), var(--color-paper); } }
+
+.stage-backdrop { background: linear-gradient(135deg, var(--color-sky-2), var(--color-sky) 45%, var(--color-paper-2)); }
+.close-backdrop { background: radial-gradient(120% 90% at 85% 10%, var(--color-sky-2), transparent 60%), linear-gradient(160deg, var(--color-paper-2), color-mix(in oklab, var(--color-sky) 55%, var(--color-paper))); }
+.stage-backdrop > .shader-canvas, .close-backdrop > .shader-canvas { z-index: -1; }
+/* A veil on the copy side keeps body text and the muted italic at full contrast over the moving glass. */
+.close-backdrop::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom, transparent 30%, color-mix(in oklab, var(--color-paper) 82%, transparent) 62%); }
+@media (min-width: 768px) { .close-backdrop::after { background: linear-gradient(90deg, transparent 38%, color-mix(in oklab, var(--color-paper) 80%, transparent) 64%); } }
+.close-backdrop h2 em { color: var(--color-ink-2); }
+
+/* ───────── Dial ───────── */
+.dial { width: 100%; height: 100%; overflow: visible; }
+
+/* ───────── Marquee ───────── */
+
+/* ───────── Security model (the three locks) ───────── */
+/* Security: the lock cards beside the dial; the one the dial shows is lifted, with a sky bar down its edge. */
+.lock-step {
+  position: relative; margin: 0; padding: 18px 20px 20px 22px; border-radius: 18px; cursor: default; outline: none;
+  background: color-mix(in oklab, var(--color-raised) 55%, transparent); box-shadow: inset 0 0 0 1px var(--color-line);
+  transition: background-color .45s var(--ease-expo), box-shadow .45s var(--ease-expo), transform .45s var(--ease-expo);
+}
+.lock-step::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 18px; width: 3px; border-radius: 3px; background: var(--color-sky); transform: scaleY(0); transition: transform .5s var(--ease-expo); }
+.lock-step.is-on { background: var(--color-raised); box-shadow: inset 0 0 0 1px var(--color-line-2), 0 18px 40px -24px rgba(11, 42, 64, .35); transform: translateY(-2px); }
+.lock-step.is-on::before { transform: scaleY(1); }
+.lock-step:focus-visible { box-shadow: inset 0 0 0 2px var(--color-ink-3); }
+.lock-step__mark { position: absolute; top: 16px; right: 18px; font: 400 26px/1 var(--font-serif); color: var(--color-ink-3); transition: color .45s; }
+.lock-step.is-on .lock-step__mark { color: var(--color-ink); }
+.lock-step__label { margin: 0 0 10px; padding-right: 40px; font: 500 11.5px/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-ink-3); }
+.lock-step__title { margin: 0; font: 400 clamp(22px, 1.9vw, 27px)/1.08 var(--font-serif); letter-spacing: -.015em; }
+.lock-step__body { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--color-ink-2); }
+
+/* ───────── Shared ───────── */
+.tile { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--color-raised); box-shadow: 0 0 0 1px var(--color-line), 0 1px 2px rgba(11,42,64,.06); font-weight: 600; color: var(--color-ink-2); }
+
+/* ───────── Palette ───────── */
+
+/* ───────── Mac rows ───────── */
+.row { display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr); gap: 4vw; align-items: center; padding: clamp(24px, 3vw, 40px) 0; border-bottom: 1px solid var(--color-line-2); }
+.row__no { font: 400 clamp(40px, 4.4vw, 64px)/1 var(--font-serif); color: var(--color-ink-3); align-self: start; }
+.row__text p { color: var(--color-ink-2); margin: 12px 0 0; max-width: 440px; }
+.row__demo { min-height: 190px; border-radius: 20px; position: relative; }
+.term { background: var(--color-night); color: #C9D6E0; padding: 22px 24px; font: 400 14px/1.85 var(--font-mono); box-shadow: 0 0 0 1px var(--color-line), 0 30px 60px -30px rgba(10,22,34,.6); }
+.term p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.term b { color: var(--color-sky-2); font-weight: 500; margin-right: 8px; }
+.term .dim { color: #6F8394; }
+.term .ok { color: var(--color-ok); }
+.term .big { font: 600 30px/1.4 var(--font-mono); color: #F3F6F9; letter-spacing: .04em; }
+:root[data-theme="dark"] .mb__dial .dial { filter: grayscale(1) brightness(2.2); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mb__dial .dial { filter: grayscale(1) brightness(2.2); } }
+@media (max-width: 860px) {
+  .row { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .row__no { font-size: 36px; }
+}
+
+/* ───────── Generator ───────── */
+
+/* ───────── Watchtower (night band) ───────── */
+
+/* ───────── Film ───────── */
+
+/* ───────── Closing ───────── */
+.code { display: flex; align-items: center; gap: 12px; padding: 16px 16px 16px 22px; border-radius: 16px; background: var(--color-night); color: #DCE6EE; margin-bottom: 26px; max-width: 520px; }
+.code pre { flex: 1; min-width: 0; margin: 0; font: 400 13.5px/1.8 var(--font-mono); overflow-x: auto; scrollbar-width: none; }
+.code .dim { color: #6F8394; }
+.code .btn--ghost { color: #E6EEF4; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+
+/* ───────── Footer ───────── */
+
+/* ───────── Motion preferences ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}
+}
+
+@layer components {
+  @media (max-width: 520px) { .palette__site { display: none; } }
+}
+
+
+.theme-switching, .theme-switching * { transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease !important; }
+@media (prefers-reduced-motion: reduce) { .theme-switching, .theme-switching * { transition: none !important; } }
+
+/* Screenshots: the light capture in light mode, the dark one in dark mode (toggle or system). */
+/* While a lazy capture is still downloading, browsers paint its alt text in the image box; keep that invisible
+   (screen readers still read it) and let the frame's fill stand in. */
+.shot { color: transparent; }
+.shot--dark { display: none !important; }
+:root[data-theme="dark"] .shot--light { display: none !important; }
+:root[data-theme="dark"] .shot--dark { display: block !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .shot--light { display: none !important; }
+  :root:not([data-theme="light"]) .shot--dark { display: block !important; }
+}
+
+/* A captured window already carries its own shadow; the frame only sizes it. */
+.shot-frame { position: relative; }
+.shot-frame .shot { width: 100%; height: auto; }
+
+/* A detail of a captured window: cropped and enlarged on the part that matters. */
+/* Zoomed crops: each capture has a ~2.3% transparent margin round the window, so --zoom-origin keeps the window's
+   edge at or past the frame (y ≥ 1.7% × zoom ÷ (zoom − 1)), or the frame shows an empty band. */
+.shot-zoom { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--color-paper-2); border-radius: 22px; box-shadow: 0 0 0 1px var(--color-line), 0 40px 80px -40px rgba(11,42,64,.45); }
+.shot-zoom .shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(var(--zoom, 1.4)); transform-origin: var(--zoom-origin, 50% 30%); }
+
+/* ───────── Chinese and Japanese ─────────
+   Headlines: Instrument Serif for Latin, then a Ming/Mincho chosen per language — Noto Serif TC (Taiwan forms),
+   Chiron Sung HK (Hong Kong forms), Noto Serif SC, Shippori Mincho. Body: the Mac's own PingFang / Hiragino.
+   No fake italics, no Latin tracking; proportional punctuation and CJK–Latin spacing where the browser supports it. */
+:root:lang(zh-Hant) { --font-serif: "Instrument Serif", "Noto Serif TC", "Songti TC", serif; --font-sans: "Geist", -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+:root:lang(zh-Hant-HK) { --font-serif: "Instrument Serif", "Chiron Sung HK", "Noto Serif HK", "Songti TC", serif; --font-sans: "Geist", -apple-system, "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", sans-serif; }
+:root:lang(zh-Hans) { --font-serif: "Instrument Serif", "Noto Serif SC", "Songti SC", serif; --font-sans: "Geist", -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif; }
+:root:lang(ja) { --font-serif: "Instrument Serif", "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif; --font-sans: "Geist", -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif; }
+:lang(zh), :lang(ja) { text-autospace: normal; }
+:lang(zh) em, :lang(ja) em { font-style: normal; }
+:lang(zh) :is(h1, h2, h3), :lang(ja) :is(h1, h2, h3) {
+  letter-spacing: .01em !important; line-height: 1.2 !important; font-weight: 500;
+  font-feature-settings: "palt"; text-spacing-trim: trim-start;
+}
+:lang(zh) body, :lang(ja) body { line-height: 1.75; }
+:lang(zh) .kicker, :lang(ja) .kicker { letter-spacing: .08em; }
+/* CJK hero: square glyphs run wider than Instrument Serif, so a smaller size, and each line kept whole. */
+:lang(zh) .hero h1, :lang(ja) .hero h1 { font-size: clamp(48px, 7.6vw, 124px); line-height: 1.12 !important; }
+:lang(zh) .hero-line, :lang(ja) .hero-line { white-space: nowrap; }
+:lang(zh) .close h2, :lang(ja) .close h2, :lang(zh) #close h2, :lang(ja) #close h2 { font-size: clamp(36px, 4.6vw, 68px) !important; }
+
+/* ───────── Language menu ───────── */
+.lang__trigger {
+  display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 11px 0 12px; border-radius: 999px; cursor: pointer;
+  list-style: none; color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-line-2); transition: background-color .25s;
+}
+.lang__trigger::-webkit-details-marker { display: none; }
+.lang__trigger:hover, .lang[open] .lang__trigger { background: color-mix(in oklab, var(--color-ink) 5%, transparent); }
+.lang__code { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; }
+.lang__globe { transition: transform .6s var(--ease-expo); }
+.lang__chevron { color: var(--color-ink-3); transition: transform .45s var(--ease-expo); }
+.lang[open] .lang__globe { transform: rotate(-24deg); }
+.lang[open] .lang__chevron { transform: rotate(180deg); }
+
+.lang__menu {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 272px; padding: 6px; border-radius: 20px;
+  background: color-mix(in oklab, var(--color-card) 86%, transparent);
+  backdrop-filter: blur(22px) saturate(1.6); -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow: 0 0 0 1px var(--color-line-2), 0 24px 60px -18px rgba(11, 42, 64, .38), 0 6px 16px -8px rgba(11, 42, 64, .18);
+}
+.lang__title { margin: 8px 12px 6px; font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--color-ink-3); }
+.lang__menu ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lang__menu a {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 9px 10px 9px 12px; border-radius: 13px;
+  color: var(--color-ink); text-decoration: none; transition: background-color .2s;
+}
+.lang__menu a:hover { background: color-mix(in oklab, var(--color-ink) 5%, transparent); }
+.lang__menu a[aria-current="page"] { background: color-mix(in oklab, var(--color-ink) 7%, transparent); }
+.lang__menu a:focus-visible { outline-offset: -2px; }
+.lang__names { display: grid; gap: 3px; min-width: 0; }
+.lang__label { font-size: 15px; font-weight: 600; line-height: 1.2; }
+.lang__sub { font-size: 12.5px; line-height: 1.2; color: var(--color-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lang__badge {
+  flex: none; min-width: 34px; padding: 5px 0; border-radius: 8px; text-align: center; font: 600 11px/1 var(--font-mono); letter-spacing: .06em;
+  color: var(--color-ink-3); box-shadow: inset 0 0 0 1px var(--color-line-2); transition: background-color .25s, color .25s, box-shadow .25s;
+}
+.lang__menu a[aria-current="page"] .lang__badge { background: var(--color-sky); color: var(--color-on-sky); box-shadow: none; }
+@media (max-width: 520px) { .lang__chevron { display: none; } .lang__trigger { padding: 0 10px; } }
+@media (prefers-reduced-motion: reduce) { .lang__globe, .lang__chevron { transition: none; } .lang[open] .lang__globe { transform: none; } }
+
+/* ───────── Top bar ─────────
+   Transparent over the hero; a frosted capsule once you scroll, with a reading-progress hairline. Links share one
+   highlight that follows the pointer and rests on the section you're in. Utilities sit in one grouped control. */
+.topbar { position: fixed; inset: 0 0 auto; z-index: 50; padding: 12px var(--gutter) 0; pointer-events: none; }
+.topbar__inner {
+  position: relative; pointer-events: auto; max-width: 1240px; height: 60px; margin: 0 auto; padding: 0 8px 0 14px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; border-radius: 22px;
+  transition: background-color .45s var(--ease-expo), box-shadow .45s var(--ease-expo), backdrop-filter .45s;
+}
+.topbar.is-stuck .topbar__inner {
+  background: color-mix(in oklab, var(--color-card) 76%, transparent);
+  backdrop-filter: blur(22px) saturate(1.7); -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow: 0 0 0 1px var(--color-line), 0 14px 36px -18px rgba(11, 42, 64, .3);
+}
+/* Reading progress: the capsule's own outline fills with sky, clockwise from the top-left, as you scroll. */
+.topbar__outline { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.topbar__outline rect { fill: none; stroke: var(--color-sky); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--progress, 0)); }
+.topbar.is-stuck .topbar__outline { opacity: 1; }
+
+.topbar__brand { display: flex; align-items: center; gap: 12px; justify-self: start; min-width: 0; color: var(--color-ink); text-decoration: none; }
+.topbar__brand img { border-radius: 8px; box-shadow: 0 1px 2px rgba(11, 42, 64, .18); transition: transform .5s var(--ease-expo); }
+.topbar__brand:hover img { transform: rotate(-8deg) scale(1.04); }
+.topbar__name { font-size: 15.5px; font-weight: 650; letter-spacing: -.015em; }
+
+.topbar__links { position: relative; display: flex; gap: 2px; padding: 4px; border-radius: 999px; }
+.topbar__links a {
+  position: relative; z-index: 1; padding: 7px 14px; border-radius: 999px; font-size: 14.5px; font-weight: 500;
+  color: var(--color-ink-2); text-decoration: none; white-space: nowrap; transition: color .25s;
+}
+.topbar__links a:hover, .topbar__links a[aria-current="true"] { color: var(--color-ink); }
+.topbar__indicator {
+  position: absolute; top: 4px; bottom: 4px; left: 0; width: var(--w, 0); border-radius: 999px; opacity: 0;
+  background: color-mix(in oklab, var(--color-ink) 7%, transparent); transform: translateX(var(--x, 0));
+  transition: transform .5s var(--ease-expo), width .5s var(--ease-expo), opacity .3s;
+}
+.topbar__indicator.is-on { opacity: 1; }
+
+.topbar__end { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.topbar__group {
+  display: flex; align-items: center; height: 40px; padding: 3px; border-radius: 999px;
+  background: color-mix(in oklab, var(--color-raised) 55%, transparent); box-shadow: inset 0 0 0 1px var(--color-line-2);
+}
+.topbar__divider { width: 1px; height: 18px; margin: 0 2px; background: var(--color-line-2); }
+.topbar__icon, .topbar__star, .topbar__group .lang__trigger {
+  height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--color-ink); cursor: pointer;
+  box-shadow: none; transition: background-color .2s;
+}
+.topbar__icon { display: grid; place-items: center; width: 34px; }
+.topbar__icon:hover, .topbar__star:hover, .topbar__group .lang__trigger:hover, .topbar__group .lang[open] .lang__trigger {
+  background: color-mix(in oklab, var(--color-ink) 7%, transparent);
+}
+.topbar__star { display: flex; align-items: center; gap: 6px; padding: 0 11px 0 10px; font: 600 13px/1 var(--font-sans); text-decoration: none; font-variant-numeric: tabular-nums; }
+.topbar__star-icon { color: var(--color-ink-3); margin-left: 2px; }
+.topbar__download { gap: 7px; }
+
+/* Theme toggle: the icon shown is the mode you'd switch to; they turn and swap. */
+.theme-swap { position: relative; display: block; width: 16px; height: 16px; }
+.theme-swap svg { position: absolute; inset: 0; transition: transform .55s var(--ease-expo), opacity .3s; }
+.theme-swap__sun { opacity: 0; transform: rotate(-90deg) scale(.5); }
+:root[data-theme="dark"] .theme-swap__sun { opacity: 1; transform: none; }
+:root[data-theme="dark"] .theme-swap__moon { opacity: 0; transform: rotate(90deg) scale(.5); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-swap__sun { opacity: 1; transform: none; }
+  :root:not([data-theme="light"]) .theme-swap__moon { opacity: 0; transform: rotate(90deg) scale(.5); }
+}
+
+/* Menu (narrow screens): two lines that cross into a close mark, and a frosted sheet. */
+.topbar__menu {
+  display: none; position: relative; width: 40px; height: 40px; border: 0; border-radius: 999px; cursor: pointer;
+  background: color-mix(in oklab, var(--color-raised) 55%, transparent); box-shadow: inset 0 0 0 1px var(--color-line-2);
+}
+.topbar__menu span { position: absolute; left: 12px; right: 12px; height: 1.6px; border-radius: 2px; background: var(--color-ink); transition: transform .45s var(--ease-expo); }
+.topbar__menu span:first-child { transform: translateY(-3.5px); }
+.topbar__menu span:last-child { transform: translateY(3.5px); }
+.topbar__menu[aria-expanded="true"] span:first-child { transform: rotate(45deg); }
+.topbar__menu[aria-expanded="true"] span:last-child { transform: rotate(-45deg); }
+.topbar__sheet {
+  pointer-events: auto; max-width: 1240px; margin: 8px auto 0; padding: 8px; border-radius: 22px;
+  background: color-mix(in oklab, var(--color-card) 88%, transparent);
+  backdrop-filter: blur(22px) saturate(1.7); -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow: 0 0 0 1px var(--color-line-2), 0 24px 60px -20px rgba(11, 42, 64, .4);
+}
+.topbar__sheet nav { display: grid; }
+.topbar__sheet nav a { padding: 14px 16px; border-radius: 14px; font-size: 18px; font-weight: 600; color: var(--color-ink); text-decoration: none; }
+.topbar__sheet nav a:hover { background: color-mix(in oklab, var(--color-ink) 6%, transparent); }
+.topbar__sheet-download { width: 100%; justify-content: center; margin-top: 6px; }
+
+@media (max-width: 1140px) { /* below this the links and the controls no longer both fit (Japanese is the widest) */
+  .topbar__inner { grid-template-columns: minmax(0, 1fr) auto; }
+  .topbar__links { display: none; }
+  .topbar__menu { display: block; }
+}
+/* Narrow screens: these rules are unlayered, so Tailwind's `max-*:hidden` on the same elements can't win; hide here. */
+@media (max-width: 640px) { .topbar__star, .topbar__star-divider { display: none; } }
+@media (max-width: 460px) { .topbar__download { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .topbar__inner, .topbar__indicator, .theme-swap svg, .topbar__menu span, .topbar__brand img { transition: none; }
+}
+
+/* Auto-type keys: a keycap legend, the shortcuts as you'd press them. */
+.keys { display: grid; align-content: center; gap: 4px; padding: 18px; background: var(--color-card); box-shadow: 0 0 0 1px var(--color-line), 0 30px 60px -40px rgba(11, 42, 64, .35); }
+.keys__row { display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 14px; padding: 9px 10px; border-radius: 12px; }
+.keys__row--global { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--color-line); border-radius: 0 0 12px 12px; }
+.keys__combo { display: flex; gap: 5px; }
+.keys__combo kbd { min-width: 32px; height: 32px; font-size: 14px; border-radius: 8px; box-shadow: 0 2px 0 var(--color-line-2); }
+.keys__label { font-size: 15px; color: var(--color-ink-2); }
+.keys__row--global .keys__label { color: var(--color-ink); font-weight: 500; }
+@media (max-width: 520px) { .keys__row { grid-template-columns: 96px 1fr; } }
+
+/* ───────── SSH agent guide ───────── */
+.guide h2 { margin-top: 0; }
+.guide-steps { list-style: none; margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; display: grid; gap: clamp(56px, 7vw, 96px); }
+.guide-step { display: grid; gap: 4vw; align-items: start; }
+@media (min-width: 980px) { .guide-step { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } }
+.guide-step__no { display: block; font: 400 clamp(40px, 4vw, 56px)/1 var(--font-serif); color: var(--color-ink-3); margin-bottom: 14px; }
+.guide-step h3, .guide-case h3 { font-size: clamp(22px, 2vw, 26px); font-weight: 600; letter-spacing: -.015em; }
+.guide-step p, .guide-case p { margin: 12px 0 0; color: var(--color-ink-2); font-size: 17px; }
+.guide-tip { padding: 14px 16px; border-radius: 14px; background: color-mix(in oklab, var(--color-ink) 4%, transparent); font-size: 15px !important; }
+.guide-shot { border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--color-line), 0 30px 60px -36px rgba(11,42,64,.4); }
+.guide-shot .shot { width: 100%; height: auto; }
+.guide-cases { margin-top: clamp(40px, 5vw, 64px); display: grid; gap: 20px; }
+@media (min-width: 900px) { .guide-cases { grid-template-columns: repeat(2, minmax(0, 1fr)); } .guide-case--wide { grid-column: 1 / -1; } }
+.guide-case { padding: clamp(22px, 2.6vw, 32px); border-radius: 24px; background: var(--color-card); box-shadow: 0 0 0 1px var(--color-line); }
+.guide-case .term-win { margin-top: 18px; }
+.guide-options { margin: 28px 0 0; display: grid; border-top: 1px solid var(--color-line-2); }
+.guide-options div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--color-line-2); }
+.guide-options dt { font-weight: 600; } .guide-options dd { margin: 0; color: var(--color-ink-2); }
+.guide-safety { align-self: start; padding: clamp(24px, 3vw, 36px); border-radius: 26px; background: var(--color-night); color: #E6EEF4; }
+.guide-safety ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.guide-safety li { display: grid; grid-template-columns: 18px 1fr; gap: 12px; color: #C9D6E0; font-size: 16.5px; }
+.guide-safety svg { margin-top: 3px; color: #7F95A7; }
+.guide-cta { margin-top: clamp(48px, 6vw, 80px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: clamp(24px, 3vw, 36px); border-radius: 26px; background: var(--color-card); box-shadow: 0 0 0 1px var(--color-line); }
+.guide-cta h3 { font: 400 clamp(30px, 3vw, 42px)/1.05 var(--font-serif); letter-spacing: -.02em; }
+.guide-cta p { margin: 8px 0 0; color: var(--color-ink-2); }
+.guide code { font-size: .86em; }
+
+/* Terminal window */
+.term-win { margin: 0; border-radius: 16px; overflow: hidden; background: var(--color-night); box-shadow: 0 0 0 1px var(--color-line), 0 24px 50px -30px rgba(10,22,34,.6); }
+.term-win__bar { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-bottom: 1px solid rgba(230,238,244,.08); }
+.term-win__lights { display: flex; gap: 6px; } .term-win__lights i { width: 10px; height: 10px; border-radius: 50%; background: rgba(230,238,244,.18); }
+.term-win__title { flex: 1; font: 500 12px var(--font-mono); color: #7F95A7; }
+.term-win__copy { border: 0; cursor: pointer; padding: 5px 10px; border-radius: 8px; font: 500 12px var(--font-sans); color: #C9D6E0; background: rgba(230,238,244,.08); transition: background-color .2s; }
+.term-win__copy:hover { background: rgba(230,238,244,.14); }
+.term-win__body { margin: 0; padding: 16px 18px; font: 400 13.5px/1.75 var(--font-mono); color: #C9D6E0; overflow-x: auto; white-space: pre; scrollbar-width: thin; }
+.t-prompt { color: #55697A; } .t-cmd { color: #F3F6F9; } .t-out { color: #A9BBC9; } .t-note { color: #6F8394; }
+
+/* Flow diagram */
+.flow { margin: 0; }
+.flow svg { width: 100%; height: auto; display: block; overflow: visible; }
+.flow__node { fill: var(--color-card); stroke: var(--color-line-2); stroke-width: 1.5; transform-box: fill-box; }
+.flow__node--app { fill: var(--color-sky); stroke: none; }
+.flow__label { font: 600 21px var(--font-sans); fill: var(--color-ink); }
+.flow__node--app + .flow__label { fill: var(--color-on-sky); }
+.flow__label--mono { font: 500 19px var(--font-mono); }
+.flow__wire { fill: none; stroke: var(--color-line-2); stroke-width: 2; stroke-dasharray: 6 7; }
+.flow__arrowhead { fill: var(--color-ink-3); }
+.flow__sig { font: 500 15px var(--font-mono); fill: var(--color-ink-3); letter-spacing: .08em; text-transform: uppercase; }
+.flow__dot { fill: var(--color-ink); }
+.flow__dot--sig { fill: var(--color-sky); stroke: var(--color-ink); stroke-width: 1.5; }
+.flow__caption { margin-top: 14px; max-width: 720px; font-size: 15px; color: var(--color-ink-3); }

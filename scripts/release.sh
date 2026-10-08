@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build a signed, notarized Triwarden release.
 #
-#   scripts/release.sh 0.3.0            # archive, Developer ID export, notarize, staple, zip + dmg
+#   scripts/release.sh 0.3.0            # archive, Developer ID export, notarize, staple, zip + dmg (+ Triwarden.dmg, a
+#                                       #   stable-named copy for the website's releases/latest/download link)
 #   scripts/release.sh 0.3.0 --publish  # …and create the GitHub release (draft) with the artifacts
 #   scripts/release.sh 0.3.0 --skip-notarize   # local dry run
 #
@@ -109,6 +110,10 @@ if [[ $NOTARIZE == 1 ]]; then
   xcrun stapler staple "$DMG"
 fi
 SHA=$(shasum -a 256 "$DMG" | cut -d' ' -f1)
+# The same DMG under a name that never changes, so the website can link
+# https://github.com/sinhong2011/triwarden/releases/latest/download/Triwarden.dmg for "the newest version".
+LATEST_DMG=$OUT/Triwarden.dmg
+cp "$DMG" "$LATEST_DMG"
 
 echo "== Homebrew cask"
 cat > "$OUT/triwarden.rb" <<CASK
@@ -157,7 +162,7 @@ if [[ $PUBLISH == 1 ]]; then
     echo "== GitHub release v$VERSION"
     gh release create "v$VERSION" --title "Triwarden $VERSION" --generate-notes
   fi
-  gh release upload "v$VERSION" "$DMG" "$ZIP" "$OUT/appcast.xml" "$OUT/triwarden.rb" --clobber
+  gh release upload "v$VERSION" "$DMG" "$LATEST_DMG" "$ZIP" "$OUT/appcast.xml" "$OUT/triwarden.rb" --clobber
 fi
 
 echo

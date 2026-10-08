@@ -772,7 +772,7 @@ private struct AboutSettings: View {
             // Who we are.
             Section {
                 VStack(spacing: 8) {
-                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                    Image(nsImage: BrandIcon.image)
                         .resizable().frame(width: 84, height: 84)
                         .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
                     Text(verbatim: "Triwarden").font(.system(size: 24, weight: .bold)).tracking(-0.3)

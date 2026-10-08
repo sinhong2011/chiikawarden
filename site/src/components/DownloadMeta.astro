@@ -1,0 +1,14 @@
+---
+/** "v0.1.1 · 11.6 MB · macOS 26 or later · Release notes" — the installer's details, kept live by scripts/release.ts. */
+import { m } from "../paraglide/messages.js";
+import { latestRelease, formatSize } from "../release";
+interface Props { class?: string }
+const rel = await latestRelease();
+---
+{rel && (
+  <p class:list={["m-0 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-3", Astro.props.class]}>
+    <span class="tabular-nums">v<span data-dmg-version>{rel.version}</span> · <span data-dmg-size>{formatSize(rel.size)}</span> · {m.dmg_requires()}</span>
+    <span aria-hidden="true">·</span>
+    <a class="text-ink-2 underline decoration-line-2 underline-offset-[3px] hover:text-ink" href={rel.notes} data-dmg-notes>{m.release_notes()}</a>
+  </p>
+)}

@@ -13,7 +13,7 @@ XCB     := xcodebuild -project Triwarden.xcodeproj -scheme Triwarden -derivedDat
 DEV_CA  := $(CURDIR)/DevServer/data/root.crt
 
 .DEFAULT_GOAL := help
-.PHONY: help project build run test bench screenshots license license-keys test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
+.PHONY: help project build run site test bench screenshots license license-keys test-dev selftest selftest-cloud snapshots dev-up dev-seed dev-status dev-logs release clean
 
 help: ## Show this list
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  \033[1m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -26,6 +26,9 @@ build: project ## Build the app (Debug)
 
 run: build ## Build and open the app
 	@open "$(APP)"
+
+site: ## Run the website development server
+	@pnpm --dir site dev --port 4321
 
 test: ## VaultCore unit tests (dev-server tests skip themselves)
 	@cd Packages/VaultCore && swift test 2>&1 | grep -E "✘|Test run"

@@ -1,0 +1,17 @@
+---
+import { versioned } from "../versioned";
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+import { latestRelease } from "../release";
+const rel = await latestRelease();
+const dmg = rel?.dmg ?? SITE.download;
+const refresh = !rel?.stable; // a fixed link never needs refreshing
+const links = [[m.foot_download(), dmg], [m.foot_pricing(), "#pricing"], [m.foot_source(), SITE.repo], [m.foot_security(), SITE.security]];
+---
+<footer class="flex flex-wrap items-center justify-between gap-x-[30px] gap-y-4 border-t border-line px-(--gutter) pt-[30px] pb-10 text-[13.5px] text-ink-3">
+  <span class="flex items-center gap-2 font-semibold text-ink"><img class="rounded-[5px]" src={versioned("assets/icon.svg")} alt="" width="20" height="20" /> Triwarden</span>
+  <nav class="flex flex-wrap gap-5" aria-label={m.foot_nav()}>
+    {links.map(([label, href], i) => <a class="text-ink-2 no-underline hover:text-ink" href={href} data-dmg={i === 0 && refresh ? "" : undefined}>{label}</a>)}
+  </nav>
+  <span class="basis-full">{m.foot_disclaimer()} · © 2026 · GPL‑3.0</span>
+</footer>

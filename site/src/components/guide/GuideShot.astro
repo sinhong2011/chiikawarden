@@ -1,0 +1,11 @@
+---
+/** A real app render for the guide, light and dark (public/assets/guide/<name>-light|dark.webp). */
+import { versioned } from "../../versioned";
+interface Props { name: string; w: number; h: number; alt: string }
+const { name, w, h, alt } = Astro.props;
+---
+<div class="guide-shot" data-rise>
+  {(["light", "dark"] as const).map((mode) => (
+    <img class={`shot shot--${mode}`} src={versioned(`assets/guide/${name}-${mode}.webp`)} alt={alt} width={w} height={h} loading="lazy" decoding="async" />
+  ))}
+</div>

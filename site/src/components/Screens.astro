@@ -1,0 +1,40 @@
+---
+import SectionHead from "./SectionHead.astro";
+import Shot from "./Shot.astro";
+import type { ShotName } from "../shots";
+import { m } from "../paraglide/messages.js";
+
+const ids: [ShotName, string][] = [["vault", "vault"], ["search", "search"], ["codes", "codes"], ["watchtower", "watchtower"], ["palette-focus", "palette"], ["generator", "generator"], ["menubar", "menubar"], ["signin", "signin"], ["locked", "lock"]];
+const t = m as unknown as Record<string, () => string>;
+const shots = ids.map(([id, key]) => ({ id, tab: t[`tab_${key}`](), alt: t[`alt_${key}`](), caption: t[`cap_${key}`]() }));
+---
+<section id="screens" class="relative overflow-clip bg-linear-to-b from-paper via-paper-2 via-40% to-paper px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.screens_kicker()} center>
+    <h2>{m.screens_title_1()}<br /><em>{m.screens_title_2()}</em></h2>
+    <p>{m.screens_lede()}</p>
+  </SectionHead>
+
+  <div class="mx-auto mt-[clamp(28px,3.6vw,48px)] max-w-[1180px]" data-screens>
+    <div role="tablist" aria-label={m.screens_tablist()} class="relative mx-auto mb-4 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full bg-card p-1 shadow-[0_0_0_1px_var(--color-line)] [scrollbar-width:none]">
+      {shots.map((s, i) => (
+        <button role="tab" id={`tab-${s.id}`} aria-controls={`shot-${s.id}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1} data-tab={i}
+          class="shrink-0 cursor-pointer rounded-full border-0 bg-transparent px-4 py-2 text-[14px] font-medium whitespace-nowrap text-ink-2 transition-colors hover:text-ink aria-selected:bg-raised aria-selected:text-ink aria-selected:shadow-[0_1px_3px_rgba(11,42,64,.15)]">
+          {s.tab}
+        </button>
+      ))}
+    </div>
+    <div data-shader="stage" class="stage-backdrop relative isolate overflow-hidden rounded-[clamp(18px,2.4vw,32px)] p-[clamp(14px,3.4vw,48px)] shadow-[0_0_0_1px_var(--color-line)]">
+    <div data-screens-stage class="relative aspect-[1800/1388]">
+      {shots.map((s, i) => (
+        <figure id={`shot-${s.id}`} role="tabpanel" aria-labelledby={`tab-${s.id}`} data-shot={i} class:list={["absolute inset-0 m-0 flex items-center justify-center", i !== 0 && "invisible opacity-0"]}>
+          <Shot name={s.id} alt={s.alt} eager={i === 0} class="h-full w-auto max-w-full object-contain" />
+        </figure>
+      ))}
+    </div>
+    </div>
+    <p data-screens-caption aria-live="polite" class="mx-auto mt-5 max-w-[620px] text-center text-[16px] text-ink-2">{shots[0].caption}</p>
+    <script is:inline type="application/json" data-screens-captions set:html={JSON.stringify(shots.map((s) => s.caption))}></script>
+  </div>
+</section>
+
+<script>import "../scripts/screens"; import "../scripts/shader";</script>

@@ -1,0 +1,20 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { m } from "../paraglide/messages.js";
+const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const more = ["autofill", "send", "emergency", "import", "accounts", "orgs", "offline", "clipboard", "history", "bulk", "2fa", "lang", "unlock", "keys", "a11y"]
+  .map((k) => [t[`more_${k}_t`](), t[`more_${k}_b`]()]);
+---
+<section class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.more_kicker()}>
+    <h2>{m.more_title_1()}<br /><em>{m.more_title_2()}</em></h2>
+  </SectionHead>
+  <ul data-more class="mt-[clamp(28px,4vw,52px)] grid list-none gap-px overflow-hidden rounded-[22px] bg-line p-0 shadow-[0_0_0_1px_var(--color-line)] sm:grid-cols-2 lg:grid-cols-3">
+    {more.map(([title, body]) => (
+      <li class="bg-paper px-7 py-7 transition-colors duration-300 hover:bg-card">
+        <h3 class="text-[17px]! font-semibold tracking-tight">{title}</h3>
+        <p class="mt-2 text-[15px] leading-normal text-ink-2">{body}</p>
+      </li>
+    ))}
+  </ul>
+</section>

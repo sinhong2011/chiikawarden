@@ -1,0 +1,31 @@
+---
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+import DownloadMeta from "./DownloadMeta.astro";
+import { formatSize } from "../release";
+import { latestRelease } from "../release";
+const rel = await latestRelease();
+const dmg = rel?.dmg ?? SITE.download;
+const refresh = !rel?.stable; // a fixed link never needs refreshing
+---
+<section id="close" class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(56px,7vw,96px)]">
+  <div data-shader="close" class="close-backdrop relative isolate grid items-center gap-[6vw] overflow-hidden rounded-[clamp(22px,3vw,40px)] px-[clamp(22px,5vw,72px)] py-[clamp(48px,7vw,96px)] shadow-[0_0_0_1px_var(--color-line)] *:min-w-0 md:grid-cols-2">
+  <div data-dial="close" aria-hidden="true" class="aspect-square w-[min(44vw,560px)] justify-self-center max-md:w-[min(70vw,360px)]"></div>
+  <div data-reveal-group>
+    <h2 class="text-[clamp(48px,6.4vw,96px)]!">{m.close_title_1()}<br /><em>{m.close_title_2()}</em></h2>
+    <p class="mt-[26px] mb-7 max-w-[460px] text-lg text-ink-2">{m.close_body({ price: SITE.price })}</p>
+    <div class="code">
+      <pre><span class="dim">$</span> {SITE.brew}</pre>
+      <button class="btn btn--ghost btn--sm" data-copy-text={SITE.brew} data-copy-done={m.copied()} data-copy-fail={m.copy_failed()}><span data-copy-label>{m.copy()}</span></button>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a class="btn btn--fill" href={dmg} data-dmg={refresh ? "" : undefined}>{m.hero_download()}</a>
+      <a class="btn btn--ghost" href={SITE.checkout} rel="noopener">{m.buy_once({ price: SITE.price })}</a>
+    </div>
+    <DownloadMeta class="mt-5" />
+    <p class="mt-2 mb-0 text-[13px] text-ink-3">{m.close_requires()}</p>
+  </div>
+  </div>
+</section>
+
+<script>import "../scripts/shader";</script>

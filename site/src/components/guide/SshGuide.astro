@@ -1,0 +1,228 @@
+---
+import Base from "../../layouts/Base.astro";
+import Nav from "../Nav.astro";
+import Footer from "../Footer.astro";
+import Term from "./Term.astro";
+import Flow from "./Flow.astro";
+import GuideShot from "./GuideShot.astro";
+import { m } from "../../paraglide/messages.js";
+import { SITE } from "../../config";
+import { latestRelease } from "../../release";
+import { currentLocale, localeHref } from "../../i18n";
+
+const PAGE = "guides/ssh-agent/";
+const dmg = (await latestRelease())?.dmg ?? SITE.download;
+// The socket, shortened: the real path holds the developer's team ID, so the guide doesn't print it. Settings ›
+// Developer › SSH setup copies the exact line; blocks that show this path have no Copy button of their own.
+const SOCK = "Library/Group Containers/…/agent.sock";
+const locale = currentLocale();
+const origin = Astro.site?.origin ?? "";
+const title = `${m.g_kicker()} — Triwarden`;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: `${m.g_h1_1()} ${m.g_h1_2()}`,
+    description: m.g_meta(),
+    url: `${origin}${localeHref(locale, PAGE)}`,
+    image: `${origin}${import.meta.env.BASE_URL}assets/og.jpg`,
+    inLanguage: locale.lang,
+    about: { "@type": "SoftwareApplication", name: "Triwarden", operatingSystem: "macOS 26 or later" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Triwarden", item: `${origin}${localeHref(locale)}` },
+      { "@type": "ListItem", position: 2, name: m.g_kicker(), item: `${origin}${localeHref(locale, PAGE)}` },
+    ],
+  },
+];
+const steps = [
+  { t: m.g_s1_t(), b: m.g_s1_b() },
+  { t: m.g_s2_t(), b: m.g_s2_b() },
+  { t: m.g_s3_t(), b: m.g_s3_b() },
+  { t: m.g_s4_t(), b: m.g_s4_b() },
+];
+---
+<Base title={title} description={m.g_meta()} page={PAGE} jsonLd={jsonLd}>
+  <Nav page={PAGE} />
+  <main id="main" class="guide">
+    <header class="mx-auto max-w-(--max) px-(--gutter) pt-[150px] pb-[clamp(48px,6vw,80px)]">
+      <div data-reveal-group class="max-w-[860px]">
+        <p class="kicker">{m.g_kicker()}</p>
+        <h1 class="m-0 font-serif text-[clamp(56px,8vw,120px)] leading-[.92] font-normal tracking-[-.03em]">{m.g_h1_1()}<br /><em class="text-ink-3">{m.g_h1_2()}</em></h1>
+        <p class="mt-8 max-w-[620px] text-[clamp(17px,1.4vw,20px)] text-ink-2" set:html={m.g_lede()} />
+      </div>
+      <div class="mt-[clamp(28px,3.6vw,48px)]"><Flow /></div>
+    </header>
+
+    <!-- Set up -->
+    <section class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(48px,6vw,88px)]">
+      <div data-reveal-group>
+        <p class="kicker">{m.g_setup_kicker()}</p>
+        <h2>{m.g_setup_title_1()}<br /><em>{m.g_setup_title_2()}</em></h2>
+      </div>
+      <ol class="guide-steps">
+        <li class="guide-step">
+          <div class="guide-step__text" data-reveal-group>
+            <span class="guide-step__no">01</span>
+            <h3>{steps[0].t}</h3>
+            <p set:html={steps[0].b} />
+          </div>
+          <GuideShot name="settings" w={1328} h={782} alt="Triwarden Settings › Developer: Use Triwarden as SSH agent, Ask before signing, and SSH setup with Copy buttons" />
+        </li>
+        <li class="guide-step">
+          <div class="guide-step__text" data-reveal-group>
+            <span class="guide-step__no">02</span>
+            <h3>{steps[1].t}</h3>
+            <p set:html={steps[1].b} />
+            <p class="guide-tip" set:html={m.g_s2_tip()} />
+          </div>
+          <div class="grid gap-5">
+            <GuideShot name="editssh" w={1190} h={1332} alt="New SSH Key in the detail panel: name, folder, private key with Generate Ed25519 Key, public key and fingerprint" />
+            <Term title="Remove a passphrase (on a copy)" lines={[
+              "cp ~/.ssh/id_ed25519 /tmp/key",
+              "ssh-keygen -p -N \"\" -f /tmp/key",
+              { note: "# paste /tmp/key into the item, then:" },
+              "rm /tmp/key",
+            ]} />
+          </div>
+        </li>
+        <li class="guide-step">
+          <div class="guide-step__text" data-reveal-group>
+            <span class="guide-step__no">03</span>
+            <h3>{steps[2].t}</h3>
+            <p set:html={steps[2].b} />
+            <p class="guide-tip" set:html={m.g_s3_note()} />
+          </div>
+          <div class="grid gap-5">
+            <Term title="~/.ssh/config" noCopy lines={[
+              { out: "Host *" },
+              { out: `  IdentityAgent "~/${SOCK}"` },
+            ]} />
+            <Term title="zsh" noCopy lines={[`export SSH_AUTH_SOCK="$HOME/${SOCK}"`]} />
+          </div>
+        </li>
+        <li class="guide-step">
+          <div class="guide-step__text" data-reveal-group>
+            <span class="guide-step__no">04</span>
+            <h3>{steps[3].t}</h3>
+            <p set:html={steps[3].b} />
+          </div>
+          <Term lines={[
+            "ssh-add -L",
+            { out: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKx…Qx9 GitHub" },
+            { out: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM2…7mK homelab" },
+          ]} />
+        </li>
+      </ol>
+    </section>
+
+    <!-- Everyday use -->
+    <section class="bg-paper-2/60 px-(--gutter) py-[clamp(48px,6vw,88px)]">
+      <div class="mx-auto max-w-(--max)">
+        <div data-reveal-group>
+          <p class="kicker">{m.g_cases_kicker()}</p>
+          <h2>{m.g_cases_title_1()}<br /><em>{m.g_cases_title_2()}</em></h2>
+        </div>
+        <div class="guide-cases">
+          <article class="guide-case" data-rise>
+            <h3>{m.g_c1_t()}</h3><p set:html={m.g_c1_b()} />
+            <Term lines={["ssh -T git@github.com", { note: "# Triwarden asks: allow “ssh” to sign with “GitHub”" }, { out: "Hi alexchen! You've successfully authenticated, but GitHub does not provide shell access." }]} />
+          </article>
+          <article class="guide-case" data-rise>
+            <h3>{m.g_c2_t()}</h3><p set:html={m.g_c2_b()} />
+            <Term lines={["ssh alex@nas.home.arpa 'cat >> ~/.ssh/authorized_keys' < homelab.pub", "ssh alex@nas.home.arpa"]} />
+          </article>
+          <article class="guide-case guide-case--wide" data-rise>
+            <h3>{m.g_c3_t()}</h3><p set:html={m.g_c3_b()} />
+            <Term title="Git signing › Copy Setup" lines={[
+              "git config --global gpg.format ssh",
+              "git config --global user.signingkey \"key::ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKx…Qx9 GitHub\"",
+              "git config --global commit.gpgsign true",
+            ]} />
+            <p class="mt-5" set:html={m.g_c3_note()} />
+            <Term lines={[
+              "echo \"alex@example.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKx…Qx9\" >> ~/.ssh/allowed_signers",
+              "git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers",
+              "git log --show-signature -1",
+              { out: "Good \"git\" signature for alex@example.com with ED25519 key SHA256:…" },
+            ]} />
+          </article>
+          <article class="guide-case" data-rise>
+            <h3>{m.g_c4_t()}</h3><p set:html={m.g_c4_b()} />
+            <Term title="~/.ssh/config" copy={"Host github.com\n  IdentityFile ~/.ssh/github.pub\n  IdentitiesOnly yes"} lines={[{ out: "Host github.com" }, { out: "  IdentityFile ~/.ssh/github.pub" }, { out: "  IdentitiesOnly yes" }]} />
+          </article>
+          <article class="guide-case" data-rise>
+            <h3>{m.g_c5_t()}</h3><p set:html={m.g_c5_b()} />
+            <Term title="~/.ssh/config" noCopy lines={[{ out: "Host github.com gitlab.com nas.home.arpa" }, { out: `  IdentityAgent "~/${SOCK}"` }]} />
+          </article>
+          <article class="guide-case guide-case--wide" data-rise>
+            <h3>{m.g_c6_t()}</h3><p set:html={m.g_c6_b()} />
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Approvals and safety -->
+    <section class="mx-auto grid max-w-(--max) gap-[6vw] px-(--gutter) py-[clamp(48px,6vw,88px)] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)]">
+      <div>
+        <div data-reveal-group>
+          <p class="kicker">{m.g_appr_kicker()}</p>
+          <h2>{m.g_appr_title_1()}<br /><em>{m.g_appr_title_2()}</em></h2>
+          <p class="mt-6 max-w-[560px] text-lg text-ink-2" set:html={m.g_appr_b()} />
+        </div>
+        <dl class="guide-options" data-rise>
+          {[[m.g_appr_o1(), m.g_appr_o1_b()], [m.g_appr_o2(), m.g_appr_o2_b()], [m.g_appr_o3(), m.g_appr_o3_b()]].map(([t, b]) => (
+            <div><dt>{t}</dt><dd>{b}</dd></div>
+          ))}
+        </dl>
+        <p class="guide-tip mt-6 max-w-[560px]" set:html={m.g_appr_nomac()} />
+      </div>
+      <aside class="guide-safety" data-rise>
+        <p class="kicker text-[#7F95A7]!">{m.g_sec_kicker()}</p>
+        <ul>
+          {[m.g_sec_1(), m.g_sec_2(), m.g_sec_3()].map((t) => (
+            <li><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 2.5l6 2.3v5c0 3.6-2.5 6.3-6 7.7-3.5-1.4-6-4.1-6-7.7v-5Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>{t}</span></li>
+          ))}
+        </ul>
+      </aside>
+    </section>
+
+    <!-- Fixes -->
+    <section class="mx-auto max-w-(--max) px-(--gutter) pb-[clamp(64px,9vw,120px)]">
+      <div data-reveal-group>
+        <p class="kicker">{m.g_tr_kicker()}</p>
+        <h2>{m.g_tr_title_1()}<br /><em>{m.g_tr_title_2()}</em></h2>
+      </div>
+      <div class="mt-10 border-t border-line-2">
+        {[1, 2, 3, 4].map((n) => {
+          const t = m as unknown as Record<string, () => string>;
+          return (
+            <details class="faq group border-b border-line-2">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-mono text-[15px] font-medium [&::-webkit-details-marker]:hidden">
+                {t[`g_tr${n}_q`]()}
+                <span aria-hidden="true" class="relative size-4 shrink-0 before:absolute before:inset-x-0 before:top-1/2 before:h-[1.5px] before:-translate-y-1/2 before:bg-ink after:absolute after:inset-y-0 after:left-1/2 after:w-[1.5px] after:-translate-x-1/2 after:bg-ink after:transition-transform after:duration-500 group-open:after:scale-y-0"></span>
+              </summary>
+              <div data-faq-body><p class="m-0 max-w-[680px] pb-5 text-[16.5px] text-ink-2" set:html={t[`g_tr${n}_a`]()} /></div>
+            </details>
+          );
+        })}
+      </div>
+      <div class="guide-cta" data-rise>
+        <div>
+          <h3>{m.g_cta_t()}</h3>
+          <p>{m.g_cta_b()}</p>
+        </div>
+        <a class="btn btn--fill" href={dmg}>{m.hero_download()}</a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  import "../../scripts/page";
+  import "../../scripts/guide";
+</script>

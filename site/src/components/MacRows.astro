@@ -1,0 +1,82 @@
+---
+import SectionHead from "./SectionHead.astro";
+import Shot from "./Shot.astro";
+import { currentLocale, localeHref } from "../i18n";
+const guide = localeHref(currentLocale(), "guides/ssh-agent/");
+import { m } from "../paraglide/messages.js";
+
+// Auto-type keys, as the app binds them (README: ↵ fills, ⌃↵ username, ⌥↵ password, ⇧ also submits; ⌥⌘\ fills
+// the page or app you're in from anywhere).
+const keys: [string[], string][] = [
+  [["↵"], m.kt_both()],
+  [["⌃", "↵"], m.kt_user()],
+  [["⌥", "↵"], m.kt_pass()],
+  [["⇧"], m.kt_submit()],
+  [["⌥", "⌘", "\\"], m.kt_global()],
+];
+---
+<section class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.mac_kicker()}>
+    <h2>{m.mac_title_1()}<br /><em>{m.mac_title_2()}</em></h2>
+  </SectionHead>
+  <ol class="mt-[clamp(32px,4.5vw,60px)] list-none border-t border-line-2 p-0">
+    <li class="row" data-row>
+      <span class="row__no">01</span>
+      <div class="row__text">
+        <p class="kicker mb-3!">{m.row_autotype_kicker()}</p>
+        <h3>{m.row_autotype_title()}</h3>
+        <p set:html={m.row_autotype_body({ shortcut: "<kbd>⌥⌘\\</kbd>" })} />
+      </div>
+      <div class="row__demo keys" role="group" aria-label={m.kt_legend()}>
+        {keys.map(([combo, label], i) => (
+          <div class:list={["keys__row", i === keys.length - 1 && "keys__row--global"]}>
+            <span class="keys__combo">{combo.map((k) => <kbd>{k}</kbd>)}</span>
+            <span class="keys__label">{label}</span>
+          </div>
+        ))}
+      </div>
+    </li>
+    <li class="row" data-row>
+      <span class="row__no">02</span>
+      <div class="row__text">
+        <p class="kicker mb-3!">{m.row_menubar_kicker()}</p>
+        <h3>{m.row_menubar_title()}</h3>
+        <p>{m.row_menubar_body()}</p>
+      </div>
+      <div class="row__demo grid place-items-center">
+        <div class="w-[min(100%,300px)]"><Shot name="menubar" alt={m.alt_menubar()} class="w-full h-auto" /></div>
+      </div>
+    </li>
+    <li class="row" data-row>
+      <span class="row__no">03</span>
+      <div class="row__text">
+        <p class="kicker mb-3!">{m.row_ssh_kicker()}</p>
+        <h3>{m.row_ssh_title()}</h3>
+        <p set:html={m.row_ssh_body({ path: "<code>~/.ssh</code>", ssh: "<code>ssh</code>" })} />
+        <a class="mt-4 inline-flex items-center gap-1.5 text-[15px] font-medium text-ink underline decoration-line-2 underline-offset-4 hover:decoration-ink" href={guide}>{m.g_link()} <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="row__demo term" aria-hidden="true">
+        <p><b>~</b> git commit -S -m "ship it"</p>
+        <p class="dim">Triwarden: approve “github-signing” with Touch ID</p>
+        <p><span class="ok">✓</span> [main 9307fb2] ship it</p>
+        <p class="dim">Good "git" signature, ED25519 key</p>
+      </div>
+    </li>
+    <li class="row" data-row>
+      <span class="row__no">04</span>
+      <div class="row__text">
+        <p class="kicker mb-3!">{m.row_cli_kicker()}</p>
+        <h3>{m.row_cli_title()}</h3>
+        <p set:html={m.row_cli_body({ tw: "<code>tw</code>" })} />
+      </div>
+      <div class="row__demo term" aria-hidden="true">
+        <p><b>~</b> tw code github</p>
+        <p data-code="GitHub" class="big">000 000</p>
+        <p><b>~</b> tw generate --length 32 | pbcopy</p>
+        <p class="dim">Copied. Clears in 90 seconds.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<script>import "../scripts/rows";</script>
