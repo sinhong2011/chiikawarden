@@ -181,6 +181,8 @@
   "faq5_a": "Yes. Triwarden is free software under the GPL-3.0; building it yourself is always free. Forks need their own name and icon.",
   "faq6_q": "How do I pay?",
   "faq6_a": "Through Lemon Squeezy, by card, Alipay, WeChat Pay or PayPal.",
+  "faq7_q": "How do I get support?",
+  "faq7_a": "Email {email} for purchase or product questions. For bugs, open a GitHub issue; for security reports, see Security.",
   "close_title_1": "Ready to give your vault",
   "close_title_2": "a proper door?",
   "close_body": "Download it free and take your time. If it stays, it’s {price} — once, for life, on every Mac you own.",

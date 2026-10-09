@@ -181,6 +181,8 @@
   "faq5_a": "可以。Triwarden 是採用 GPL-3.0 的自由軟件，自行編譯永遠免費。分支版本需使用自己的名稱與圖示。",
   "faq6_q": "點樣付款？",
   "faq6_a": "透過 Lemon Squeezy，可用信用卡、支付寶、微信支付或 PayPal。",
+  "faq7_q": "點樣搵支援？",
+  "faq7_a": "購買或者產品問題請電郵 {email}。報告問題請開 GitHub issue；安全漏洞請見「安全性」。",
   "close_title_1": "準備好俾你個保險庫",
   "close_title_2": "一扇真正嘅門未？",
   "close_body": "免費下載，慢慢用。決定留低嘅話，{price} — 一次過、終身用，你所有部 Mac 都用得。",
