@@ -234,6 +234,7 @@ enum DemoVault {
                                           ItemField(label: "Cardholder", value: "Alex Chen"),
                                           ItemField(label: "Expires", value: "0\(index + 3)/20\(28 + index)"),
                                           ItemField(label: "Security code", value: "\(400 + index * 37)", secret: true, monospaced: true)])
+            item.properties = ["brand": card.1, "number": card.2, "cardholderName": "Alex Chen"]
             item.folderId = card.3
             item.folderName = folderName[card.3]
             items.append(item)

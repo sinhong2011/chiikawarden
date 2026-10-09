@@ -616,11 +616,16 @@ enum Snapshot {
                   totp: nil, notes: nil, favorite: false, reuseCount: 1),
         VaultItem(id: "6", kind: .sshKey, name: "homelab-ed25519", username: nil, host: nil, password: nil,
                   totp: nil, notes: nil, favorite: false),
-        VaultItem(id: "7", kind: .card, name: "Travel Visa", username: "•••• 6411", host: nil, password: nil,
-                  totp: nil, notes: nil, favorite: false,
-                  fields: [ItemField(label: "Card number", value: "4111111111116411", secret: true, monospaced: true),
-                           ItemField(label: "Cardholder", value: "Alex Chen"), ItemField(label: "Expires", value: "08/2029"),
-                           ItemField(label: "Security code", value: "123", secret: true, monospaced: true)]),
+        {
+            var card = VaultItem(id: "7", kind: .card, name: "Travel Visa", username: "•••• 6411", host: nil, password: nil,
+                                 totp: nil, notes: nil, favorite: false,
+                                 fields: [ItemField(label: "Card number", value: "4111111111116411", secret: true, monospaced: true),
+                                          ItemField(label: "Cardholder", value: "Alex Chen"), ItemField(label: "Expires", value: "08/2029"),
+                                          ItemField(label: "Security code", value: "123", secret: true, monospaced: true)])
+            card.properties = ["brand": "Visa", "number": "4111111111116411", "cardholderName": "Alex Chen",
+                               "expMonth": "8", "expYear": "2029", "code": "123"]
+            return card
+        }(),
         VaultItem(id: "5", name: "Tailscale", username: "alexchen", host: "login.tailscale.com", password: "ts-Lw8!r2Kq$7m",
                   totp: TOTP("JBSWY3DPEHPK3PXQ"), notes: nil, favorite: true),
     ]

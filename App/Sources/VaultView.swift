@@ -2016,6 +2016,12 @@ private struct FieldLine: View {
     @State private var armed: Int?
     @State private var copied = false
 
+    /// Card numbers are shown grouped (4-4-4-4 / Amex 4-6-5); the clipboard still gets the raw digits.
+    private var shown: String {
+        item.kind == .card && field.label == String(localized: "Card number")
+            ? field.value.formattedAsCardNumber : field.value
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             Text(verbatim: field.label)
@@ -2025,9 +2031,9 @@ private struct FieldLine: View {
                 if field.secret && !reveal {
                     Text(verbatim: String(repeating: "•", count: 10))
                 } else if field.secret {
-                    DecodingText(field.value)
+                    DecodingText(shown)
                 } else {
-                    Text(verbatim: field.value)
+                    Text(verbatim: shown)
                 }
             }
                 .font(.system(size: 13, design: field.monospaced ? .monospaced : .default))
@@ -2040,7 +2046,10 @@ private struct FieldLine: View {
                 armed = model.copyCount
                 if field.secret { model.guarded(item) { model.copy(field.value, label: field.label) } } else { model.copy(field.value, label: field.label) }
             } label: {
+                // Fixed frame: doc.on.doc ↔ checkmark differ in size, and .replace would otherwise grow the row.
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 20, height: 20)
                     .contentTransition(.symbolEffect(.replace))
                     .accessibilityLabel(Text("Copy \(field.label)"))
             }
@@ -2050,6 +2059,7 @@ private struct FieldLine: View {
                 .copyTick(armed: $armed, copied: $copied)
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
+        .frame(minHeight: 44)
     }
 }
 
