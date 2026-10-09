@@ -34,8 +34,8 @@ const specs = [
       <a class="btn btn--ghost" href="#pricing">{m.buy_once({ price: SITE.price })}</a>
     </div>
     <div data-reveal><DownloadMeta class="mt-3" /></div>
-    <button data-reveal data-copy-text={SITE.brew} class="group mt-4 inline-flex max-w-full cursor-pointer items-center gap-2.5 rounded-[10px] border-0 bg-transparent p-0 font-mono text-[13px] text-ink-3 transition-colors hover:text-ink" aria-label={m.copy_brew()} data-copy-done={m.copied()} data-copy-fail={m.copy_failed()}>
-      <span class="truncate"><span class="text-ink-3/70">$</span> {SITE.brew}</span>
+    <button data-reveal data-copy-text={SITE.brew} class="group mt-4 inline-flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-1 rounded-[10px] border-0 bg-transparent p-0 text-left font-mono text-[13px] text-ink-3 transition-colors hover:text-ink" aria-label={m.copy_brew()} data-copy-done={m.copied()} data-copy-fail={m.copy_failed()}>
+      <span class="min-w-0 whitespace-normal break-all"><span class="text-ink-3/70">$</span> {SITE.brew}</span>
       <span data-copy-label class="shrink-0 rounded-md px-1.5 py-0.5 text-[11.5px] tracking-wide uppercase shadow-[inset_0_0_0_1px_var(--color-line-2)] group-hover:text-ink">{m.copy()}</span>
     </button>
     <dl data-reveal class="mt-12 flex max-w-[600px] flex-wrap gap-x-10 gap-y-3.5 border-t border-line pt-6">

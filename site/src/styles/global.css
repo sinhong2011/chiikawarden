@@ -246,10 +246,10 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 /* ───────── Film ───────── */
 
 /* ───────── Closing ───────── */
-.code { display: flex; align-items: center; gap: 12px; padding: 16px 16px 16px 22px; border-radius: 16px; background: var(--color-night); color: #DCE6EE; margin-bottom: 26px; max-width: 520px; }
-.code pre { flex: 1; min-width: 0; margin: 0; font: 400 13.5px/1.8 var(--font-mono); overflow-x: auto; scrollbar-width: none; }
+.code { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 16px 16px 22px; border-radius: 16px; background: var(--color-night); color: #DCE6EE; margin-bottom: 26px; max-width: 100%; }
+.code pre { flex: 1 1 16rem; margin: 0; font: 400 13.5px/1.8 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .code .dim { color: #6F8394; }
-.code .btn--ghost { color: #E6EEF4; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.code .btn--ghost { flex-shrink: 0; color: #E6EEF4; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
 
 /* ───────── Footer ───────── */
 
