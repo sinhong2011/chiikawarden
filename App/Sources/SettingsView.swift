@@ -763,6 +763,7 @@ private struct AboutSettings: View {
     @State private var copiedVersion = false
 
     private static let repo = URL(string: "https://github.com/sinhong2011/triwarden")!
+    private static let support = URL(string: "mailto:triwarden@protonmail.com")!
     private var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "" }
     private var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "" }
 
@@ -836,6 +837,7 @@ private struct AboutSettings: View {
                 link("What's New in \(version)", "sparkles", Self.repo.appending(path: "releases/tag/v\(version)"))
                 link("Source Code", "chevron.left.forwardslash.chevron.right", Self.repo)
                 link("Report a Problem", "exclamationmark.bubble", Self.repo.appending(path: "issues/new"))
+                link("Email Support", "envelope", Self.support)
                 link("License", "doc.text", URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
                 Button { showingNotices = true } label: {
                     row("Acknowledgements", "heart.text.square", trailing: "chevron.right")

@@ -16,6 +16,8 @@ export const SITE = {
   latestDmg: `${repo}/releases/latest/download/Triwarden.dmg`,
   brew: "brew install --cask sinhong2011/tap/triwarden",
   security: `${repo}/blob/main/SECURITY.md`,
+  supportEmail: "triwarden@protonmail.com",
+  support: "mailto:triwarden@protonmail.com",
   checkout: CHECKOUT_URL,
   filmLength: "1:00",
 };

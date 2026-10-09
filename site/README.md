@@ -24,8 +24,9 @@ GitHub Actions CI/CD (`.github/workflows/site.yml`) uses:
   - `CLOUDFLARE_API_TOKEN`
   - `CLOUDFLARE_ACCOUNT_ID`
 
-- `src/config.ts`: price, download and Homebrew links, version, and `CHECKOUT_URL` — the Lemon Squeezy link, which is
-  in test mode and changes when the store goes live (change it there only). `asset()` prefixes the deploy base.
+- `src/config.ts`: price, download and Homebrew links, version, support email, and `CHECKOUT_URL` — the Lemon Squeezy
+  link, which is in test mode and changes when the store goes live (change it there only). `asset()` prefixes the
+  deploy base.
 - `src/styles/global.css`: brand tokens in `@theme` (so `text-ink`, `bg-sky`, `font-serif` … exist as utilities),
   plus the bespoke widget styles (dial, vault window, palette, terminal) under `@layer components`.
 - i18n with [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs): messages in `messages/<locale>.json`
