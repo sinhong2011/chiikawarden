@@ -837,7 +837,20 @@ private struct AboutSettings: View {
                 link("What's New in \(version)", "sparkles", Self.repo.appending(path: "releases/tag/v\(version)"))
                 link("Source Code", "chevron.left.forwardslash.chevron.right", Self.repo)
                 link("Report a Problem", "exclamationmark.bubble", Self.repo.appending(path: "issues/new"))
-                link("Email Support", "envelope", Self.support)
+                Link(destination: Self.support) {
+                    HStack {
+                        Label("Contact", systemImage: "envelope").labelStyle(SecondaryIconLabelStyle())
+                        Spacer()
+                        Text(verbatim: "triwarden@protonmail.com")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
+                    }
+                    .foregroundStyle(.primary)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
                 link("License", "doc.text", URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
                 Button { showingNotices = true } label: {
                     row("Acknowledgements", "heart.text.square", trailing: "chevron.right")

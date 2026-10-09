@@ -43,6 +43,12 @@ const jsonLd = [
     inLanguage: locale.lang,
     offers: { "@type": "Offer", price: SITE.price.replace(/[^\d.]/g, ""), priceCurrency: "USD" },
     email: SITE.supportEmail,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: SITE.supportEmail,
+      url: SITE.support,
+    },
   },
   {
     "@context": "https://schema.org",
