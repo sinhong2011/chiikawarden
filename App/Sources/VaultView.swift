@@ -387,7 +387,12 @@ struct VaultView: View {
         .sheet(isPresented: $model.promptingNewFolder, onDismiss: { model.newFolderParent = nil }) {
             NewFolderSheet(parent: model.newFolderParent)
         }
-        .overlay(alignment: .bottom) { ToastView() }
+        // Full-frame overlay so the toast never participates in layout (no jump when it appears).
+        .overlay {
+            ToastView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .allowsHitTesting(model.toast != nil)
+        }
         .onAppear {
             if let initialSection { section = initialSection }
             if !initialQuery.isEmpty { query = initialQuery }
@@ -655,24 +660,20 @@ private struct SidebarAccountCard: View {
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
                 .shadow(color: .black.opacity(dark ? 0.25 : 0.06), radius: 8, y: 2)
         }
-        .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
-        .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
-    }
-
-}
-
-/// The window's footer, under the panels: Sync Now and Lock at the right end, in the header's pill style.
-private struct AppFooter: View {
+        .onHover { h in withAnimatiprivate struct AppFooter: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
+        // Countdown is its own floating pill to the left — Sync/Lock stay a fixed size so they don't jump.
+        HStack(spacing: 6) {
+            if model.clipboardClearsAt != nil {
+                ClipboardCountdown()
+                    .padding(.horizontal, 3)
+                    .frame(height: 30)
+                    .modifier(FloatingChrome())
+                    .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
+            }
             HStack(spacing: 0) {
-                if model.clipboardClearsAt != nil {
-                    ClipboardCountdown()
-                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
-                    Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 2)
-                        .transition(.opacity)
-                }
                 SyncFooterButton { Task { try? await model.refresh() } }
                 Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 2)
                 Button { model.lock(animated: true) } label: {
@@ -687,6 +688,14 @@ private struct AppFooter: View {
                 .accessibilityLabel(Text("Lock Vault"))
             }
             .padding(.horizontal, 3)
+            .frame(height: 30)
+            .modifier(FloatingChrome())
+        }
+        .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
+    }
+}
+
+/// Glass for controls floating over contentdding(.horizontal, 3)
             .frame(height: 30)
             .modifier(FloatingChrome())
             .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
@@ -2119,7 +2128,8 @@ struct ToastView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        ZStack {
+        VStack {
+            Spacer(minLength: 0)
             if let toast = model.toast {
                 HStack(spacing: 14) {
                     Label {
@@ -2135,13 +2145,13 @@ struct ToastView: View {
                             .contentShape(.capsule)
                     }
                 }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.leading, 18).padding(.trailing, model.toastAction == nil ? 18 : 8)
-                    .frame(height: 44)
-                    .background(Color.hero, in: .capsule)
-                    .shadow(color: .black.opacity(0.3), radius: 16, y: 10)
-                    .transition(.move(edge: .bottom).combined(with: .scale(scale: 0.9)).combined(with: .opacity))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.leading, 18).padding(.trailing, model.toastAction == nil ? 18 : 8)
+                .frame(height: 44)
+                .background(Color.hero, in: .capsule)
+                .shadow(color: .black.opacity(0.3), radius: 16, y: 10)
+                .transition(.move(edge: .bottom).combined(with: .scale(scale: 0.9)).combined(with: .opacity))
             }
         }
         .padding(.bottom, 28)

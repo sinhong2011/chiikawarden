@@ -1,9 +1,9 @@
 import TriCrypto
 import SwiftUI
 
-/// Sidebar › One-Time Codes: every code, live, click to copy. Tags along the top pick the vault (All, My vault, each
-/// shared vault); favorites are pinned above the rest (the star on a card pins or unpins it); a filter narrows by
-/// typing; the sort menu orders by name or recent use.
+/// Sidebar › One-Time Codes: every code, live, click to copy. Tags along the top pick All, Recently Used, or a vault
+/// (My vault / each shared vault); favorites are pinned above the rest (the star on a card pins or unpins it); a
+/// filter narrows by typing.
 ///
 /// Fast with any number of codes: the grid is lazy (only cards on screen exist), and it never depends on the time —
 /// each card's code and ring read the app's one shared clock (`OTPClock`), so a tick refreshes just those small views.
@@ -11,18 +11,14 @@ struct CodesPane: View {
     @Environment(AppModel.self) private var model
     @State private var copiedID: String?
     @State private var query = ""
-    /// The vault tag picked: every vault, or one ("personal" or an organization id).
-    @State private var vault: String?
-    @AppStorage("codesSort") private var sortRaw = CodesSort.name.rawValue
+    /// Which tag is picked: every code, recently copied ones, or one vault.
+    @State private var filter: CodesFilter = .all
 
-    enum CodesSort: String, CaseIterable, Identifiable {
-        case name, recent
-        var id: Self { self }
-        var title: LocalizedStringKey { self == .name ? "Name" : "Recently Used" }
-        var symbol: String { self == .name ? "textformat" : "clock.arrow.circlepath" }
+    private enum CodesFilter: Hashable {
+        case all
+        case recent
+        case vault(String) // "personal" or an organization id
     }
-
-    private var sort: CodesSort { CodesSort(rawValue: sortRaw) ?? .name }
 
     /// Every live code, narrowed by the typed filter (the tags count from this).
     private var base: [VaultItem] {
@@ -30,6 +26,12 @@ struct CodesPane: View {
     }
 
     private static func vaultKey(_ item: VaultItem) -> String { item.organizationId ?? AppModel.VaultFilter.personalKey }
+
+    /// Recent ids that still have a live code (for the tag's count and the filtered list).
+    private var recentCodeIDs: [String] {
+        let live = Set(base.map(\.id))
+        return PaletteRecents.ids.filter(live.contains)
+    }
 
     /// The period most codes here share (codes renew together, all timed from the same clock), and a code to time the
     /// header's one countdown by. Codes with another period keep a ring of their own.
@@ -40,16 +42,18 @@ struct CodesPane: View {
         return (best.key, clock)
     }
 
-    /// The codes the tag shows, in order: by name, or most recently used first.
+    /// The codes the tag shows: by name, or most recently used first under Recently Used.
     private var items: [VaultItem] {
-        let shown = base.filter { vault == nil || Self.vaultKey($0) == vault }
-        let recent = Dictionary(PaletteRecents.ids.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
-        return shown.sorted { a, b in
-            if sort == .recent {
-                let ra = recent[a.id] ?? .max, rb = recent[b.id] ?? .max
-                if ra != rb { return ra < rb }
-            }
-            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+        switch filter {
+        case .all:
+            return base.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        case .recent:
+            let order = Dictionary(recentCodeIDs.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
+            return base.filter { order[$0.id] != nil }
+                .sorted { (order[$0.id] ?? .max) < (order[$1.id] ?? .max) }
+        case .vault(let key):
+            return base.filter { Self.vaultKey($0) == key }
+                .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         }
     }
 
@@ -74,10 +78,13 @@ struct CodesPane: View {
             LazyVStack(alignment: .leading, spacing: 14) {
                 if list.isEmpty {
                     ContentUnavailableView {
-                        Label(query.isEmpty ? "No one-time codes" : "No Results",
-                              systemImage: query.isEmpty ? "clock.badge.checkmark" : "magnifyingglass")
+                        Label(emptyTitle, systemImage: emptySymbol)
                     } description: {
-                        if query.isEmpty { Text("Add a code secret to a login to see it here.") }
+                        if query.isEmpty, filter == .recent {
+                            Text("Copy a code to see it here.")
+                        } else if query.isEmpty {
+                            Text("Add a code secret to a login to see it here.")
+                        }
                     }
                     .frame(maxWidth: .infinity, minHeight: 300)
                 } else {
@@ -113,8 +120,19 @@ struct CodesPane: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    /// The tags (All, My vault, each shared vault, with counts; shown when there are shared vaults), the filter as a
-    /// pill, and the sort menu. The page's name is the sidebar's; this row is for narrowing.
+    private var emptyTitle: LocalizedStringKey {
+        if !query.isEmpty { "No Results" }
+        else if filter == .recent { "No recently used codes" }
+        else { "No one-time codes" }
+    }
+    private var emptySymbol: String {
+        if !query.isEmpty { "magnifyingglass" }
+        else if filter == .recent { "clock.arrow.circlepath" }
+        else { "clock.badge.checkmark" }
+    }
+
+    /// The tags (All, Recently Used, My vault, each shared vault) and the filter pill. The page's name is the
+    /// sidebar's; this row is for narrowing.
     private var header: some View {
         let list = base
         return HStack(spacing: 8) {
@@ -125,12 +143,13 @@ struct CodesPane: View {
             // The tags in a plain row (a scroll view up here picks up the toolbar's inset and shifts its contents);
             // with more vaults than fit, the row fades out at its end.
             HStack(spacing: 6) {
-                tag(nil, String(localized: "All"), "clock.badge.checkmark", list.count, iconOnly: true)
+                tag(.all, String(localized: "All"), "clock.badge.checkmark", list.count, iconOnly: true)
+                tag(.recent, String(localized: "Recently Used"), "clock.arrow.circlepath", recentCodeIDs.count, iconOnly: true)
                 if !model.visibleOrganizations.isEmpty {
-                    tag(AppModel.VaultFilter.personalKey, String(localized: "My vault"), "person",
+                    tag(.vault(AppModel.VaultFilter.personalKey), String(localized: "My vault"), "person",
                         list.filter { $0.organizationId == nil }.count, iconOnly: true)
                     ForEach(model.visibleOrganizations) { org in
-                        tag(org.id, org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
+                        tag(.vault(org.id), org.name, "building.2", list.filter { $0.organizationId == org.id }.count)
                     }
                 }
             }
@@ -159,38 +178,22 @@ struct CodesPane: View {
             }
             .padding(.horizontal, 12).frame(width: 200, height: 32)
             .modifier(HeaderChrome(shape: .capsule))
-            Menu {
-                Picker("Sort By", selection: $sortRaw) {
-                    ForEach(CodesSort.allCases) { Label($0.title, systemImage: $0.symbol).tag($0.rawValue) }
-                }
-                .pickerStyle(.inline)
-            } label: {
-                Image(systemName: "arrow.up.arrow.down")
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 32, height: 32)
-                    .modifier(HeaderChrome(shape: .circle))
-                    .contentShape(.circle)
-            }
-            .menuStyle(.button)
-            .buttonStyle(.plain)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .help(Text("Sort"))
-            .accessibilityLabel(Text("Sort"))
         }
         .padding(.trailing, 16)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("One-Time Codes"))
         // A vault that's gone (left, or its account locked): back to every vault.
         .onChange(of: model.visibleOrganizations.map(\.id)) { _, ids in
-            if let vault, vault != AppModel.VaultFilter.personalKey, !ids.contains(vault) { self.vault = nil }
+            if case .vault(let id) = filter, id != AppModel.VaultFilter.personalKey, !ids.contains(id) {
+                filter = .all
+            }
         }
     }
 
     /// One tag: picked, a solid blue pill with white text; otherwise soft glass. `iconOnly`: the name shows on hover.
-    private func tag(_ value: String?, _ title: String, _ symbol: String, _ count: Int, iconOnly: Bool = false) -> some View {
-        VaultTag(title: title, symbol: symbol, count: count, picked: vault == value, iconOnly: iconOnly) {
-            withAnimation(.snappy(duration: 0.25)) { vault = value }
+    private func tag(_ value: CodesFilter, _ title: String, _ symbol: String, _ count: Int, iconOnly: Bool = false) -> some View {
+        VaultTag(title: title, symbol: symbol, count: count, picked: filter == value, iconOnly: iconOnly) {
+            withAnimation(.snappy(duration: 0.25)) { filter = value }
         }
     }
 
@@ -199,7 +202,7 @@ struct CodesPane: View {
             if let totp = item.totp {
                 CodeCard(item: item, totp: totp, ownRing: totp.period != sharedPeriod?.period, copied: copiedID == item.id) {
                     model.guarded(item) { model.copy(totp.code(at: .now), label: String(localized: "Code")) }
-                    PaletteRecents.note(item.id) // "Recently Used" follows what you copy here too
+                    PaletteRecents.note(item.id) // feeds the Recently Used tag
                     withAnimation(.snappy) { copiedID = item.id }
                     Task {
                         try? await Task.sleep(for: .seconds(1.4))
