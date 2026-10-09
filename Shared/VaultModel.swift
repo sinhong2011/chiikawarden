@@ -116,6 +116,25 @@ extension TOTP: @retroactive Hashable {
 
 extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
+
+    /// Groups a card number for reading: Visa-style 4-4-4-4, Amex 4-6-5. Non-digits are stripped first.
+    var formattedAsCardNumber: String {
+        let digits = filter(\.isNumber)
+        guard !digits.isEmpty else { return self }
+        let groups: [Int]
+        if digits.count == 15 { groups = [4, 6, 5] } // Amex
+        else if digits.count == 14 { groups = [4, 6, 4] } // Diners
+        else { groups = Array(repeating: 4, count: (digits.count + 3) / 4) }
+        var i = digits.startIndex
+        var parts: [Substring] = []
+        for n in groups where i < digits.endIndex {
+            let end = digits.index(i, offsetBy: n, limitedBy: digits.endIndex) ?? digits.endIndex
+            parts.append(digits[i..<end])
+            i = end
+        }
+        if i < digits.endIndex { parts.append(digits[i...]) }
+        return parts.joined(separator: " ")
+    }
 }
 
 /// A decrypted Send owned by one of the accounts.
