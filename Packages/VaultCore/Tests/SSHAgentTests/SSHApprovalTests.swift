@@ -35,6 +35,16 @@ import Testing
     #expect(who.trustKey == "path:/bin/zsh")
 }
 
+@Test func helperInsideCursorIsCursor() {
+    let path = "/Applications/Cursor.app/Contents/Frameworks/Cursor Helper (Plugin).app/Contents/MacOS/Cursor Helper (Plugin)"
+    let who = SSHRequesterResolver.resolve(pid: 5, peerPath: "/usr/bin/ssh", peerName: "ssh") { pid in
+        pid == 5 ? ProcessNode(pid: 5, parent: 1, path: path) : nil
+    }
+    #expect(who.displayName == "Cursor")
+    #expect(who.appPath == "/Applications/Cursor.app")
+    #expect(who.via == "ssh")
+}
+
 @Test func signedAppOutranksAPath() {
     let key = SSHTrustKey.make(bundleID: "com.todesktop.230313mzl4w4u92", teamID: "2DC432GLL2",
                                appPath: "/Applications/Cursor.app", peerPath: "/usr/bin/ssh", peerName: "ssh")

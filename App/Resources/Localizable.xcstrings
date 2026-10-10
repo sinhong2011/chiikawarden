@@ -49,6 +49,24 @@
         "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "macOS 接著會要求 Touch ID 或這部 Mac 的登入密碼。這組密碼只留在 macOS。" } }
       }
     },
+    "Allow" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "允許" } }
+      }
+    },
+    "How long to allow" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How long to allow" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "許可する期間" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许多久" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "允許多久" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "允許多久" } }
+      }
+    },
     "Allow Once" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Once" } },
@@ -92,6 +110,60 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "app 来要求签名时，可以从提示里信任它。信任持续到保险库上锁。" } },
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "app 來要求簽名時，可以從提示裡信任它。信任持續到保險庫上鎖。" } },
         "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "app 來要求簽名時，可以從提示裡信任它。信任持續到保險庫上鎖。" } }
+      }
+    },
+    "Notifications" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notifications" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "通知" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通知" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "通知" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "通知" } }
+      }
+    },
+    "Needs attention" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Needs attention" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "要対応" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "需要处理" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "需要處理" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "需要處理" } }
+      }
+    },
+    "Nothing waiting." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing waiting." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "対応待ちはありません。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有待处理的事。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "沒有待處理的事。" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "沒有待處理的事。" } }
+      }
+    },
+    "Couldn't sync. The vault on this Mac is unchanged." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't sync. The vault on this Mac is unchanged." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "同期できませんでした。この Mac の保管庫はそのままです。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "同步失败。这台 Mac 上的保险库没有改动。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "同步失敗。這台 Mac 上的保險庫沒有改動。" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "同步失敗。這部 Mac 上的保險庫沒有改動。" } }
+      }
+    },
+    "SSH request" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "SSH request" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SSH の要求" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SSH 请求" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "SSH 請求" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "SSH 請求" } }
+      }
+    },
+    "SSH requests" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "SSH requests" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SSH の要求" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SSH 请求" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "SSH 請求" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "SSH 請求" } }
       }
     },
     "SSH access" : {

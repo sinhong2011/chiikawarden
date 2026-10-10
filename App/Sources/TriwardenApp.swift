@@ -394,6 +394,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UNUserNotificationCenter.current().delegate = sshNotifications
         NotificationCenter.default.addObserver(self, selector: #selector(revealSSHApproval),
                                                name: .sshApprovalReveal, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(revealInbox),
+                                               name: .inboxReveal, object: nil)
         // The last window closing: with "Keep running in the menu bar" on, Triwarden leaves the Dock.
         NotificationCenter.default.addObserver(self, selector: #selector(windowWillClose(_:)),
                                                name: NSWindow.willCloseNotification, object: nil)
@@ -401,6 +403,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func revealSSHApproval() {
         model?.sshAgent.reveal()
+    }
+
+    @objc private func revealInbox() {
+        model?.revealInbox()
     }
 
     @objc private func windowWillClose(_ note: Notification) {

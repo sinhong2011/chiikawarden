@@ -2,26 +2,35 @@ import AppKit
 import SwiftUI
 import SSHAgent
 
-/// The decision for one SSH signature: which app asked, which key, and how long to allow it.
+/// The decision for one SSH signature, drawn as a card inside the menu bar panel.
 struct SSHApprovalCard: View {
     var prompt: SSHPrompt
     var leadsWithUntilLock: Bool
     var choose: (SSHChoice) -> Void
+    @State private var grant: SSHGrant
+
+    init(prompt: SSHPrompt, leadsWithUntilLock: Bool, choose: @escaping (SSHChoice) -> Void) {
+        self.prompt = prompt
+        self.leadsWithUntilLock = leadsWithUntilLock
+        self.choose = choose
+        _grant = State(initialValue: leadsWithUntilLock ? .untilLock : .once)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
                 icon
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(prompt.displayName) wants to sign")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(2)
                     Text("via \(prompt.via) · \(prompt.keyName)")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
-            if let path = prompt.path {
+            if prompt.appPath == nil, let path = prompt.path {
                 Text(verbatim: path)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.secondary)
@@ -32,13 +41,10 @@ struct SSHApprovalCard: View {
                 Text("^[\(prompt.waitingCount) signatures in this request](inflect: true)")
                     .font(.system(size: 12, weight: .medium))
             }
-            Text("This signs one SSH operation. The private key stays in your vault.")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             if leadsWithUntilLock {
                 Text("This app has asked to sign before.")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             }
             Text("macOS will ask for Touch ID or your Mac login password. That password stays with macOS.")
                 .font(.system(size: 12))
@@ -46,9 +52,10 @@ struct SSHApprovalCard: View {
                 .fixedSize(horizontal: false, vertical: true)
             actions
         }
-        .padding(16)
-        .frame(width: 380, alignment: .leading)
-        .background(Color.menuWash)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.menuCard, in: .rect(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.menuEdge))
     }
 
     private var icon: some View {
@@ -62,103 +69,76 @@ struct SSHApprovalCard: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 32, height: 32)
+        .frame(width: 28, height: 28)
     }
 
     @ViewBuilder private var actions: some View {
         VStack(spacing: 8) {
-            if leadsWithUntilLock {
-                Button("Trust Until Lock") { choose(.allow(.untilLock)) }
-                    .buttonStyle(.appPrimarySmall)
-                    .keyboardShortcut(.defaultAction)
-                HStack(spacing: 8) {
-                    Button("Allow Once") { choose(.allow(.once)) }.buttonStyle(.appSecondarySmall)
-                    Button("Allow for 10 Minutes") { choose(.allow(.tenMinutes)) }.buttonStyle(.appSecondarySmall)
+            Menu {
+                Picker("How long", selection: $grant) {
+                    Text("Allow Once").tag(SSHGrant.once)
+                    Text("Allow for 10 Minutes").tag(SSHGrant.tenMinutes)
+                    Text("Trust Until Lock").tag(SSHGrant.untilLock)
                 }
-            } else {
-                Button("Allow Once") { choose(.allow(.once)) }
-                    .buttonStyle(.appPrimarySmall)
-                    .keyboardShortcut(.defaultAction)
+                .pickerStyle(.inline)
+            } label: {
                 HStack(spacing: 8) {
-                    Button("Allow for 10 Minutes") { choose(.allow(.tenMinutes)) }.buttonStyle(.appSecondarySmall)
-                    Button("Trust Until Lock") { choose(.allow(.untilLock)) }.buttonStyle(.appSecondarySmall)
+                    Text(grantTitle)
+                        .font(.system(size: 13, weight: .medium))
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
                 }
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, minHeight: 32)
+                .background(Color.primary.opacity(0.06), in: .rect(cornerRadius: 10, style: .continuous))
             }
-            Button("Deny") { choose(.deny) }
-                .buttonStyle(.appSecondarySmall)
-                .keyboardShortcut(.cancelAction)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .accessibilityLabel(Text("How long to allow"))
+            HStack(spacing: 8) {
+                Button("Allow") { choose(.allow(grant)) }
+                    .buttonStyle(.appPrimarySmall)
+                    .keyboardShortcut(.defaultAction)
+                Button("Deny") { choose(.deny) }
+                    .buttonStyle(.appSecondarySmall)
+                    .keyboardShortcut(.cancelAction)
+            }
         }
         .frame(maxWidth: .infinity)
+        .onChange(of: prompt.id) { _, _ in
+            grant = leadsWithUntilLock ? .untilLock : .once
+        }
+    }
+
+    private var grantTitle: LocalizedStringKey {
+        switch grant {
+        case .once: "Allow Once"
+        case .tenMinutes: "Allow for 10 Minutes"
+        case .untilLock: "Trust Until Lock"
+        }
     }
 }
 
-/// Floating panel for the card. Closing it leaves the request waiting; the menu bar can still answer.
+/// Opens the menu bar panel. The status item belongs to SwiftUI, so this clicks Triwarden's button.
 @MainActor
-final class SSHApprovalPanel: NSObject, NSWindowDelegate {
-    static let shared = SSHApprovalPanel()
+enum MenuBarOpener {
+    static var isOpen = false
 
-    private var panel: NSPanel?
-    private var front: NSRunningApplication?
-    private var hiddenByUser = false
-    private var shownID: UUID?
-
-    func sync(_ prompt: SSHPrompt, service: SSHAgentService) {
-        if shownID != prompt.id {
-            hiddenByUser = false
-            shownID = prompt.id
-        }
-        install(prompt, service: service)
-        guard !hiddenByUser else { return }
-        orderFront()
+    static func open() {
+        guard !isOpen, let button = triwardenButton() else { return }
+        button.performClick(nil)
     }
 
-    func reopen(service: SSHAgentService) {
-        hiddenByUser = false
-        guard let pending = service.pending else { return }
-        install(pending, service: service)
-        orderFront()
-    }
-
-    func close(restoreFocus: Bool) {
-        panel?.orderOut(nil)
-        shownID = nil
-        hiddenByUser = false
-        if restoreFocus { front?.activate(); front = nil }
-    }
-
-    private func install(_ prompt: SSHPrompt, service: SSHAgentService) {
-        let card = SSHApprovalCard(prompt: prompt, leadsWithUntilLock: service.pendingLeadsWithUntilLock) { [weak service] choice in
-            service?.choose(choice)
-        }
-        if panel == nil {
-            let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 380, height: 320),
-                                styleMask: [.titled, .closable, .fullSizeContentView],
-                                backing: .buffered, defer: false)
-            panel.level = .floating
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.hidesOnDeactivate = false
-            panel.isReleasedWhenClosed = false
-            panel.titleVisibility = .hidden
-            panel.titlebarAppearsTransparent = true
-            panel.isMovableByWindowBackground = true
-            panel.delegate = self
-            panel.backgroundColor = .clear
-            self.panel = panel
-        }
-        panel?.contentView = NSHostingView(rootView: card)
-        panel?.setContentSize(NSSize(width: 380, height: panel?.contentView?.fittingSize.height ?? 320))
-    }
-
-    private func orderFront() {
-        guard let panel else { return }
-        if front == nil { front = NSWorkspace.shared.frontmostApplication }
-        if !panel.isVisible { panel.center() }
-        NSApp.activate()
-        panel.makeKeyAndOrderFront(nil)
-    }
-
-    func windowShouldClose(_ sender: NSWindow) -> Bool {
-        hiddenByUser = true
-        return true
+    private static func triwardenButton() -> NSStatusBarButton? {
+        let bar = NSStatusBar.system
+        let sel = NSSelectorFromString("_statusItems")
+        guard bar.responds(to: sel), let value = bar.perform(sel)?.takeUnretainedValue() else { return nil }
+        let items = (value as? [NSStatusItem]) ?? (value as? NSArray)?.compactMap { $0 as? NSStatusItem } ?? []
+        return items.first { item in
+            item.button?.image?.accessibilityDescription?.contains("Triwarden") == true
+        }?.button
     }
 }

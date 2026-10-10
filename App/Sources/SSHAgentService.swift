@@ -83,7 +83,8 @@ final class SSHAgentService {
     /// The menu bar or a notification tap brings the waiting card back.
     func reveal() {
         guard pending != nil else { return }
-        SSHApprovalPanel.shared.reopen(service: self)
+        MenuBarOpener.isOpen = false
+        MenuBarOpener.open()
     }
 
     func revokeTrust(id: String) {
@@ -200,13 +201,12 @@ final class SSHAgentService {
 
     private func refreshPending() async {
         let snap = await prompts.snapshot()
+        let previous = pending?.id
         pending = snap.current
         pendingCount = snap.count
-        if let pending {
-            SSHApprovalPanel.shared.sync(pending, service: self)
-            ensureWatch()
-        } else if !authenticating {
-            SSHApprovalPanel.shared.close(restoreFocus: true)
+        if pending != nil { ensureWatch() }
+        if let id = pending?.id, id != previous {
+            MenuBarOpener.open()
         }
     }
 

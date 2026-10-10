@@ -32,14 +32,23 @@ enum SSHProcess {
 
     static func requester(for peer: SSHAgentServer.Peer) -> SSHRequester {
         var who = SSHRequesterResolver.resolve(pid: peer.pid, peerPath: peer.path, peerName: peer.processName, lookup: node)
-        if let appPID = who.appPID {
-            let signing = signature(of: appPID)
-            who.trustKey = SSHTrustKey.make(bundleID: signing.bundleID, teamID: signing.teamID,
-                                            appPath: who.appPath, peerPath: who.peerPath, peerName: who.via)
-            if let name = NSRunningApplication(processIdentifier: appPID)?.localizedName, !name.isEmpty {
-                who.displayName = name
-            }
+        if let appPath = who.appPath {
+            let signing = who.appPID.map { signature(of: $0) }
+            let bundleID = Bundle(url: URL(fileURLWithPath: appPath))?.bundleIdentifier ?? signing?.bundleID
+            who.trustKey = SSHTrustKey.make(bundleID: bundleID, teamID: signing?.teamID,
+                                            appPath: appPath, peerPath: who.peerPath, peerName: who.via)
+            who.displayName = bundleDisplayName(appPath) ?? who.displayName
         }
         return who
+    }
+
+    /// The bundle's own name. A helper process's localized name is the long "Cursor Helper (Plugin): …" label.
+    private static func bundleDisplayName(_ appPath: String) -> String? {
+        let url = URL(fileURLWithPath: appPath)
+        let info = Bundle(url: url)?.infoDictionary
+        let named = (info?["CFBundleDisplayName"] as? String) ?? (info?["CFBundleName"] as? String)
+        if let named, !named.isEmpty, named.range(of: "helper", options: .caseInsensitive) == nil { return named }
+        let folder = url.deletingPathExtension().lastPathComponent
+        return folder.isEmpty ? nil : folder
     }
 }

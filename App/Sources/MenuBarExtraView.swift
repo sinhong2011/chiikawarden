@@ -14,6 +14,11 @@ struct MenuBarContent: View {
 
     var body: some View {
         VStack(spacing: 8) {
+            if let pending = model.sshAgent.pending {
+                SSHApprovalCard(prompt: pending, leadsWithUntilLock: model.sshAgent.pendingLeadsWithUntilLock) { choice in
+                    model.sshAgent.choose(choice)
+                }
+            }
             topRow
             if model.isUnlocked, focusedOpen {
                 if query.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -34,7 +39,11 @@ struct MenuBarContent: View {
         .frame(width: 380)
         // Light: a soft grey wash over the system's near-white glass, so the white cards have something to stand on.
         .background(Color.menuWash)
-        .onAppear { model.captureForeground() } // the page or app the panel was opened over
+        .onAppear {
+            MenuBarOpener.isOpen = true
+            model.captureForeground()
+        }
+        .onDisappear { MenuBarOpener.isOpen = false }
         .animation(.snappy(duration: 0.22), value: query.isEmpty)
     }
 
@@ -517,38 +526,9 @@ private struct SSHRow: View {
     var body: some View {
         let agent = model.sshAgent!
         let keys = model.items.filter { $0.kind == .sshKey && !$0.isDeleted && !$0.isArchived }.count
-        if agent.isRunning || keys > 0 || agent.pending != nil {
+        if agent.isRunning || keys > 0 {
             PanelCard(padding: 12) {
-                if let pending = agent.pending {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "terminal").font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(Color.orange)
-                                .frame(width: 30, height: 30)
-                                .background(Color.orange.opacity(0.12), in: .rect(cornerRadius: 8, style: .continuous))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("\(pending.displayName) wants to sign")
-                                    .font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                                Text("via \(pending.via) · \(pending.keyName)")
-                                    .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
-                                if agent.pendingCount > 1 {
-                                    Text("^[\(agent.pendingCount - 1) more waiting](inflect: true)")
-                                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        HStack(spacing: 6) {
-                            Button("Allow Once") { agent.choose(.allow(.once)) }.buttonStyle(.appPrimarySmall)
-                            Button("Deny") { agent.choose(.deny) }.buttonStyle(.appSecondarySmall)
-                        }
-                        HStack(spacing: 6) {
-                            Button("Allow for 10 Minutes") { agent.choose(.allow(.tenMinutes)) }.buttonStyle(.appSecondarySmall)
-                            Button("Trust Until Lock") { agent.choose(.allow(.untilLock)) }.buttonStyle(.appSecondarySmall)
-                        }
-                    }
-                } else {
-                    HStack(spacing: 10) {
+                HStack(spacing: 10) {
                         Image(systemName: "terminal").font(.system(size: 14, weight: .medium))
                             .foregroundStyle(agent.isRunning ? Color.green : .secondary)
                             .frame(width: 30, height: 30)
@@ -572,7 +552,6 @@ private struct SSHRow: View {
                             .foregroundStyle(agent.isRunning ? Color.green : .secondary)
                             .padding(.horizontal, 8).frame(height: 20)
                             .background((agent.isRunning ? Color.green : Color.primary).opacity(0.1), in: .capsule)
-                    }
                 }
             }
         }

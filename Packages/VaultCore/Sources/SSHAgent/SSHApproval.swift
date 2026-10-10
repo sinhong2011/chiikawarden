@@ -37,7 +37,7 @@ public enum SSHRequesterResolver {
         var appPID: Int32?
         for _ in 0..<8 where current > 1 {
             guard let node = lookup(current) else { break }
-            if let path = node.path, let bundle = bundlePath(in: path) {
+            if let path = node.path, let bundle = hostBundle(in: path) {
                 appPath = bundle
                 appPID = node.pid
                 break
@@ -49,13 +49,18 @@ public enum SSHRequesterResolver {
         return SSHRequester(displayName: displayName, via: peerName, peerPath: peerPath, appPath: appPath, appPID: appPID, trustKey: trustKey)
     }
 
-    static func bundlePath(in path: String) -> String? {
+    /// The outermost `.app` that is not a helper. Cursor's plugin host lives inside
+    /// `Cursor Helper (Plugin).app`, which itself lives inside `Cursor.app`.
+    static func hostBundle(in path: String) -> String? {
         var built = ""
+        var helper: String?
         for component in path.split(separator: "/") where !component.isEmpty {
             built += "/\(component)"
-            if component.hasSuffix(".app") { return built }
+            guard component.hasSuffix(".app") else { continue }
+            if component.range(of: "helper", options: .caseInsensitive) == nil { return built }
+            helper = helper ?? built
         }
-        return nil
+        return helper
     }
 }
 
