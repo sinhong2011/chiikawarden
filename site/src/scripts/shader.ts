@@ -82,19 +82,42 @@ type Mounted = { el: HTMLElement; canvas: HTMLCanvasElement; name: string; shade
 const mounted: Mounted[] = [];
 let lib: Promise<typeof import("shaders/js")> | undefined;
 
+// Chrome on many Macs returns no adapter for powerPreference "high-performance" (no discrete GPU) and
+// then draws nothing. Ask again with the default adapter, then the integrated one. One device is shared.
+let gpuPromise: Promise<{ device: GPUDevice; adapter: GPUAdapter } | null> | undefined;
+function sharedGpu() {
+  gpuPromise ??= (async () => {
+    if (!navigator.gpu) return null;
+    for (const powerPreference of ["high-performance", undefined, "low-power"] as const) {
+      try {
+        const adapter = await navigator.gpu.requestAdapter(powerPreference ? { powerPreference } : undefined);
+        if (!adapter) continue;
+        return { device: await adapter.requestDevice(), adapter };
+      } catch { /* this adapter can't build a device; try the next */ }
+    }
+    return null;
+  })();
+  return gpuPromise;
+}
+
 async function build(m: Mounted) {
   if (!("gpu" in navigator)) return; // no WebGPU: keep the CSS backdrop, skip the download
   lib ??= import("shaders/js");
-  const { createShader, isWebGPUSupported } = await lib;
+  const [{ createShader, isWebGPUSupported }, gpu] = await Promise.all([lib, sharedGpu()]);
   if (!isWebGPUSupported()) return;
   const t = theme();
   m.shader?.destroy();
   m.theme = t;
+  // Paint at full opacity before the context is created. Chrome never presents a canvas that was opacity 0.
+  m.canvas.style.opacity = "1";
   m.shader = await createShader(m.canvas, PRESETS[m.name](t, still), {
     disableTelemetry: true,
+    gpu: gpu ?? undefined,
     onReady: () => m.el.classList.add("shader-ready"),
     onError: () => m.el.classList.remove("shader-ready"),
   });
+  const rect = m.canvas.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) m.shader.resize(rect.width, rect.height);
 }
 
 function mount(el: HTMLElement) {
