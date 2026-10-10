@@ -123,7 +123,7 @@ struct VaultView: View {
         }
     }
 
-    /// A new item's form opens in the detail panel: from a tool page, go to the items; on a narrow window, slide to
+    /// An item form opens in the detail panel: from a tool page, go to the items; on a narrow window, slide to
     /// it. Leaving it with input in it asks first.
     private func newItemFormHandling(_ content: some View) -> some View {
         content
@@ -133,13 +133,21 @@ struct VaultView: View {
                 if !isItemSection { section = .section(.all) }
                 if compact { depth = 2 }
             }
-            .confirmationDialog("Discard this new item?", isPresented: Binding(get: { model.pendingLeave != nil },
-                                                                               set: { if !$0 { model.pendingLeave = nil } })) {
+            .confirmationDialog(discardFormTitle, isPresented: Binding(get: { model.pendingLeave != nil },
+                                                                        set: { if !$0 { model.pendingLeave = nil } })) {
                 Button("Discard", role: .destructive) { withAnimation(.snappy(duration: 0.25)) { model.discardNewItemAndLeave() } }
                 Button("Keep Editing", role: .cancel) {}
             } message: {
-                Text("What you've typed for it isn't saved yet.")
+                if model.editing?.mode.isEdit == true {
+                    Text("What you've typed here isn't saved yet.")
+                } else {
+                    Text("What you've typed for it isn't saved yet.")
+                }
             }
+    }
+
+    private var discardFormTitle: LocalizedStringKey {
+        model.editing?.mode.isEdit == true ? "Discard your changes?" : "Discard this new item?"
     }
 
     @State private var initialMeasure = true
@@ -218,7 +226,7 @@ struct VaultView: View {
 
     @ViewBuilder private var detailPane: some View {
         if let request = model.newItemForm {
-            // A new item (or a clone) is made right here, where it will show once saved.
+            // New, clone, and edit all happen right here, where the item shows.
             EditItemSheet(mode: request.mode, prefill: request.prefill, inPanel: true)
                 .id(request.id)
                 .transition(.opacity.combined(with: .offset(y: 8)))
@@ -309,9 +317,8 @@ struct VaultView: View {
                 .sharedBackgroundVisibility(.hidden)
             }
             .background {
-                // Keyboard: ⌘K opens the command palette, ⌘F the list's search, ⌘G the generator.
-                Group {
-                    Button("") { model.openPalette() }.keyboardShortcut("k", modifiers: .command)
+                // Keyboard: ⌘K is Help › Command Palette, ⌘F the list's search, ⌘G the generator.
+                    Group {
                     Button("") { focusSearch() }.keyboardShortcut("f", modifiers: .command)
                     Button("") { section = .generator }.keyboardShortcut("g", modifiers: .command)
                 }
@@ -350,7 +357,6 @@ struct VaultView: View {
         .onChange(of: model.showingGenerator) { _, show in
             if show { section = .generator; model.showingGenerator = false }
         }
-        .sheet(item: $model.editSheet) { request in EditItemSheet(mode: request.mode, prefill: request.prefill) }
         .sheet(item: $model.repromptRequest) { request in RepromptSheet(request: request) }
         .sheet(item: $model.signInPrompt) { prompt in SignInApprovalSheet(prompt: prompt) }
         .sheet(isPresented: Binding(get: { model.eventLogFor != nil }, set: { if !$0 { model.eventLogFor = nil } })) {
@@ -1446,7 +1452,7 @@ private struct SSHAccessRow: View {
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(tint.opacity(0.16), in: .capsule)
-                Text(event.date, format: .relative(presentation: .numeric, unitsStyle: .narrow))
+                Text(verbatim: SSHAccessClock.label(since: event.date))
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
@@ -1460,6 +1466,7 @@ private struct SSHAccessRow: View {
     private var symbol: String {
         switch event.outcome {
         case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .reusedTrust: "checkmark"
+        case .allowlisted: "checkmark.seal"
         case .denied: "xmark"
         case .timedOut: "clock"
         case .locked: "lock"
@@ -1468,7 +1475,7 @@ private struct SSHAccessRow: View {
 
     private var tint: Color {
         switch event.outcome {
-        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .reusedTrust:
+        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .allowlisted, .reusedTrust:
             Color(red: 0.35, green: 0.78, blue: 0.55)
         case .denied: Color(red: 0.95, green: 0.45, blue: 0.42)
         case .timedOut: Color(red: 0.95, green: 0.72, blue: 0.38)
@@ -1481,6 +1488,7 @@ private struct SSHAccessRow: View {
         case .allowedOnce: "Allowed once"
         case .allowedForTenMinutes: "Allowed for 10 minutes"
         case .allowedUntilLock: "Trusted until lock"
+        case .allowlisted: "Always allowed"
         case .denied: "Denied"
         case .timedOut: "Timed out"
         case .locked: "Vault locked"
@@ -2148,13 +2156,29 @@ struct ItemDetail: View {
     @Environment(AppModel.self) private var model
     let item: VaultItem
     @State private var revealToggle = false
+    /// ⌥ peek, after a short hold. Releasing ⌥ waits a moment, then the secret rolls back into dots.
+    @State private var optionPeek = false
+    @State private var peekWait: Task<Void, Never>?
     @State private var starBurst = 0
     @State private var confirmDelete = false
     @State private var dropping = false
-    /// Revealed while toggled on, or while ⌥ is held.
-    private var reveal: Binding<Bool> {
-        // Holding ⌥ peeks, except on items that ask for the master password first.
-        Binding(get: { revealToggle || (model.optionHeld && model.isRepromptPassed(item)) }, set: { revealToggle = $0 })
+    /// Revealed by the eye, or by holding ⌥.
+    private var secretsVisible: Bool { revealToggle || optionPeek }
+
+    /// Holding ⌥ alone peeks. A quick tap does nothing; letting go waits, then the mask rolls back.
+    private func setOptionPeek(_ held: Bool) {
+        peekWait?.cancel()
+        peekWait = Task {
+            if held {
+                try? await Task.sleep(for: .milliseconds(260))
+                guard !Task.isCancelled, model.isRepromptPassed(item) else { return }
+                optionPeek = true
+            } else {
+                try? await Task.sleep(for: .milliseconds(160))
+                guard !Task.isCancelled else { return }
+                optionPeek = false
+            }
+        }
     }
 
     var body: some View {
@@ -2171,12 +2195,12 @@ struct ItemDetail: View {
                     }
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
-                HeroCard(item: item, reveal: reveal)
+                HeroCard(item: item, reveal: secretsVisible)
 
                 if !item.fields.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(Array(item.fields.enumerated()), id: \.element.id) { index, field in
-                            FieldLine(item: item, field: field, reveal: reveal.wrappedValue)
+                            FieldLine(item: item, field: field, reveal: secretsVisible)
                                 .overlay(alignment: .top) { if index > 0 { Divider().opacity(0.6).padding(.leading, 16) } }
                         }
                     }
@@ -2185,10 +2209,10 @@ struct ItemDetail: View {
                 }
 
                 VStack(spacing: 0) {
-                    if let address = item.uri ?? item.host,
-                       let url = URL(string: address.contains("://") ? address : "https://" + address) {
-                        DetailRow(symbol: "globe", title: "Website") {
-                            Button { NSWorkspace.shared.open(url) } label: {
+                    ForEach(Array(item.websites.enumerated()), id: \.offset) { index, address in
+                        let url = URL(string: address.contains("://") ? address : "https://" + address)
+                        DetailRow(symbol: "globe", title: index == 0 ? "Website" : "Website \(index + 1)") {
+                            Button { if let url { NSWorkspace.shared.open(url) } } label: {
                                 HStack(spacing: 5) {
                                     Text(verbatim: address).lineLimit(1).truncationMode(.middle)
                                     Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .semibold))
@@ -2198,6 +2222,7 @@ struct ItemDetail: View {
                                 .contentShape(.rect)
                             }
                             .buttonStyle(.plain)
+                            .disabled(url == nil)
                             .help(Text("Open in your browser"))
                             .contextMenu {
                                 Button("Copy", systemImage: "doc.on.doc") { model.copyPlain(address) }
@@ -2371,6 +2396,8 @@ struct ItemDetail: View {
         } message: {
             Text("This can't be undone.")
         }
+        .onChange(of: model.optionHeld, initial: true) { _, held in setOptionPeek(held) }
+        .onDisappear { peekWait?.cancel() }
     }
 
     /// What Watchtower says about this password: the same checks as the list's mark.
@@ -2394,12 +2421,14 @@ struct ItemDetail: View {
             } else {
                 // Reveal, then a divider, whenever the item has anything secret (password, private key, card code…).
                 if item.password != nil || item.fields.contains(where: \.secret) {
-                    toolbarButton(reveal.wrappedValue ? "eye.slash" : "eye", help: reveal.wrappedValue ? "Hide" : "Reveal (hold ⌥)",
-                                  spoken: reveal.wrappedValue ? "Hide" : "Reveal") {
-                        if reveal.wrappedValue {
-                            withAnimation(.snappy) { reveal.wrappedValue = false }
+                    toolbarButton(secretsVisible ? "eye.slash" : "eye", help: secretsVisible ? "Hide" : "Reveal (hold ⌥)",
+                                  spoken: secretsVisible ? "Hide" : "Reveal") {
+                        if secretsVisible {
+                            revealToggle = false
+                            optionPeek = false
+                            peekWait?.cancel()
                         } else {
-                            model.guarded(item) { withAnimation(.snappy) { reveal.wrappedValue = true } }
+                            model.guarded(item) { revealToggle = true }
                         }
                     }
                     Rectangle().fill(Color.primary.opacity(0.12)).frame(width: 1, height: 16).padding(.horizontal, 3)
@@ -2447,14 +2476,9 @@ extension HeroCard {
                             Text(strength.1)
                         }
                         .font(.system(size: 12)).foregroundStyle(style.muted)
-                        Group {
-                            if reveal {
-                                DecodingText(password).font(.system(size: 16, weight: .semibold, design: .monospaced)).tracking(0.5)
-                            } else {
-                                Text(verbatim: String(repeating: "•", count: 12))
-                                    .font(.system(size: 20, weight: .semibold, design: .monospaced)).tracking(2)
-                            }
-                        }
+                        MaskedSecret(secret: password, revealed: reveal)
+                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                            .tracking(0.5)
                             .lineLimit(1)
                             .frame(height: 24, alignment: .leading)
                         // Same place and size as the code's countdown bar, so the tiles line up.
@@ -2503,7 +2527,7 @@ private struct HeroCard: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
     let item: VaultItem
-    @Binding var reveal: Bool
+    let reveal: Bool
     @State var passwordArmed: Int?
     @State var passwordCopied = false
     @State var codeArmed: Int?
@@ -2612,12 +2636,11 @@ private struct FieldLine: View {
                 .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                 .frame(width: 110, alignment: .leading)
             Group {
-                if field.secret && !reveal {
-                    Text(verbatim: String(repeating: "•", count: 10))
-                } else if field.secret {
-                    DecodingText(shown)
+                if field.secret {
+                    MaskedSecret(secret: shown, revealed: reveal, dots: 10)
                 } else {
                     Text(verbatim: shown)
+                        .contentTransition(.opacity)
                 }
             }
                 .font(.system(size: 13, design: field.monospaced ? .monospaced : .default))
@@ -2625,7 +2648,6 @@ private struct FieldLine: View {
                 .truncationMode(.middle)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentTransition(.opacity)
             Button {
                 armed = model.copyCount
                 if field.secret { model.guarded(item) { model.copy(field.value, label: field.label) } } else { model.copy(field.value, label: field.label) }

@@ -79,6 +79,7 @@ struct SSHApprovalCard: View {
                     Text("Allow Once").tag(SSHGrant.once)
                     Text("Allow for 10 Minutes").tag(SSHGrant.tenMinutes)
                     Text("Trust Until Lock").tag(SSHGrant.untilLock)
+                    Text("Always Allow").tag(SSHGrant.always)
                 }
                 .pickerStyle(.inline)
             } label: {
@@ -118,7 +119,20 @@ struct SSHApprovalCard: View {
         case .once: "Allow Once"
         case .tenMinutes: "Allow for 10 Minutes"
         case .untilLock: "Trust Until Lock"
+        case .always: "Always Allow"
         }
+    }
+}
+
+/// How long ago an SSH request was, in the largest unit only. Seconds are never shown.
+enum SSHAccessClock {
+    static func label(since date: Date, now: Date = .now) -> String {
+        let minutes = max(0, Int(now.timeIntervalSince(date) / 60))
+        if minutes < 1 { return String(localized: "Just now") }
+        if minutes < 60 { return String(localized: "\(minutes) min") }
+        let hours = minutes / 60
+        if hours < 24 { return String(localized: "\(hours) hr") }
+        return String(localized: "\(hours / 24) d")
     }
 }
 

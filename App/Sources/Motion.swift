@@ -12,6 +12,58 @@ struct DecodingText: View {
     }
 }
 
+/// A secret that rolls into view, and rolls back into dots when it is hidden again.
+/// Hiding keeps the remaining characters in place until each one becomes a dot, left to right.
+struct MaskedSecret: View {
+    let secret: String
+    let revealed: Bool
+    /// How many dots stand in for the secret while it is hidden.
+    var dots = 12
+
+    @State private var shown: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var mask: String {
+        // Same length as the secret, so each character rolls back into its own dot.
+        String(repeating: "•", count: min(max(secret.count, dots), 36))
+    }
+    private static let glyphs = Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+
+    init(secret: String, revealed: Bool, dots: Int = 12) {
+        self.secret = secret
+        self.revealed = revealed
+        self.dots = dots
+        let mask = String(repeating: "•", count: min(max(secret.count, dots), 36))
+        _shown = State(initialValue: revealed ? secret : mask)
+    }
+
+    var body: some View {
+        Text(verbatim: shown)
+            .task(id: revealed) { await roll(to: revealed ? secret : mask, flicker: revealed) }
+    }
+
+    /// `flicker`: unrevealed characters cycle glyphs (the reveal). Otherwise they stay as they were until they become dots.
+    private func roll(to target: String, flicker: Bool) async {
+        guard Motion.plays, !reduceMotion, shown != target else { shown = target; return }
+        let steps = 12
+        let from = Array(shown)
+        let to = Array(target)
+        let count = max(from.count, to.count, 1)
+        for step in 0...steps {
+            let settled = count * step / steps
+            shown = String((0..<count).map { index in
+                if index < settled { return index < to.count ? to[index] : "•" }
+                if flicker { return Self.glyphs.randomElement()! }
+                if index < from.count { return from[index] }
+                return "•"
+            })
+            try? await Task.sleep(for: .milliseconds(26))
+            if Task.isCancelled { return }
+        }
+        shown = target
+    }
+}
+
 /// Draws `text` through `content`, rolling every character through random glyphs whenever it changes, settling left
 /// to right like a slot machine. `keep`: characters that stay put (spaces, a passphrase's separators).
 struct Rolling<Content: View>: View {

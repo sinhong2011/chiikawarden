@@ -7,7 +7,7 @@ import SwiftUI
 import UserNotifications
 import VaultwardenAPI
 
-/// Drives the create/edit sheet.
+/// Drives the item form in the detail panel.
 struct EditRequest: Identifiable {
     let id = UUID()
     let mode: EditItemSheet.Mode
@@ -289,30 +289,25 @@ final class AppModel {
         newFolderParent = parent
         promptingNewFolder = true
     }
-    /// Non-nil while an item form is open: editing in a sheet, a new item (or a clone) in the detail panel.
+    /// Non-nil while an item form is open in the detail panel (new, clone, or edit).
     var editing: EditRequest?
-    /// The new-item form in the detail panel, if one is open.
-    var newItemForm: EditRequest? {
-        guard let editing, !editing.mode.isEdit else { return nil }
-        return editing
-    }
-    /// The edit sheet's request, if one is open.
-    var editSheet: EditRequest? {
-        get { editing.flatMap { $0.mode.isEdit ? $0 : nil } }
-        set { if newValue == nil, editing?.mode.isEdit == true { editing = nil } }
-    }
-    /// The new-item form has input in it (it reports this), so leaving it asks first.
+    /// The form in the detail panel, if one is open.
+    var newItemForm: EditRequest? { editing }
+    /// The form has input in it (it reports this), so leaving it asks first.
     var newItemFormDirty = false
     /// What to do once "Discard this new item?" is answered with Discard.
     var pendingLeave: (() -> Void)?
     /// The item selected before the new-item form opened, shown again if it's cancelled.
     private var selectionBeforeForm: VaultItem.ID?
 
-    /// Opens an item form: editing in a sheet, a new item or clone in the detail panel (the list's selection steps
-    /// aside for it). Leaving a new item with input in it asks first.
+    /// Opens an item form in the detail panel. A new item or clone steps the list's selection aside; an edit keeps
+    /// that item selected. Leaving a form with input in it asks first.
     func beginEditing(_ request: EditRequest) {
         leaveNewItemForm { [self] in
-            if !request.mode.isEdit {
+            if case .edit(let item) = request.mode {
+                selectionBeforeForm = nil
+                selectedID = item.id
+            } else {
                 selectionBeforeForm = selectedID
                 selectedID = nil
             }
@@ -335,12 +330,14 @@ final class AppModel {
         action?()
     }
 
-    /// Closes the new-item form; cancelled, the item selected before it shows again.
+    /// Closes the form. Cancelling a new item or clone shows the item selected before it; cancelling an edit
+    /// shows that same item.
     func closeNewItemForm(restoringSelection: Bool = true) {
-        guard newItemForm != nil else { return }
-        editing = nil
+        guard let editing else { return }
+        let restore = restoringSelection && !editing.mode.isEdit
+        self.editing = nil
         newItemFormDirty = false
-        if restoringSelection, selectedID == nil { selectedID = selectionBeforeForm }
+        if restore, selectedID == nil { selectedID = selectionBeforeForm }
         selectionBeforeForm = nil
     }
     /// The import or export sheet; an import may start with a file (dropped on the window).
@@ -625,6 +622,47 @@ final class AppModel {
 
     /// Opens the command palette (set by the app; the search box, ⌘K/⌘F and the global shortcut all use it).
     @ObservationIgnored var openPalette: () -> Void = {}
+    /// The vault window, so Help and Keyboard Shortcuts can sit in its center and dim it.
+    @ObservationIgnored weak var mainWindow: NSWindow?
+    /// True while Help or Keyboard Shortcuts is open. The vault window draws a scrim from this.
+    var helpScrim = false
+    @ObservationIgnored private var shortcutsWindow: GlassWindow?
+    @ObservationIgnored private var helpWindow: GlassWindow?
+
+    func showShortcuts() {
+        if shortcutsWindow == nil {
+            shortcutsWindow = GlassWindow(model: self, title: String(localized: "Keyboard Shortcuts"),
+                                          size: NSSize(width: 960, height: 680), minSize: NSSize(width: 860, height: 560)) {
+                AnyView(KeyboardShortcutsView())
+            }
+        }
+        shortcutsWindow?.show()
+    }
+
+    func showHelp() {
+        if helpWindow == nil {
+            helpWindow = GlassWindow(model: self, title: String(localized: "Triwarden Help"),
+                                     size: NSSize(width: 820, height: 560), minSize: NSSize(width: 720, height: 480)) {
+                AnyView(HelpGuideView())
+            }
+        }
+        helpWindow?.show()
+    }
+
+    func dismissHelpPanels() {
+        shortcutsWindow?.close()
+        helpWindow?.close()
+    }
+
+    func refreshHelpScrim() {
+        let on = (shortcutsWindow?.isShown == true) || (helpWindow?.isShown == true)
+        guard helpScrim != on else { return }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            helpScrim = on
+        } else {
+            withAnimation(.easeOut(duration: 0.22)) { helpScrim = on }
+        }
+    }
     /// Waits for the palette to finish closing: it holds the keyboard until then, even over another app.
     @ObservationIgnored var paletteClosed: () async -> Void = {}
     /// SwiftUI's `openSettings`, captured by the main window (it only exists inside a scene).
@@ -2087,7 +2125,7 @@ final class AppModel {
         }) { monitors.append(m) }
         // Hold ⌥ to reveal masked fields (only ⌥, so ⌥-shortcuts don't flash secrets).
         if let m = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged, handler: { [weak self] e in
-            let flags = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let flags = e.modifierFlags.intersection([.shift, .control, .option, .command])
             self?.optionHeld = flags == .option
             return e
         }) { monitors.append(m) }

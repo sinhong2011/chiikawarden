@@ -2,6 +2,34 @@ import AppKit
 import SSHAgent
 import SwiftUI
 
+/// Control+Return in the palette's field opens the system text menu. Catch it first and run the shortcut.
+private final class ControlReturnMonitor: @unchecked Sendable {
+    var onFire: (EventModifiers) -> Void = { _ in }
+    private var token: Any?
+
+    func start() {
+        guard token == nil else { return }
+        token = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.window is QuickSearchPanel else { return event }
+            guard event.keyCode == 36 || event.keyCode == 76 else { return event }
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard flags.contains(.control) else { return event }
+            if event.isARepeat { return nil }
+            var modifiers: EventModifiers = [.control]
+            if flags.contains(.shift) { modifiers.insert(.shift) }
+            if flags.contains(.option) { modifiers.insert(.option) }
+            if flags.contains(.command) { modifiers.insert(.command) }
+            MainActor.assumeIsolated { self?.onFire(modifiers) }
+            return nil
+        }
+    }
+
+    func stop() {
+        if let token { NSEvent.removeMonitor(token) }
+        token = nil
+    }
+}
+
 /// One runnable action in the palette.
 struct PaletteCommand: Identifiable {
     let id: String
@@ -39,6 +67,8 @@ struct CommandPalette: View {
     @State private var generated = ""
     /// Shown for a moment after a copy, before the palette goes.
     @State private var flash: String?
+    /// Control+Return never reaches the field's key handler: macOS opens the text menu (Cut, Copy, Paste) instead.
+    @State private var controlReturn = ControlReturnMonitor()
 
     enum Entry: Identifiable {
         case item(VaultItem)
@@ -187,6 +217,7 @@ struct CommandPalette: View {
             (.once, "Allow Once", "checkmark.circle"),
             (.tenMinutes, "Allow for 10 Minutes", "clock"),
             (.untilLock, "Trust Until Lock", "lock.open"),
+            (.always, "Always Allow", "checkmark.seal"),
         ]
         if let first = grants.firstIndex(where: { $0.0 == lead }) {
             grants.insert(grants.remove(at: first), at: 0)
@@ -215,6 +246,9 @@ struct CommandPalette: View {
             .frame(height: 54)
             Divider().opacity(0.6)
 
+            if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                FrontTabMatchPrompt(horizontalPadding: 14)
+            }
             results(self.sections)
             Divider().opacity(0.6)
             footer
@@ -262,6 +296,11 @@ struct CommandPalette: View {
         .onChange(of: generateRequest) { regenerate() }
         // Unlocked from here: back to the search field.
         .onChange(of: model.isUnlocked) { _, open in if open { focused = true } }
+        .onAppear {
+            controlReturn.onFire = { run($0) }
+            controlReturn.start()
+        }
+        .onDisappear { controlReturn.stop() }
     }
 
     // MARK: Pieces
@@ -416,7 +455,7 @@ struct CommandPalette: View {
                 if item.username != nil { footerHint("⌃↵", "Username") }
                 if item.password != nil { footerHint("⌥↵", "Password") }
                 if item.totp != nil { footerHint("⌘↵", "Code") }
-                footerHint("⇧↵", "+ submit")
+                footerHint("⇧", "& submit")
             } else {
                 footerHint("↵", "Open")
                 if item.password != nil { footerHint("⌘↵", "Copy password") }
@@ -729,7 +768,9 @@ struct CommandPalette: View {
             list.append(PaletteCommand(id: "add-account", title: String(localized: "Add Account…"), symbol: "person.badge.plus",
                                        keywords: ["login", "sign in", "account"]) { model.bringToFront(); model.beginAddAccount() })
         }
-        list.append(PaletteCommand(id: "shortcuts", title: String(localized: "Keyboard Shortcuts"), symbol: "keyboard", shortcut: "⌘/",
+        list.append(PaletteCommand(id: "help", title: String(localized: "Triwarden Help"), symbol: "questionmark.circle", shortcut: "⌘?",
+                                   keywords: ["help", "guide", "docs"]) { model.showHelp() })
+        list.append(PaletteCommand(id: "shortcuts", title: String(localized: "Keyboard Shortcuts"), symbol: "keyboard", shortcut: "⌃⇧/",
                                    keywords: ["keys", "help", "cheat sheet", "hotkeys"]) {
             model.showingShortcuts = true
         })

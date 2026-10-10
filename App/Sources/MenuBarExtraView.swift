@@ -22,6 +22,7 @@ struct MenuBarContent: View {
             topRow
             if model.isUnlocked, focusedOpen {
                 if query.trimmingCharacters(in: .whitespaces).isEmpty {
+                    FrontTabMatchPrompt()
                     SiteCard()
                     ShelfCard()
                     QuickActions()

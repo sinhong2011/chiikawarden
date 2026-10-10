@@ -230,8 +230,7 @@ final class AutoFillState {
     private var equivalents = EquivalentDomains.none
 
     func matches(_ item: VaultItem) -> Bool {
-        guard let host = item.host?.lowercased() else { return false }
-        return domains.contains { equivalents.matches(itemHost: host, site: $0) }
+        item.hosts.contains { host in domains.contains { equivalents.matches(itemHost: host, site: $0) } }
     }
 
     func fill(_ item: VaultItem) {

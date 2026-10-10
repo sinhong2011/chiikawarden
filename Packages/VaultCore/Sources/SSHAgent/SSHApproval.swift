@@ -127,6 +127,8 @@ public enum SSHGrant: String, Equatable, Sendable {
     case once
     case tenMinutes
     case untilLock
+    /// Remember the app. Later signatures are allowed whenever the vault is unlocked, with no further prompt.
+    case always
 }
 
 public enum SSHApprovalEmphasis {
@@ -217,10 +219,47 @@ public enum SSHAccessOutcome: String, Codable, Equatable, Sendable {
     case allowedOnce
     case allowedForTenMinutes
     case allowedUntilLock
+    case allowlisted
     case denied
     case timedOut
     case locked
     case reusedTrust
+}
+
+/// Apps allowed to sign whenever the vault is unlocked. Membership survives lock and quit.
+public struct SSHAllowlistEntry: Codable, Equatable, Sendable, Identifiable {
+    public var id: String { trustKey }
+    public var trustKey: String
+    public var displayName: String
+    public init(trustKey: String, displayName: String) {
+        self.trustKey = trustKey
+        self.displayName = displayName
+    }
+}
+
+public struct SSHAllowlist: Codable, Equatable, Sendable {
+    public private(set) var entries: [SSHAllowlistEntry] = []
+    public init() {}
+
+    public func contains(_ trustKey: String) -> Bool { entries.contains { $0.trustKey == trustKey } }
+
+    public mutating func add(_ entry: SSHAllowlistEntry) {
+        entries.removeAll { $0.trustKey == entry.trustKey }
+        entries.append(entry)
+    }
+
+    public mutating func remove(trustKey: String) { entries.removeAll { $0.trustKey == trustKey } }
+
+    public static func load(from url: URL) -> SSHAllowlist {
+        guard let data = try? Data(contentsOf: url), let list = try? JSONDecoder().decode(SSHAllowlist.self, from: data) else {
+            return SSHAllowlist()
+        }
+        return list
+    }
+
+    public func save(to url: URL) throws {
+        try JSONEncoder().encode(self).write(to: url, options: .atomic)
+    }
 }
 
 public struct SSHAccessEvent: Codable, Equatable, Sendable, Identifiable {
@@ -259,7 +298,7 @@ public struct SSHAccessLog: Codable, Equatable, Sendable {
     /// Asks for this trust key at or after `since` (the current unlock), ignoring grants that were reused or refused because the vault was locked.
     public func priorAsks(trustKey: String, since: Date) -> Int {
         events.filter {
-            $0.trustKey == trustKey && $0.date >= since && $0.outcome != .reusedTrust && $0.outcome != .locked
+            $0.trustKey == trustKey && $0.date >= since && $0.outcome != .reusedTrust && $0.outcome != .locked && $0.outcome != .allowlisted
         }.count
     }
 

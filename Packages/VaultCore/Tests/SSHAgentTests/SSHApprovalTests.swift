@@ -106,3 +106,29 @@ import Testing
     #expect(loaded.events.count == 200)
     #expect(loaded.events.first?.outcome == .reusedTrust)
 }
+
+@Test func allowlistMatchesTheTrustKeyNotTheDisplayName() throws {
+    var list = SSHAllowlist()
+    let key = "bundle:com.apple.dt.Xcode|team:APPLE"
+    list.add(SSHAllowlistEntry(trustKey: key, displayName: "Xcode"))
+    list.add(SSHAllowlistEntry(trustKey: key, displayName: "Xcode 26"))
+    #expect(list.entries.count == 1)
+    #expect(list.entries.first?.displayName == "Xcode 26")
+    #expect(list.contains(key))
+    #expect(list.contains("Xcode") == false)
+    let url = FileManager.default.temporaryDirectory.appending(path: "ssh-allow-\(UUID().uuidString).json")
+    try list.save(to: url)
+    let loaded = SSHAllowlist.load(from: url)
+    #expect(loaded.contains(key))
+    var cleared = loaded
+    cleared.remove(trustKey: key)
+    #expect(cleared.entries.isEmpty)
+}
+
+@Test func aSilentAllowlistGrantIsNotAnotherAsk() {
+    var log = SSHAccessLog()
+    let start = Date(timeIntervalSince1970: 1_000)
+    log.append(SSHAccessEvent(id: UUID(), date: start, appName: "Xcode", via: "ssh", path: nil,
+                               keyName: "work", outcome: .allowlisted, trustKey: "k"))
+    #expect(log.priorAsks(trustKey: "k", since: start) == 0)
+}

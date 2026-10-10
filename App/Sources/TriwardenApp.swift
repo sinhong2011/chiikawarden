@@ -82,15 +82,6 @@ struct TriwardenApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Keyboard Shortcuts", id: KeyboardShortcutsView.windowID) {
-            KeyboardShortcutsView()
-                .environment(model)
-                .preferredColorScheme(appearance.scheme)
-        }
-        .windowResizability(.contentMinSize)
-        .restorationBehavior(.disabled)
-        .defaultLaunchBehavior(.suppressed)
-
         Window("Triwarden", id: LicenseReminderView.windowID) {
             LicenseReminderView()
                 .environment(model)
@@ -175,11 +166,16 @@ struct TriwardenApp: App {
                     .keyboardShortcut(.delete, modifiers: .command)
                     .disabled(item == nil || item?.isDeleted == true)
             }
-            CommandGroup(after: .help) {
-                ShortcutsMenuButton()
+            CommandGroup(replacing: .help) {
+                Button("Triwarden Help") { model.showHelp() }
+                    .keyboardShortcut("?", modifiers: .command)
+                Divider()
+                Button("Command Palette") { model.openPalette() }
+                    .keyboardShortcut("k", modifiers: .command)
+                Button("Keyboard Shortcuts") { model.showShortcuts() }
+                    .keyboardShortcut("/", modifiers: [.control, .shift])
             }
             CommandGroup(after: .appSettings) {
-                Button("Command Palette") { model.openPalette() } // its shortcut is the global one from Settings
                 Button("Lock Vault") { model.lock(animated: true) }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
@@ -188,16 +184,7 @@ struct TriwardenApp: App {
     }
 }
 
-/// Help › Keyboard Shortcuts (⌘/).
-private struct ShortcutsMenuButton: View {
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some View {
-        Button("Keyboard Shortcuts") { openWindow(id: KeyboardShortcutsView.windowID) }
-            .keyboardShortcut("/", modifiers: .command)
-    }
-}
-
+/// Help › Triwarden Help (⌘?), Command Palette (⌘K) and Keyboard Shortcuts (⌃⇧/).
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openSettings) private var openSettings
@@ -251,10 +238,16 @@ struct RootView: View {
         .overlay {
             if model.gate != nil { GatePlates() }
         }
+        .overlay {
+            if model.helpScrim {
+                HelpScrim { model.dismissHelpPanels() }
+            }
+        }
+        .background { MainWindowAnchor() }
         .onChange(of: model.showingShortcuts) { _, show in
             guard show else { return }
             model.showingShortcuts = false
-            openWindow(id: KeyboardShortcutsView.windowID)
+            model.showShortcuts()
         }
         .animation(phaseAnimation, value: model.phase.id)
         .onAppear {

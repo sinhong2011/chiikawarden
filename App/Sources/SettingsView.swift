@@ -198,6 +198,7 @@ private struct GeneralSettings: View {
     @State private var loginError: String?
     @AppStorage(Pref.showMenuBar) private var showMenuBar = true
     @AppStorage(Pref.closeToMenuBar) private var closeToMenuBar = false
+    @AppStorage(Pref.matchFrontTab) private var matchFrontTab = false
 
     var body: some View {
         Form {
@@ -244,6 +245,23 @@ private struct GeneralSettings: View {
                      ? "With the window closed, Triwarden leaves the Dock and waits in the menu bar. Shortcuts, AutoFill and the command palette keep working."
                      : "Without the menu bar icon, open Triwarden from the Dock, Spotlight or its shortcuts.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Match logins to the open website", isOn: Binding(
+                    get: { matchFrontTab },
+                    set: { on in
+                        matchFrontTab = on
+                        model.setMatchFrontTab(on)
+                    }))
+            } header: {
+                Text("Open website")
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Off until you turn it on. The menu bar and the command palette can then read the address of the front browser tab and put that site's logins first. Only an http or https address is kept. The page is not read, and nothing in the browser is clicked or changed.")
+                    Text("Turning this on does not grant access by itself. The next time the menu bar or command palette opens over a browser, macOS asks to let Triwarden control that browser. The system says this Automation permission can reach documents and data and perform actions there. That describes the permission, which is broader than this request. Triwarden asks one question: the address of the front tab. Each browser asks once. Don't Allow leaves the rest of Triwarden working; that browser's tab is not matched. Turning this off stops the question. To remove a permission already given, use System Settings › Privacy & Security › Automation.")
+                }
+                .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {
@@ -454,6 +472,23 @@ private struct DeveloperSettings: View {
             }
 
             Section {
+                if agent.allowlist.entries.isEmpty {
+                    Text("Choose Always Allow when an app asks to sign. It can sign whenever this vault is unlocked, including after you lock and open it again.")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    ForEach(agent.allowlist.entries) { entry in
+                        HStack {
+                            Text(verbatim: entry.displayName).font(.system(size: 13))
+                            Spacer()
+                            Button("Remove") { agent.revokeAllowlist(trustKey: entry.trustKey) }
+                        }
+                    }
+                }
+            } header: {
+                Text("Always allowed")
+            }
+
+            Section {
                 if agent.trustedUntilLock.isEmpty {
                     Text("Trust an app from the prompt when it asks to sign. Trust lasts until the vault locks.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -479,16 +514,7 @@ private struct DeveloperSettings: View {
                         .font(.caption).foregroundStyle(.secondary)
                 } else {
                     ForEach(agent.accessLog.events) { event in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(verbatim: "\(event.appName) · \(event.via) → \(event.keyName)")
-                                    .font(.system(size: 13)).lineLimit(1)
-                                Text(Self.outcome(event.outcome))
-                                    .font(.system(size: 11)).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text(event.date, style: .relative).foregroundStyle(.secondary).font(.caption)
-                        }
+                        SSHAccessSettingsRow(event: event)
                     }
                     Button("Clear Log") { agent.clearAccessLog() }
                 }
@@ -499,11 +525,71 @@ private struct DeveloperSettings: View {
         .formStyle(.grouped)
     }
 
-    private static func outcome(_ outcome: SSHAccessOutcome) -> LocalizedStringKey {
-        switch outcome {
+}
+
+/// One SSH access record in Settings: who asked, which key, how it ended, and how long ago (no seconds).
+private struct SSHAccessSettingsRow: View {
+    let event: SSHAccessEvent
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 26, height: 26)
+                .background(tint.opacity(0.16), in: .rect(cornerRadius: 7, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: event.appName)
+                    .font(.system(size: 13, weight: .medium))
+                    .lineLimit(1)
+                Text("via \(event.via) · \(event.keyName)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(label)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(tint.opacity(0.16), in: .capsule)
+                Text(verbatim: SSHAccessClock.label(since: event.date))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var symbol: String {
+        switch event.outcome {
+        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .reusedTrust: "checkmark"
+        case .allowlisted: "checkmark.seal"
+        case .denied: "xmark"
+        case .timedOut: "clock"
+        case .locked: "lock"
+        }
+    }
+
+    private var tint: Color {
+        switch event.outcome {
+        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .allowlisted, .reusedTrust:
+            Color(red: 0.35, green: 0.78, blue: 0.55)
+        case .denied: Color(red: 0.95, green: 0.45, blue: 0.42)
+        case .timedOut: Color(red: 0.95, green: 0.72, blue: 0.38)
+        case .locked: .secondary
+        }
+    }
+
+    private var label: LocalizedStringKey {
+        switch event.outcome {
         case .allowedOnce: "Allowed once"
         case .allowedForTenMinutes: "Allowed for 10 minutes"
         case .allowedUntilLock: "Trusted until lock"
+        case .allowlisted: "Always allowed"
         case .denied: "Denied"
         case .timedOut: "Timed out"
         case .locked: "Vault locked"
@@ -1081,10 +1167,11 @@ private struct ShortcutRecorder: View {
 private struct ShortcutsSettings: View {
     /// The menu commands and their keys, as the app's menus define them.
     private static let inApp: [(LocalizedStringKey, String)] = [
-        ("Command Palette", "⌘K  ⌘F"), ("New Login", "⌘N"), ("New Secure Note", "⇧⌘N"), ("New Folder…", "⌥⌘N"),
+        ("Command Palette", "⌘K"), ("Triwarden Help", "⌘?"), ("Keyboard Shortcuts", "⌃⇧/"),
+        ("New Login", "⌘N"), ("New Secure Note", "⇧⌘N"), ("New Folder", "⌥⌘N"),
         ("Edit", "⌘E"), ("Copy Username", "⇧⌘C"), ("Copy Password", "⌥⌘C"), ("Copy One-Time Code", "⌃⌘C"),
-        ("Toggle Favorite", "⌘D"), ("Archive", "⌥⌘A"), ("Move to Trash…", "⌘⌫"), ("Generator", "⌘G"),
-        ("Import…", "⇧⌘I"), ("Export Vault…", "⇧⌘E"), ("Lock Vault", "⇧⌘L"), ("Settings…", "⌘,"),
+        ("Toggle Favorite", "⌘D"), ("Archive", "⌥⌘A"), ("Move to Trash", "⌘⌫"), ("Generator", "⌘G"),
+        ("Import", "⇧⌘I"), ("Export Vault", "⇧⌘E"), ("Lock Vault", "⇧⌘L"), ("Settings", "⌘,"),
     ]
 
     var body: some View {
@@ -1102,7 +1189,7 @@ private struct ShortcutsSettings: View {
             } header: {
                 Text("Anywhere")
             } footer: {
-                Text("Works in every app. Called over a browser or an app, the palette puts its logins first, and ↵ types the username and password in (⌃↵ username, ⌥↵ password, ⇧ also submits). Typing needs Accessibility for “Triwarden Auto-Type”, a small helper inside the app, so Triwarden itself stays sandboxed. ⌘K and ⌘F also open the palette inside the vault window.")
+                Text("Works in every app. Called over a browser or an app, the palette puts its logins first, and ↵ types the username and password in (⌃↵ username, ⌥↵ password, ⇧ & submit). Typing needs Accessibility for “Triwarden Auto-Type”, a small helper inside the app, so Triwarden itself stays sandboxed. ⌘K and ⌘F also open the palette inside the vault window.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

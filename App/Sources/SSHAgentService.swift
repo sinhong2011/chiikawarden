@@ -5,7 +5,7 @@ import SSHAgent
 
 /// Serves the unlocked vault's SSH keys to `ssh`, `git` and friends. A signature names the app that asked,
 /// then proves the device owner with Touch ID or the Mac login password. A grant can last 15 seconds,
-/// 10 minutes, or until the vault locks.
+/// 10 minutes, or until the vault locks. An app on the allowlist signs whenever the vault is unlocked.
 @MainActor @Observable
 final class SSHAgentService {
     /// `~/Library/Group Containers/<group>/agent.sock`. Kept short: a socket path must fit in 104 bytes.
@@ -15,6 +15,7 @@ final class SSHAgentService {
     }
 
     static var logURL: URL { defaultSocket.deletingLastPathComponent().appending(path: "ssh-access-log.json") }
+    static var allowlistURL: URL { defaultSocket.deletingLastPathComponent().appending(path: "ssh-allowlist.json") }
 
     private(set) var isRunning = false
     private(set) var lastError: String?
@@ -24,6 +25,8 @@ final class SSHAgentService {
     private(set) var pending: SSHPrompt?
     private(set) var pendingCount = 0
     private(set) var accessLog: SSHAccessLog
+    /// Apps that may sign whenever the vault is unlocked. Kept across lock and quit.
+    private(set) var allowlist: SSHAllowlist
     private(set) var trustedUntilLock: [SSHTrust] = []
 
     private var server: SSHAgentServer?
@@ -42,6 +45,7 @@ final class SSHAgentService {
     init(model: AppModel) {
         self.model = model
         accessLog = SSHAccessLog.load(from: Self.logURL)
+        allowlist = SSHAllowlist.load(from: Self.allowlistURL)
     }
 
     func start(at socket: URL = defaultSocket) {
@@ -143,6 +147,11 @@ final class SSHAgentService {
             model?.noteActivity()
             return true
         }
+        if allowlist.contains(requester.trustKey) {
+            record(requester, key: identity.name, outcome: .allowlisted)
+            model?.noteActivity()
+            return true
+        }
 
         let pair = "\(requester.trustKey)|\(identity.id)"
         if let existing = inflight[pair] {
@@ -189,15 +198,32 @@ final class SSHAgentService {
         let reason = String(localized: "allow “\(requester.displayName)” to sign with the SSH key “\(identity.name)”")
         let ok = (try? await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)) == true
         guard ok, model?.isUnlocked == true else { return false }
+        if grant == .always {
+            var list = allowlist
+            list.add(SSHAllowlistEntry(trustKey: requester.trustKey, displayName: requester.displayName))
+            allowlist = list
+            try? allowlist.save(to: Self.allowlistURL)
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                ofItemAtPath: Self.allowlistURL.path)
+            return true
+        }
         let until: Date? = switch grant {
         case .once: Date.now.addingTimeInterval(15)
         case .tenMinutes: Date.now.addingTimeInterval(600)
-        case .untilLock: nil
+        case .untilLock, .always: nil
         }
         trust.grant(SSHTrust(trustKey: requester.trustKey, keyID: identity.id, displayName: requester.displayName,
                              keyName: identity.name, until: until))
         trustedUntilLock = trust.untilLock
         return true
+    }
+
+    func revokeAllowlist(trustKey: String) {
+        var list = allowlist
+        list.remove(trustKey: trustKey)
+        allowlist = list
+        try? allowlist.save(to: Self.allowlistURL)
     }
 
     private func refreshPending() async {
@@ -226,7 +252,7 @@ final class SSHAgentService {
 
     private func record(_ requester: SSHRequester, key: String, outcome: SSHAccessOutcome) {
         let allowed = switch outcome {
-        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .reusedTrust: true
+        case .allowedOnce, .allowedForTenMinutes, .allowedUntilLock, .allowlisted, .reusedTrust: true
         default: false
         }
         recent.insert((.now, key, requester.displayName, allowed), at: 0)
@@ -246,6 +272,7 @@ final class SSHAgentService {
         case .allow(.once): return .allowedOnce
         case .allow(.tenMinutes): return .allowedForTenMinutes
         case .allow(.untilLock): return .allowedUntilLock
+        case .allow(.always): return .allowlisted
         case .deny, .timedOut: return .denied
         }
     }
