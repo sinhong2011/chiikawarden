@@ -3310,30 +3310,30 @@
         }
       }
     },
-    "The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock." : {
+    "The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock. Enabling this increases CPU usage and power consumption." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待機中は扉がゆっくり動き、ゲートが開く前にリングが揃って扉が分解し、ロックすると再び組み上がります。"
+            "value" : "待機中は扉がゆっくり動き、ゲートが開く前にリングが揃って扉が分解し、ロックすると再び組み上がります。有効にすると、CPU使用率と消費電力が増加します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门在等待时缓缓转动，闸门打开前圆环转到对齐并自行拆开，锁定时再重新组合。"
+            "value" : "门在等待时缓缓转动，闸门打开前圆环转到对齐并自行拆开，锁定时再重新组合。启用后会增加 CPU 使用率和耗电量。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "門在等待時緩緩轉動，閘門打開前圓環轉到對齊並自行拆開，鎖定時再重新組合。"
+            "value" : "門在等待時緩緩轉動，閘門打開前圓環轉到對齊並自行拆開，鎖定時再重新組合。啟用後會增加 CPU 使用率和耗電量。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "門喺等緊嗰陣會慢慢轉，閘門打開之前圓環會轉到對齊再自己拆開，鎖定嗰陣再重新砌返。"
+            "value" : "門喺等緊嗰陣會慢慢轉，閘門打開之前圓環會轉到對齊再自己拆開，鎖定嗰陣再重新砌返。開啟後會增加 CPU 使用率同耗電量。"
           }
         }
       }
@@ -34709,6 +34709,258 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」"
+          }
+        }
+      }
+    },
+    "Status: Not activated" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状態：未有効化"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態：未啟用"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态：未启用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態：未啟用"
+          }
+        }
+      }
+    },
+    "Status: Activated" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状態：有効化済み"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態：已啟用"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态：已启用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態：已啟用"
+          }
+        }
+      }
+    },
+    "Focus License Field" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライセンス欄にフォーカス"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聚焦授權欄位"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聚焦授权字段"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聚焦授權欄位"
+          }
+        }
+      }
+    },
+    "Purchase License" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライセンスを購入"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購買授權"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "购买授权"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購買授權"
+          }
+        }
+      }
+    },
+    "One person, all Macs" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人・すべての Mac"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，所有 Mac"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，所有 Mac"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，所有 Mac"
+          }
+        }
+      }
+    },
+    "Every feature is free, with no time limit. A one-time license ends the reminder, covers one person on all their Macs, and keeps the project going." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての機能は期限なく無料です。買い切りライセンスでリマインダーを止め、一人が使うすべての Mac をカバーし、開発を支えます。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有功能都免費，冇時間限制。一次買斷嘅授權可以結束提醒，涵蓋一人喺佢所有 Mac，並支持專案繼續發展。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有功能都免费，没有时间限制。一次买断的授权可结束提醒，涵盖一人在其所有 Mac，并支持项目继续发展。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有功能都免費，沒有時間限制。一次買斷的授權可結束提醒，涵蓋一人於其所有 Mac，並支持專案繼續發展。"
+          }
+        }
+      }
+    },
+    "One person, all their Macs — including a company Mac. Not for resale or sharing across people. Commercial use needs a license; an employer may buy and assign one." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人が使うすべての Mac（会社の Mac 含む）。転売や複数人共有は不可。商用にはライセンスが必要で、雇用主が購入して一人に割り当てられます。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，佢所有 Mac（連公司 Mac）。唔可以轉售或者多人共用。商業用途需要授權；僱主可以代購並指派畀一人。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，其所有 Mac（含公司 Mac）。不可转售或多人共用。商业用途需要授权；雇主可代购并指派给一人。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，其所有 Mac（含公司 Mac）。不可轉售或多人共用。商業用途需要授權；雇主可代購並指派給一人。"
+          }
+        }
+      }
+    },
+    "One person, all their Macs — not for resale or sharing." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人・すべての Mac — 転売や共有は不可。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，佢所有 Mac — 唔可以轉售或者共用。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，其所有 Mac — 不可转售或共用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一人，其所有 Mac — 不可轉售或共用。"
+          }
+        }
+      }
+    },
+    "Learn More" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳しく見る"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解更多"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解更多"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解更多"
           }
         }
       }

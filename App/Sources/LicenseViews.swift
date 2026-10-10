@@ -8,14 +8,6 @@ struct LicenseReminderView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let version = model.license.updatedTo {
-                Label("Updated to \(version)", systemImage: "sparkles")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10).frame(height: 24)
-                    .background(Color.primary.opacity(0.06), in: .capsule)
-                    .padding(.bottom, 14)
-            }
             Image(nsImage: BrandIcon.image)
                 .resizable().frame(width: 76, height: 76)
                 .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
@@ -31,7 +23,7 @@ struct LicenseReminderView: View {
             LicensePerks()
                 .padding(.top, 16)
             VStack(spacing: 8) {
-                Button("Buy a License") {
+                Button("Purchase License") {
                     model.license.buy()
                     close()
                 }
@@ -68,7 +60,7 @@ private struct LicensePerks: View {
     var body: some View {
         HStack(spacing: 6) {
             perk("checkmark.circle", "One-time purchase")
-            perk("laptopcomputer", "All your Macs")
+            perk("laptopcomputer", "One person, all Macs")
             perk("lock.shield", "Nothing locked")
         }
     }
@@ -93,8 +85,7 @@ private struct LicensePerks: View {
     }
 }
 
-/// Settings › Registration: buy, paste a key, or see who it's registered to. Only Register goes online, and only for
-/// a key from a Lemon Squeezy receipt (once); an offline key is checked on this Mac.
+/// Settings › License: buy, paste a key, or see who it's registered to.
 struct LicenseSettings: View {
     @Environment(AppModel.self) private var model
     @State private var key = ""
@@ -140,21 +131,25 @@ struct LicenseSettings: View {
                 Image(nsImage: BrandIcon.image)
                     .resizable().frame(width: 64, height: 64)
                     .shadow(color: .black.opacity(0.12), radius: 5, y: 2)
-                Text("Support Triwarden")
+                Text("Activate Triwarden")
                     .font(.system(size: 20, weight: .bold)).tracking(-0.2)
                     .padding(.top, 10)
-                Text("Every feature is free, with no time limit. A license is a one-time purchase that ends the weekly reminder and keeps the project going.")
+                Text("Status: Not activated")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 6)
+                Text("Every feature is free, with no time limit. A one-time license ends the reminder, covers one person on all their Macs, and keeps the project going.")
                     .font(.system(size: 13)).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 440)
-                    .padding(.top, 4)
+                    .padding(.top, 8)
                 LicensePerks().padding(.top, 14)
-                Button("Buy a License") { license.buy() }
+                Button("Purchase License") { license.buy() }
                     .buttonStyle(.appPrimary)
                     .disabled(license.storeURL == nil)
                     .padding(.top, 18)
-                Text("Card, Alipay, WeChat Pay or PayPal")
+                Text("Card, Alipay, WeChat Pay or PayPal · one-time, not a subscription")
                     .font(.caption).foregroundStyle(.tertiary)
                     .padding(.top, 8)
             }
@@ -181,7 +176,7 @@ struct LicenseSettings: View {
                     .buttonBorderShape(.capsule)
                 } else {
                     Button(action: register) {
-                        if working { ProgressView().controlSize(.small).frame(width: 52) } else { Text("Register") }
+                        if working { ProgressView().controlSize(.small).frame(width: 52) } else { Text("Activate") }
                     }
                     .buttonStyle(.appPrimarySmall)
                     .disabled(working)
@@ -196,7 +191,22 @@ struct LicenseSettings: View {
         } header: {
             Text("Already have a license?")
         } footer: {
-            Text("A key from your receipt is confirmed with Lemon Squeezy once, when you register; nothing is checked after that. Offline keys never leave this Mac.")
+            Text("Your license number is in the confirmation email after purchase. A receipt key is confirmed with Lemon Squeezy once when you activate; nothing is checked after that. Offline keys never leave this Mac.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+
+        Section {
+            HStack(spacing: 16) {
+                Button("Focus License Field") { keyFocused = true }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                Button("Learn More") { license.openPricing() }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .disabled(license.pricingURL == nil)
+            }
+        } footer: {
+            Text("One person, all their Macs — including a company Mac. Not for resale or sharing across people. Commercial use needs a license; an employer may buy and assign one.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -210,7 +220,13 @@ struct LicenseSettings: View {
                 Text("Thank you!")
                     .font(.system(size: 20, weight: .bold)).tracking(-0.2)
                     .padding(.top, 12)
-                Text(registration.name.isEmpty ? "Triwarden is registered on this Mac." : "Triwarden is registered to \(registration.name).")
+                Text("Status: Activated")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                Text(registration.name.isEmpty
+                     ? String(localized: "Triwarden is registered on this Mac.")
+                     : String(localized: "Triwarden is registered to \(registration.name)."))
                     .font(.system(size: 13)).foregroundStyle(.secondary)
                     .padding(.top, 4)
             }
@@ -233,7 +249,7 @@ struct LicenseSettings: View {
             }
         } footer: {
             HStack {
-                Text("The same key works on all your Macs.")
+                Text("One person, all their Macs — not for resale or sharing.")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button("Remove License…", role: .destructive) { confirmRemove = true }

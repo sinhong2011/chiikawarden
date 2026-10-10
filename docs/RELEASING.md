@@ -76,10 +76,12 @@ Two kinds of key register (see `App/Sources/License.swift`):
 - **Offline keys**: you sign them yourself, and they're checked on the Mac only. They're for buyers who'd rather
   nothing went online, and a fallback if Lemon Squeezy ever goes away.
 
-1. In Lemon Squeezy, create the product as a one-time purchase with **license keys on, activation limit
-   unlimited, and no expiry**. Removing a license in the app doesn't free an activation, so a limit would
-   eventually lock buyers out. Turn on Alipay and WeChat Pay under Settings › Payments. In `project.yml`, set
-   `TW_STORE_URL` to the checkout link and `TW_LEMON_PRODUCT_ID` to the product's id.
+1. In Lemon Squeezy, create **one** one-time product (License, **US$19.99**) with **license keys on, activation
+   limit unlimited, and no expiry**. Removing a license in the app doesn't free an activation, so a limit would
+   eventually lock buyers out. Turn on Alipay and WeChat Pay under Settings › Payments. Confirm the live price and
+   checkout URL match before release (test-mode links must not be treated as live). In `project.yml`, set
+   `TW_STORE_URL` / `TW_LEMON_PRODUCT_ID`, and optionally `TW_PRICING_URL` (absolute site `/pricing/`). Mirror the
+   checkout link and price in `site/src/config.ts`.
 2. Create the offline-key signing key:
 
    ```bash
@@ -96,7 +98,8 @@ Two kinds of key register (see `App/Sources/License.swift`):
    make license NAME="Usagi" EMAIL=usagi@example.com ORDER=1001
    ```
 
-Either kind of key works on all of the buyer's Macs.
+Either kind of key is for **one person** on all of their personal Macs (no device cap). Not for resale or
+team sharing — see [LICENSE-TERMS.md](LICENSE-TERMS.md).
 
 ## Releasing by hand (fallback)
 

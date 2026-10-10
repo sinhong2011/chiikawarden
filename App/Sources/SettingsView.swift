@@ -18,7 +18,7 @@ struct SettingsView: View {
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
-            case .license: "Registration"
+            case .license: "License"
             case .about: "About"
             }
         }
@@ -209,7 +209,7 @@ private struct GeneralSettings: View {
                 .pickerStyle(.segmented)
                 Toggle(isOn: $fullDoorAnimation) {
                     Text("Full vault-door animation")
-                    Text("The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock.")
+                    Text("The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock. Enabling this increases CPU usage and power consumption.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
 
