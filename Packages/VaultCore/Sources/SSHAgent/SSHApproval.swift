@@ -135,15 +135,17 @@ public struct SSHPrompt: Equatable, Sendable, Identifiable {
     public var displayName: String
     public var via: String
     public var path: String?
+    public var appPath: String?
     public var keyID: String
     public var keyName: String
     public var waitingCount: Int
-    public init(id: UUID, trustKey: String, displayName: String, via: String, path: String?, keyID: String, keyName: String, waitingCount: Int = 1) {
+    public init(id: UUID, trustKey: String, displayName: String, via: String, path: String?, keyID: String, keyName: String, appPath: String? = nil, waitingCount: Int = 1) {
         self.id = id
         self.trustKey = trustKey
         self.displayName = displayName
         self.via = via
         self.path = path
+        self.appPath = appPath
         self.keyID = keyID
         self.keyName = keyName
         self.waitingCount = waitingCount
@@ -187,6 +189,11 @@ public actor SSHApprovalQueue {
         // Resuming inline deadlocks: the waiter re-enters this actor before resolveFront returns.
         let resume = item.resume
         Task.detached { resume.resume(returning: choice) }
+    }
+
+    /// The vault locked: every prompt still waiting is a denial.
+    public func denyAll() {
+        while !order.isEmpty { resolveFront(.deny) }
     }
 
     public func expire(now: Date) {
@@ -244,9 +251,11 @@ public struct SSHAccessLog: Codable, Equatable, Sendable {
 
     public mutating func clear() { events.removeAll() }
 
-    /// Asks for this trust key at or after `since` (the current unlock).
+    /// Asks for this trust key at or after `since` (the current unlock), ignoring grants that were reused or refused because the vault was locked.
     public func priorAsks(trustKey: String, since: Date) -> Int {
-        events.filter { $0.trustKey == trustKey && $0.date >= since && $0.outcome != .reusedTrust }.count
+        events.filter {
+            $0.trustKey == trustKey && $0.date >= since && $0.outcome != .reusedTrust && $0.outcome != .locked
+        }.count
     }
 
     public static func load(from url: URL) -> SSHAccessLog {
