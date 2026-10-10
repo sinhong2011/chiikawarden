@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.2.0](https://github.com/sinhong2011/triwarden/compare/v0.1.1...v0.2.0) (2026-10-10)
+
+
+### Features
+
+* add triwarden@protonmail.com as contact method ([#47](https://github.com/sinhong2011/triwarden/issues/47)) ([0c7d4dc](https://github.com/sinhong2011/triwarden/commit/0c7d4dcb5ae7368aa408f8d1b96ee6c640aea2c0))
+* calm unlock by default; full vault-door animation is opt-in ([#33](https://github.com/sinhong2011/triwarden/issues/33)) ([ae6da0e](https://github.com/sinhong2011/triwarden/commit/ae6da0e17f1913b097cb759841cd96cde7e0a28a))
+* new items open in the detail panel; make folders from the item form ([#35](https://github.com/sinhong2011/triwarden/issues/35)) ([ecc5c45](https://github.com/sinhong2011/triwarden/commit/ecc5c45e7b859ef3df3bb1621c908bf20f194ab5))
+* Recently Used codes tag and keep toast/footer from shifting layout ([#45](https://github.com/sinhong2011/triwarden/issues/45)) ([35ef12b](https://github.com/sinhong2011/triwarden/commit/35ef12bda515ac838fd3571dbd098759543ac0cb))
+* shared vaults, one search across vaults, faster one-time codes, native-speed benchmark ([#31](https://github.com/sinhong2011/triwarden/issues/31)) ([5121cbe](https://github.com/sinhong2011/triwarden/commit/5121cbea9967e0e0c73a84f79b93a0fea760507a))
+* show card brand avatars and pretty-format card numbers ([#44](https://github.com/sinhong2011/triwarden/issues/44)) ([0e2e12f](https://github.com/sinhong2011/triwarden/commit/0e2e12f60d939594ef2397649dc465f90b396cda))
+* styled DMG installer window ([#28](https://github.com/sinhong2011/triwarden/issues/28)) ([b392acc](https://github.com/sinhong2011/triwarden/commit/b392acc7cfcea9726aceaa04bf2be18b5fffc7c6))
+* vault dial icon, marketing site, and promo film ([#36](https://github.com/sinhong2011/triwarden/issues/36)) ([d5f6196](https://github.com/sinhong2011/triwarden/commit/d5f6196a71fa635059acb0a16d9be5f606467b3e))
+
+
+### Fixes
+
+* custom field rows center their label, value and copy button ([#27](https://github.com/sinhong2011/triwarden/issues/27)) ([5aaa723](https://github.com/sinhong2011/triwarden/commit/5aaa7230a517f1dceb5fdfc6f8f94f76b3843031))
+* deploy Cloudflare Pages from site/dist ([#41](https://github.com/sinhong2011/triwarden/issues/41)) ([b57d403](https://github.com/sinhong2011/triwarden/commit/b57d40395dfdc0a32b98fb5c4496bc91b279c10d))
+* item count on its own line, draggable slim scroller, palette exit animation ([#24](https://github.com/sinhong2011/triwarden/issues/24)) ([0d9dd76](https://github.com/sinhong2011/triwarden/commit/0d9dd762258b255aa004681b6d3fa062d384fb53))
+* list rows show an item's new name when a rename moves it to another letter ([#34](https://github.com/sinhong2011/triwarden/issues/34)) ([7979d2f](https://github.com/sinhong2011/triwarden/commit/7979d2f6cf1b816daf7562487b55d0bcd6c2d2f6))
+* pause vault door animation in background ([#48](https://github.com/sinhong2011/triwarden/issues/48)) ([bc7fa7f](https://github.com/sinhong2011/triwarden/commit/bc7fa7fa6a6ae8775d1317c0b2126a0857ed1739))
+* point Pages deploy at site/dist from the repo root ([#42](https://github.com/sinhong2011/triwarden/issues/42)) ([41aa4da](https://github.com/sinhong2011/triwarden/commit/41aa4da5422d268523e1c35e2498b0259ba470c1))
+
 ## [0.1.1](https://github.com/sinhong2011/triwarden/compare/v0.1.0...v0.1.1) (2026-10-07)
 
 
