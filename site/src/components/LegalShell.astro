@@ -1,0 +1,50 @@
+---
+/**
+ * Shared chrome for Pricing / Privacy / License terms — Nav + Footer around a short legal or purchase page.
+ */
+import Base from "../layouts/Base.astro";
+import Nav from "./Nav.astro";
+import Footer from "./Footer.astro";
+import { currentLocale, localeHref } from "../i18n";
+
+interface Props {
+  page: string;
+  title: string;
+  description: string;
+  ogTitle?: string;
+  jsonLd?: Record<string, unknown>[];
+  kicker: string;
+  heading: string;
+  lede?: string;
+}
+const { page, title, description, ogTitle, jsonLd = [], kicker, heading, lede } = Astro.props;
+const locale = currentLocale();
+const origin = Astro.site?.origin ?? "";
+const crumbs = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Triwarden", item: `${origin}${localeHref(locale)}` },
+      { "@type": "ListItem", position: 2, name: heading, item: `${origin}${localeHref(locale, page)}` },
+    ],
+  },
+  ...jsonLd,
+];
+---
+<Base title={title} description={description} page={page} ogTitle={ogTitle} jsonLd={crumbs}>
+  <Nav page={page} />
+  <main id="main">
+    <header class="mx-auto max-w-(--max) px-(--gutter) pt-[140px] pb-2">
+      <div data-reveal-group class="max-w-[720px]">
+        <p class="kicker">{kicker}</p>
+        <h1 class="m-0 font-serif text-[clamp(44px,6vw,80px)] leading-[.94] font-normal tracking-[-.03em]">{heading}</h1>
+        {lede && <p class="mt-6 mb-0 max-w-[560px] text-[clamp(16px,1.3vw,18.5px)] text-ink-2">{lede}</p>}
+      </div>
+    </header>
+    <slot />
+  </main>
+  <Footer page={page} />
+</Base>
+
+<script>import "../scripts/page";</script>

@@ -15,7 +15,7 @@ import MacRows from "./MacRows.astro";
 import Generator from "./Generator.astro";
 import Watchtower from "./Watchtower.astro";
 import More from "./More.astro";
-import Pricing from "./Pricing.astro";
+import PricingSummary from "./PricingSummary.astro";
 import Film from "./Film.astro";
 import Faq from "./Faq.astro";
 import Closing from "./Closing.astro";
@@ -28,40 +28,38 @@ const locale = currentLocale();
 const url = `${Astro.site?.origin ?? ""}${localeHref(locale)}`;
 const rel = await latestRelease();
 const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const price = { price: SITE.price };
 const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: "Triwarden",
     url,
-    description: m.meta_description({ price: SITE.price }),
+    description: m.meta_description(price),
     applicationCategory: "SecurityApplication",
     operatingSystem: "macOS 26 or later",
     softwareVersion: rel?.version ?? SITE.version,
     downloadUrl: rel?.dmg ?? SITE.download,
     image: `${Astro.site?.origin ?? ""}${import.meta.env.BASE_URL}assets/og.jpg`,
     inLanguage: locale.lang,
-    offers: { "@type": "Offer", price: SITE.price.replace(/[^\d.]/g, ""), priceCurrency: "USD" },
     email: SITE.supportEmail,
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer support",
-      email: SITE.supportEmail,
-      url: SITE.support,
-    },
+    offers: [
+      { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+      { "@type": "Offer", name: "License", price: SITE.price.replace(/[^\d.]/g, ""), priceCurrency: "USD" },
+    ],
   },
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [1, 2, 3, 4, 5, 6, 7].map((n) => ({
+    mainEntity: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({
       "@type": "Question",
       name: t[`faq${n}_q`](),
-      acceptedAnswer: { "@type": "Answer", text: t[`faq${n}_a`]({ price: SITE.price, email: SITE.supportEmail }) },
+      acceptedAnswer: { "@type": "Answer", text: t[`faq${n}_a`]({ ...price, email: SITE.supportEmail }) },
     })),
   },
 ];
 ---
-<Base title={m.meta_title()} ogTitle={m.meta_og_title()} description={m.meta_description({ price: SITE.price })} jsonLd={jsonLd}>
+<Base title={m.meta_title()} ogTitle={m.meta_og_title()} description={m.meta_description(price)} jsonLd={jsonLd}>
   <Nav />
   <main id="main">
     <Hero />
@@ -75,7 +73,7 @@ const jsonLd = [
     <Generator />
     <Watchtower />
     <More />
-    <Pricing />
+    <PricingSummary />
     <Film />
     <Faq />
     <Closing />

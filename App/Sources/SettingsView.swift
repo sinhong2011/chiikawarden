@@ -18,7 +18,7 @@ struct SettingsView: View {
             case .security: "Security"
             case .developer: "Developer"
             case .server: "Server"
-            case .license: "Registration"
+            case .license: "License"
             case .about: "About"
             }
         }

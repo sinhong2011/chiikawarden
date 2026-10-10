@@ -6,15 +6,20 @@ import Observation
 /// Paid, but never locked — Fork's model. Every feature works without a license and there's no time limit; an
 /// unregistered official build only asks, now and then at launch, whether you'd like to buy one.
 ///
-/// Licenses are paid for through Lemon Squeezy (cards, Alipay, WeChat Pay, PayPal…). Two kinds of key register:
+/// A **License** is a one-time purchase (Lemon Squeezy — cards, Alipay, WeChat Pay, PayPal…). It ends the reminder
+/// and covers **one natural person** on every Mac they use (including a company Mac). Not for resale or sharing
+/// across people (see `docs/LICENSE-TERMS.md`). Commercial use needs a license; an employer may buy and assign one.
 ///
-/// - **Receipt keys** (a UUID): Lemon Squeezy generates and emails them. Pressing Register sends the key — and a
+/// Two kinds of key register:
+///
+/// - **Receipt keys** (a UUID): Lemon Squeezy generates and emails them. Pressing Activate sends the key — and a
 ///   random id for this install, never the Mac's name — to Lemon Squeezy's license API once. Nothing is checked
 ///   again after that: not in the background, not at launch.
 /// - **Offline keys**: a small signed note, `<payload>.<signature>` in base64url, the payload JSON
 ///   `{"n": name, "e": email, "o": order, "d": "yyyy-MM-dd"}`, checked here against the Ed25519 public key in
 ///   Info.plist (`TWLicensePublicKey`). For buyers who'd rather nothing went online, and a fallback should Lemon
-///   Squeezy ever go away. Signed with `make license` (scripts/license.swift); the private key never enters the repo.
+///   Squeezy ever go away. Signed with `make license`; the private key never enters the repo. Extra payload fields
+///   (e.g. a former Friends `"t"`) are ignored for compatibility.
 ///
 /// An honour system: the source is GPL and anyone may build it without the reminder, which is fine. A build without a
 /// store link (forks) never reminds, and Debug builds never do either.
@@ -25,8 +30,12 @@ final class License {
         var email: String
         var order: String
         var date: String
+        /// Ignored if present (older Friends Club offline keys used `"t":"f"`). Kept so decoding still succeeds.
+        var tier: String? = nil
 
-        enum CodingKeys: String, CodingKey { case name = "n", email = "e", order = "o", date = "d" }
+        enum CodingKeys: String, CodingKey {
+            case name = "n", email = "e", order = "o", date = "d", tier = "t"
+        }
     }
 
     enum Problem: LocalizedError {
@@ -45,20 +54,18 @@ final class License {
         }
     }
 
-    /// Where "Buy License" goes; nil in builds without a store.
+    /// Where "Purchase License" goes (Lemon Squeezy checkout); nil in builds without a store.
     let storeURL: URL?
+    /// Where "Learn More" goes (site `/pricing/`). Falls back to `storeURL` when unset.
+    let pricingURL: URL?
     private let publicKey: Curve25519.Signing.PublicKey?
     private let productID: Int?
     private(set) var registration: Registration?
     /// The registered key, for showing its last characters.
     private(set) var key: String?
 
-    /// Set when "I Have a License Key" opens Settings: the key field takes focus.
+    /// Set when focusing the key field (e.g. "I Have a License Key" or "Focus License Field").
     var wantsKeyEntry = false
-    /// The version this launch updated to (nil when it isn't the first launch after an update); the reminder says so.
-    private(set) var updatedTo: String?
-    /// Whether the reminder for this update is still to be shown.
-    private var updateReminderPending = false
 
     var isConfigured: Bool { storeURL != nil && (publicKey != nil || productID != nil) }
     var isRegistered: Bool { registration != nil }
@@ -67,20 +74,22 @@ final class License {
     private struct Stored: Codable {
         var key: String
         var registration: Registration?
+        /// Kept for Keychain compatibility with builds that stored a Lemon product id; unused for gating.
+        var lemonProductID: Int?
     }
 
     private static let service = "io.github.sinhong2011.triwarden.license"
     private static let firstLaunchKey = "licenseFirstLaunch"
     private static let lastReminderKey = "licenseLastReminder"
     private static let instanceKey = "licenseInstance"
-    private static let versionKey = "licenseLastVersion"
-    /// No reminder in the first week; then at most one a week, and one on the first launch after each update.
-    private static let grace: TimeInterval = 7 * 86_400
+    /// No reminder in the first ~30 days; then at most one a week. No extra reminder after updates.
+    private static let grace: TimeInterval = 30 * 86_400
     private static let interval: TimeInterval = 7 * 86_400
 
     init() {
         let info = Bundle.main.infoDictionary ?? [:]
         storeURL = (info["TWStoreURL"] as? String).flatMap { $0.isEmpty ? nil : URL(string: $0) }
+        pricingURL = (info["TWPricingURL"] as? String).flatMap { $0.isEmpty ? nil : URL(string: $0) } ?? storeURL
         publicKey = (info["TWLicensePublicKey"] as? String).flatMap { Data(base64Encoded: $0) }
             .flatMap { try? Curve25519.Signing.PublicKey(rawRepresentation: $0) }
         productID = (info["TWLemonProductID"] as? String).flatMap { Int($0) }
@@ -93,31 +102,19 @@ final class License {
         if defaults.object(forKey: Self.firstLaunchKey) == nil {
             defaults.set(Date.now, forKey: Self.firstLaunchKey)
         }
-        // A new version since the last launch (not a first install): remind once, whatever the weekly schedule says.
-        let version = info["CFBundleShortVersionString"] as? String ?? ""
-        if let last = defaults.string(forKey: Self.versionKey), last != version {
-            updatedTo = version
-            updateReminderPending = true
-        }
-        defaults.set(version, forKey: Self.versionKey)
-        #if DEBUG
-        if CommandLine.arguments.contains("--license-review-update") { updatedTo = version }
-        #endif
     }
 
     /// Whether to show the reminder now (and, if so, note that it was shown).
     func takeReminder(now: Date = .now) -> Bool {
         #if DEBUG
-        // `--license-review` (or `--license-review-update`, as after an update): show it now, to review the flow.
+        // `--license-review`: show it now, to review the flow.
         return CommandLine.arguments.contains { $0.hasPrefix("--license-review") } && isConfigured && !isRegistered
         #else
         guard isConfigured, !isRegistered else { return false }
         let defaults = UserDefaults.standard
         let first = defaults.object(forKey: Self.firstLaunchKey) as? Date ?? now
         guard now.timeIntervalSince(first) >= Self.grace else { return false }
-        let afterUpdate = updateReminderPending
-        updateReminderPending = false
-        if !afterUpdate, let last = defaults.object(forKey: Self.lastReminderKey) as? Date,
+        if let last = defaults.object(forKey: Self.lastReminderKey) as? Date,
            now.timeIntervalSince(last) < Self.interval {
             return false
         }
@@ -128,6 +125,10 @@ final class License {
 
     func buy() {
         if let storeURL { NSWorkspace.shared.open(storeURL) }
+    }
+
+    func openPricing() {
+        if let pricingURL { NSWorkspace.shared.open(pricingURL) }
     }
 
     /// An offline key is checked here; a receipt key is activated with Lemon Squeezy, once.
@@ -212,9 +213,12 @@ final class License {
             throw Problem.rejected // Lemon Squeezy's own message is English only
         }
         guard response.meta?.productID == productID else { throw Problem.otherProduct }
-        return Registration(name: response.meta?.customerName ?? "", email: response.meta?.customerEmail ?? "",
-                            order: response.meta?.orderID.map(String.init) ?? "",
-                            date: Date.now.formatted(.iso8601.year().month().day()))
+        return Registration(
+            name: response.meta?.customerName ?? "",
+            email: response.meta?.customerEmail ?? "",
+            order: response.meta?.orderID.map(String.init) ?? "",
+            date: Date.now.formatted(.iso8601.year().month().day())
+        )
     }
 }
 

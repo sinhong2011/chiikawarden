@@ -2,11 +2,12 @@
 import { SITE } from "../config";
 import { m } from "../paraglide/messages.js";
 import DownloadMeta from "./DownloadMeta.astro";
-import { formatSize } from "../release";
 import { latestRelease } from "../release";
+import { currentLocale, localeHref } from "../i18n";
 const rel = await latestRelease();
 const dmg = rel?.dmg ?? SITE.download;
 const refresh = !rel?.stable; // a fixed link never needs refreshing
+const pricing = localeHref(currentLocale(), "pricing/");
 ---
 <section id="close" class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(56px,7vw,96px)]">
   <div data-shader="close" class="close-backdrop relative isolate grid items-center gap-[6vw] overflow-hidden rounded-[clamp(22px,3vw,40px)] px-[clamp(22px,5vw,72px)] py-[clamp(48px,7vw,96px)] shadow-[0_0_0_1px_var(--color-line)] *:min-w-0 md:grid-cols-2">
@@ -20,7 +21,7 @@ const refresh = !rel?.stable; // a fixed link never needs refreshing
     </div>
     <div class="flex flex-wrap gap-3">
       <a class="btn btn--fill" href={dmg} data-dmg={refresh ? "" : undefined}>{m.hero_download()}</a>
-      <a class="btn btn--ghost" href={SITE.checkout} rel="noopener">{m.buy_once({ price: SITE.price })}</a>
+      <a class="btn btn--ghost" href={pricing}>{m.buy_once({ price: SITE.price })}</a>
     </div>
     <DownloadMeta class="mt-5" />
     <p class="mt-2 mb-0 text-[13px] text-ink-3">{m.close_requires()}</p>

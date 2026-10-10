@@ -1,0 +1,28 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+import { currentLocale, localeHref } from "../i18n";
+
+const pricing = localeHref(currentLocale(), "pricing/");
+const p = { price: SITE.price };
+---
+<section id="pricing" class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(64px,8vw,112px)]">
+  <SectionHead kicker={m.price_kicker()}>
+    <h2>{m.price_title_1()}<br /><em>{m.price_title_2()}</em></h2>
+    <p>{m.home_price_lede()}</p>
+  </SectionHead>
+
+  <div data-rise class="mx-auto mt-[clamp(28px,4vw,40px)] max-w-[640px] text-center">
+    <p class="m-0 text-[clamp(17px,1.6vw,19px)] leading-relaxed text-ink">
+      {m.home_price_line(p)}
+    </p>
+    <p class="mt-3 mb-0 text-[15px] leading-relaxed text-ink-2">
+      {m.home_price_scope()}
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a class="btn btn--fill" href={SITE.checkout} rel="noopener">{m.tier_license_cta(p)}</a>
+      <a class="btn btn--ghost" href={pricing}>{m.home_price_cta()}</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,41 @@
+---
+import LegalShell from "./LegalShell.astro";
+import Pricing from "./Pricing.astro";
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+import { currentLocale, localeHref } from "../i18n";
+
+const PAGE = "pricing/";
+const locale = currentLocale();
+const origin = Astro.site?.origin ?? "";
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "OfferCatalog",
+  name: "Triwarden licenses",
+  url: `${origin}${localeHref(locale, PAGE)}`,
+  itemListElement: [
+    { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+    { "@type": "Offer", name: "License", price: SITE.price.replace(/[^\d.]/g, ""), priceCurrency: "USD" },
+  ],
+}];
+---
+<LegalShell
+  page={PAGE}
+  title={m.purchase_meta_title({ price: SITE.price })}
+  description={m.purchase_meta_description({ price: SITE.price })}
+  ogTitle={m.purchase_og_title()}
+  kicker={m.price_kicker()}
+  heading={m.purchase_h1()}
+  lede={m.purchase_lede({ price: SITE.price })}
+  jsonLd={jsonLd}
+>
+  <!-- Pricing section already has its own heading; hide that duplicate on this dedicated page. -->
+  <div class="purchase-page">
+    <Pricing />
+  </div>
+</LegalShell>
+
+<style>
+  .purchase-page :global(#pricing > header) { display: none; }
+  .purchase-page :global(#pricing) { padding-top: clamp(24px, 3vw, 40px); }
+</style>
