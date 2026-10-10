@@ -19,8 +19,5 @@
   "devDependencies": {
     "@inlang/paraglide-js": "^2.25.4",
     "@inlang/plugin-message-format": "^4.4.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
   }
 }
