@@ -9,16 +9,33 @@ enum SSHApprovalNotifier {
     static func arm(_ prompt: SSHPrompt) {
         let center = UNUserNotificationCenter.current()
         center.getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
-            let content = UNMutableNotificationContent()
-            content.title = String(localized: "\(prompt.displayName) wants to sign")
-            content.body = prompt.keyName
-            content.categoryIdentifier = category
-            content.userInfo = ["id": prompt.id.uuidString]
-            let request = UNNotificationRequest(identifier: prompt.id.uuidString, content: content,
-                                                trigger: UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false))
-            center.add(request)
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                    if granted { post(prompt, center: center) }
+                }
+            case .authorized, .provisional:
+                post(prompt, center: center)
+            default:
+                break
+            }
         }
+    }
+
+    /// Asks once, when the agent is turned on, so the first signature is not the first time macOS asks.
+    static func requestPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    }
+
+    private static func post(_ prompt: SSHPrompt, center: UNUserNotificationCenter) {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "\(prompt.displayName) wants to sign")
+        content.body = String(localized: "via \(prompt.via) · \(prompt.keyName)")
+        content.sound = .default
+        content.categoryIdentifier = category
+        content.userInfo = ["id": prompt.id.uuidString]
+        // Deliver now. A delayed request was removed as soon as the card was answered, so the banner never appeared.
+        center.add(UNNotificationRequest(identifier: prompt.id.uuidString, content: content, trigger: nil))
     }
 
     static func cancel(_ id: UUID) {
@@ -76,7 +93,7 @@ enum InboxAnnouncer {
 /// Not main-actor isolated, so the system can deliver the tap without crossing a Sendable boundary into `AppDelegate`.
 final class SSHNotificationBridge: NSObject, UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
-        [.banner, .list]
+        [.banner, .list, .sound]
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {

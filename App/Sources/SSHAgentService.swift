@@ -55,6 +55,7 @@ final class SSHAgentService {
             self.server = server
             isRunning = true
             lastError = nil
+            SSHApprovalNotifier.requestPermission()
         } catch SSHAgentServer.Failure.pathTooLong {
             lastError = String(localized: "Couldn't start the SSH agent: the socket path is longer than macOS allows (104 bytes). This happens with very long user names.")
         } catch {

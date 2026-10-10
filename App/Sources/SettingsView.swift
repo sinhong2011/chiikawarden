@@ -4,7 +4,6 @@ import ServiceManagement
 import SwiftUI
 import SSHAgent
 import UniformTypeIdentifiers
-import UserNotifications
 
 /// Settings with a sidebar, like System Settings: sections on the left, the chosen page on the right.
 struct SettingsView: View {
@@ -382,7 +381,6 @@ private struct DeveloperSettings: View {
                     .onChange(of: enabled) { _, on in
                         if on {
                             agent.start()
-                            UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in }
                         } else {
                             agent.stop()
                         }
