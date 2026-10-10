@@ -95,6 +95,22 @@ struct AccountAvatarStack: View {
     let accounts: [SavedAccount]
     var size: CGFloat = 24
 
+    /// How many circles the stack draws (avatars + optional "+N"), capped the same way as `body`.
+    private static func circleCount(forAccountCount count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        // >3 accounts → 2 avatars + "+N"; otherwise one circle per account (max 3).
+        return count > 3 ? 3 : count
+    }
+
+    /// Layout width for a stack of `count` accounts at `size` (overlap −0.26×size, plus the ring gap).
+    static func width(forAccountCount count: Int, size: CGFloat) -> CGFloat {
+        let n = CGFloat(circleCount(forAccountCount: count))
+        guard n > 0 else { return 0 }
+        let overlap = size * 0.26
+        let rings: CGFloat = 3 // `.padding(-1.5)` halo on each end
+        return size * n - overlap * (n - 1) + rings
+    }
+
     var body: some View {
         let shown = Array(accounts.prefix(accounts.count > 3 ? 2 : 3))
         let extra = accounts.count - shown.count

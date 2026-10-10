@@ -660,7 +660,14 @@ private struct SidebarAccountCard: View {
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.primary.opacity(dark ? 0.08 : 0.05)))
                 .shadow(color: .black.opacity(dark ? 0.25 : 0.06), radius: 8, y: 2)
         }
-        .onHover { h in withAnimatiprivate struct AppFooter: View {
+        .onHover { h in withAnimation(.snappy(duration: 0.15)) { hovering = h } }
+        .animation(.snappy(duration: 0.25), value: model.focusedAccountID)
+    }
+
+}
+
+/// The window's footer, under the panels: Sync Now and Lock at the right end, in the header's pill style.
+private struct AppFooter: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
@@ -692,13 +699,6 @@ private struct SidebarAccountCard: View {
             .modifier(FloatingChrome())
         }
         .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
-    }
-}
-
-/// Glass for controls floating over contentdding(.horizontal, 3)
-            .frame(height: 30)
-            .modifier(FloatingChrome())
-            .animation(.spring(duration: 0.35, bounce: 0.2), value: model.clipboardClearsAt)
     }
 }
 
@@ -777,15 +777,26 @@ private struct SidebarWidth: ViewModifier {
 struct AccountSwitcher: View {
     @Environment(AppModel.self) private var model
     let close: () -> Void
-    /// The avatars' column: wide enough for the "All accounts" stack, so every row's text starts together.
-    static let leadingWidth: CGFloat = 40
+    private static let stackSize: CGFloat = 22
+    private static let rowAvatarSize: CGFloat = 30
+
+    /// Shared leading column: wide enough for the "All accounts" stack *and* a single 30pt row avatar,
+    /// so every row's text lines up. Stack width comes from `AccountAvatarStack` (still caps at 3 circles
+    /// when there are many accounts — 2 avatars + "+N").
+    private var leadingWidth: CGFloat {
+        max(
+            Self.rowAvatarSize,
+            AccountAvatarStack.width(forAccountCount: model.accounts.count, size: Self.stackSize)
+        )
+    }
 
     var body: some View {
+        let leading = leadingWidth
         VStack(alignment: .leading, spacing: 2) {
             if model.accounts.count > 1 {
                 row(selected: model.focusedAccountID == nil, action: { focus(nil) }) {
-                    AccountAvatarStack(accounts: model.accounts, size: 22)
-                        .frame(width: Self.leadingWidth, alignment: .leading)
+                    AccountAvatarStack(accounts: model.accounts, size: Self.stackSize)
+                        .frame(width: leading, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("All accounts").font(.system(size: 13, weight: .semibold))
                         Text("\(model.sessions.count) of \(model.accounts.count) unlocked")
@@ -797,8 +808,8 @@ struct AccountSwitcher: View {
             ForEach(model.accounts) { account in
                 let open = model.isUnlocked(account.id)
                 row(selected: model.focusedAccountID == account.id || model.accounts.count == 1, action: { focus(account.id) }) {
-                    AccountAvatar(account: account, size: 30, showsLock: true)
-                        .frame(width: Self.leadingWidth, alignment: .leading)
+                    AccountAvatar(account: account, size: Self.rowAvatarSize, showsLock: true)
+                        .frame(width: leading, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(verbatim: account.email).font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
                         HStack(spacing: 4) {
