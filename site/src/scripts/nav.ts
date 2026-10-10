@@ -22,10 +22,21 @@ const showStars = (count: number) => {
   $$("[data-stars]").forEach((node) => { node.textContent = count.toLocaleString(document.documentElement.lang); });
   starLinks.forEach((link) => link.setAttribute("aria-label", (link.dataset.starLabel ?? "").replace("{count}", String(count))));
 };
+const renderedStars = () => {
+  const text = $("[data-stars]")?.textContent?.replace(/[^\d.-]/g, "") ?? "";
+  const n = Number(text);
+  return text !== "" && Number.isFinite(n) ? n : null;
+};
+// Paint a count from this tab immediately, but never let an older cached 0 cover a newer server render.
 let cachedStars: string | null = null;
 try { cachedStars = sessionStorage.getItem("stars"); } catch {}
-if (cachedStars !== null && Number.isFinite(Number(cachedStars))) showStars(Number(cachedStars));
-else if (starLinks.length) fetch("https://api.github.com/repos/sinhong2011/triwarden", { headers: { Accept: "application/vnd.github+json" } })
+const rendered = renderedStars();
+if (cachedStars !== null && Number.isFinite(Number(cachedStars))) {
+  const cached = Number(cachedStars);
+  if (rendered === null || cached >= rendered) showStars(cached);
+}
+// Always revalidate. Skipping the request when sessionStorage already had a number left the nav on 0 after the repo was starred.
+if (starLinks.length) fetch("https://api.github.com/repos/sinhong2011/triwarden", { headers: { Accept: "application/vnd.github+json" } })
   .then((response) => response.ok ? response.json() : null)
   .then((data) => {
     if (typeof data?.stargazers_count !== "number") return;
