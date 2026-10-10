@@ -175,6 +175,11 @@ to report a vulnerability privately.
 VoiceOver labels, full keyboard control, Increase Contrast and Reduce Motion are supported; see
 [ACCESSIBILITY.md](ACCESSIBILITY.md). The app speaks English, 繁體中文 (台灣), 繁體中文 (香港), 简体中文 and 日本語.
 
+## Support
+
+Email [triwarden@protonmail.com](mailto:triwarden@protonmail.com) for purchase or product questions. For bugs, open
+a [GitHub issue](https://github.com/sinhong2011/triwarden/issues); for security reports, see [SECURITY.md](SECURITY.md).
+
 ## Contributing
 
 Issues and pull requests are welcome. Commits follow [Conventional Commits](https://www.conventionalcommits.org)
