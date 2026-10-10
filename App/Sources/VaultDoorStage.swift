@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// A frozen moment of the lock screen, for snapshots: `time` seconds after the door appeared, `opened` seconds into
@@ -47,8 +48,8 @@ struct VaultDoorStage: View {
     @Environment(\.gatePassing) private var gatePassing
     /// Opt-in: the door drifts while it waits. Off (the default), it's still art; typing still turns the tumblers.
     @AppStorage(Pref.fullDoorAnimation) private var animates = false
-    /// Behind other windows or apps: the idle drift rests (the open and close sequences always play).
-    @Environment(\.controlActiveState) private var activeState
+    /// Stop all frame updates when the app is in the background or this window cannot be seen.
+    @State private var animationVisible = false
     @State private var start = Date()
 
     var body: some View {
@@ -61,7 +62,7 @@ struct VaultDoorStage: View {
                 // Inside the gate's halves the door holds still (one frame), so the halves are cheap to move.
                 // Inside the gate's halves: still while closing (cheap to move); opening keeps playing, so the last
                 // pieces fly out as the halves part.
-                let resting = activeState == .inactive && openedAt == nil && closedAt == nil && errorAt == nil
+                let resting = !animationVisible
                 TimelineView(.animation(paused: still || resting || (gatePassing && openedAt == nil))) { context in
                     let now = context.date
                     art(time: still ? 0 : now.timeIntervalSince(start),
@@ -71,6 +72,10 @@ struct VaultDoorStage: View {
                         typed: typed, turns: turns, busy: busy)
                 }
             }
+        }
+        .background {
+            DoorAnimationVisibility(visible: $animationVisible)
+                .allowsHitTesting(false)
         }
         .accessibilityHidden(true)
     }
@@ -85,6 +90,60 @@ struct VaultDoorStage: View {
         VaultDoorArt(steps: Double(turns), busy: busy ? 1 : 0, time: time, opened: opened, closed: closed, alert: alert,
                      lit: typed, radius: radius, center: center, dark: scheme == .dark, room: room, dial: dial)
             .animation(.easeInOut(duration: 0.4), value: busy)
+    }
+}
+
+/// Tracks the actual hosting window, including minimization and occlusion, without polling.
+private struct DoorAnimationVisibility: NSViewRepresentable {
+    @Binding var visible: Bool
+
+    func makeNSView(context: Context) -> VisibilityView {
+        let view = VisibilityView()
+        view.changed = { visible = $0 }
+        return view
+    }
+
+    func updateNSView(_ view: VisibilityView, context: Context) {
+        view.changed = { visible = $0 }
+    }
+
+    static func dismantleNSView(_ view: VisibilityView, coordinator: ()) {
+        NotificationCenter.default.removeObserver(view)
+        view.changed = nil
+    }
+
+    final class VisibilityView: NSView {
+        var changed: ((Bool) -> Void)?
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            let notifications = NotificationCenter.default
+            notifications.removeObserver(self)
+            if let window {
+                for name in [NSWindow.didChangeOcclusionStateNotification,
+                             NSWindow.didMiniaturizeNotification, NSWindow.didDeminiaturizeNotification] {
+                    notifications.addObserver(self, selector: #selector(refresh), name: name, object: window)
+                }
+                for name in [NSApplication.didBecomeActiveNotification, NSApplication.didResignActiveNotification,
+                             NSApplication.didHideNotification, NSApplication.didUnhideNotification] {
+                    notifications.addObserver(self, selector: #selector(refresh), name: name, object: nil)
+                }
+            }
+            refresh()
+        }
+
+        @objc private func refresh() {
+            // Window attachment can happen during a SwiftUI update. Publish on the next main-loop turn,
+            // reading current state so queued notifications cannot restore an outdated visibility value.
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.changed?(NSApp.isActive && !NSApp.isHidden && self.window.map {
+                    $0.isVisible && !$0.isMiniaturized && $0.occlusionState.contains(.visible)
+                } == true)
+            }
+        }
     }
 }
 

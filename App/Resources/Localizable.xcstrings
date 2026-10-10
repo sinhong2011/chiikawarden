@@ -3310,30 +3310,30 @@
         }
       }
     },
-    "The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock." : {
+    "The door drifts while it waits, turns its rings into line and comes apart before the gate opens, and builds itself again when you lock. Enabling this increases CPU usage and power consumption." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待機中は扉がゆっくり動き、ゲートが開く前にリングが揃って扉が分解し、ロックすると再び組み上がります。"
+            "value" : "待機中は扉がゆっくり動き、ゲートが開く前にリングが揃って扉が分解し、ロックすると再び組み上がります。有効にすると、CPU使用率と消費電力が増加します。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门在等待时缓缓转动，闸门打开前圆环转到对齐并自行拆开，锁定时再重新组合。"
+            "value" : "门在等待时缓缓转动，闸门打开前圆环转到对齐并自行拆开，锁定时再重新组合。启用后会增加 CPU 使用率和耗电量。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "門在等待時緩緩轉動，閘門打開前圓環轉到對齊並自行拆開，鎖定時再重新組合。"
+            "value" : "門在等待時緩緩轉動，閘門打開前圓環轉到對齊並自行拆開，鎖定時再重新組合。啟用後會增加 CPU 使用率和耗電量。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "門喺等緊嗰陣會慢慢轉，閘門打開之前圓環會轉到對齊再自己拆開，鎖定嗰陣再重新砌返。"
+            "value" : "門喺等緊嗰陣會慢慢轉，閘門打開之前圓環會轉到對齊再自己拆開，鎖定嗰陣再重新砌返。開啟後會增加 CPU 使用率同耗電量。"
           }
         }
       }
