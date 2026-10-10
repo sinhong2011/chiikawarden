@@ -4,15 +4,36 @@ import { SITE } from "../config";
 import { m } from "../paraglide/messages.js";
 import { formatSize } from "../release";
 import { latestRelease } from "../release";
+import { currentLocale, localeHref } from "../i18n";
 const rel = await latestRelease();
 const dmg = rel?.dmg ?? SITE.download;
-const refresh = !rel?.stable; // a fixed link never needs refreshing
+const refresh = !rel?.stable;
 
 const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
 const p = { price: SITE.price };
-const perks = [m.perk_life(), m.perk_updates(), m.perk_macs(), m.perk_pay()];
-const steps = [1, 2, 3, 4].map((n) => [t[`how${n}_t`](), t[`how${n}_b`](p)]);
 const honest = [1, 2, 3].map((n) => [t[`honest${n}_t`](), t[`honest${n}_b`]()]);
+const priceFaqs = [1, 2, 3, 4, 5].map((n) => [t[`price_faq${n}_q`](p), t[`price_faq${n}_a`](p)]);
+const terms = localeHref(currentLocale(), "license-terms/");
+
+const tiers = [
+  {
+    name: m.tier_free_name(),
+    body: m.tier_free_body(),
+    cta: m.tier_free_cta(),
+    href: dmg,
+    kind: "free" as const,
+    dmg: refresh,
+  },
+  {
+    name: m.tier_license_name(),
+    body: m.tier_license_body(),
+    note: m.tier_license_note(),
+    cta: m.tier_license_cta(p),
+    href: SITE.checkout,
+    kind: "license" as const,
+    featured: true,
+  },
+];
 ---
 <section id="pricing" class="mx-auto max-w-(--max) px-(--gutter) py-[clamp(64px,8vw,112px)]">
   <SectionHead kicker={m.price_kicker()}>
@@ -20,52 +41,82 @@ const honest = [1, 2, 3].map((n) => [t[`honest${n}_t`](), t[`honest${n}_b`]()]);
     <p>{m.price_lede()}</p>
   </SectionHead>
 
-  <div class="mt-[clamp(28px,4vw,52px)] grid gap-5 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)]">
-    <div data-rise class="relative flex flex-col rounded-[28px] bg-card p-[clamp(26px,3.2vw,40px)] shadow-[0_0_0_1px_var(--color-line),0_40px_80px_-46px_rgba(11,42,64,.45)]">
-      <p class="kicker">{m.price_card_kicker()}</p>
-      <p class="m-0 flex items-baseline gap-3">
-        <span class="font-serif text-[clamp(72px,8vw,112px)] leading-[.9] tracking-[-.03em] tabular-nums">{SITE.price}</span>
-        <span class="text-[15px] text-ink-2">{m.price_once()}</span>
-      </p>
-      <ul class="my-8 grid list-none gap-3.5 p-0">
-        {perks.map((p) => (
-          <li class="flex items-start gap-3 text-[16px]">
-            <svg class="mt-[3px] size-[18px] shrink-0 text-ink" viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            {p}
-          </li>
-        ))}
-      </ul>
-      <div class="mt-auto flex flex-wrap gap-3">
-        <a class="btn btn--fill" href={SITE.checkout} rel="noopener">{m.price_buy(p)}</a>
-        <a class="btn btn--ghost" href={dmg} data-dmg={refresh ? "" : undefined}>{rel ? <>{m.price_download()} · <span data-dmg-size>{formatSize(rel.size)}</span></> : m.price_download()}</a>
-      </div>
-      <p class="mt-5 mb-0 text-[13.5px] leading-relaxed text-ink-3">
-        {m.price_reminder()}
-      </p>
-    </div>
-
-    <div data-rise class="rounded-[28px] bg-night p-[clamp(26px,3.2vw,40px)] text-[#E6EEF4] shadow-[0_0_0_1px_var(--color-line)]">
-      <p class="kicker text-[#7F95A7]!">{m.how_kicker()}</p>
-      <ol class="m-0 grid list-none gap-0 p-0">
-        {steps.map(([t, b], i) => (
-          <li class="grid grid-cols-[44px_1fr] gap-4 border-b border-white/8 py-5 last:border-0">
-            <span class="font-serif text-[30px] leading-none text-[#7F95A7]">{i + 1}</span>
-            <span>
-              <b class="block text-[17px] font-semibold">{t}</b>
-              <span class="mt-1 block text-[15px] leading-normal text-[#A9BBC9]">{b}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </div>
+  <div class="mt-[clamp(28px,4vw,52px)] grid gap-4 md:grid-cols-2 md:max-w-[820px] md:mx-auto">
+    {tiers.map((tier) => (
+      <article
+        data-rise
+        class:list={[
+          "relative flex flex-col rounded-[24px] p-[clamp(22px,2.4vw,32px)]",
+          tier.featured
+            ? "bg-night text-[#E6EEF4] shadow-[0_0_0_1px_rgba(230,238,244,.12),0_40px_80px_-46px_rgba(11,42,64,.55)]"
+            : "bg-card shadow-[0_0_0_1px_var(--color-line)]",
+        ]}
+      >
+        {tier.featured && (
+          <p class="kicker mb-3 text-[#7F95A7]!">{m.tier_license_kicker()}</p>
+        )}
+        <h3 class:list={["m-0 text-[22px]! font-semibold tracking-[-.02em]", tier.featured && "text-[#E6EEF4]!"]}>
+          {tier.name}
+        </h3>
+        <p class:list={["mt-3 mb-0 text-[15px] leading-relaxed", tier.featured ? "text-[#A9BBC9]" : "text-ink-2"]}>
+          {tier.body}
+        </p>
+        {"note" in tier && tier.note && (
+          <p class:list={["mt-3 mb-0 text-[13.5px] leading-relaxed", tier.featured ? "text-[#7F95A7]" : "text-ink-3"]}>
+            {tier.note}
+          </p>
+        )}
+        <div class="mt-auto pt-8">
+          {tier.kind === "free" ? (
+            <a
+              class="btn btn--ghost w-full justify-center"
+              href={tier.href}
+              data-dmg={tier.dmg ? "" : undefined}
+            >
+              {rel ? <>{tier.cta} · <span data-dmg-size>{formatSize(rel.size)}</span></> : tier.cta}
+            </a>
+          ) : (
+            <a
+              class="btn btn--fill w-full justify-center"
+              href={tier.href}
+              rel="noopener"
+            >
+              {tier.cta}
+            </a>
+          )}
+        </div>
+      </article>
+    ))}
   </div>
 
-  <div class="mt-5 grid gap-5 md:grid-cols-3">
-    {honest.map(([t, b]) => (
+  <p data-rise class="mx-auto mt-8 max-w-[560px] text-center text-[15px] leading-relaxed text-ink-2">
+    {m.price_scope()}
+  </p>
+  <p data-rise class="mx-auto mt-3 mb-0 max-w-[560px] text-center text-[13.5px] leading-relaxed text-ink-3">
+    {m.price_reminder()}
+  </p>
+  <p data-rise class="mx-auto mt-3 mb-0 max-w-[520px] text-center text-[13.5px] leading-relaxed text-ink-3">
+    <a href={terms}>{m.foot_terms()}</a>
+  </p>
+
+  <div class="mt-10 grid gap-5 md:grid-cols-3">
+    {honest.map(([title, body]) => (
       <div data-rise class="rounded-[22px] px-7 py-6 shadow-[inset_0_0_0_1px_var(--color-line-2)]">
-        <h3 class="text-[17px]! font-semibold">{t}</h3>
-        <p class="mt-2 mb-0 text-[15px] leading-normal text-ink-2">{b}</p>
+        <h3 class="text-[17px]! font-semibold">{title}</h3>
+        <p class="mt-2 mb-0 text-[15px] leading-normal text-ink-2">{body}</p>
       </div>
+    ))}
+  </div>
+
+  <div class="mt-10 border-t border-line-2">
+    {priceFaqs.map(([q, a]) => (
+      <details class="faq group border-b border-line-2">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-[clamp(16px,1.4vw,18px)] font-medium [&::-webkit-details-marker]:hidden">
+          {q}
+          <span aria-hidden="true" class="relative size-4 shrink-0 before:absolute before:inset-x-0 before:top-1/2 before:h-[1.5px] before:-translate-y-1/2 before:bg-ink after:absolute after:inset-y-0 after:left-1/2 after:w-[1.5px] after:-translate-x-1/2 after:bg-ink after:transition-transform after:duration-500 after:ease-(--ease-expo) group-open:after:scale-y-0"></span>
+        </summary>
+        <div data-faq-body><p class="m-0 max-w-[620px] pb-5 text-[15.5px] text-ink-2" set:html={a}></p></div>
+      </details>
     ))}
   </div>
 </section>

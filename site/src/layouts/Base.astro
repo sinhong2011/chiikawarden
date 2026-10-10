@@ -16,10 +16,8 @@ interface Props {
 }
 const { title, description, page = "", ogTitle = title, jsonLd = [] } = Astro.props;
 const locale = currentLocale();
-// Latin faces for everyone. The serif CJK face only for the language that needs it, and loaded without blocking
-// first paint: its stylesheet is large (Google serves just the glyphs used, but lists every subset).
+// CJK uses native sans-serif faces; Latin retains the editorial headline face.
 const fonts = "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap";
-const cjkFonts = locale.serif ? `https://fonts.googleapis.com/css2?family=${locale.serif}:wght@400;500;600&display=swap` : null;
 const origin = Astro.site ? Astro.site.origin : "";
 const canonical = `${origin}${localeHref(locale, page)}`;
 const ogImage = `${origin}${asset("assets/og.jpg")}`;
@@ -64,8 +62,6 @@ const ogLocale = (l: { lang: string }) => l.lang.replace(/-/g, "_");
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href={fonts} rel="stylesheet" />
-    {cjkFonts && <link rel="preload" as="style" href={cjkFonts} onload="this.onload=null;this.rel='stylesheet'" />}
-    {cjkFonts && <noscript><link rel="stylesheet" href={cjkFonts} /></noscript>}
   </head>
   <body class="bg-paper text-ink font-sans text-[17px] leading-[1.55] antialiased overflow-x-clip">
     <a class="absolute -left-[999px] top-2 z-[100] rounded-lg bg-ink px-3 py-2 text-paper focus:left-2" href="#main">{m.skip()}</a>

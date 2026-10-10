@@ -54,7 +54,36 @@ if (!reduce) $$("[data-count]").forEach((el) => {
   gsap.to(o, { v: to, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 85%" }, onUpdate: () => (el.textContent = o.v.toFixed(digits)) });
 });
 
-// FAQ answers slide open (a closed <details> isn't rendered, so CSS alone can't animate it).
-$$<HTMLDetailsElement>("details.faq").forEach((d) => d.addEventListener("toggle", () => {
-  if (d.open && !reduce) gsap.from($("[data-faq-body]", d), { height: 0, autoAlpha: 0, duration: 0.55, ease: "expo.out", clearProps: "height" });
-}));
+// Keep details open until the closing transition finishes. Reverse from the
+// current rendered height when a user clicks again during an animation.
+$$<HTMLDetailsElement>("details.faq").forEach((details) => {
+  const summary = $<HTMLElement>("summary", details)!;
+  const body = $<HTMLElement>("[data-faq-body]", details)!;
+  let expanded = details.open;
+  summary.setAttribute("aria-expanded", String(expanded));
+  summary.addEventListener("click", (event) => {
+    event.preventDefault();
+    expanded = !expanded;
+    summary.setAttribute("aria-expanded", String(expanded));
+    gsap.killTweensOf(body);
+    if (reduce) {
+      details.open = expanded;
+      gsap.set(body, { clearProps: "height,opacity,visibility" });
+      return;
+    }
+    const from = details.open ? body.getBoundingClientRect().height : 0;
+    if (expanded) details.open = true;
+    gsap.set(body, { height: from });
+    gsap.to(body, {
+      height: expanded ? body.scrollHeight : 0,
+      autoAlpha: expanded ? 1 : 0,
+      duration: 0.28,
+      ease: "power2.inOut",
+      onComplete: () => {
+        details.open = expanded;
+        gsap.set(body, { clearProps: "height,opacity,visibility" });
+        ScrollTrigger.refresh();
+      },
+    });
+  });
+});

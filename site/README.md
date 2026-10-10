@@ -24,9 +24,9 @@ GitHub Actions CI/CD (`.github/workflows/site.yml`) uses:
   - `CLOUDFLARE_API_TOKEN`
   - `CLOUDFLARE_ACCOUNT_ID`
 
-- `src/config.ts`: price, download and Homebrew links, version, support email, and `CHECKOUT_URL` — the Lemon Squeezy
-  link, which is in test mode and changes when the store goes live (change it there only). `asset()` prefixes the
-  deploy base.
+- `src/config.ts`: one-time License price (US$19.99), download and Homebrew links, version, support email, and the Lemon Squeezy
+  checkout URL (`CHECKOUT_URL`) — test mode until the store goes live (confirm live price/checkout before release).
+  `asset()` prefixes the deploy base.
 - `src/styles/global.css`: brand tokens in `@theme` (so `text-ink`, `bg-sky`, `font-serif` … exist as utilities),
   plus the bespoke widget styles (dial, vault window, palette, terminal) under `@layer components`.
 - i18n with [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs): messages in `messages/<locale>.json`
@@ -34,6 +34,8 @@ GitHub Actions CI/CD (`.github/workflows/site.yml`) uses:
   `src/paraglide/` on build. English is at `<base>/`, the rest at `<base>/<locale>/`; `src/middleware.ts` sets the
   locale per page and `src/i18n.ts` lists the languages. Add a string to every locale file, then use `m.key()`.
 - `src/components/*.astro`: one per section; each loads its own script from `src/scripts/`.
+- Standalone pages (each locale): `/pricing/` (purchase), `/privacy/`, `/license-terms/` — linked from the footer
+  and nav. The home page still has a `#pricing` section for the landing scroll.
 - `src/scripts/dial.ts`: the three-ring dial, same geometry as `Design/AppIcon/generate.py`.
 - `src/scripts/shader.ts`: live WebGPU backdrops (hero, screenshot stage, closing panel) from the MIT
   [`shaders`](https://github.com/shader-effects-inc/shaders) library, as brand-blue presets per theme. Telemetry is off,

@@ -1,0 +1,35 @@
+---
+import LegalShell from "./LegalShell.astro";
+import { m } from "../paraglide/messages.js";
+import { currentLocale, localeHref } from "../i18n";
+import { SITE } from "../config";
+
+const PAGE = "license-terms/";
+const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const p = { price: SITE.price, repo: SITE.repo, email: SITE.supportEmail, support: SITE.support };
+const sections = [1, 2, 3, 4, 5].map((n) => [t[`terms_s${n}_t`](), t[`terms_s${n}_b`](p)]);
+const privacy = localeHref(currentLocale(), "privacy/");
+---
+<LegalShell
+  page={PAGE}
+  title={m.terms_meta_title()}
+  description={m.terms_meta_description({ price: SITE.price })}
+  ogTitle={m.terms_og_title()}
+  kicker={m.terms_kicker()}
+  heading={m.terms_h1()}
+  lede={m.terms_lede()}
+>
+  <article class="legal mx-auto max-w-(--max) px-(--gutter) pt-10 pb-[clamp(64px,8vw,112px)]">
+    <p class="legal__updated">{m.terms_updated()}</p>
+    <p class="legal__note" set:html={m.terms_note()} />
+    {sections.map(([title, body]) => (
+      <section class="legal__section">
+        <h2>{title}</h2>
+        <div class="legal__body" set:html={body} />
+      </section>
+    ))}
+    <p class="legal__also">
+      <a href={privacy}>{m.foot_privacy()}</a>
+    </p>
+  </article>
+</LegalShell>

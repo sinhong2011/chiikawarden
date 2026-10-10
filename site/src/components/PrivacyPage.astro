@@ -1,0 +1,38 @@
+---
+import LegalShell from "./LegalShell.astro";
+import { SITE } from "../config";
+import { m } from "../paraglide/messages.js";
+
+const PAGE = "privacy/";
+const t = m as unknown as Record<string, (p?: Record<string, string>) => string>;
+const links = {
+  lemon: SITE.lemonPrivacy,
+  github: SITE.githubPrivacy,
+  fonts: SITE.googleFontsPrivacy,
+  pwned: "https://haveibeenpwned.com/Passwords",
+  directory: "https://2fa.directory/",
+  repo: SITE.repo,
+  email: SITE.supportEmail,
+  support: SITE.support,
+};
+const sections = [1, 2, 3, 4, 5, 8, 6, 7].map((n) => [t[`privacy_s${n}_t`](), t[`privacy_s${n}_b`](links)]);
+---
+<LegalShell
+  page={PAGE}
+  title={m.privacy_meta_title()}
+  description={m.privacy_meta_description()}
+  ogTitle={m.privacy_og_title()}
+  kicker={m.privacy_kicker()}
+  heading={m.privacy_h1()}
+  lede={m.privacy_lede()}
+>
+  <article class="legal mx-auto max-w-(--max) px-(--gutter) pt-10 pb-[clamp(64px,8vw,112px)]">
+    <p class="legal__updated">{m.privacy_updated()}</p>
+    {sections.map(([title, body]) => (
+      <section class="legal__section">
+        <h2>{title}</h2>
+        <div class="legal__body" set:html={body} />
+      </section>
+    ))}
+  </article>
+</LegalShell>

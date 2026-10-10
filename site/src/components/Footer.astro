@@ -3,28 +3,33 @@ import { versioned } from "../versioned";
 import { SITE } from "../config";
 import { m } from "../paraglide/messages.js";
 import { latestRelease } from "../release";
+import { currentLocale, localeHref } from "../i18n";
+
+interface Props { page?: string }
+const { page = "" } = Astro.props;
+const locale = currentLocale();
+const home = page ? localeHref(locale) : "";
+
 const rel = await latestRelease();
 const dmg = rel?.dmg ?? SITE.download;
 const refresh = !rel?.stable; // a fixed link never needs refreshing
 const links = [
   [m.foot_download(), dmg],
-  [m.foot_pricing(), "#pricing"],
+  [m.foot_pricing(), localeHref(locale, "pricing/")],
   [m.foot_source(), SITE.repo],
   [m.foot_security(), SITE.security],
-  // Email is the contact method — show the address, not a vague label.
+  [m.foot_terms(), localeHref(locale, "license-terms/")],
+  [m.foot_privacy(), localeHref(locale, "privacy/")],
   [SITE.supportEmail, SITE.support],
 ];
 ---
 <footer class="flex flex-wrap items-center justify-between gap-x-[30px] gap-y-4 border-t border-line px-(--gutter) pt-[30px] pb-10 text-[13.5px] text-ink-3">
-  <span class="flex items-center gap-2 font-semibold text-ink"><img class="rounded-[5px]" src={versioned("assets/icon.svg")} alt="" width="20" height="20" /> Triwarden</span>
+  <a class="flex items-center gap-2 font-semibold text-ink no-underline" href={page ? home : "#top"}>
+    <img class="rounded-[5px]" src={versioned("assets/icon.svg")} alt="" width="20" height="20" /> Triwarden
+  </a>
   <nav class="flex flex-wrap gap-5" aria-label={m.foot_nav()}>
     {links.map(([label, href], i) => (
-      <a
-        class="text-ink-2 no-underline hover:text-ink"
-        href={href}
-        data-dmg={i === 0 && refresh ? "" : undefined}
-        aria-label={href === SITE.support ? m.foot_support() : undefined}
-      >{label}</a>
+      <a class="text-ink-2 no-underline hover:text-ink" href={href} data-dmg={i === 0 && refresh ? "" : undefined}>{label}</a>
     ))}
   </nav>
   <span class="basis-full">{m.foot_disclaimer()} · © 2026 · GPL‑3.0</span>
