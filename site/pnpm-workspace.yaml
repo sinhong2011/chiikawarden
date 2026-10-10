@@ -3,5 +3,6 @@ packages:
 
 allowBuilds:
   esbuild: true
+ignoreWorkspaceRootCheck: true
 minimumReleaseAgeExclude:
   - shaders@4.0.2

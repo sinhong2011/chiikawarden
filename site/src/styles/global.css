@@ -162,7 +162,7 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 
 /* ───────── Hero ───────── */
 .hero::before { /* fine engraved grid, like a dial's guilloché, very faint */
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
     radial-gradient(1200px 700px at 72% 45%, var(--hero-glow) 0%, transparent 60%),
     repeating-linear-gradient(90deg, rgba(11,42,64,.035) 0 1px, transparent 1px 96px);
@@ -171,25 +171,29 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 
 
 /* ───────── Shader backdrops (scripts/shader.ts) ───────── */
-/* The element's own background is the fallback; the WebGPU canvas fades in over it once it has drawn. */
-.shader-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.4s cubic-bezier(.2,.7,.2,1); }
-.shader-ready > .shader-canvas { opacity: 1; }
+/* The element's own background is the fallback when WebGPU never starts.
+   Chrome will not present a WebGPU canvas that is opacity: 0 or under a CSS mask when its
+   context is created, and a negative z-index drops that layer behind the page. The canvas
+   stays paintable at z-index 0; a gradient veil fades it out instead of mask-image. */
+.shader-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; }
+.hero > :not(.hero-backdrop) { z-index: 2; }
+.hero > :not(.hero-backdrop):not(.absolute) { position: relative; }
 .hero-backdrop {
-  position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; translate: -50% 0; z-index: -2; overflow: hidden; pointer-events: none;
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 100%; translate: -50% 0; z-index: 0; overflow: hidden; pointer-events: none;
   background:
     radial-gradient(900px 620px at 78% 38%, var(--color-sky-2) 0%, transparent 62%),
     radial-gradient(700px 520px at 18% 70%, color-mix(in oklab, var(--color-sky) 45%, transparent) 0%, transparent 65%),
     var(--color-paper);
-  mask-image: linear-gradient(to bottom, #000 62%, transparent);
 }
-:root[data-theme="dark"] .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #173A55 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #12324A 0%, transparent 65%), var(--color-paper); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #173A55 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #12324A 0%, transparent 65%), var(--color-paper); } }
+.hero-backdrop::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to bottom, transparent 62%, var(--color-paper)); }
+:root[data-theme="dark"] .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #2F6A92 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #173A55 0%, transparent 65%), var(--color-paper); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-backdrop { background: radial-gradient(900px 620px at 78% 38%, #2F6A92 0%, transparent 62%), radial-gradient(700px 520px at 18% 70%, #173A55 0%, transparent 65%), var(--color-paper); } }
 
 .stage-backdrop { background: linear-gradient(135deg, var(--color-sky-2), var(--color-sky) 45%, var(--color-paper-2)); }
 .close-backdrop { background: radial-gradient(120% 90% at 85% 10%, var(--color-sky-2), transparent 60%), linear-gradient(160deg, var(--color-paper-2), color-mix(in oklab, var(--color-sky) 55%, var(--color-paper))); }
-.stage-backdrop > .shader-canvas, .close-backdrop > .shader-canvas { z-index: -1; }
+.stage-backdrop > :not(.shader-canvas), .close-backdrop > :not(.shader-canvas) { position: relative; z-index: 2; }
 /* A veil on the copy side keeps body text and the muted italic at full contrast over the moving glass. */
-.close-backdrop::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+.close-backdrop::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(to bottom, transparent 30%, color-mix(in oklab, var(--color-paper) 82%, transparent) 62%); }
 @media (min-width: 768px) { .close-backdrop::after { background: linear-gradient(90deg, transparent 38%, color-mix(in oklab, var(--color-paper) 80%, transparent) 64%); } }
 .close-backdrop h2 em { color: var(--color-ink-2); }
@@ -308,9 +312,15 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 }
 :lang(zh) body, :lang(ja) body { line-height: 1.75; }
 :lang(zh) .kicker, :lang(ja) .kicker { letter-spacing: .08em; }
-/* CJK hero: square glyphs run wider than Instrument Serif, so a smaller size, and each line kept whole. */
-:lang(zh) .hero h1, :lang(ja) .hero h1 { font-size: clamp(48px, 7.6vw, 124px); line-height: 1.12 !important; }
-:lang(zh) .hero-line, :lang(ja) .hero-line { white-space: nowrap; }
+/* The headline is one line per phrase. Size it from the copy column (cqi), not the viewport,
+   or "Your passwords." wraps and Japanese (nowrap) is clipped once the dial sits beside it. */
+.hero h1 { font-size: clamp(48px, 8vw, 120px); }
+@supports (width: 1cqi) {
+  .hero h1 { font-size: clamp(48px, 18cqi, 168px); }
+  :lang(zh) .hero h1 { font-size: clamp(40px, 16cqi, 124px); }
+  :lang(ja) .hero h1 { font-size: clamp(26px, 9cqi, 96px); }
+}
+:lang(zh) .hero h1, :lang(ja) .hero h1 { line-height: 1.12 !important; }
 :lang(zh) .close h2, :lang(ja) .close h2, :lang(zh) #close h2, :lang(ja) #close h2 { font-size: clamp(36px, 4.6vw, 68px) !important; }
 
 /* ───────── Language menu ───────── */
@@ -494,7 +504,7 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 
 .guide h2 { margin-top: 0; }
 .guide-steps { list-style: none; margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; display: grid; gap: clamp(56px, 7vw, 96px); }
-.guide-step { display: grid; gap: 4vw; align-items: start; }
+.guide-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4vw; align-items: start; }
 @media (min-width: 980px) { .guide-step { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } }
 .guide-step__no { display: block; font: 400 clamp(40px, 4vw, 56px)/1 var(--font-serif); color: var(--color-ink-3); margin-bottom: 14px; }
 .guide-step h3, .guide-case h3 { font-size: clamp(22px, 2vw, 26px); font-weight: 600; letter-spacing: -.015em; }
@@ -502,12 +512,13 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 .guide-tip { padding: 14px 16px; border-radius: 14px; background: color-mix(in oklab, var(--color-ink) 4%, transparent); font-size: 15px !important; }
 .guide-shot { border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--color-line), 0 30px 60px -36px rgba(11,42,64,.4); }
 .guide-shot .shot { width: 100%; height: auto; }
-.guide-cases { margin-top: clamp(40px, 5vw, 64px); display: grid; gap: 20px; }
+.guide-cases { margin-top: clamp(40px, 5vw, 64px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 @media (min-width: 900px) { .guide-cases { grid-template-columns: repeat(2, minmax(0, 1fr)); } .guide-case--wide { grid-column: 1 / -1; } }
 .guide-case { padding: clamp(22px, 2.6vw, 32px); border-radius: 24px; background: var(--color-card); box-shadow: 0 0 0 1px var(--color-line); }
 .guide-case .term-win { margin-top: 18px; }
 .guide-options { margin: 28px 0 0; display: grid; border-top: 1px solid var(--color-line-2); }
-.guide-options div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--color-line-2); }
+.guide-options div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 16px 0; border-bottom: 1px solid var(--color-line-2); }
+@media (min-width: 640px) { .guide-options div { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; } }
 .guide-options dt { font-weight: 600; } .guide-options dd { margin: 0; color: var(--color-ink-2); }
 .guide-safety { align-self: start; padding: clamp(24px, 3vw, 36px); border-radius: 26px; background: var(--color-night); color: #E6EEF4; }
 .guide-safety ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
@@ -519,7 +530,7 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 .guide code { font-size: .86em; }
 
 /* Terminal window */
-.term-win { margin: 0; border-radius: 16px; overflow: hidden; background: var(--color-night); box-shadow: 0 0 0 1px var(--color-line), 0 24px 50px -30px rgba(10,22,34,.6); }
+.term-win { margin: 0; min-width: 0; max-width: 100%; border-radius: 16px; overflow: hidden; background: var(--color-night); box-shadow: 0 0 0 1px var(--color-line), 0 24px 50px -30px rgba(10,22,34,.6); }
 .term-win__bar { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-bottom: 1px solid rgba(230,238,244,.08); }
 .term-win__lights { display: flex; gap: 6px; } .term-win__lights i { width: 10px; height: 10px; border-radius: 50%; background: rgba(230,238,244,.18); }
 .term-win__title { flex: 1; font: 500 12px var(--font-mono); color: #7F95A7; }
@@ -529,8 +540,8 @@ h3 { font-size: clamp(20px, 2vw, 24px); font-weight: 600; line-height: 1.2; }
 .t-prompt { color: #55697A; } .t-cmd { color: #F3F6F9; } .t-out { color: #A9BBC9; } .t-note { color: #6F8394; }
 
 /* Flow diagram */
-.flow { margin: 0; }
-.flow svg { width: 100%; height: auto; display: block; overflow: visible; }
+.flow { margin: 0; min-width: 0; max-width: 100%; }
+.flow svg { width: 100%; height: auto; display: block; }
 .flow__node { fill: var(--color-card); stroke: var(--color-line-2); stroke-width: 1.5; transform-box: fill-box; }
 .flow__node--app { fill: var(--color-sky); stroke: none; }
 .flow__label { font: 600 21px var(--font-sans); fill: var(--color-ink); }

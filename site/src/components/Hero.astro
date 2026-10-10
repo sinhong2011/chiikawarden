@@ -16,10 +16,10 @@ const specs = [
 ---
 <section id="top" class="hero relative isolate mx-auto grid min-h-svh max-w-[1560px] items-center gap-[2vw] px-(--gutter) pt-[120px] pb-20 *:min-w-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] max-lg:pt-[110px]">
   <div data-shader="hero" class="hero-backdrop" aria-hidden="true"></div>
-  <div data-hero-copy>
-    <h1 class="m-0 font-serif text-[clamp(64px,10.4vw,168px)] leading-[.86] font-normal tracking-[-.035em]">
-      <span class="hero-line block overflow-hidden pb-[.26em] -mb-[.2em]"><span class="inline-block">{m.hero_title_1()}</span></span>
-      <span class="hero-line block overflow-hidden pb-[.26em] -mb-[.2em]"><em class="inline-block text-ink">{m.hero_title_2()}</em></span>
+  <div data-hero-copy class="@container">
+    <h1 class="m-0 font-serif leading-[.86] font-normal tracking-[-.035em]">
+      <span class="hero-line block overflow-hidden px-[.12em] -mx-[.12em] pb-[.26em] -mb-[.2em] whitespace-nowrap"><span class="inline-block">{m.hero_title_1()}</span></span>
+      <span class="hero-line block overflow-hidden px-[.12em] -mx-[.12em] pb-[.26em] -mb-[.2em] whitespace-nowrap"><em class="inline-block text-ink">{m.hero_title_2()}</em></span>
     </h1>
     <p data-reveal class="my-[34px] max-w-[490px] text-[clamp(17px,1.4vw,19.5px)] text-ink-2">
       {m.hero_lede()}
@@ -46,7 +46,7 @@ const specs = [
       ))}
     </dl>
   </div>
-  <div data-dial="hero" aria-hidden="true" class="relative aspect-square w-[min(64vw,900px)] justify-self-center -mr-[6vw] max-lg:order-first max-lg:mx-auto max-lg:-mb-2.5 max-lg:w-[min(92vw,560px)]"></div>
+  <div data-dial="hero" aria-hidden="true" class="relative aspect-square w-full max-w-[900px] justify-self-end lg:-mr-(--gutter) max-lg:order-first max-lg:mx-auto max-lg:mb-1 max-lg:w-full max-lg:max-w-[520px] max-lg:justify-self-center"></div>
   <div aria-hidden="true" class="absolute right-(--gutter) bottom-[34px] hidden gap-7 font-mono text-[11.5px] leading-none tracking-[.1em] text-ink-3 tabular-nums lg:flex">
     <span data-readout>ROTOR 135.0° · −75.0° · 30.0°</span>
     <span>KEYWAY 6:00</span>
