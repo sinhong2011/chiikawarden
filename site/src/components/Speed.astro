@@ -11,7 +11,7 @@ const stats = [
   { value: 0, digits: 0, unit: "", label: m.speed_engines(), size: false },
 ];
 ---
-<section id="speed" class="bg-night px-[max(var(--gutter),calc((100vw-var(--max))/2))] py-[clamp(64px,8vw,112px)] text-[#E6EEF4]">
+<section id="speed" class="bg-night px-[max(var(--gutter),calc((100%-var(--max))/2))] py-[clamp(64px,8vw,112px)] text-[#E6EEF4]">
   <div data-reveal-group class="[&_.kicker]:text-[#7F95A7] [&_h2_em]:text-[#7F95A7]">
     <p class="kicker">{m.speed_kicker()}</p>
     <h2>{m.speed_title_1()}<br /><em>{m.speed_title_2()}</em></h2>
