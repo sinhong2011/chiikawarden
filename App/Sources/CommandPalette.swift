@@ -455,7 +455,9 @@ struct CommandPalette: View {
                 if item.username != nil { footerHint("⌃↵", "Username") }
                 if item.password != nil { footerHint("⌥↵", "Password") }
                 if item.totp != nil { footerHint("⌘↵", "Code") }
-                footerHint("⇧", "& submit")
+                Text("Hold ⇧ to submit")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             } else {
                 footerHint("↵", "Open")
                 if item.password != nil { footerHint("⌘↵", "Copy password") }

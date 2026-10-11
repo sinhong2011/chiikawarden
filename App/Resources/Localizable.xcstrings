@@ -1497,6 +1497,14 @@
         }
       }
     },
+    "Hold ⇧ to submit" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "⇧ を押したまま送信" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "按住 ⇧ 即提交" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "按住 ⇧ 即送出" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "按住 ⇧ 即提交" } }
+      }
+    },
     "& submit" : {
       "localizations" : {
         "ja" : { "stringUnit" : { "state" : "translated", "value" : "& 送信" } },
@@ -6366,6 +6374,30 @@
             "value" : "%@檢查過"
           }
         }
+      }
+    },
+    "Reachable" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "到達可能" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可连接" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "可連線" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "可連線" } }
+      }
+    },
+    "Sign in to see the server version." : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログインするとサーバーのバージョンが表示されます。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录后即可看到服务器版本。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "登入後即可看到伺服器版本。" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "登入後就可以睇到伺服器版本。" } }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "バージョン" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "版本" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "版本" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "版本" } }
       }
     },
     "Checking server…" : {
@@ -24343,6 +24375,38 @@
             "value" : "顯示"
           }
         }
+      }
+    },
+    "Reveal (⌥⌘R, or hold ⌥)" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示（⌥⌘R、または ⌥ を押したまま）" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示（⌥⌘R，或按住 ⌥）" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示（⌥⌘R，或按住 ⌥）" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "顯示（⌥⌘R，或按住 ⌥）" } }
+      }
+    },
+    "Reveal password" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "パスワードを表示" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示密码" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示密碼" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "顯示密碼" } }
+      }
+    },
+    "Reveal while held" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "押している間表示" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "按住时显示" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "按住時顯示" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "按住時顯示" } }
+      }
+    },
+    "Password field" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "パスワード欄" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "密码栏" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "密碼欄位" } },
+        "zh-HK" : { "stringUnit" : { "state" : "translated", "value" : "密碼欄" } }
       }
     },
     "Reveal (hold ⌥)" : {

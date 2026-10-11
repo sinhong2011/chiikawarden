@@ -776,9 +776,33 @@ private struct ServerSettings: View {
     /// A certificate or header about to be removed, waiting for "Are you sure?".
     @State private var removingCA: Int?
     @State private var removingHeader: CustomHeader.ID?
+    /// One signed-in server and the version it reported.
+    @State private var versions: [ServerVersionRow] = []
+    @State private var versionsLoaded = false
 
     var body: some View {
         Form {
+            Section {
+                if model.accounts.isEmpty {
+                    Text("Sign in to see the server version.").foregroundStyle(.secondary)
+                } else if !versionsLoaded {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text("Checking server…").foregroundStyle(.secondary)
+                    }
+                } else {
+                    ForEach(versions) { row in
+                        LabeledContent {
+                            Text(verbatim: row.detail).foregroundStyle(.secondary)
+                        } label: {
+                            Text(verbatim: row.title)
+                        }
+                    }
+                }
+            } header: {
+                Text("Version")
+            }
+
             Section {
                 if cas.isEmpty {
                     Text("Using the system's trusted certificates.").foregroundStyle(.secondary)
@@ -831,6 +855,10 @@ private struct ServerSettings: View {
             }
         }
         .formStyle(.grouped)
+        .task(id: model.accounts.map(\.id).joined(separator: ",")) {
+            versionsLoaded = false
+            await loadVersions()
+        }
         .onChange(of: headers) { _, new in HeaderStore.save(new); model.resetClient() }
         .confirmationDialog("Remove this certificate?", isPresented: Binding(
             get: { removingCA != nil }, set: { if !$0 { removingCA = nil } }), presenting: removingCA) { index in
@@ -871,6 +899,29 @@ private struct ServerSettings: View {
         model.resetClient()
     }
 
+    /// Asks each signed-in server for its version. `/api/config` needs no password.
+    private func loadVersions() async {
+        var seen = Set<String>()
+        var rows: [ServerVersionRow] = []
+        for account in model.accounts {
+            guard let environment = account.environment else { continue }
+            let key = "\(account.serverKind)|\(account.serverSummary)"
+            guard seen.insert(key).inserted else { continue }
+            let detail: String
+            do {
+                let config = try await Connection.makeClient(environment).config()
+                let name = [config.productName, config.version].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+                detail = name.isEmpty ? String(localized: "Reachable") : name
+            } catch {
+                detail = String(localized: "Can't reach this server")
+            }
+            guard !Task.isCancelled else { return }
+            rows.append(ServerVersionRow(id: key, title: account.serverSummary, detail: detail))
+        }
+        versions = rows
+        versionsLoaded = true
+    }
+
     private func certificate(from data: Data) -> SecCertificate? {
         if let c = SecCertificateCreateWithData(nil, data as CFData) { return c }
         let body = String(decoding: data, as: UTF8.self).components(separatedBy: .newlines)
@@ -881,6 +932,13 @@ private struct ServerSettings: View {
     private func certificateName(_ data: Data) -> String {
         certificate(from: data).flatMap { SecCertificateCopySubjectSummary($0) as String? } ?? "Certificate"
     }
+}
+
+/// A server address and the version string from its public config.
+private struct ServerVersionRow: Identifiable {
+    let id: String
+    let title: String
+    let detail: String
 }
 
 // MARK: About

@@ -102,6 +102,11 @@ struct KeyboardShortcutsView: View {
         Entry(keys: "gen 24", title: "A new 24-character password", kind: .typed),
     ])
 
+    static let passwordField = Group(title: "Password field", symbol: "eye", entries: [
+        Entry(keys: "⌥⌘R", title: "Reveal password"),
+        Entry(keys: "⌥", title: "Reveal while held"),
+    ])
+
     static let otherApp = Group(title: "Over another app", symbol: "rectangle.and.hand.point.up.left", entries: [
         Entry(keys: "↵  ⇧↵", title: "Type username and password / & submit"),
         Entry(keys: "⌃↵  ⇧⌃↵", title: "Type username / & submit"),
@@ -109,7 +114,7 @@ struct KeyboardShortcutsView: View {
     ])
 
     private var catalog: [Group] {
-        [Self.window, Self.item, Self.search, Self.palette, Self.otherApp, everywhere]
+        [Self.window, Self.item, Self.search, Self.palette, Self.otherApp, Self.passwordField, everywhere]
     }
 
     private func matching(_ group: Group) -> Group? {

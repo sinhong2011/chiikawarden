@@ -12,8 +12,7 @@ struct DecodingText: View {
     }
 }
 
-/// A secret that rolls into view, and rolls back into dots when it is hidden again.
-/// Hiding keeps the remaining characters in place until each one becomes a dot, left to right.
+/// A secret that rolls into view from the left. Hiding runs that same roll from the right, into dots.
 struct MaskedSecret: View {
     let secret: String
     let revealed: Bool
@@ -24,8 +23,8 @@ struct MaskedSecret: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var mask: String {
-        // Same length as the secret, so each character rolls back into its own dot.
-        String(repeating: "•", count: min(max(secret.count, dots), 36))
+        // One dot per character, so the row does not shrink when the flicker finishes.
+        String(repeating: "•", count: max(secret.count, dots))
     }
     private static let glyphs = Array("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
 
@@ -33,17 +32,18 @@ struct MaskedSecret: View {
         self.secret = secret
         self.revealed = revealed
         self.dots = dots
-        let mask = String(repeating: "•", count: min(max(secret.count, dots), 36))
+        let mask = String(repeating: "•", count: max(secret.count, dots))
         _shown = State(initialValue: revealed ? secret : mask)
     }
 
     var body: some View {
         Text(verbatim: shown)
-            .task(id: revealed) { await roll(to: revealed ? secret : mask, flicker: revealed) }
+            .task(id: revealed) { await roll(to: revealed ? secret : mask, fromLeft: revealed) }
     }
 
-    /// `flicker`: unrevealed characters cycle glyphs (the reveal). Otherwise they stay as they were until they become dots.
-    private func roll(to target: String, flicker: Bool) async {
+    /// Same roll either way. Revealing locks the secret in from the left. Hiding locks dots in from the right.
+    /// Characters the wave has not reached yet keep flickering.
+    private func roll(to target: String, fromLeft: Bool) async {
         guard Motion.plays, !reduceMotion, shown != target else { shown = target; return }
         let steps = 12
         let from = Array(shown)
@@ -52,15 +52,19 @@ struct MaskedSecret: View {
         for step in 0...steps {
             let settled = count * step / steps
             shown = String((0..<count).map { index in
-                if index < settled { return index < to.count ? to[index] : "•" }
-                if flicker { return Self.glyphs.randomElement()! }
-                if index < from.count { return from[index] }
-                return "•"
+                let done = fromLeft ? index < settled : index >= count - settled
+                if done { return index < to.count ? to[index] : "•" }
+                return Self.glyphs.randomElement()!
             })
             try? await Task.sleep(for: .milliseconds(26))
             if Task.isCancelled { return }
         }
-        shown = target
+        // Hiding must not end shorter than the roll that just played.
+        if !fromLeft, to.count < count {
+            shown = String(repeating: "•", count: count)
+        } else {
+            shown = target
+        }
     }
 }
 

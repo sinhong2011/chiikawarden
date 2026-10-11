@@ -95,24 +95,23 @@ struct PasswordField: View {
                         .transition(.opacity.combined(with: .scale(scale: 0.6)))
                 }
                 Button {
-                    if revealed {
-                        visible = false
-                        optionPeek = false
-                        peekWait?.cancel()
-                    } else {
-                        visible = true
-                    }
-                    focused = true
+                    toggleReveal()
                 } label: {
-                    Image(systemName: revealed ? "eye.slash" : "eye")
-                        .contentTransition(.symbolEffect(.replace))
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 26, height: 26)
-                        .contentShape(.rect)
+                    HStack(spacing: 4) {
+                        Text(verbatim: "⌥⌘R")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                        Image(systemName: revealed ? "eye.slash" : "eye")
+                            .contentTransition(.symbolEffect(.replace))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 26, height: 26)
+                    }
+                    .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
-                .help(revealed ? Text("Hide password") : Text("Reveal (hold ⌥)"))
+                .help(revealed ? Text("Hide password") : Text("Reveal (⌥⌘R, or hold ⌥)"))
                 .accessibilityLabel(revealed ? Text("Hide password") : Text("Show password"))
             }
             .zIndex(1)
@@ -122,10 +121,15 @@ struct PasswordField: View {
         .onAppear {
             capsLock = NSEvent.modifierFlags.contains(.capsLock)
             optionDown = Self.optionAlone(NSEvent.modifierFlags)
-            capsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-                capsLock = event.modifierFlags.contains(.capsLock)
-                optionDown = Self.optionAlone(event.modifierFlags)
-                return event
+            capsMonitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { event in
+                if event.type == .flagsChanged {
+                    capsLock = event.modifierFlags.contains(.capsLock)
+                    optionDown = Self.optionAlone(event.modifierFlags)
+                    return event
+                }
+                guard fieldActive, Self.revealChord(event) else { return event }
+                toggleReveal()
+                return nil
             }
         }
         .onDisappear {
@@ -152,6 +156,25 @@ struct PasswordField: View {
         .onAppear { if isFocused?.wrappedValue == true { focused = true } }
     }
 
+    /// Show or hide. ⌥⌘R toggles; holding ⌥ peeks and lets go of it hides again.
+    private func toggleReveal() {
+        if revealed {
+            visible = false
+            optionPeek = false
+            peekWait?.cancel()
+        } else {
+            visible = true
+        }
+        focused = true
+    }
+
+    /// ⌥⌘R, and not a key repeat. Shift and Control stay out so this isn't a character the field should keep.
+    private static func revealChord(_ event: NSEvent) -> Bool {
+        guard !event.isARepeat, event.charactersIgnoringModifiers?.lowercased() == "r" else { return false }
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        return flags.contains(.option) && flags.contains(.command) && !flags.contains(.shift) && !flags.contains(.control)
+    }
+
     /// ⌥ by itself. Caps Lock and the extra flags macOS attaches to the key do not count; Shift, Control and Command do.
     private static func optionAlone(_ flags: NSEvent.ModifierFlags) -> Bool {
         flags.intersection([.shift, .control, .option, .command]) == .option
@@ -176,21 +199,24 @@ struct PasswordField: View {
         }
     }
 
+    /// Room for ⌥⌘R and the eye, plus the Caps Lock mark when it is showing.
+    private var trailingRoom: CGFloat { showsCapsLock ? 86 : 64 }
+
     /// Where the revealed characters sit, matching the secure field's own insets so they don't slide.
     private var revealTextInset: (leading: CGFloat, trailing: CGFloat) {
         switch look {
-        case .soft: (12, 12 + (showsCapsLock ? 44 : 22))
-        case .rounded: (8, 28)
-        case .plain: (0, showsCapsLock ? 50 : 28)
+        case .soft: (12, 12 + trailingRoom)
+        case .rounded: (8, trailingRoom)
+        case .plain: (0, trailingRoom + 6)
         }
     }
 
     @ViewBuilder
     private func styled(_ field: some View) -> some View {
         switch look {
-        case .soft: field.textFieldStyle(SoftFieldStyle(trailingInset: showsCapsLock ? 44 : 22))
-        case .rounded: field.textFieldStyle(.roundedBorder).padding(.trailing, 0)
-        case .plain: field.textFieldStyle(.plain).padding(.trailing, showsCapsLock ? 50 : 28) // room for the reveal button
+        case .soft: field.textFieldStyle(SoftFieldStyle(trailingInset: trailingRoom))
+        case .rounded: field.textFieldStyle(.roundedBorder).padding(.trailing, trailingRoom)
+        case .plain: field.textFieldStyle(.plain).padding(.trailing, trailingRoom + 6)
         }
     }
 }
